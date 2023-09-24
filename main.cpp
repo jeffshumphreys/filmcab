@@ -3,7 +3,7 @@
 #include <QDebug>
 
 #include "task.h"
-#include "showfilestask.h"
+#include "processfilestask.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,15 +11,15 @@ int main(int argc, char *argv[])
     qDebug("main:QCoreApplication a(argc, argv)");
     QCoreApplication a(argc, argv);
 
-    qDebug("main:ShowFilesTask *showFilesTask = new ShowFilesTask(&a)");
-    ShowFilesTask *showFilesTask = new ShowFilesTask(&a);
+    qDebug("main:ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a)");
+    ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a);
 
-    qDebug("main:QObject::connect(showFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
-    QObject::connect(showFilesTask, SIGNAL(finished()), &a, SLOT(quit())); // or SLOT(close()?
+    qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
+    QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit())); // or SLOT(close()?
     // This will run the task from the application event loop.
 
-    qDebug("main:QTimer::singleShot(0, showFilesTask, SLOT(run()))");
-    QTimer::singleShot(0, showFilesTask, SLOT(run()));
+    qDebug("main:QTimer::singleShot(0, processFilesTask, SLOT(run()))");
+    QTimer::singleShot(0, processFilesTask, SLOT(run()));
 
     // exit(non-zero)?
 
