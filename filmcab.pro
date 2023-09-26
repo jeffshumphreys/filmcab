@@ -15,7 +15,8 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 
 SOURCES += \
         main.cpp \
-        processfilestask.cpp
+        processfilestask.cpp \
+        processvideofilestask.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -26,5 +27,6 @@ DISTFILES +=
 
 HEADERS += \
     processfilestask.h \
+    processvideofilestask.h \
     task.h
 
