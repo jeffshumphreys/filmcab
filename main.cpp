@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 
     qDebug("main:ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a)");
     ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a);
+    // Pass in
 
     qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
     QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit())); // or SLOT(close()?

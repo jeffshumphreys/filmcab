@@ -2,6 +2,8 @@
  * TODO:
  *   check-in code
  *   backup database
+ *   do torrents folder
+ *   fix file types to published and renamed for view browsing, backedup from view browsing, magnet files for torrents
  *   pull all directories out of name into directories table.
  *   grab all dates stamps on all directories (get traverse to work?)
  *   create batch run table and track
@@ -40,21 +42,18 @@
  *   D drive and O drive have MASSIVELY different performance times.
  *   Can't wait to check the G drive. Are all external drives this slow? Is it USB 2.0, 3.0, 3.1,etc?
  *   Maybe need that behemoth box with internal hard drives over network. Or switch for downloads and video publishing.
+ *   vacuum'd full the stage_for_master schema. Dropped files from 10M to 9M.
  */
 
 #ifndef PROCESSFILESTASK_H
 #define PROCESSFILESTASK_H
 
 #include "task.h"
-#include <QMainWindow>
+//#include <QMainWindow> console
 #include <QObject>
-#include <QQuickItem>
-#include <QSharedDataPointer>
-#include <QWidget>
+#include <QSharedDataPointer> // Will we use?
 #include <QFileSystemModel>
-#include <QTreeView>
 #include <QCryptographicHash>
-//#include <QtMultimedia/QtMultimedia> // Will use eventually, or try, in order to get codec properties of video files.
 #include <QSqlDatabase>  // Requires "sql" added to .pro file
 #include <QSqlError> // Required to not get "Calling 'lastError' with incomplete return type 'QSqlError'" on lastError
 #include <QSqlQuery>
@@ -64,7 +63,6 @@ class ProcessFilesTaskData;
 class ProcessFilesTask : public Task
 {
     Q_OBJECT
-    QML_ELEMENT
 public:
     ProcessFilesTask(QObject * = 0);
 
@@ -83,7 +81,7 @@ private:
 
         foreach (QFileInfo fileInfo, dir.entryInfoList()) {
             if (fileInfo.isDir() && fileInfo.isReadable())
-                filecount = traverseDirectoryHierarchy(fileInfo.filePath(), listOfFileTypes, filecount);
+                filecount+= traverseDirectoryHierarchy(fileInfo.filePath(), listOfFileTypes, filecount);
             else {
                 //qDebug() << fileInfo.filePath();
                filecount++; // Not working, is it counting folders instead?
@@ -113,21 +111,17 @@ public slots:
         filedb.setUserName("postgres");
         filedb.setPassword("postgres");
 
-        // TODO:
-
         qDebug() << "Attempting to connect to:" << filedb.hostName() << filedb.port() << filedb.userName() << filedb.password();
 
         bool connected = filedb.open();
 
         if(!connected) {
             auto connectionError = filedb.lastError();
-            qCritical() << "Error on attempting to open database:" << connectionError.text();
+            qCritical() << "Error on attempting to open database:" << connectionError.text(); // Test this with bad pwd
             // Still soldiers on, should still be able to get through directory.
         }
         else {
             qDebug() << "Connected successfully!";
-            //QSqlQuery q(db);
-            //q.exec("SET NAMES latin1");
         }
 
         // Agh! it's staging!!!! if (connected) filedb.transaction();
@@ -152,9 +146,9 @@ public slots:
         FilesBaseDirectory = "D:/qBittorrent Downloads/Video/TV"; // 2nd search, so we didn't truncate, and didn't reset the IDENTITY.
         FilesBaseDirectory = "O:/Video AllInOne"; // 2nd search, so we didn't truncate, and didn't reset the IDENTITY.
         // Crashed on 2489 : "O:/Video AllInOne/_Police State/Network (1976).mkv". Got inserted though. I think I crashed it fiddling in the source code. :(
-        // O:
-        // G:
-        // Torrents?
+        FilesBaseDirectory = "G:/Video AllInOne2"; // 3nd search, so we didn't truncate, and didn't reset the IDENTITY.
+        // Torrents? Actually magnet links which are mostly indecipherable.
+
         qDebug() << "**** ProcessFilesTask:: Scanning " << FilesBaseDirectory;
 
         qDebug() << "**** ProcessFilesTask:: First get a fast count";
@@ -175,6 +169,9 @@ public slots:
         // Examine each file and create an MD5 for it and push it to the database
 
         while (FileDirectoriesIter.hasNext()) {
+            QElapsedTimer timeThisFileProcess;
+            timeThisFileProcess.start();
+            timeThisFileProcess.restart(); // Otherwise it doesn't for some smart reason.
             howManyFilesReadInfoFor++;
             QFileInfo FileInfo = FileDirectoriesIter.nextFileInfo();
 
@@ -209,6 +206,9 @@ public slots:
             if (howManyRowsHadSamePath >= 1) {
                qDebug() << "**** ProcessFilesTask:: this file_path already in:" << FilePath << ", skipping because we know that''s where we crashed. Elsewhise we''d have to check dates, size, hash, etc.";
                continue;
+            }
+            else {
+               qDebug().nospace() << "**** ProcessFilesTask:: new file_path:" << FilePath << ", adding.";
             }
             QString parentFolderOfFile = FileInfo.dir().absolutePath();
             QFileInfo FileContainerInfo = QFileInfo(parentFolderOfFile);
@@ -264,8 +264,6 @@ public slots:
                                                 "/* parent_folder_created_on_ts */                        '%8', "
                                                 "/* parent_folder_modified_on_ts */                       '%9'  "
                                                 ")"
-                                                //" ON CONFLICT ON CONSTRAINT files_text_version DO NOTHING" /* This is staging! so there should be no conflicts
-                                                /* ON CONFLICT....*/ /* No unique constraint exactly since I'm holding deleted files in here */
                                                 ).arg(
                                                    FilePathPrepped
                                                  , FileNamePrepped // Any other illegal characters? Check lengths first?
@@ -295,6 +293,8 @@ public slots:
                 else {
                     if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Writing file info to files table. Completed!";
 
+                    qint64 secondsProcessingThisFileTook = timer.secsTo(timeThisFileProcess);
+                    qDebug() << "Took" << secondsProcessingThisFileTook << "seconds to process this file.";
                     howManyFilesAddedToDatabaseNewly++; // Not updated, which is not an error, but without the ON CONFLICT working we can't trap exactly.
                     howManyFilesProcessed++;
                     howManyFilesProcessedSuccessfully++; // Have to update this if I get ON CONFLICT and updates working, as that's processing.
@@ -329,7 +329,8 @@ public slots:
 
 signals:
     void finished();
-
+    // QML debugging is enabled. Only use this in a safe environment.
+    // 21:29:10: D:\qt_projects\build-filmcab-Desktop_Qt_6_5_2_MinGW_64_bit-Debug\debug\filmcab.exe exited with code 0
 };
 
 #endif // PROCESSFILESTASK_H
