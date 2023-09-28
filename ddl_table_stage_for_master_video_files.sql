@@ -14,11 +14,20 @@ drop table if exists video_files; -- Probably don't want constraints on this tab
 create table video_files (
 	id                                           int                         not null generated always as identity, -- local counter, since staging data
 	file_id										 int                         not null,
-	text                                         varchar(400)                not null, -- proper title, our style? or IMDB style?
-	file_name                                    varchar(200)                not null, -- in case the file record is lost, what was the name from?  Definitely helps with the tag cat
+	text                                         varchar(200)                not null, -- proper title, our style? or IMDB style? We're not storing file path, that's in the file table. clean!
+	autocleaned_title_from_file_name             varchar(200)                    null, -- if I ever get this to work
+	
+	-- The way I personally like to see a title, since so many are the same but released different years. Index? Not really thinking of keeping multiple versions of a movie same year - yet.
+
+	cleaned_title_with_year                      varchar(207)                not null generated always as (
+			trim(trim(text) || ' ' || 
+				case when release_year is null then '' else '(' || release_year || ')' end)
+			) stored, -- changes when the other columns change.
+	file_name                                    varchar(204)                not null, -- in case the file record is lost, what was the name from? Definitely helps with the tag cat. base or with extension? extension helps with clean
 	record_version_for_same_name                 int                         not null, -- local versioning
-	release_year                                 int                             null check (release_year between 1890 and date_part('year', now())), -- may have to guess, lookup, derive
 	type_id                                      int8                            null, -- Unlike Titles table, type does not make it unique. Mainly path.  types are video, film, movie, tv series, subtitles, yada
+	release_year                                 int                             null check (release_year between 1890 and date_part('year', now())),
+	release_year_from_file_name                  int                             null, -- may have to guess, lookup, derive, will year advance??
 	source_type_tags_from_file_name              varchar(20)				     null, -- BRrip_, BRRip, BRrip, BDRip, BlueRay, DVDRip, DVDRiP XviD, Xvid, WEBRip, WEB-DL, DVD Rip, (BR), SubRip - MicroDVD
 	display_resolution_tags_from_file_name		 varchar(10)                     null, -- 1080p, 720p
 	country_release_tags_from_file_name			 char(2)                         null, -- UK
@@ -41,7 +50,7 @@ create table video_files (
 	studio_id			                         int8                            null, -- MGM, Republic, Universal, etc.
 	subtitles_file_id						     int                             null, -- just in staging, but for putting it all together for master. Make a foreign key. cannot be same as file_id, probably.
 	subtitles_embedded						     bool                            null, -- hopefully english
-	plays_in_dsktp_vlc                           bool                            null, -- what version?
+	plays_in_dsktp_vlc                           bool                            null, -- what version of vlc? when was last try?
 	constraint pk_video_files_id primary key (id),
 	constraint ak_video_files_text_version unique (text, record_version_for_same_name),
 	constraint ak_video_files_text_release_year unique (text, release_year), -- what a mess. different record version, but same release year????

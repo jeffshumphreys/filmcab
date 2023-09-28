@@ -38,10 +38,11 @@ ProcessFilesTask::ProcessFilesTask(QObject *parent)
         // 10: Backed up from published folders
 }
 
-ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs)
+ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs, int assumeFileTypeId)
     : data{rhs.data}
 {
-    qDebug("ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs): data{rhs.data}");
+    qDebug("ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs, int assumeTypeId): data{rhs.data}");
+    this->assumefileTypeId = assumeFileTypeId; // should verify, but
 }
 
 ProcessFilesTask &ProcessFilesTask::operator=(const ProcessFilesTask &rhs)

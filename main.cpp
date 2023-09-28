@@ -12,8 +12,11 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
     qDebug("main:ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a)");
+
+    // This is stupid. I don't want to pass in details about the file task in the constructor.  How to set data parameters?
+
     ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a);
-    // Pass in
+
 
     qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
     QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit())); // or SLOT(close()?

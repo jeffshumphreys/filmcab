@@ -28,5 +28,6 @@ DISTFILES +=
 HEADERS += \
     processfilestask.h \
     processvideofilestask.h \
+    sharedenumerations.h \
     task.h
 

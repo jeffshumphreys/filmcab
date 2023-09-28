@@ -64,7 +64,7 @@ class ProcessFilesTask : public Task
 {
     Q_OBJECT
 public:
-    ProcessFilesTask(QObject * = 0);
+    ProcessFilesTask(QObject * = 0, int assumeFileTypeId = 7); // 7 is just a file, juuuuuust a file. Please pass a proper value from the types table in.
 
     ProcessFilesTask(const ProcessFilesTask &);
     ProcessFilesTask &operator=(const ProcessFilesTask &);
@@ -72,6 +72,7 @@ public:
 
 private:
     QSharedDataPointer<ProcessFilesTaskData> data;
+    int assumefileTypeId;
 
     int traverseDirectoryHierarchy(const QString &dirname, QStringList listOfFileTypes, int filecount = 0)
     {
@@ -250,16 +251,16 @@ public slots:
                 QString insertCommand = QString("INSERT INTO stage_for_master.files(text, base_name, final_extension, type_id, record_version_for_same_name_file, file_md5_hash, file_deleted, file_size"
                                                 ", file_created_on_ts, file_modified_on_ts, parent_folder_created_on_ts, parent_folder_modified_on_ts)"
                                                 " VALUES ("
-                                                /* id is an identity column since this is staging and so we don't need to keep a cross-table unique-ish id */
-                                                "/* text */                                               '%1', " /* aka full_path */
-                                                "/* base_name */                                          '%2', "
-                                                "/* final_extension */                                    '%3', "
-                                                "/* type_id: Downloaded Torrent File */                     8, " /* replace with var! */
+                                                // id is an identity column since this is staging and so we don't need to keep a cross-table unique-ish id. Unfortunately, the master can't link back tightly to the staging, so maybe give it a think.
+                                                "/* text */                                               '%1', " // aka full_path to the file
+                                                "/* base_name */                                          '%2', " // Without the extension, which is a bit annoying sometimes
+                                                "/* final_extension */                                    '%3', " // torrents have dots galore, so be careful to get the one that tells us the format
+                                                "/* type_id: Downloaded Torrent File */                     8, " // replace with variable, silly!
                                                 "/* This version (guess) and update should fix if trigger ever hit # */ 1, "
-                                                "/* file_md5_hash */                                      '%4'::bytea, "
-                                                "/* file_deleted */                               false,"
-                                                "/* file_size */                                           %5 , "
-                                                "/* file_created_on_ts */                                 '%6', "
+                                                "/* file_md5_hash */                                      '%4'::bytea, " // Not cross-db compatible
+                                                "/* file_deleted */                               false," // No such type in SQL Server
+                                                "/* file_size */                                           %5 , " // int64
+                                                "/* file_created_on_ts */                                 '%6', " // has milliseconds
                                                 "/* file_modified_on_ts */                                '%7', "
                                                 "/* parent_folder_created_on_ts */                        '%8', "
                                                 "/* parent_folder_modified_on_ts */                       '%9'  "
@@ -269,8 +270,8 @@ public slots:
                                                  , FileNamePrepped // Any other illegal characters? Check lengths first?
                                                  , FileNameExtension, fileHashAsHexString
                                                  , QString::number(FileSize)
-                                                 , FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") /* note that "ms" would be "fffffff" in sql server */
-                                                 , FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                 , FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
+                                                 , FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
                                                  , fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
                                                  , fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
                                                  );
@@ -278,20 +279,24 @@ public slots:
                 // Did it successfully add a new record to the database?
 
                 if (!pushFilmFileInfoToDatabase.exec(insertCommand)) {
-                    qDebug() << pushFilmFileInfoToDatabase.lastError().text();
+                    // No it did not add a record to the database.
+                    qDebug() << pushFilmFileInfoToDatabase.lastError().text(); // Not cross-db comparable. No ANSI error codes.
                     qDebug() << pushFilmFileInfoToDatabase.lastQuery();
                     qDebug() << "**** ProcessFilesTask:: Did not add this file info!";
                     /*
                      * ERROR:  duplicate key value violates unique constraint \"files_pkey\"\nDETAIL:  Key (id)=(1) already exists.\n(23505) QPSQL: Unable to create query
                      * ERROR:  duplicate key value violates unique constraint \"ax_files_text\"\nDETAIL:  Key (text)=(D:/qBittorrent Downloads/Video/Movies/13.Hours.The.Secret.Soldiers.of.Benghazi.2016.1080p.BluRay.x264.DTS-JYK/13.Hours.The.Secret.Soldiers.of.Benghazi.2016.1080p.BluRay.x264.DTS-JYK.mkv) already exists.\n(23505) QPSQL: Unable to create query
                      */
-                    howManyFilesProcessed++; // Still failed, though.
-                    //filedb.rollback();
+                    howManyFilesProcessed++; // Still failed, though, to add. But not a faily failure if it violated a unique index or constraint. This should be changed to detect difference between good errors and bad, because if the database crashes or table is locked or the sql is corrupt over it is out of domain, then that's not "processing", that's a bug.
+                    //filedb.rollback(); // if there's a transaction, which on staging tables doesn't make sense
                     filedb.close();
                     break; // Transaction aborted so might as well stop.  Will have to think about that transaction thingy.
                 }
                 else {
-                    if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Writing file info to files table. Completed!";
+
+                    // Yes it did add a new record to the database (unless ON CONFLICT is present and a unique CONSTRAINT (not index) is present.
+
+                    if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Writing file info to files table. Completed!"; // Just show once, don't flood the zone.
 
                     qint64 secondsProcessingThisFileTook = timer.secsTo(timeThisFileProcess);
                     qDebug() << "Took" << secondsProcessingThisFileTook << "seconds to process this file.";
