@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
 
     // This is stupid. I don't want to pass in details about the file task in the constructor.  How to set data parameters?
 
-    ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a);
+    ProcessFilesTaskData *processFilesTaskData = new ProcessFilesTaskData();
+    ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a, CommonFileTypes::torrent_file);
 
 
     qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");

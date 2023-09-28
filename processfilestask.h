@@ -48,10 +48,12 @@
 #ifndef PROCESSFILESTASK_H
 #define PROCESSFILESTASK_H
 
-#include "task.h"
-//#include <QMainWindow> console
+#include "task.h" // empty
+#include "sharedenumerations.h" // names for our file type ids
+#include "processfilestaskdata.h" // our detail of request, where to look, what to expect when your expecting
+
 #include <QObject>
-#include <QSharedDataPointer> // Will we use?
+#include <QSharedDataPointer> // Will we use? How?
 #include <QFileSystemModel>
 #include <QCryptographicHash>
 #include <QSqlDatabase>  // Requires "sql" added to .pro file
@@ -64,7 +66,7 @@ class ProcessFilesTask : public Task
 {
     Q_OBJECT
 public:
-    ProcessFilesTask(QObject * = 0, int assumeFileTypeId = 7); // 7 is just a file, juuuuuust a file. Please pass a proper value from the types table in.
+    ProcessFilesTask(QObject * = 0, int assumeFileTypeId = CommonFileTypes::file); // 7 is just a file, juuuuuust a file. Please pass a proper value from the types table in.
 
     ProcessFilesTask(const ProcessFilesTask &);
     ProcessFilesTask &operator=(const ProcessFilesTask &);
@@ -78,7 +80,7 @@ private:
     {
         QDir dir(dirname);
         dir.setNameFilters(listOfFileTypes);
-        dir.setFilter(QDir::Dirs | QDir::Files | QDir::NoSymLinks | QDir::NoDot | QDir::NoDotDot);
+        dir.setFilter(QDir::Dirs | QDir::Files | QDir::NoSymLinks | QDir::NoDot | QDir::NoDotDot); // This argument should be passed in
 
         foreach (QFileInfo fileInfo, dir.entryInfoList()) {
             if (fileInfo.isDir() && fileInfo.isReadable())
@@ -190,27 +192,33 @@ public slots:
                FileNamePrepped = FileName.replace("'", "''"); // Warning string expansion. Increased string length
             }
 
-            QSqlQuery checkIfFilmInfoAlreadyinStagingDatabase;
-            QString checkAlreadyCommand = QString("SELECT 1 FROM stage_for_master.files where text = '%1'").arg(FilePathPrepped);
-            if (!checkIfFilmInfoAlreadyinStagingDatabase.exec(checkAlreadyCommand)) {
-               qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastError().text();
-               qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastQuery();
-               break; // Query busted
-            }
-            int howManyRowsHadSamePath = checkIfFilmInfoAlreadyinStagingDatabase.numRowsAffected();
+            // This is more cross-db compatible than using database-specific things. Even if ON CONFLICT were in ANSI, it's not in SQL Server, I know that for sure.
 
-            if (howManyRowsHadSamePath == -1) {
-               qDebug() << "Error: unable to run query that shows if path already in database. quitting.";
-               break;
+            if (connected) {
+                QSqlQuery checkIfFilmInfoAlreadyinStagingDatabase;
+                QString checkAlreadyCommand = QString("SELECT 1 FROM stage_for_master.files where text = '%1'").arg(FilePathPrepped);
+
+                if (!checkIfFilmInfoAlreadyinStagingDatabase.exec(checkAlreadyCommand)) {
+                   qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastError().text();
+                   qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastQuery();
+                   break; // Query busted
+                }
+                int howManyRowsHadSamePath = checkIfFilmInfoAlreadyinStagingDatabase.numRowsAffected();
+
+                if (howManyRowsHadSamePath == -1) {
+                   qDebug() << "Error: unable to run query that shows if path already in database. quitting.";
+                   break;
+                }
+
+                if (howManyRowsHadSamePath >= 1) {
+                   qDebug() << "**** ProcessFilesTask:: this file_path already in:" << FilePath << ", skipping because we know that''s where we crashed. Elsewhise we''d have to check dates, size, hash, etc.";
+                   continue;
+                }
+                else {
+                   qDebug().nospace() << "**** ProcessFilesTask:: new file_path:" << FilePath << ", adding.";
+                }
             }
 
-            if (howManyRowsHadSamePath >= 1) {
-               qDebug() << "**** ProcessFilesTask:: this file_path already in:" << FilePath << ", skipping because we know that''s where we crashed. Elsewhise we''d have to check dates, size, hash, etc.";
-               continue;
-            }
-            else {
-               qDebug().nospace() << "**** ProcessFilesTask:: new file_path:" << FilePath << ", adding.";
-            }
             QString parentFolderOfFile = FileInfo.dir().absolutePath();
             QFileInfo FileContainerInfo = QFileInfo(parentFolderOfFile);
             QDateTime fileContainerCreatedOn = FileContainerInfo.birthTime();
@@ -255,25 +263,27 @@ public slots:
                                                 "/* text */                                               '%1', " // aka full_path to the file
                                                 "/* base_name */                                          '%2', " // Without the extension, which is a bit annoying sometimes
                                                 "/* final_extension */                                    '%3', " // torrents have dots galore, so be careful to get the one that tells us the format
-                                                "/* type_id: Downloaded Torrent File */                     8, " // replace with variable, silly!
-                                                "/* This version (guess) and update should fix if trigger ever hit # */ 1, "
-                                                "/* file_md5_hash */                                      '%4'::bytea, " // Not cross-db compatible
-                                                "/* file_deleted */                               false," // No such type in SQL Server
-                                                "/* file_size */                                           %5 , " // int64
-                                                "/* file_created_on_ts */                                 '%6', " // has milliseconds
-                                                "/* file_modified_on_ts */                                '%7', "
-                                                "/* parent_folder_created_on_ts */                        '%8', "
-                                                "/* parent_folder_modified_on_ts */                       '%9'  "
+                                                "/* type_id: */                                            %4, " // replace with variable, silly!
+                                                "/* record_version_for_same_name_file: */                   1, " // This version (guess) and update should fix if trigger ever hit #
+                                                "/* file_md5_hash */                                      '%5'::bytea, " // Not cross-db compatible, the "::bytea" syntax
+                                                "/* file_deleted */                                       false," // No such type in SQL Server
+                                                "/* file_size */                                           %6 , " // int8 which is 64 bit. Lot of big video files
+                                                "/* file_created_on_ts */                                 '%7', " // has milliseconds
+                                                "/* file_modified_on_ts */                                '%8', "
+                                                "/* parent_folder_created_on_ts */                        '%9', "
+                                                "/* parent_folder_modified_on_ts */                      '%10'  " // These tell us whether to bother scanning again. huge time and thrash saver.
                                                 ")"
                                                 ).arg(
-                                                   FilePathPrepped
-                                                 , FileNamePrepped // Any other illegal characters? Check lengths first?
-                                                 , FileNameExtension, fileHashAsHexString
-                                                 , QString::number(FileSize)
-                                                 , FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
-                                                 , FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
-                                                 , fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
-                                                 , fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                   /* %1 text */FilePathPrepped
+                                                 , /* %2 base_name */FileNamePrepped // Any other illegal characters? Check lengths first?
+                                                 , /* %3 final_extension */FileNameExtension
+                                                 , /* %4 type_id */QString::number(this->data->assumeFileTypeId)
+                                                 , /* %5 file_md5_hash */fileHashAsHexString
+                                                 , /* %6 file_size */QString::number(FileSize)
+                                                 , /* %7 file_created_on_ts */FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
+                                                 , /* %8 file_modified_on_ts */FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
+                                                 , /* %9 parent_folder_created_on_ts */fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                 , /* %10 parent_folder_modified_on_ts */fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
                                                  );
 
                 // Did it successfully add a new record to the database?
@@ -321,7 +331,20 @@ public slots:
         qint32 timeToRunInMinutes = timeToRunInSeconds / 60;
         qint16 timeToRunInHours = timeToRunInMinutes / 60;
 
-        qDebug("**** ProcessFilesTask:: How many minutes did the entire scan, hash, and insert take? %d", timeToRunInMinutes);
+        if (timeToRunInHours > 0) {
+            qDebug("**** ProcessFilesTask:: How many hours did the entire scan, hash, and insert take? %d", timeToRunInHours);
+        } else if (timeToRunInMinutes > 0) {
+            qDebug("**** ProcessFilesTask:: How many minutes did the entire scan, hash, and insert take? %d", timeToRunInMinutes);
+        } else if (timeToRunInSeconds > 0) {
+            qDebug("**** ProcessFilesTask:: How many seconds did the entire scan, hash, and insert take? %d", timeToRunInSeconds);
+        } else if (timeToRunInMilliSeconds > 0) {
+            qDebug("**** ProcessFilesTask:: How many milliseconds did the entire scan, hash, and insert take? %lld", timeToRunInMilliSeconds);
+        } else if (timeToRunInMicroSeconds > 0) {
+            qDebug("**** ProcessFilesTask:: How many microseconds did the entire scan, hash, and insert take? %lld", timeToRunInMicroSeconds);
+        } else if (timeToRunInNanoSeconds > 0) {
+            qDebug("**** ProcessFilesTask:: How many nanoseconds did the entire scan, hash, and insert take? %lld", timeToRunInNanoSeconds);
+        }
+
         qDebug("**** ProcessFilesTask:: How many file's infos were read from the directory scan: %d", howManyFilesReadInfoFor);
         qDebug("**** ProcessFilesTask:: How many file's infos were limiting run to from directory scans: %d", limitedToExaminingFilesFromDirectoryScan);
         qDebug("**** ProcessFilesTask:: How many file's infos were added to database newly: %d", howManyFilesAddedToDatabaseNewly);

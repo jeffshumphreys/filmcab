@@ -1,16 +1,14 @@
 #include "processfilestask.h"
+#include "processfilestaskdata.h"
+
 #include <QDebug>
 
-class ProcessFilesTaskData : public QSharedData
-{
-public:
-
-};
-
-ProcessFilesTask::ProcessFilesTask(QObject *parent)
+ProcessFilesTask::ProcessFilesTask(QObject *parent, int assumeFileTypeId)
     : Task{parent}, data(new ProcessFilesTaskData)
 {
-    qDebug("ProcessFilesTask::ProcessFilesTask(QObject *parent)");
+    qDebug("ProcessFilesTask::ProcessFilesTask(QObject *parent, int assumeTypeId)");
+    this->assumefileTypeId = assumeFileTypeId; // should verify it's in the type database, but I think RI is enabled, and if not, then there's a reason to keep dangling types.
+
     // QSqlDatabase filedb = QSqlDatabase::addDatabase("QPSQL")
     // Pass in: QSqlDatabase already set. Open? hmmmm
     // QDir::Dirs | QDir::Files | QDir::NoSymLinks | QDir::NoDot | QDir::NoDotDot)
@@ -38,14 +36,13 @@ ProcessFilesTask::ProcessFilesTask(QObject *parent)
         // 10: Backed up from published folders
 }
 
-ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs, int assumeFileTypeId)
+ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs) // Creates a new object with the data of the other
     : data{rhs.data}
 {
-    qDebug("ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs, int assumeTypeId): data{rhs.data}");
-    this->assumefileTypeId = assumeFileTypeId; // should verify, but
+    qDebug("ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs): data{rhs.data}");
 }
 
-ProcessFilesTask &ProcessFilesTask::operator=(const ProcessFilesTask &rhs)
+ProcessFilesTask &ProcessFilesTask::operator=(const ProcessFilesTask &rhs) // Assigns the data of another object to this object
 {
     qDebug("ProcessFilesTask &ProcessFilesTask::operator=(const ProcessFilesTask &rhs)");
     if (this != &rhs)
