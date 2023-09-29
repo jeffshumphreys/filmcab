@@ -3,11 +3,12 @@
 
 #include <QDebug>
 
-ProcessFilesTask::ProcessFilesTask(QObject *parent, int assumeFileTypeId)
-    : Task{parent}, data(new ProcessFilesTaskData)
+// WARNING: Newbe.  I want the constructor forced to have some data args, I think, maybe?? So I switched the arguments around
+
+ProcessFilesTask::ProcessFilesTask(ProcessFilesTaskData &processFilesTaskData, QObject *parent)
+    : Task{parent}, data(&processFilesTaskData)
 {
-    qDebug("ProcessFilesTask::ProcessFilesTask(QObject *parent, int assumeTypeId)");
-    this->assumefileTypeId = assumeFileTypeId; // should verify it's in the type database, but I think RI is enabled, and if not, then there's a reason to keep dangling types.
+    qDebug("ProcessFilesTask::ProcessFilesTask(ProcessFilesTaskData &processFilesTaskData, QObject *parent)");
 
     // QSqlDatabase filedb = QSqlDatabase::addDatabase("QPSQL")
     // Pass in: QSqlDatabase already set. Open? hmmmm

@@ -3,6 +3,7 @@
 #include <QDebug>
 
 #include "task.h"
+#include "sharedenumerations.h"
 #include "processfilestask.h"
 
 int main(int argc, char *argv[])
@@ -16,8 +17,10 @@ int main(int argc, char *argv[])
     // This is stupid. I don't want to pass in details about the file task in the constructor.  How to set data parameters?
 
     ProcessFilesTaskData *processFilesTaskData = new ProcessFilesTaskData();
-    ProcessFilesTask *processFilesTask = new ProcessFilesTask(&a, CommonFileTypes::torrent_file);
+    processFilesTaskData->assumeFileTypeId = CommonFileTypes::torrent_file;
 
+    // So, this looks sus, but I create a task WITH data.
+    ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processFilesTaskData, &a);
 
     qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
     QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit())); // or SLOT(close()?

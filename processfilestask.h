@@ -39,17 +39,18 @@
  *   look at all the NOT matching extensions
  *
  * OBSERVATIONS:
- *   D drive and O drive have MASSIVELY different performance times.
+ *   D drive and O drive have MASSIVELY different performance times. G is surprisingly faster and is external. D is internal, O is external.
  *   Can't wait to check the G drive. Are all external drives this slow? Is it USB 2.0, 3.0, 3.1,etc?
  *   Maybe need that behemoth box with internal hard drives over network. Or switch for downloads and video publishing.
- *   vacuum'd full the stage_for_master schema. Dropped files from 10M to 9M.
+ *   vacuum'd full the stage_for_master schema. Dropped files table space from 10M to 9M.
  */
 
 #ifndef PROCESSFILESTASK_H
 #define PROCESSFILESTASK_H
 
-#include "task.h" // empty
-#include "processfilestaskdata.h" // our detail of request, where to look, what to expect when your expecting
+#include "sharedenumerations.h"
+#include "task.h" // empty of much
+#include "processfilestaskdata.h" // our detail of request, where to look, what to expect when your expecting, database connection, search path, file type to classify these as.
 
 #include <QObject>
 #include <QSharedDataPointer> // Will we use? How?
@@ -67,13 +68,12 @@ class ProcessFilesTask : public Task
 public:
     // What a mess. I need to pass data, or controls in, but I don't need arguments out the kazoo.
     ProcessFilesTask(ProcessFilesTaskData &processFilesTaskData, QObject * = 0);
-
     ProcessFilesTask(const ProcessFilesTask &);
     ProcessFilesTask &operator=(const ProcessFilesTask &);
     ~ProcessFilesTask();
 
 private:
-    QSharedDataPointer<ProcessFilesTaskData> data;
+    QSharedDataPointer<ProcessFilesTaskData> data; // Set in constructor. Creator needs to populate.
 
     int traverseDirectoryHierarchy(const QString &dirname, QStringList listOfFileTypes, int filecount = 0)
     {
@@ -96,16 +96,16 @@ public slots:
     void run()
     {
         qDebug("ProcessFilesTask::run()");
+
         QElapsedTimer timer;
         timer.start();
+
         // Connect to db so we can push the files found to a persistent store.
 
-        QSqlDatabase filedb = QSqlDatabase::addDatabase("QPSQL"); /* Had to add the "sql" line to the .pro file in string "QT =
-            core \
-            quick \
-            widgets \
-            sql
-        */
+        QSqlDatabase filedb = data->db;
+
+        qint64 fileTypeId = data->assumeFileTypeId;
+        if (fileTypeId == 0) { fileTypeId = CommonFileTypes::file; } // A default duh, but not super useful.
 
         filedb.setHostName("localhost");
         filedb.setPort(5432);
@@ -265,18 +265,18 @@ public slots:
                                                 "/* type_id: */                                            %4, " // replace with variable, silly!
                                                 "/* record_version_for_same_name_file: */                   1, " // This version (guess) and update should fix if trigger ever hit #
                                                 "/* file_md5_hash */                                      '%5'::bytea, " // Not cross-db compatible, the "::bytea" syntax
-                                                "/* file_deleted */                                       false," // No such type in SQL Server
+                                                "/* file_deleted */                                       false," // No such type as "false" in SQL Server, just bits
                                                 "/* file_size */                                           %6 , " // int8 which is 64 bit. Lot of big video files
                                                 "/* file_created_on_ts */                                 '%7', " // has milliseconds
                                                 "/* file_modified_on_ts */                                '%8', "
                                                 "/* parent_folder_created_on_ts */                        '%9', "
-                                                "/* parent_folder_modified_on_ts */                      '%10'  " // These tell us whether to bother scanning again. huge time and thrash saver.
+                                                "/* parent_folder_modified_on_ts */                      '%10'  " // These tell us whether to bother scanning again by comparing directories to directory table. huge time and thrash saver.
                                                 ")"
-                                                ).arg(
+                                                ).arg( // Only supports string arguments
                                                    /* %1 text */FilePathPrepped
                                                  , /* %2 base_name */FileNamePrepped // Any other illegal characters? Check lengths first?
                                                  , /* %3 final_extension */FileNameExtension
-                                                 , /* %4 type_id */QString::number(this->data->assumeFileTypeId)
+                                                 , /* %4 type_id */QString::number(fileTypeId)
                                                  , /* %5 file_md5_hash */fileHashAsHexString
                                                  , /* %6 file_size */QString::number(FileSize)
                                                  , /* %7 file_created_on_ts */FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
