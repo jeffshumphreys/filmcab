@@ -49,7 +49,6 @@
 #define PROCESSFILESTASK_H
 
 #include "task.h" // empty
-#include "sharedenumerations.h" // names for our file type ids
 #include "processfilestaskdata.h" // our detail of request, where to look, what to expect when your expecting
 
 #include <QObject>
@@ -66,7 +65,8 @@ class ProcessFilesTask : public Task
 {
     Q_OBJECT
 public:
-    ProcessFilesTask(QObject * = 0, int assumeFileTypeId = CommonFileTypes::file); // 7 is just a file, juuuuuust a file. Please pass a proper value from the types table in.
+    // What a mess. I need to pass data, or controls in, but I don't need arguments out the kazoo.
+    ProcessFilesTask(ProcessFilesTaskData &processFilesTaskData, QObject * = 0);
 
     ProcessFilesTask(const ProcessFilesTask &);
     ProcessFilesTask &operator=(const ProcessFilesTask &);
@@ -74,7 +74,6 @@ public:
 
 private:
     QSharedDataPointer<ProcessFilesTaskData> data;
-    int assumefileTypeId;
 
     int traverseDirectoryHierarchy(const QString &dirname, QStringList listOfFileTypes, int filecount = 0)
     {
@@ -110,7 +109,7 @@ public slots:
 
         filedb.setHostName("localhost");
         filedb.setPort(5432);
-        filedb.setDatabaseName("genericdatabase");
+        filedb.setDatabaseName("filmcab");
         filedb.setUserName("postgres");
         filedb.setPassword("postgres");
 
