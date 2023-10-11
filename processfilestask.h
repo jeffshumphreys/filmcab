@@ -68,6 +68,7 @@ class ProcessFilesTask : public Task
 public:
     // What a mess. I need to pass data, or controls in, but I don't need arguments out the kazoo.
     ProcessFilesTask(ProcessFilesTaskData &processFilesTaskData, QObject * = 0);
+    ProcessFilesTask(ProcessFilesTaskData processFilesTaskData[], QObject * = 0);
     ProcessFilesTask(const ProcessFilesTask &);
     ProcessFilesTask &operator=(const ProcessFilesTask &);
     ~ProcessFilesTask();
@@ -79,15 +80,18 @@ private:
     int traverseDirectoryHierarchy(const QString &dirname, QStringList listOfFileTypes, int filecount = 0)
     {
         QDir dir(dirname);
-        dir.setNameFilters(listOfFileTypes);
         dir.setFilter(QDir::Dirs | QDir::Files | QDir::NoSymLinks | QDir::NoDot | QDir::NoDotDot); // This argument should be passed in
 
         foreach (QFileInfo fileInfo, dir.entryInfoList()) {
-            if (fileInfo.isDir() && fileInfo.isReadable())
-                filecount+= traverseDirectoryHierarchy(fileInfo.filePath(), listOfFileTypes, filecount);
-            else {
-                //qDebug() << fileInfo.filePath();
-               filecount++; // Not working, is it counting folders instead?
+            if (fileInfo.isDir() && fileInfo.isReadable()) {
+                qDebug() << "Is a directory:" << fileInfo.filePath() << "--" << filecount;
+                filecount = traverseDirectoryHierarchy(fileInfo.filePath(), listOfFileTypes, filecount);
+        } else {
+                qDebug() << "not a directory:" << fileInfo.filePath() << "--" << filecount;
+                // Suffixes are "*.mkv" style, suffix() is just "mkv"
+                if (listOfFileTypes.contains("*." + fileInfo.suffix(), Qt::CaseSensitivity::CaseInsensitive)) {
+                    filecount++; // Not working, is it counting folders instead?
+                }
             }
         }
         return filecount;
@@ -121,7 +125,7 @@ public slots:
         int howManyFilesReadInfoFor = 0; // Now that I'm skipping files, I like to know how many were grabbed
         int howManyFilesPreppedFromDirectoryScan = 0; // ambiguous name
         int howManyFilesProcessed = 0; // including failures
-        int howManyFilesProcessedSuccessfully = 0; // Not necessarily added.
+        int howManyFilesProcessedSuccessfully = 0; // Not necessarily added. What does "Successfully" mean?  Added? Skipped? Serious failures tend to stop the program.
         int howManyFilesAddedToDatabaseNewly = 0;
         int limitedToExaminingFilesFromDirectoryScan = 0; // 0 means don't apply limit
 
@@ -137,6 +141,7 @@ public slots:
         }
 
         QString targetTableForFileInfo = data->tableNameToWriteNewRecordsTo;
+        QString targetSchemaForFileInfo = data->targetSchema;
 
         qDebug() << "**** ProcessFilesTask:: Scanning " << searchBaseDirectory;
 
@@ -158,9 +163,10 @@ public slots:
 
         // Examine each file and create an MD5 for it and push it to the database
 
+        QElapsedTimer timeThisFileProcess; // Time each file processing, including generating the hash, reading in the entire file, writing to the database.
+        timeThisFileProcess.start();
+
         while (FileDirectoriesIter.hasNext()) {
-            QElapsedTimer timeThisFileProcess; // Time each file processing, including generating the hash, reading in the entire file, writing to the database.
-            timeThisFileProcess.start();
             timeThisFileProcess.restart(); // Otherwise it doesn't reset for some smart reason.
             howManyFilesReadInfoFor++;
             QFileInfo FileInfo = FileDirectoriesIter.nextFileInfo();
@@ -185,7 +191,7 @@ public slots:
                 QSqlQuery checkIfFilmInfoAlreadyinStagingDatabase;
                 // This is more cross-db compatible than using database-specific things. Even if ON CONFLICT were in ANSI, it's not in SQL Server, I know that for sure.
                 // Hopefully, the unique constraint is in place so that null record_deleted can be a series of deleted rows
-                QString checkAlreadyCommand = QString("SELECT 1 FROM stage_for_master.%2 WHERE txt = '%1' AND record_deleted = false").arg(FilePathPrepped, targetTableForFileInfo);
+                QString checkAlreadyCommand = QString("SELECT 1 FROM %3.%2 WHERE txt = '%1' AND record_deleted = false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
 
                 if (!checkIfFilmInfoAlreadyinStagingDatabase.exec(checkAlreadyCommand)) {
                    qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastError().text();
@@ -199,12 +205,17 @@ public slots:
                    break;
                 }
 
-                // error if more than one because then our vision is invalid (one undeleted row per path)
+                // error if more than one record matches full path and is not deleted, because then our vision is invalid (only one undeleted row per path is supported.)
+                // Note that cross system dups could cause this violation if more than one computer involved.
 
-                if (howManyRowsHadSamePath >= 1) {
+                if (howManyRowsHadSamePath > 1) {
+                   qCritical() << "**** ProcessFilesTask:: More than one undeleted record for this file path was found, which is outside universal expectations. Stopping.";
+                   break;
+                }
+                else if (howManyRowsHadSamePath == 1) {
                    qDebug() << "**** ProcessFilesTask:: this file_path already in files table. updating that we saw file.";
                    // UPDATE table set last_verified_full_path_present_on_ts_wth_tz to now.
-                   QString updRecAlreadyCommand = QString("UPDATE stage_for_master.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted = false").arg(FilePathPrepped, targetTableForFileInfo);
+                   QString updRecAlreadyCommand = QString("UPDATE %3.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted IS false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
                    QSqlQuery updAlreadyExistentRecinStagingDatabase;
                    if (!updAlreadyExistentRecinStagingDatabase.exec(updRecAlreadyCommand)) {
                        qDebug() << updAlreadyExistentRecinStagingDatabase.lastError().text();
@@ -218,7 +229,7 @@ public slots:
                 }
             }
 
-            QString parentFolderOfFile = FileInfo.dir().absolutePath();
+            QString parentFolderOfFile = FileInfo.dir().absolutePath(); // Parent and Grandparent folder names have details about movies and episodes.
             QFileInfo FileContainerInfo = QFileInfo(parentFolderOfFile);
             QDateTime fileContainerCreatedOn = FileContainerInfo.birthTime();
             QDateTime fileContainerModifiedOn = FileContainerInfo.lastModified();
@@ -237,7 +248,7 @@ public slots:
 
             QFile * fileObject = new QFile(FilePath);
             fileObject->open(QIODevice::ReadOnly);  // Note that torrent files will not be still downloading, only the final completed file is in this folder.
-            QByteArray fileData = fileObject->readAll();
+            QByteArray fileData = fileObject->readAll(); // Slooooow.
 
             // Construct a unique hash identifier for compare
 
@@ -255,8 +266,8 @@ public slots:
                 if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Starting attempt to add file info to files table...(stage_for_master.files)";
                 qDebug() << howManyFilesPreppedFromDirectoryScan << ":" << FilePath;
                 QSqlQuery pushFilmFileInfoToDatabase;
-                QString insertCommand = QString("INSERT INTO stage_for_master.%1(txt, base_name, final_extension, typ_id, file_md5_hash, file_deleted, file_size"
-                                                ", file_created_on_ts, file_modified_on_ts, parent_folder_created_on_ts, parent_folder_modified_on_ts)"
+                QString insertCommand = QString("INSERT INTO %12.%1(txt, base_name, final_extension, typ_id, file_md5_hash, file_deleted, file_size"
+                                                ", file_created_on_ts, file_modified_on_ts, parent_folder_created_on_ts, parent_folder_modified_on_ts, record_deleted)"
                                                 " VALUES ("
                                                 // id is an identity column since this is staging and so we don't need to keep a cross-table unique-ish id. Unfortunately, the master can't link back tightly to the staging, so maybe give it a think.
                                                 "/* txt */                                                '%2', " // aka full_path to the file
@@ -269,7 +280,8 @@ public slots:
                                                 "/* file_created_on_ts */                                 '%8', " // has milliseconds
                                                 "/* file_modified_on_ts */                                '%9', "
                                                 "/* parent_folder_created_on_ts */                        '%10', "
-                                                "/* parent_folder_modified_on_ts */                      '%11'  " // These tell us whether to bother scanning again by comparing directories to directory table. huge time and thrash saver.
+                                                "/* parent_folder_modified_on_t s */                      '%11',  " // These tell us whether to bother scanning again by comparing directories to directory table. huge time and thrash saver.
+                                                "/* record_deleted */                                     false" // Oops. was creating 100s of dups.
                                                 ")"
                                                 ).arg( // Only supports string arguments
                                                    /* %1 table name */ targetTableForFileInfo
@@ -283,6 +295,7 @@ public slots:
                                                  , /* %9 file_modified_on_ts */FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
                                                  , /* %10 parent_folder_created_on_ts */fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
                                                  , /* %11 parent_folder_modified_on_ts */fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                 , /* %12 schema_name */ targetSchemaForFileInfo
                                                  );
 
                 // Did it successfully add a new record to the database?
@@ -306,7 +319,8 @@ public slots:
 
                     if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Writing file info to files table. Completed!"; // Just show once, don't flood the zone.
 
-                    qint64 secondsProcessingThisFileTook = timer.secsTo(timeThisFileProcess);
+                    qint64 milliSecondsProcessingThisFileTook = timeThisFileProcess.elapsed();
+                    qint32 secondsProcessingThisFileTook = milliSecondsProcessingThisFileTook / 1000;
                     qDebug() << "Took" << secondsProcessingThisFileTook << "seconds to process this file.";
                     howManyFilesAddedToDatabaseNewly++; // Not updated, which is not an error, but without the ON CONFLICT working we can't trap exactly.
                     howManyFilesProcessed++;

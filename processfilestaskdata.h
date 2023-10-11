@@ -16,6 +16,8 @@ public:
 
     }
 
+    //ProcessFilesTaskData(ProcessFilesTaskData& copyFromThis);
+
 public:
     qint64 assumeFileTypeId; // probably should use long long. We "assume" because we're not really checking the file to validate. Lots of srt files get typed as movies, for example.
     QSqlDatabase db; // Must be set by caller or any reading/writing to db will be skipped.
@@ -28,13 +30,13 @@ public:
     bool skip_db_writes_even_if_connected = false;
     QString searchPath = ""; // Only one at a time for now.
 
-    QStringList listOfFileTypes = {"*.*"};
+    QStringList listOfFileTypes = {"*.*"}; // defaults to all; you should override this.
 
-    QDir::Filters directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
+    QDir::Filters directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files; // Default to not catching directories. I'll change that.
 
     QDirIterator::IteratorFlags directoryIteratorFlags = QDirIterator::Subdirectories;
 
-    TargetLayer targetLayer = TargetLayer::stage_for_master;
+    QString targetSchema = ""; // stage_for_master, for instance.
 
     IdentityMethod identityMethod = IdentityMethod::reset_if_truncating;
 

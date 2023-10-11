@@ -37,6 +37,11 @@ ProcessFilesTask::ProcessFilesTask(ProcessFilesTaskData &processFilesTaskData, Q
         // 10: Backed up from published folders
 }
 
+ProcessFilesTask::ProcessFilesTask(ProcessFilesTaskData processFilesTaskData[], QObject *parent)
+    : Task{parent}, data(processFilesTaskData)
+{
+}
+
 ProcessFilesTask::ProcessFilesTask(const ProcessFilesTask &rhs) // Creates a new object with the data of the other
     : data{rhs.data}
 {
