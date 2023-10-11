@@ -75,6 +75,7 @@ public:
 private:
     QSharedDataPointer<ProcessFilesTaskData> data; // Set in constructor. Creator needs to populate.
 
+    // Right now I'm just using this to count files.
     int traverseDirectoryHierarchy(const QString &dirname, QStringList listOfFileTypes, int filecount = 0)
     {
         QDir dir(dirname);
@@ -103,28 +104,10 @@ public slots:
         // Connect to db so we can push the files found to a persistent store.
 
         QSqlDatabase filedb = data->db;
+        bool connected = data->dbconnected; // Caller should have connected us.
 
         qint64 fileTypeId = data->assumeFileTypeId;
         if (fileTypeId == 0) { fileTypeId = CommonFileTypes::file; } // A default duh, but not super useful.
-
-        filedb.setHostName("localhost");
-        filedb.setPort(5432);
-        filedb.setDatabaseName("filmcab");
-        filedb.setUserName("postgres");
-        filedb.setPassword("postgres");
-
-        qDebug() << "Attempting to connect to:" << filedb.hostName() << filedb.port() << filedb.userName() << filedb.password();
-
-        bool connected = filedb.open();
-
-        if(!connected) {
-            auto connectionError = filedb.lastError();
-            qCritical() << "Error on attempting to open database:" << connectionError.text(); // Test this with bad pwd
-            // Still soldiers on, should still be able to get through directory.
-        }
-        else {
-            qDebug() << "Connected successfully!";
-        }
 
         // Agh! it's staging!!!! if (connected) filedb.transaction();
 
@@ -144,43 +127,48 @@ public slots:
 
         // Search directories
 
-        QString FilesBaseDirectory = "D:/qBittorrent Downloads/Video/Movies";
-        FilesBaseDirectory = "D:/qBittorrent Downloads/Video/TV"; // 2nd search, so we didn't truncate, and didn't reset the IDENTITY.
-        FilesBaseDirectory = "O:/Video AllInOne"; // 2nd search, so we didn't truncate, and didn't reset the IDENTITY.
-        // Crashed on 2489 : "O:/Video AllInOne/_Police State/Network (1976).mkv". Got inserted though. I think I crashed it fiddling in the source code. :(
-        FilesBaseDirectory = "G:/Video AllInOne2"; // 3nd search, so we didn't truncate, and didn't reset the IDENTITY.
-        // Torrents? Actually magnet links which are mostly indecipherable.
+        QString searchBaseDirectory = data->searchPath;
+        if (!QDir(searchBaseDirectory).exists()) {
+            // https://doc.qt.io/qt-5/debug.html
+            qCritical() << "**** ProcessFilesTask:: Search base directory" << searchBaseDirectory << "not found. exiting.";
+            qDebug("ProcessFilesTask::run():emit finished() (1)"); // Is this the correct way to exit? No clue.
+            emit finished();
+            return;
+        }
 
-        qDebug() << "**** ProcessFilesTask:: Scanning " << FilesBaseDirectory;
+        QString targetTableForFileInfo = data->tableNameToWriteNewRecordsTo;
+
+        qDebug() << "**** ProcessFilesTask:: Scanning " << searchBaseDirectory;
 
         qDebug() << "**** ProcessFilesTask:: First get a fast count";
 
-        QDir filesdir(FilesBaseDirectory);
-        filesdir.setFilter(QDir::Files|QDir::NoDotDot|QDir::NoDotAndDotDot);
-        QStringList listOfFileTypes = {"*.mkv", "*.avi", "*.mp4", "*.mpg", "*.wmv", "*.srt", "*.sub", "*.idx", "*.vob" };
-        filesdir.setNameFilters(listOfFileTypes);
+        QDir searchForFilesDir(searchBaseDirectory);
 
-        int numberOfFilesInDirectories = traverseDirectoryHierarchy(FilesBaseDirectory, listOfFileTypes); // Wrong count!
+        searchForFilesDir.setFilter(QDir::Files|QDir::NoDotDot|QDir::NoDotAndDotDot);
+        QStringList listOfFileTypes = data->listOfFileTypes;
+        searchForFilesDir.setNameFilters(listOfFileTypes);
+
+        int numberOfFilesInDirectories = traverseDirectoryHierarchy(searchBaseDirectory, listOfFileTypes); // Wrong count!
 
         qDebug() << "**** ProcessFilesTask:: number of files in directory and subdirectories: " << numberOfFilesInDirectories;
 
         // This is slow for testing, and in production we want this to only look at directories that have changed since last scan. Probably need to enhance traverseDirectoryHierarchy.
 
-        QDirIterator FileDirectoriesIter(FilesBaseDirectory, listOfFileTypes, QDir::NoDotAndDotDot|QDir::Files, QDirIterator::Subdirectories);
+        QDirIterator FileDirectoriesIter(searchBaseDirectory, listOfFileTypes, QDir::NoDotAndDotDot|QDir::Files, QDirIterator::Subdirectories);
 
         // Examine each file and create an MD5 for it and push it to the database
 
         while (FileDirectoriesIter.hasNext()) {
-            QElapsedTimer timeThisFileProcess;
+            QElapsedTimer timeThisFileProcess; // Time each file processing, including generating the hash, reading in the entire file, writing to the database.
             timeThisFileProcess.start();
-            timeThisFileProcess.restart(); // Otherwise it doesn't for some smart reason.
+            timeThisFileProcess.restart(); // Otherwise it doesn't reset for some smart reason.
             howManyFilesReadInfoFor++;
             QFileInfo FileInfo = FileDirectoriesIter.nextFileInfo();
 
             // Very first thing we need to do, due to the CPU intensity of hashing files on external drives, is see if we have it already in our staging table.
 
             QString FilePath = FileInfo.filePath();
-            QString FileName = FileInfo.completeBaseName(); // All the dots
+            QString FileName = FileInfo.completeBaseName(); // All the dots in the name are included except the last . to the final extensions. (torrent thing)
 
             QString FilePathPrepped = FilePath;
             QString FileNamePrepped = FileName;
@@ -191,11 +179,13 @@ public slots:
                FileNamePrepped = FileName.replace("'", "''"); // Warning string expansion. Increased string length
             }
 
-            // This is more cross-db compatible than using database-specific things. Even if ON CONFLICT were in ANSI, it's not in SQL Server, I know that for sure.
+            // I've half-designed this to run without writing to the database, mostly for testing the non-db parts.
 
             if (connected) {
                 QSqlQuery checkIfFilmInfoAlreadyinStagingDatabase;
-                QString checkAlreadyCommand = QString("SELECT 1 FROM stage_for_master.files where text = '%1'").arg(FilePathPrepped);
+                // This is more cross-db compatible than using database-specific things. Even if ON CONFLICT were in ANSI, it's not in SQL Server, I know that for sure.
+                // Hopefully, the unique constraint is in place so that null record_deleted can be a series of deleted rows
+                QString checkAlreadyCommand = QString("SELECT 1 FROM stage_for_master.%2 WHERE txt = '%1' AND record_deleted = false").arg(FilePathPrepped, targetTableForFileInfo);
 
                 if (!checkIfFilmInfoAlreadyinStagingDatabase.exec(checkAlreadyCommand)) {
                    qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastError().text();
@@ -205,12 +195,22 @@ public slots:
                 int howManyRowsHadSamePath = checkIfFilmInfoAlreadyinStagingDatabase.numRowsAffected();
 
                 if (howManyRowsHadSamePath == -1) {
-                   qDebug() << "Error: unable to run query that shows if path already in database. quitting.";
+                   qCritical() << "Error: unable to run query that shows if path already in database. quitting.";
                    break;
                 }
 
+                // error if more than one because then our vision is invalid (one undeleted row per path)
+
                 if (howManyRowsHadSamePath >= 1) {
-                   qDebug() << "**** ProcessFilesTask:: this file_path already in:" << FilePath << ", skipping because we know that''s where we crashed. Elsewhise we''d have to check dates, size, hash, etc.";
+                   qDebug() << "**** ProcessFilesTask:: this file_path already in files table. updating that we saw file.";
+                   // UPDATE table set last_verified_full_path_present_on_ts_wth_tz to now.
+                   QString updRecAlreadyCommand = QString("UPDATE stage_for_master.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted = false").arg(FilePathPrepped, targetTableForFileInfo);
+                   QSqlQuery updAlreadyExistentRecinStagingDatabase;
+                   if (!updAlreadyExistentRecinStagingDatabase.exec(updRecAlreadyCommand)) {
+                       qDebug() << updAlreadyExistentRecinStagingDatabase.lastError().text();
+                       qDebug() << updAlreadyExistentRecinStagingDatabase.lastQuery();
+                       break; // Query busted
+                   }
                    continue;
                 }
                 else {
@@ -255,34 +255,34 @@ public slots:
                 if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Starting attempt to add file info to files table...(stage_for_master.files)";
                 qDebug() << howManyFilesPreppedFromDirectoryScan << ":" << FilePath;
                 QSqlQuery pushFilmFileInfoToDatabase;
-                QString insertCommand = QString("INSERT INTO stage_for_master.files(text, base_name, final_extension, type_id, record_version_for_same_name_file, file_md5_hash, file_deleted, file_size"
+                QString insertCommand = QString("INSERT INTO stage_for_master.%1(txt, base_name, final_extension, typ_id, file_md5_hash, file_deleted, file_size"
                                                 ", file_created_on_ts, file_modified_on_ts, parent_folder_created_on_ts, parent_folder_modified_on_ts)"
                                                 " VALUES ("
                                                 // id is an identity column since this is staging and so we don't need to keep a cross-table unique-ish id. Unfortunately, the master can't link back tightly to the staging, so maybe give it a think.
-                                                "/* text */                                               '%1', " // aka full_path to the file
-                                                "/* base_name */                                          '%2', " // Without the extension, which is a bit annoying sometimes
-                                                "/* final_extension */                                    '%3', " // torrents have dots galore, so be careful to get the one that tells us the format
-                                                "/* type_id: */                                            %4, " // replace with variable, silly!
-                                                "/* record_version_for_same_name_file: */                   1, " // This version (guess) and update should fix if trigger ever hit #
-                                                "/* file_md5_hash */                                      '%5'::bytea, " // Not cross-db compatible, the "::bytea" syntax
+                                                "/* txt */                                                '%2', " // aka full_path to the file
+                                                "/* base_name */                                          '%3', " // Without the extension, which is a bit annoying sometimes
+                                                "/* final_extension */                                    '%4', " // torrents have dots galore, so be careful to get the one that tells us the format
+                                                "/* typ_id */                                              %5, " // replace with variable, silly!
+                                                "/* file_md5_hash */                                      '%6'::bytea, " // Not cross-db compatible, the "::bytea" syntax
                                                 "/* file_deleted */                                       false," // No such type as "false" in SQL Server, just bits
-                                                "/* file_size */                                           %6 , " // int8 which is 64 bit. Lot of big video files
-                                                "/* file_created_on_ts */                                 '%7', " // has milliseconds
-                                                "/* file_modified_on_ts */                                '%8', "
-                                                "/* parent_folder_created_on_ts */                        '%9', "
-                                                "/* parent_folder_modified_on_ts */                      '%10'  " // These tell us whether to bother scanning again by comparing directories to directory table. huge time and thrash saver.
+                                                "/* file_size */                                           %7 , " // int8 which is 64 bit. Lot of big video files
+                                                "/* file_created_on_ts */                                 '%8', " // has milliseconds
+                                                "/* file_modified_on_ts */                                '%9', "
+                                                "/* parent_folder_created_on_ts */                        '%10', "
+                                                "/* parent_folder_modified_on_ts */                      '%11'  " // These tell us whether to bother scanning again by comparing directories to directory table. huge time and thrash saver.
                                                 ")"
                                                 ).arg( // Only supports string arguments
-                                                   /* %1 text */FilePathPrepped
-                                                 , /* %2 base_name */FileNamePrepped // Any other illegal characters? Check lengths first?
-                                                 , /* %3 final_extension */FileNameExtension
-                                                 , /* %4 type_id */QString::number(fileTypeId)
-                                                 , /* %5 file_md5_hash */fileHashAsHexString
-                                                 , /* %6 file_size */QString::number(FileSize)
-                                                 , /* %7 file_created_on_ts */FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
-                                                 , /* %8 file_modified_on_ts */FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
-                                                 , /* %9 parent_folder_created_on_ts */fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
-                                                 , /* %10 parent_folder_modified_on_ts */fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                   /* %1 table name */ targetTableForFileInfo
+                                                 , /* %2 txt */FilePathPrepped
+                                                 , /* %3 base_name */FileNamePrepped // Any other illegal characters? Check lengths first?
+                                                 , /* %4 final_extension */FileNameExtension
+                                                 , /* %5 typ_id */QString::number(fileTypeId)
+                                                 , /* %6 file_md5_hash */fileHashAsHexString
+                                                 , /* %7 file_size */QString::number(FileSize)
+                                                 , /* %8 file_created_on_ts */FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
+                                                 , /* %9 file_modified_on_ts */FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
+                                                 , /* %10 parent_folder_created_on_ts */fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                 , /* %11 parent_folder_modified_on_ts */fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
                                                  );
 
                 // Did it successfully add a new record to the database?
@@ -299,7 +299,6 @@ public slots:
                     howManyFilesProcessed++; // Still failed, though, to add. But not a faily failure if it violated a unique index or constraint. This should be changed to detect difference between good errors and bad, because if the database crashes or table is locked or the sql is corrupt over it is out of domain, then that's not "processing", that's a bug.
                     //filedb.rollback(); // if there's a transaction, which on staging tables doesn't make sense
                     filedb.close();
-                    break; // Transaction aborted so might as well stop.  Will have to think about that transaction thingy.
                 }
                 else {
 
@@ -350,7 +349,8 @@ public slots:
         qDebug("**** ProcessFilesTask:: How many file's infos were processed: %d", howManyFilesProcessed); // A bit ambiguous since the update isn't in place.
 
         // ------------------------------------------------------------------------------------------------------------------------------------
-        qDebug("ProcessFilesTask::run():emit finished()");
+
+        qDebug("ProcessFilesTask::run():emit finished() (2)");
         emit finished();
     }
 

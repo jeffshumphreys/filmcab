@@ -16,7 +16,7 @@ alter table types add constraint fk_parent_type_id foreign key(type_id) referenc
 CREATE TABLE stage_for_master.search_paths (
 	id int8 NOT NULL, -- just put a number in, ya doink.
 	"text" varchar(400) NOT NULL, -- ex: D:\qBittorrent Downloads\Video\Movies except the backslashes to forward slash.
-	type_id int8 NULL,
+	type_id int8 not NULL,
 	record_created_on_ts_wth_tz timestamptz NULL DEFAULT clock_timestamp(),
 	record_changed_on_ts_wth_tz timestamptz NULL,
 	record_deleted bool NULL,
@@ -31,7 +31,8 @@ CREATE TABLE stage_for_master.search_paths (
 	type_corrected_on_ts_wth_tz timestamptz NULL,
 	type_corrected_why int8 NULL,
 	CONSTRAINT ak_search_paths_text UNIQUE (text),
-	CONSTRAINT ak_search_paths_id PRIMARY KEY (id)
+	CONSTRAINT ak_search_paths_id PRIMARY KEY (id),
+	CONSTRAINT fk_movie_is_type FOREIGN KEY (type_id) REFERENCES public.types(id)
 );
 
 -- Table Triggers
