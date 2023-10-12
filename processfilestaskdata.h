@@ -9,7 +9,7 @@
 #include <QDir>
 #include <QDirIterator>
 
-class ProcessFilesTaskData : public QSharedData
+class ProcessFilesTaskData
 {
 public:
     ProcessFilesTaskData() {
@@ -47,6 +47,32 @@ public:
     FileChangeDetectionClass::FileChangeDetections fileChangeDetection
         = FileChangeDetectionClass::FileChangeDetection::check_dir_mod_dt_against_directory_recrded_mod_dt |
           FileChangeDetectionClass::FileChangeDetection::scan_dir_if_mod_dt_newer; // Only if entry is dir.
+
+
+    int howManyFilesReadInfoFor                  = 0; // Now that I'm skipping files, I like to know how many were grabbed
+    int howManyFilesPreppedFromDirectoryScan     = 0; // ambiguous name
+    int howManyFilesProcessed                    = 0; // including failures
+    int howManyFilesProcessedSuccessfully        = 0; // Not necessarily added. What does "Successfully" mean?  Added? Skipped? Serious failures tend to stop the program.
+    int howManyFilesAddedToDatabaseNewly         = 0;
+    int limitedToExaminingFilesFromDirectoryScan = 0; // 0 means don't apply limit
+
+
+};
+
+
+class ProcessFilesTasksData  : public QSharedData
+{
+public:
+    ProcessFilesTasksData() {
+
+    }
+    ProcessFilesTasksData(ProcessFilesTaskData& p) {
+        processFilesTasksData = {p};
+    }
+
+public:
+    QVector<ProcessFilesTaskData> processFilesTasksData;
+
 };
 
 #endif // PROCESSFILESTASKDATA_H

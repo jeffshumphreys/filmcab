@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     // Copy this to two more packets to pass in.
 
-    ProcessFilesTaskData processPublishedFilesTaskData = ProcessFilesTaskData(*processTorrentDownloadsTaskData);
+    ProcessFilesTaskData processPublishedFilesTaskData = ProcessFilesTaskData(*processTorrentDownloadsTaskData); // Files we published for FireTV explorer to pick up.
     ProcessFilesTaskData processBackedupFilesTaskData = ProcessFilesTaskData(*processTorrentDownloadsTaskData);
 
     processTorrentDownloadsTaskData->assumeFileTypeId = CommonFileTypes::torrent_file;
@@ -87,22 +87,36 @@ int main(int argc, char *argv[])
 
     qDebug("main:ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processFilesTaskData, &qCoreApplicationInstance)");
 
+    bool testSingleTask = false;
+
     // Test that single task still works.
+    if (testSingleTask) {
+        ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processTorrentDownloadsTaskData, &qCoreApplicationInstance);
+        qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
+        QObject::connect(processFilesTask, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
+        // This will run the task from the application event loop.
 
-    ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processTorrentDownloadsTaskData, &qCoreApplicationInstance);
+        // Asynchronous run (start) the task.
+        // Every call to QTimer::singleShot(...) is executed on the event loop of the thread where it is invoked **. If invoked from the main thread, it'll be the event loop started with app.exec().
+        qDebug("main:QTimer::singleShot(0, processFilesTask, SLOT(run()))");
+        QTimer::singleShot(0, processFilesTask,
+                           SLOT(run()) // run is called from the dispatch context, where it is safe to change window contents.
+                           );
+    }
 
-    qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
-    QObject::connect(processFilesTask, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
-    // This will run the task from the application event loop.
+    // Test when passing in multiple search paths if they all get processed sequentially.
 
-    // Asynchronous run (start) the task.
-    // Every call to QTimer::singleShot(...) is executed on the event loop of the thread where it is invoked **. If invoked from the main thread, it'll be the event loop started with app.exec().
-    qDebug("main:QTimer::singleShot(0, processFilesTask, SLOT(run()))");
-    QTimer::singleShot(0, processFilesTask,
-                       SLOT(run()) // run is called from the dispatch context, where it is safe to change window contents.
-                  );
+    else {
+        ProcessFilesTasksData processFilesTasksData;
+        processFilesTasksData.processFilesTasksData = {*processTorrentDownloadsTaskData, processPublishedFilesTaskData};
+        ProcessFilesTask *processFilesTasks = new ProcessFilesTask(processFilesTasksData, &qCoreApplicationInstance);
+        qDebug("main:QObject::connect(processFilesTasks, SIGNAL(finished()), &a, SLOT(quit()))");
+        QObject::connect(processFilesTasks, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
+        qDebug("main:QTimer::singleShot(0, processFilesTasks, SLOT(run()))");
+        QTimer::singleShot(0, processFilesTasks, SLOT(run()));
+    }
 
-    // exit(non-zero)?
+   // exit(non-zero)?
 
     qDebug("main:int returnvalue = a.exec()");
     int returnvalue = qCoreApplicationInstance.exec(); // Now! the "run()" is pulled off the event queue and run.

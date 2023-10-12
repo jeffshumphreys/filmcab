@@ -68,14 +68,13 @@ class ProcessFilesTask : public Task
 public:
     // What a mess. I need to pass data, or controls in, but I don't need arguments out the kazoo.
     ProcessFilesTask(ProcessFilesTaskData &processFilesTaskData, QObject * = 0);
-    ProcessFilesTask(ProcessFilesTaskData processFilesTaskData[], QObject * = 0);
+    ProcessFilesTask(ProcessFilesTasksData &processFilesTasksData, QObject * = 0);
     ProcessFilesTask(const ProcessFilesTask &);
     ProcessFilesTask &operator=(const ProcessFilesTask &);
     ~ProcessFilesTask();
 
 private:
-    QSharedDataPointer<ProcessFilesTaskData> data; // Set in constructor. Creator needs to populate.
-
+    QSharedDataPointer<ProcessFilesTasksData> datapackets; // Set in constructor. Creator needs to populate.
     // Right now I'm just using this to count files.
     int traverseDirectoryHierarchy(const QString &dirname, QStringList listOfFileTypes, int filecount = 0)
     {
@@ -84,11 +83,11 @@ private:
 
         foreach (QFileInfo fileInfo, dir.entryInfoList()) {
             if (fileInfo.isDir() && fileInfo.isReadable()) {
-                qDebug() << "Is a directory:" << fileInfo.filePath() << "--" << filecount;
+                //qDebug() << "Is a directory:" << fileInfo.filePath() << "--" << filecount;
                 filecount = traverseDirectoryHierarchy(fileInfo.filePath(), listOfFileTypes, filecount);
         } else {
-                qDebug() << "not a directory:" << fileInfo.filePath() << "--" << filecount;
-                // Suffixes are "*.mkv" style, suffix() is just "mkv"
+                //qDebug() << "not a directory:" << fileInfo.filePath() << "--" << filecount;
+                // Suffixes are "*.mkv" style, suffix() is just "mkv", so we prepend to match.
                 if (listOfFileTypes.contains("*." + fileInfo.suffix(), Qt::CaseSensitivity::CaseInsensitive)) {
                     filecount++; // Not working, is it counting folders instead?
                 }
@@ -97,20 +96,16 @@ private:
         return filecount;
     }
 
-public slots:
-    void run()
-    {
-        qDebug("ProcessFilesTask::run()");
+    // This was in the run() function, now it's separated out.
 
-        QElapsedTimer timer;
-        timer.start();
-
+    void ProcessASingleSearchPath(ProcessFilesTaskData data) {
+        qDebug("ProcessASingleSearchPath(ProcessFilesTaskData data)");
         // Connect to db so we can push the files found to a persistent store.
 
-        QSqlDatabase filedb = data->db;
-        bool connected = data->dbconnected; // Caller should have connected us.
+        QSqlDatabase filedb = data.db;
+        bool connected = data.dbconnected; // Caller should have connected us.
 
-        qint64 fileTypeId = data->assumeFileTypeId;
+        qint64 fileTypeId = data.assumeFileTypeId;
         if (fileTypeId == 0) { fileTypeId = CommonFileTypes::file; } // A default duh, but not super useful.
 
         // Agh! it's staging!!!! if (connected) filedb.transaction();
@@ -122,40 +117,34 @@ public slots:
         // Start processing the files I have, movies and TV, torrented files, cleaned up, and backup files, and eventually cleaned and reduced bit width files.
         // On primary is to grab create and modify dates, sizes, and an MD5 hash for matching when names change.
 
-        int howManyFilesReadInfoFor = 0; // Now that I'm skipping files, I like to know how many were grabbed
-        int howManyFilesPreppedFromDirectoryScan = 0; // ambiguous name
-        int howManyFilesProcessed = 0; // including failures
-        int howManyFilesProcessedSuccessfully = 0; // Not necessarily added. What does "Successfully" mean?  Added? Skipped? Serious failures tend to stop the program.
-        int howManyFilesAddedToDatabaseNewly = 0;
-        int limitedToExaminingFilesFromDirectoryScan = 0; // 0 means don't apply limit
-
         // Search directories
 
-        QString searchBaseDirectory = data->searchPath;
+        QString searchBaseDirectory = data.searchPath;
+
         if (!QDir(searchBaseDirectory).exists()) {
             // https://doc.qt.io/qt-5/debug.html
-            qCritical() << "**** ProcessFilesTask:: Search base directory" << searchBaseDirectory << "not found. exiting.";
-            qDebug("ProcessFilesTask::run():emit finished() (1)"); // Is this the correct way to exit? No clue.
+            qCritical() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) Search base directory" << searchBaseDirectory << "not found. exiting.";
+            qDebug("ProcessFilesTask::ProcessASingleSearchPath(data)ProcessASingleSearchPath(data):emit finished() (1)"); // Is this the correct way to exit? No clue.
             emit finished();
             return;
         }
 
-        QString targetTableForFileInfo = data->tableNameToWriteNewRecordsTo;
-        QString targetSchemaForFileInfo = data->targetSchema;
+        QString targetTableForFileInfo = data.tableNameToWriteNewRecordsTo;
+        QString targetSchemaForFileInfo = data.targetSchema;
 
-        qDebug() << "**** ProcessFilesTask:: Scanning " << searchBaseDirectory;
+        qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) Scanning " << searchBaseDirectory;
 
-        qDebug() << "**** ProcessFilesTask:: First get a fast count";
+        qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) First get a fast count";
 
         QDir searchForFilesDir(searchBaseDirectory);
 
         searchForFilesDir.setFilter(QDir::Files|QDir::NoDotDot|QDir::NoDotAndDotDot);
-        QStringList listOfFileTypes = data->listOfFileTypes;
+        QStringList listOfFileTypes = data.listOfFileTypes;
         searchForFilesDir.setNameFilters(listOfFileTypes);
 
         int numberOfFilesInDirectories = traverseDirectoryHierarchy(searchBaseDirectory, listOfFileTypes); // Wrong count!
 
-        qDebug() << "**** ProcessFilesTask:: number of files in directory and subdirectories: " << numberOfFilesInDirectories;
+        qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) number of files in directory and subdirectories: " << numberOfFilesInDirectories;
 
         // This is slow for testing, and in production we want this to only look at directories that have changed since last scan. Probably need to enhance traverseDirectoryHierarchy.
 
@@ -168,7 +157,7 @@ public slots:
 
         while (FileDirectoriesIter.hasNext()) {
             timeThisFileProcess.restart(); // Otherwise it doesn't reset for some smart reason.
-            howManyFilesReadInfoFor++;
+            data.howManyFilesReadInfoFor++;
             QFileInfo FileInfo = FileDirectoriesIter.nextFileInfo();
 
             // Very first thing we need to do, due to the CPU intensity of hashing files on external drives, is see if we have it already in our staging table.
@@ -180,9 +169,9 @@ public slots:
             QString FileNamePrepped = FileName;
 
             if (FilePath.contains('\'')) {
-               // apostrophes will break a SQL insert, so double them.
-               FilePathPrepped = FilePath.replace("'", "''");
-               FileNamePrepped = FileName.replace("'", "''"); // Warning string expansion. Increased string length
+                // apostrophes will break a SQL insert, so double them.
+                FilePathPrepped = FilePath.replace("'", "''");
+                FileNamePrepped = FileName.replace("'", "''"); // Warning string expansion. Increased string length
             }
 
             // I've half-designed this to run without writing to the database, mostly for testing the non-db parts.
@@ -194,38 +183,38 @@ public slots:
                 QString checkAlreadyCommand = QString("SELECT 1 FROM %3.%2 WHERE txt = '%1' AND record_deleted = false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
 
                 if (!checkIfFilmInfoAlreadyinStagingDatabase.exec(checkAlreadyCommand)) {
-                   qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastError().text();
-                   qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastQuery();
-                   break; // Query busted
+                    qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastError().text();
+                    qDebug() << checkIfFilmInfoAlreadyinStagingDatabase.lastQuery();
+                    break; // Query busted
                 }
                 int howManyRowsHadSamePath = checkIfFilmInfoAlreadyinStagingDatabase.numRowsAffected();
 
                 if (howManyRowsHadSamePath == -1) {
-                   qCritical() << "Error: unable to run query that shows if path already in database. quitting.";
-                   break;
+                    qCritical() << "Error: unable to run query that shows if path already in database. quitting.";
+                    break;
                 }
 
                 // error if more than one record matches full path and is not deleted, because then our vision is invalid (only one undeleted row per path is supported.)
                 // Note that cross system dups could cause this violation if more than one computer involved.
 
                 if (howManyRowsHadSamePath > 1) {
-                   qCritical() << "**** ProcessFilesTask:: More than one undeleted record for this file path was found, which is outside universal expectations. Stopping.";
-                   break;
+                    qCritical() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) More than one undeleted record for this file path was found, which is outside universal expectations. Stopping.";
+                    break;
                 }
                 else if (howManyRowsHadSamePath == 1) {
-                   qDebug() << "**** ProcessFilesTask:: this file_path already in files table. updating that we saw file.";
-                   // UPDATE table set last_verified_full_path_present_on_ts_wth_tz to now.
-                   QString updRecAlreadyCommand = QString("UPDATE %3.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted IS false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
-                   QSqlQuery updAlreadyExistentRecinStagingDatabase;
-                   if (!updAlreadyExistentRecinStagingDatabase.exec(updRecAlreadyCommand)) {
-                       qDebug() << updAlreadyExistentRecinStagingDatabase.lastError().text();
-                       qDebug() << updAlreadyExistentRecinStagingDatabase.lastQuery();
-                       break; // Query busted
-                   }
-                   continue;
+                    qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) this file_path already in files table. updating that we saw file.";
+                    // UPDATE table set last_verified_full_path_present_on_ts_wth_tz to now.
+                    QString updRecAlreadyCommand = QString("UPDATE %3.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted IS false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
+                    QSqlQuery updAlreadyExistentRecinStagingDatabase;
+                    if (!updAlreadyExistentRecinStagingDatabase.exec(updRecAlreadyCommand)) {
+                        qDebug() << updAlreadyExistentRecinStagingDatabase.lastError().text();
+                        qDebug() << updAlreadyExistentRecinStagingDatabase.lastQuery();
+                        break; // Query busted
+                    }
+                    continue;
                 }
                 else {
-                   qDebug().nospace() << "**** ProcessFilesTask:: new file_path:" << FilePath << ", adding.";
+                    qDebug().nospace() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) new file_path:" << FilePath << ", adding.";
                 }
             }
 
@@ -234,9 +223,9 @@ public slots:
             QDateTime fileContainerCreatedOn = FileContainerInfo.birthTime();
             QDateTime fileContainerModifiedOn = FileContainerInfo.lastModified();
 
-            howManyFilesPreppedFromDirectoryScan++;
-            if (howManyFilesPreppedFromDirectoryScan > limitedToExaminingFilesFromDirectoryScan && limitedToExaminingFilesFromDirectoryScan != 0) {
-                qDebug() << "**** ProcessFilesTask:: Reached imposed limit of" << limitedToExaminingFilesFromDirectoryScan << "for testing, stopping";
+            data.howManyFilesPreppedFromDirectoryScan++;
+            if (data.howManyFilesPreppedFromDirectoryScan > data.limitedToExaminingFilesFromDirectoryScan && data.limitedToExaminingFilesFromDirectoryScan != 0) {
+                qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) Reached imposed limit of" << data.limitedToExaminingFilesFromDirectoryScan << "for testing, stopping";
                 break;
             }
 
@@ -253,18 +242,18 @@ public slots:
             // Construct a unique hash identifier for compare
 
             QByteArray fileHash = QCryptographicHash::hash(fileData, QCryptographicHash::Md5);
-            if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "file hash is" << fileHash.length() << "bytes";  // Need size to define in file hash column. 8?
+            if (data.howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "file hash is" << fileHash.length() << "bytes";  // Need size to define in file hash column. 8?
             QByteArray fileHashAsHex = fileHash.toHex();
             QString fileHashAsHexString = QString(fileHashAsHex);
-            if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: " << FileName << " : " << fileHashAsHexString;
+            if (data.howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) " << FileName << " : " << fileHashAsHexString;
 
             // Write to database. If already there, update and increment find count and date range.
             // For now, let's just add them to the files table.  We'll worry about release year, name normalization, etc.
             // If hash changed, flag it and log. size, flag it and log. dates?
 
             if (connected) {
-                if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Starting attempt to add file info to files table...(stage_for_master.files)";
-                qDebug() << howManyFilesPreppedFromDirectoryScan << ":" << FilePath;
+                if (data.howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) Starting attempt to add file info to files table...(stage_for_master.files)";
+                qDebug() << data.howManyFilesPreppedFromDirectoryScan << ":" << FilePath;
                 QSqlQuery pushFilmFileInfoToDatabase;
                 QString insertCommand = QString("INSERT INTO %12.%1(txt, base_name, final_extension, typ_id, file_md5_hash, file_deleted, file_size"
                                                 ", file_created_on_ts, file_modified_on_ts, parent_folder_created_on_ts, parent_folder_modified_on_ts, record_deleted)"
@@ -284,19 +273,19 @@ public slots:
                                                 "/* record_deleted */                                     false" // Oops. was creating 100s of dups.
                                                 ")"
                                                 ).arg( // Only supports string arguments
-                                                   /* %1 table name */ targetTableForFileInfo
-                                                 , /* %2 txt */FilePathPrepped
-                                                 , /* %3 base_name */FileNamePrepped // Any other illegal characters? Check lengths first?
-                                                 , /* %4 final_extension */FileNameExtension
-                                                 , /* %5 typ_id */QString::number(fileTypeId)
-                                                 , /* %6 file_md5_hash */fileHashAsHexString
-                                                 , /* %7 file_size */QString::number(FileSize)
-                                                 , /* %8 file_created_on_ts */FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
-                                                 , /* %9 file_modified_on_ts */FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
-                                                 , /* %10 parent_folder_created_on_ts */fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
-                                                 , /* %11 parent_folder_modified_on_ts */fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
-                                                 , /* %12 schema_name */ targetSchemaForFileInfo
-                                                 );
+                                                /* %1 table name */ targetTableForFileInfo
+                                                , /* %2 txt */FilePathPrepped
+                                                , /* %3 base_name */FileNamePrepped // Any other illegal characters? Check lengths first?
+                                                , /* %4 final_extension */FileNameExtension
+                                                , /* %5 typ_id */QString::number(fileTypeId)
+                                                , /* %6 file_md5_hash */fileHashAsHexString
+                                                , /* %7 file_size */QString::number(FileSize)
+                                                , /* %8 file_created_on_ts */FileCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // note that "ms" would be "fffffff" in sql server, 7 I think, but not all meaningful
+                                                , /* %9 file_modified_on_ts */FileModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms") // Should add a local timezone
+                                                , /* %10 parent_folder_created_on_ts */fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                , /* %11 parent_folder_modified_on_ts */fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.ms")
+                                                , /* %12 schema_name */ targetSchemaForFileInfo
+                                                );
 
                 // Did it successfully add a new record to the database?
 
@@ -304,12 +293,12 @@ public slots:
                     // No it did not add a record to the database.
                     qDebug() << pushFilmFileInfoToDatabase.lastError().text(); // Not cross-db comparable. No ANSI error codes.
                     qDebug() << pushFilmFileInfoToDatabase.lastQuery();
-                    qDebug() << "**** ProcessFilesTask:: Did not add this file info!";
+                    qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) Did not add this file info!";
                     /*
                      * ERROR:  duplicate key value violates unique constraint \"files_pkey\"\nDETAIL:  Key (id)=(1) already exists.\n(23505) QPSQL: Unable to create query
                      * ERROR:  duplicate key value violates unique constraint \"ax_files_text\"\nDETAIL:  Key (text)=(D:/qBittorrent Downloads/Video/Movies/13.Hours.The.Secret.Soldiers.of.Benghazi.2016.1080p.BluRay.x264.DTS-JYK/13.Hours.The.Secret.Soldiers.of.Benghazi.2016.1080p.BluRay.x264.DTS-JYK.mkv) already exists.\n(23505) QPSQL: Unable to create query
                      */
-                    howManyFilesProcessed++; // Still failed, though, to add. But not a faily failure if it violated a unique index or constraint. This should be changed to detect difference between good errors and bad, because if the database crashes or table is locked or the sql is corrupt over it is out of domain, then that's not "processing", that's a bug.
+                    data.howManyFilesProcessed++; // Still failed, though, to add. But not a faily failure if it violated a unique index or constraint. This should be changed to detect difference between good errors and bad, because if the database crashes or table is locked or the sql is corrupt over it is out of domain, then that's not "processing", that's a bug.
                     //filedb.rollback(); // if there's a transaction, which on staging tables doesn't make sense
                     filedb.close();
                 }
@@ -317,54 +306,69 @@ public slots:
 
                     // Yes it did add a new record to the database (unless ON CONFLICT is present and a unique CONSTRAINT (not index) is present.
 
-                    if (howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask:: Writing file info to files table. Completed!"; // Just show once, don't flood the zone.
+                    if (data.howManyFilesPreppedFromDirectoryScan == 1) qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) Writing file info to files table. Completed!"; // Just show once, don't flood the zone.
 
                     qint64 milliSecondsProcessingThisFileTook = timeThisFileProcess.elapsed();
                     qint32 secondsProcessingThisFileTook = milliSecondsProcessingThisFileTook / 1000;
-                    qDebug() << "Took" << secondsProcessingThisFileTook << "seconds to process this file.";
-                    howManyFilesAddedToDatabaseNewly++; // Not updated, which is not an error, but without the ON CONFLICT working we can't trap exactly.
-                    howManyFilesProcessed++;
-                    howManyFilesProcessedSuccessfully++; // Have to update this if I get ON CONFLICT and updates working, as that's processing.
+                    qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) Took" << secondsProcessingThisFileTook << "seconds to process this file.";
+                    data.howManyFilesAddedToDatabaseNewly++; // Not updated, which is not an error, but without the ON CONFLICT working we can't trap exactly.
+                    data.howManyFilesProcessed++;
+                    data.howManyFilesProcessedSuccessfully++; // Have to update this if I get ON CONFLICT and updates working, as that's processing.
                 }
             }
         }
+    }
 
+public slots:
+    void run()
+    {
+        qDebug("ProcessFilesTask::run()");
+        QElapsedTimer timer;
+        timer.start();
+
+        // For now we're testing a single data packet.  yet another loop to do multiples.
+        foreach (ProcessFilesTaskData procFilesTaskDataPacket, datapackets->processFilesTasksData) {
+            QString searchPath = procFilesTaskDataPacket.searchPath;
+            qDebug() << "ProcessFilesTask::run(): Processing a single data packet: searching " << searchPath;
+            ProcessASingleSearchPath(procFilesTaskDataPacket);
+            qDebug("ProcessFilesTask::run(): Processing a single data packet finished");
+            qDebug("**** ProcessFilesTask::run(): How many file's infos were read from the directory scan: %d", procFilesTaskDataPacket.howManyFilesReadInfoFor);
+            qDebug("**** ProcessFilesTask::run(): How many file's infos were limiting run to from directory scans: %d", procFilesTaskDataPacket.limitedToExaminingFilesFromDirectoryScan);
+            qDebug("**** ProcessFilesTask::run(): How many file's infos were added to database newly: %d", procFilesTaskDataPacket.howManyFilesAddedToDatabaseNewly);
+            qDebug("**** ProcessFilesTask::run(): How many file's infos were processed: %d", procFilesTaskDataPacket.howManyFilesProcessed); // A bit ambiguous since the update isn't in place.
+        }
         // if (connected) filedb.commit(); // Good. Now visible to other users of db.
 
-//        filesdir.setNameFilters(QStringList() << "*.*");
-//        filesdir.setFilter(QDir::Files);
-//        QStringList filenames = filesdir.entryList(); // entryInfoList
-//        QString filenamesfound = filenames.join(", ");
+        //        filesdir.setNameFilters(QStringList() << "*.*");
+        //        filesdir.setFilter(QDir::Files);
+        //        QStringList filenames = filesdir.entryList(); // entryInfoList
+        //        QString filenamesfound = filenames.join(", ");
 
-        qint64 timeToRunInNanoSeconds = timer.nsecsElapsed();
+        qint64 timeToRunInNanoSeconds  = timer.nsecsElapsed(); // Ya know, jeff, ya could use elapsed() for milliseconds.
         qint64 timeToRunInMicroSeconds = timeToRunInNanoSeconds / 1000;
         qint64 timeToRunInMilliSeconds = timeToRunInMicroSeconds / 1000;
-        qint32 timeToRunInSeconds = timeToRunInMilliSeconds / 1000;
-        qint32 timeToRunInMinutes = timeToRunInSeconds / 60;
-        qint16 timeToRunInHours = timeToRunInMinutes / 60;
+        qint32 timeToRunInSeconds      = timeToRunInMilliSeconds / 1000;
+        qint32 timeToRunInMinutes      = timeToRunInSeconds / 60;
+        qint16 timeToRunInHours        = timeToRunInMinutes / 60;
 
         if (timeToRunInHours > 0) {
-            qDebug("**** ProcessFilesTask:: How many hours did the entire scan, hash, and insert take? %d", timeToRunInHours);
+            qDebug("**** ProcessFilesTask::run():  How many hours did the entire scan, hash, and insert take? %d", timeToRunInHours);
         } else if (timeToRunInMinutes > 0) {
-            qDebug("**** ProcessFilesTask:: How many minutes did the entire scan, hash, and insert take? %d", timeToRunInMinutes);
+            qDebug("**** ProcessFilesTask::run():  How many minutes did the entire scan, hash, and insert take? %d", timeToRunInMinutes);
         } else if (timeToRunInSeconds > 0) {
-            qDebug("**** ProcessFilesTask:: How many seconds did the entire scan, hash, and insert take? %d", timeToRunInSeconds);
+            qDebug("**** ProcessFilesTask::run():  How many seconds did the entire scan, hash, and insert take? %d", timeToRunInSeconds);
         } else if (timeToRunInMilliSeconds > 0) {
-            qDebug("**** ProcessFilesTask:: How many milliseconds did the entire scan, hash, and insert take? %lld", timeToRunInMilliSeconds);
+            qDebug("**** ProcessFilesTask::run():  How many milliseconds did the entire scan, hash, and insert take? %lld", timeToRunInMilliSeconds);
         } else if (timeToRunInMicroSeconds > 0) {
-            qDebug("**** ProcessFilesTask:: How many microseconds did the entire scan, hash, and insert take? %lld", timeToRunInMicroSeconds);
+            qDebug("**** ProcessFilesTask::run():  How many microseconds did the entire scan, hash, and insert take? %lld", timeToRunInMicroSeconds);
         } else if (timeToRunInNanoSeconds > 0) {
-            qDebug("**** ProcessFilesTask:: How many nanoseconds did the entire scan, hash, and insert take? %lld", timeToRunInNanoSeconds);
+            qDebug("**** ProcessFilesTask::run():  How many nanoseconds did the entire scan, hash, and insert take? %lld", timeToRunInNanoSeconds);
         }
 
-        qDebug("**** ProcessFilesTask:: How many file's infos were read from the directory scan: %d", howManyFilesReadInfoFor);
-        qDebug("**** ProcessFilesTask:: How many file's infos were limiting run to from directory scans: %d", limitedToExaminingFilesFromDirectoryScan);
-        qDebug("**** ProcessFilesTask:: How many file's infos were added to database newly: %d", howManyFilesAddedToDatabaseNewly);
-        qDebug("**** ProcessFilesTask:: How many file's infos were processed: %d", howManyFilesProcessed); // A bit ambiguous since the update isn't in place.
 
         // ------------------------------------------------------------------------------------------------------------------------------------
 
-        qDebug("ProcessFilesTask::run():emit finished() (2)");
+        qDebug("ProcessFilesTask::ProcessASingleSearchPath(data)run():emit finished() (2)");
         emit finished();
     }
 
