@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
     processTorrentDownloadsTaskData->listOfFileTypes = {"*.mkv", "*.avi", "*.mp4", "*.mpg", "*.wmv", "*.srt", "*.sub", "*.idx", "*.vob" };
     processTorrentDownloadsTaskData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
     processTorrentDownloadsTaskData->directoryIteratorFlags = QDirIterator::Subdirectories;
-    processTorrentDownloadsTaskData->skip_db_writes_even_if_connected = false; // We want to test the directory stuff, and we don't have updates set up.
 
     processTorrentDownloadsTaskData->targetSchema = "stage_for_master";
     processTorrentDownloadsTaskData->tableNameToWriteNewRecordsTo = "files"; // dur. Da table.
@@ -87,7 +86,7 @@ int main(int argc, char *argv[])
 
     qDebug("main:ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processFilesTaskData, &qCoreApplicationInstance)");
 
-    bool testSingleTask = false;
+    bool testSingleTask = true;  // true and just run the torrent downloads scan.
 
     // Test that single task still works.
     if (testSingleTask) {
