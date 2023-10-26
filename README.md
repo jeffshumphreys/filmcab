@@ -42,3 +42,9 @@ Someday maybe write an opensource explorer for movies
 
 Someday an extension to VLC to track play behavior. I hate restarting movies that I've started eight times before and only remember after 10 minutes that this is a dumb movie.
 
+--------------------------------------------------------------------------------------------------------------
+10/26/23
+Migrated to ERwin to show a proper Entity Relationship diagram.  Here's a PNG from snippet of a PDF print from ERwin modeler.  This is much improved from the first design ideas. Key was to identity "playable_files" to superclass audio_files and video_files, which will share ids. I was torn on media_files since I only have one attribute, but it's the junction point for readable_files, playable_files, and where the media tables can join to.  The media table represents videos, music videos, recordings, pdfs, novels, etc.
+
+So media_files and media are on two sides of the concepts. the attributes of the file and the work are not one to one. Often 1-to-1, 1-to-0, 0-to-1.  I haven't dealt with many-to-many ideas.  One example is linking trailers, alternate bitrates and resolutions, samples.  I didn't support linkage from media to subtitles and scripts this way, but rather with media_supporting_files.  It could go either way.  I suppose we want to link videos to subtitles based on their being in the same directory, without having identified the exact work or name in IMDB yet.
+![filmcab physical model](https://github.com/jeffshumphreys/filmcab/assets/47931319/f02d3095-e8cc-42b5-ba0f-b360b939b2d8)
