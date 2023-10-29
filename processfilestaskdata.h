@@ -20,7 +20,7 @@ public:
 
         // This is awful, but in Postgres testing, only the following worked "SELECT TIMESTAMP WITH TIME ZONE '2023-10-12 18:39:35.691-0600' AT TIME ZONE '+06:00';"
 
-        // test support for + offsets.  Ideall we should store UTC. :(
+        // test support for + offsets.  Ideally we should store UTC. :(
         QString p1=QString::number(localTimeTZOffsetHours).rightJustified(2, '0');
         QString p2="00";
         QString localTimeZoneOffsetAsDateFormat1 = QString("-%1%2").arg(p1, p2); // Whew! It's suggested not to use sprintf, so........
@@ -42,9 +42,9 @@ public:
 
     bool dbconnected = false;
 
-    QString tableNameToWriteNewRecordsTo;
+    QString tableNameToWriteNewRecordsTo; // ex: files
 
-    QString targetSchema = ""; // stage_for_master, for instance.
+    QString targetSchema = ""; // stage_for_master, for instance. Eventually, master.
 
     IdentityMethod identityMethod = IdentityMethod::reset_if_truncating;
 
@@ -59,6 +59,7 @@ public:
           FileChangeDetectionClass::FileChangeDetection::scan_dir_if_mod_dt_newer; // Only if entry is dir.
 
     qint64 assumeFileTypeId; // probably should use long long. We "assume" because we're not really checking the file to validate. Lots of srt files get typed as movies, for example.
+    QString file_flow_state_enum_str = "unknown"; // MUST exist in filmcab.public.file_flow_state_enum values. One of the annoyances of syncronized database-code.
     QString searchPath = ""; // Only one at a time for now.
 
     QStringList listOfFileTypes = {"*.*"}; // defaults to all; you should override this.
@@ -69,18 +70,19 @@ public:
 
     QString timeZoneOffsetAsDateFormatForFileTimestamps1; // defaulted in constructor.  You must override if you are say pulling from some online cloud file system with utc, or some other datetime.
     QString timeZoneOffsetAsDateFormatForFileTimestamps2; // defaulted in constructor.  You must override if you are say pulling from some online cloud file system with utc, or some other datetime.
-    QString formatToPullStringFromQStringIntoPostgresTimestamptzConstant;
+    QString formatToPullStringFromQStringIntoPostgresTimestamptzConstant; // huh?
 
     int howManyFilesReadInfoFor                  = 0; // Now that I'm skipping files, I like to know how many were grabbed
     int howManyFilesPreppedFromDirectoryScan     = 0; // ambiguous name
     int howManyFilesProcessed                    = 0; // including failures
     int howManyFilesProcessedSuccessfully        = 0; // Not necessarily added. What does "Successfully" mean?  Added? Skipped? Serious failures tend to stop the program.
     int howManyFilesAddedToDatabaseNewly         = 0;
+    int limitedToExaminingFilesFromDirectoryScan = 0; // 0 means don't apply limit
+
     int howManyDirectoriesChanged                = 0; // And therefore scanned and drilled
     int howManyNewDirectories                    = 0; // Added to directories table and scanned
     int howManyDirectoriesUnchanged              = 0; // And therefore skipped
     int howManyDirectoriesRecreated              = 0; // An odd thing if the created date changes.
-    int limitedToExaminingFilesFromDirectoryScan = 0; // 0 means don't apply limit
 };
 
 

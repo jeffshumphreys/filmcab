@@ -1,76 +1,93 @@
--- public.files definition
+-- Table: stage_for_master.files
 
--- Drop table
+-- DROP TABLE IF EXISTS stage_for_master.files;
 
+CREATE TABLE IF NOT EXISTS stage_for_master.files
+(
+    txt character varying(400) COLLATE pg_catalog."default" NOT NULL,
+    typ_id bigint NOT NULL,
+    record_created_on_ts_wth_tz timestamp with time zone NOT NULL DEFAULT clock_timestamp(),
+    record_changed_on_ts_wth_tz timestamp with time zone,
+    record_deleted boolean,
+    record_deleted_on_ts_wth_tz timestamp with time zone,
+    record_deleted_why bigint,
+    txt_prev character varying(400) COLLATE pg_catalog."default",
+    txt_corrected boolean,
+    txt_corrected_on_ts_wth_tz timestamp with time zone,
+    txt_corrected_why bigint,
+    typ_prev bigint,
+    typ_corrected boolean,
+    typ_corrected_on_ts_wth_tz timestamp with time zone,
+    typ_corrected_why bigint,
+    loading_batch_run_id bigint,
+    base_name character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    final_extension character varying COLLATE pg_catalog."default" NOT NULL,
+    file_size bigint,
+    file_created_on_ts_wth_tz timestamp with time zone NOT NULL,
+    file_modified_on_ts_wth_tz timestamp with time zone NOT NULL,
+    parent_directory_created_on_ts_wth_tz timestamp with time zone NOT NULL,
+    parent_directory_modified_on_ts_wth_tz timestamp with time zone NOT NULL,
+    file_deleted boolean NOT NULL DEFAULT false,
+    file_deleted_on_ts_wth_tz timestamp with time zone,
+    file_deleted_why bigint,
+    file_replaced boolean NOT NULL DEFAULT false,
+    file_replaced_on_ts_wth_tz timestamp with time zone,
+    file_moved boolean NOT NULL DEFAULT false,
+    file_moved_where bigint,
+    file_moved_why bigint,
+    file_moved_on_ts_wth_tz timestamp with time zone,
+    file_lost boolean NOT NULL DEFAULT false,
+    file_loss_detected_on_ts_wth_tz timestamp with time zone,
+    last_verified_full_path_present_on_ts_wth_tz timestamp with time zone,
+    file_md5_hash bytea NOT NULL,
+    id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( CYCLE INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
+    CONSTRAINT files_pkey PRIMARY KEY (id),
+    CONSTRAINT files_txt_record_deleted_key UNIQUE NULLS NOT DISTINCT (txt, record_deleted),
+    CONSTRAINT files_typ_id_fkey FOREIGN KEY (typ_id)
+        REFERENCES public.typs (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE RESTRICT,
+    CONSTRAINT files_record_deleted_check CHECK (record_deleted IS NOT TRUE)
+)
 
-create schema if not exists receiving_dock;
-create schema if not exists stage_for_master;
-create schema if not exists shipping_dock;
+TABLESPACE pg_default;
 
-set search path = stage_for_master;
+ALTER TABLE IF EXISTS stage_for_master.files
+    OWNER to postgres;
 
-drop table if exists files; -- Probably don't want constraints on this table
+COMMENT ON COLUMN stage_for_master.files.txt
+    IS 'The full path with all the fixin''s.  Includes the file name with extension.';
 
-create table files (
-	id                                           int                         not null generated always as identity, -- local counter, since staging data
-	text                                         varchar(400)                not null, -- full path. i.e., "D:/qBittorrent Downloads/Video/Movies/13.Hours.The.Secret.Soldiers.of.Benghazi.2016.1080p.BluRay.x264.DTS-JYK/13.Hours.The.Secret.Soldiers.of.Benghazi.2016.1080p.BluRay.x264.DTS-JYK.mkv"
-	base_name                                    varchar(200)                not null, -- i.e., "13.Hours.The.Secret.Soldiers.of.Benghazi.2016.1080p.BluRay.x264.DTS-JYK"
-	final_extension                              varchar(5)                  not null, -- i.e., "mkv"
-	record_version_for_same_name_file            int                         not null, -- local versioning
-	type_id                                      int8                            null, -- Unlike Titles table, type does not make it unique. Mainly path
-	record_created_on_ts_wth_tz                  timestamptz                     null default clock_timestamp(),
-	record_changed_on_ts_wth_tz                  timestamptz                     null,
-	record_deleted                               bool                            null,
-	record_deleted_on_ts_wth_tz                  timestamptz                     null,
-	record_deleted_why							 varchar(400)                    null, -- could be a code, too, as in "file no longer present, torrent system moved, duplicate record"
-	text_prev                                    varchar(400)                    null,
-	text_corrected                               bool                            null,
-	text_corrected_on_ts_wth_tz                  timestamptz                     null,
-	type_corrected                               bool                            null,
-	type_corrected_on_ts_wth_tz                  timestamptz                     null,
-	file_size                                    bigint                          null,
-	file_created_on_ts                           timestamp without time zone not null,
-	file_modified_on_ts                          timestamp without time zone not null,
-	parent_folder_created_on_ts                  timestamp without time zone not null,
-	parent_folder_modified_on_ts                 timestamp without time zone not null,
-	file_deleted                                 bool                        not null default false,
-	file_deleted_on_ts_wth_tz                    timestamptz                     null,
-	file_replaced                                bool                        not null default false,
-	file_replaced_on_ts_wth_tz                   timestamptz                     null,
-	file_moved                                   bool                        not null default false,
-	file_moved_where                             varchar(400)                    null, -- cloud? thumbdrive? another network? computer?
-	file_moved_on_ts_wth_tz                      timestamptz                     null,
-	file_lost                                    bool                        not null default false,
-	file_loss_detected_on_ts_wth_tz              timestamptz                     null,
-	last_verified_full_path_present_on_ts_wth_tz timestamptz                     null,
-	file_md5_hash                                bytea                       not null,
-	constraint files_pkey primary key (id),
-	constraint files_text_version unique (text, record_version_for_same_name_file)
-);
+COMMENT ON COLUMN stage_for_master.files.typ_id
+    IS 'Like is it a torrent file, a published to user file, a backup file';
 
-comment on column files.id                          is 'staging so use an identity. Master has to keep id''s across system. Still, would be nice to keep a few staged sets, all the week, 1 from previous month, year';
-comment on column files.text                        is 'aka full_path. "text" means the same update algorithm triggers work. is 400 enough? It can be changed - NEVER TRUNCATE! In postgresql it''s UTF8, which SQL Server only recently supports and recommends not using. The collation was the default, English_United States.1252. Maybe a dictionary collate?';
-comment on column files.base_name                   is 'Doesn''t include the extension, hopefully ''base'' is clear.';
-comment on column files.final_extension             is 'Ever any longer than 3? Torrents are often styled with lots of dots instead of spaces.  No idea why. In the torrent downloading folder we do not change the names, so multi-dots are probably every file';
-comment on column files.record_deleted              is 'By keeping "deleted" records of files (hopefully deleted), we lose the ability to use the ON CONFLICT clause since a postgres doesn''t support filtered constraints, only filtered indexes. Not sure if MS SQL was the same. But, this complicates the insert.';
-comment on column files.type_id                     is 'Type can be what contextually is, like movie, or what it physically is, like mkv or codec or torrented file.';
-comment on column files.text_corrected_on_ts_wth_tz is 'Type was corrected, meaning the original type was "video" and we want to label it more specifically "movie", but hopefully in the same tree. This will require thought. Other possibilities exist that would confuse the typing, like going to a whole new hierarchy, or up the tree. And is it corrected or enhanced?';
-comment on column files.file_md5_hash               is 'I include the encryption method in the name because most people don''t, and then you have a devil of a time in a new app guessing.  This tells me two files are identical or not. They could be the same movie, but any slight variation would';
-comment on column files.record_deleted              is 'I suppose this is weird with file_deleted also present, but There are so many reasons to delete a record, I just can''t think of one. Let it sit and then we can update the comment.  Examples of why a column exists are important, or else the column shouldn''t exist.';
-comment on column files.file_deleted                is 'Try and trap this so if it comes back around, as things do over time, then we have a record';
-comment on column files.parent_folder_created_on_ts is 'Newly noted: When torrents come down in folders, the folder is the date I downloaded it, or it finished, but the inner files are the date the online source created the file.  Very useful.';
+COMMENT ON COLUMN stage_for_master.files.record_created_on_ts_wth_tz
+    IS 'Please block this in the update common trigger from being updated.';
 
-create trigger public.trgupd_files before
-update
-	on
-	files for each row execute function public.trgupd_common_columns();
+COMMENT ON COLUMN stage_for_master.files.record_changed_on_ts_wth_tz
+    IS 'NEVER set in insert trigger';
 
--- update trigger
--- what happened?
+COMMENT ON COLUMN stage_for_master.files.txt_corrected
+    IS 'As in not changed, the thing represented did not mutate, rather we are correcting a misentry.';
 
-create index ix_files_hash on files(file_md5_hash); 
-comment on index ix_files_hash is 'We have files that would be the same hash but in different locations or names';
+COMMENT ON COLUMN stage_for_master.files.typ_prev
+    IS 'previous typ_id, actually';
 
-create unique index ax_files_text on files(text) where file_deleted is null or file_deleted is false;
-comment on index ax_files_text is 'The only way a file could have the same path is if the other one is no longer there, so we keep the old entry and mark it deleted. No idea about undelete redelete';
+COMMENT ON COLUMN stage_for_master.files.base_name
+    IS 'without the extension';
 
+COMMENT ON COLUMN stage_for_master.files.final_extension
+    IS 'like, ".torrent", ".txt", ".mkv".  In torrenting, file names often have multiple periods.';
+
+COMMENT ON COLUMN stage_for_master.files.file_modified_on_ts_wth_tz
+    IS 'The file timestamps only go out to milliseconds. So we are taking the system tz.';
+
+-- Trigger: trgupd_files_01
+
+-- DROP TRIGGER IF EXISTS trgupd_files_01 ON stage_for_master.files;
+
+CREATE OR REPLACE TRIGGER trgupd_files_01
+    BEFORE INSERT OR DELETE OR UPDATE 
+    ON stage_for_master.files
+    FOR EACH ROW
+    EXECUTE FUNCTION public.trgupd_common_columns();

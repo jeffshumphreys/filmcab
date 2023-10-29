@@ -7,7 +7,6 @@
 #include <QCoreApplication>
 #include <QtCore> // QTimer
 #include <QDebug>
-
 #include "sharedenumerations.h"
 #include "processfilestask.h"
 
@@ -60,8 +59,10 @@ int main(int argc, char *argv[])
 
     // Build a bean, struct of control parameters for the task ahead
     // This first set are the ones that won't change over the various folders we scan for new files.
+    // "*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv"
 
-    processTorrentDownloadsTaskData->listOfFileTypes = {"*.mkv", "*.avi", "*.mp4", "*.mpg", "*.wmv", "*.srt", "*.sub", "*.idx", "*.vob" };
+
+    processTorrentDownloadsTaskData->listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" }; // sorted for ease of maintenance
     processTorrentDownloadsTaskData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
     processTorrentDownloadsTaskData->directoryIteratorFlags = QDirIterator::Subdirectories;
 
@@ -74,19 +75,22 @@ int main(int argc, char *argv[])
     ProcessFilesTaskData processBackedupFilesTaskData = ProcessFilesTaskData(*processTorrentDownloadsTaskData);
 
     processTorrentDownloadsTaskData->assumeFileTypeId = CommonFileTypes::torrent_file;
+    processTorrentDownloadsTaskData->file_flow_state_enum_str = "downloaded"; // see enum type in database
     processTorrentDownloadsTaskData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
 
     processPublishedFilesTaskData.assumeFileTypeId = CommonFileTypes::published_file;
+    processPublishedFilesTaskData.file_flow_state_enum_str = "published"; // see enum type in database
     processPublishedFilesTaskData.searchPath = "O:/Video AllInOne";
 
     processBackedupFilesTaskData.assumeFileTypeId = CommonFileTypes::backedup_file;
+    processBackedupFilesTaskData.file_flow_state_enum_str = "backedup"; // written to files_batch_runs_log.file_flow_state column
     processBackedupFilesTaskData.searchPath = "G:/Video AllInOne2";
 
     // So, this looks sus, but I create a task WITH data.
 
     qDebug("main:ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processFilesTaskData, &qCoreApplicationInstance)");
 
-    bool testSingleTask = true;  // true and just run the torrent downloads scan.
+    bool testSingleTask = false;  // true and just run the torrent downloads scan.
 
     // Test that single task still works.
     if (testSingleTask) {

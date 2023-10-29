@@ -14,7 +14,8 @@ enum CommonFileTypes {
     torrent_file   = 8, // In the D:\qBittorrent Downloads\_torrent files directory, ending ".torrent" Need to expand my extension field
     published_file = 9, // These get renamed alot, and I move them into different categories (directories) fairly often.
     backedup_file = 10, // Should be really still
-    directory     = 12
+    directory     = 12,
+    processfiles  = 14
 }; // Not all of them, just as I use them.
 
 enum PreProcessTable { truncate, // Not really ready for this, makes sense in stage_for_master, receiving and shipping dock, not master.
