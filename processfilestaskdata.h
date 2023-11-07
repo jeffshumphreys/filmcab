@@ -4,12 +4,13 @@
 #include "qshareddata.h" // Maybe if we keep this untied to processfilestask, it will reduce compiles?
 #include "qsqldatabase.h"
 #include "sharedenumerations.h"
+#include "databasetaskcontrol.h"
 
 #include <QtCore> // QStringList
 #include <QDir>
 #include <QDirIterator>
 
-class ProcessFilesTaskData
+class ProcessFilesTaskData : public DatabaseTaskControl
 {
 public:
     ProcessFilesTaskData() {
@@ -36,21 +37,23 @@ public:
 
     // Data controls
 
-    QSqlDatabase db; // Must be set by caller or any reading/writing to db will be skipped.
+    //QSqlDatabase db; // Must be set by caller or any reading/writing to db will be skipped.
 
-    bool triedToConnect = false;
+    //bool triedToConnect = false;
 
-    bool dbconnected = false;
+    //bool dbconnected = false;
 
-    QString tableNameToWriteNewRecordsTo; // ex: files
+//    QString tableNameToWriteNewRecordsTo; // ex: files
 
-    QString targetSchema = ""; // stage_for_master, for instance. Eventually, master.
+//    QString targetSchema = ""; // stage_for_master, for instance. Eventually, master.
 
-    IdentityMethod identityMethod = IdentityMethod::reset_if_truncating;
+//    IdentityMethod identityMethod = IdentityMethod::reset_if_truncating;
 
-    PreProcessTable preProcessTargetTable = PreProcessTable::leave_as_is; // Should capture counts
+//    PreProcessTable preProcessTargetTable = PreProcessTable::leave_as_is; // Should capture counts
 
-    AddRowsMethod addRowsMethod = AddRowsMethod::ignore_if_logical_key_collision;
+//    AddRowsMethod addRowsMethod = AddRowsMethod::ignore_if_logical_key_collision;
+
+//    int howManyFilesAddedToDatabaseNewly         = 0;
 
     // file controls
 
@@ -76,7 +79,7 @@ public:
     int howManyFilesPreppedFromDirectoryScan     = 0; // ambiguous name
     int howManyFilesProcessed                    = 0; // including failures
     int howManyFilesProcessedSuccessfully        = 0; // Not necessarily added. What does "Successfully" mean?  Added? Skipped? Serious failures tend to stop the program.
-    int howManyFilesAddedToDatabaseNewly         = 0;
+    int howManyFilesDetectedAsBothInDbAndInFS    = 0;
     int limitedToExaminingFilesFromDirectoryScan = 0; // 0 means don't apply limit
 
     int howManyDirectoriesChanged                = 0; // And therefore scanned and drilled
