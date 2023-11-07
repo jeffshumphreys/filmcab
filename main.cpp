@@ -9,72 +9,74 @@
 #include <QDebug>
 #include "sharedenumerations.h"
 #include "processfilestask.h"
+#include "xlsxdocument.h"
 
 int main(int argc, char *argv[])
 {
 
     qDebug("main:QCoreApplication a(argc, argv)");
     QCoreApplication qCoreApplicationInstance(argc, argv);
+    QXlsx::Document xlsx;
 
-    QSqlDatabase targetDbForScannedFileInfo = QSqlDatabase::addDatabase("QPSQL"); /* Had to add the "sql" line to the .pro file in string "QT =
+    QSqlDatabase targetDbTaskProcessing = QSqlDatabase::addDatabase("QPSQL"); /* Had to add the "sql" line to the .pro file in string "QT =
             core \
             quick \
             widgets \
             sql
         */
 
-    targetDbForScannedFileInfo.setHostName("localhost");
-    targetDbForScannedFileInfo.setPort(5432); // This is the default port for postgres, so needs changing if you use a different RDBMS
-    targetDbForScannedFileInfo.setDatabaseName("filmcab");
-    targetDbForScannedFileInfo.setUserName("postgres");
-    targetDbForScannedFileInfo.setPassword("postgres");
+    targetDbTaskProcessing.setHostName("localhost");
+    targetDbTaskProcessing.setPort(5432); // This is the default port for postgres, so needs changing if you use a different RDBMS
+    targetDbTaskProcessing.setDatabaseName("filmcab");
+    targetDbTaskProcessing.setUserName("postgres");
+    targetDbTaskProcessing.setPassword("postgres");
 
-    // This is stupid. I don't want to pass in details about the file task in the constructor.  How to set data parameters?
-
-    ProcessFilesTaskData *processTorrentDownloadsTaskData = new ProcessFilesTaskData();
 
     // try and connect.
 
     qDebug() << "main: Attempting to connect to:"
-             << targetDbForScannedFileInfo.hostName()
-             << targetDbForScannedFileInfo.port()
-             << targetDbForScannedFileInfo.userName()
-             << targetDbForScannedFileInfo.password();
+             << targetDbTaskProcessing.hostName()
+             << targetDbTaskProcessing.port()
+             << targetDbTaskProcessing.userName()
+             << targetDbTaskProcessing.password();
 
-    bool connectedToDb = targetDbForScannedFileInfo.open();
-    processTorrentDownloadsTaskData->triedToConnect = true;
+    bool connectedToDb = targetDbTaskProcessing.open();
+    bool triedToConnect = true;
+    ProcessFilesTaskData *taskProcessingControlData = new ProcessFilesTaskData();
+    //taskProcessingControlData->triedToConnect = true;
 
     // A failed connection doesn't stop it from running, in case there's file work that can be done. Probably not, though.
 
     if(!connectedToDb) {
-        QSqlError connectionError = targetDbForScannedFileInfo.lastError();
+        QSqlError connectionError = targetDbTaskProcessing.lastError();
         qCritical() << "main:Error on attempting to open database:" << connectionError.text(); // Test this with bad pwd: caught.
         // Still soldiers on, should still be able to get through directory.
-        processTorrentDownloadsTaskData->dbconnected = false; // Task should skip db work, do just the file stuff.
+        //taskProcessingControlData->dbconnected = false; // Task should skip db work, do just the file stuff.
+
     }
     else {
-        qDebug() << "main:Connected successfully!";
-        processTorrentDownloadsTaskData->dbconnected = true;
+        qDebug() << "main:Connected successfully to" << targetDbTaskProcessing.hostName() << "as" << targetDbTaskProcessing.userName() << "on" << targetDbTaskProcessing.port();
+        //taskProcessingControlData->dbconnected = true;
     }
 
     // Build a bean, struct of control parameters for the task ahead
     // This first set are the ones that won't change over the various folders we scan for new files.
 
-    processTorrentDownloadsTaskData->listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" }; // sorted for ease of maintenance
-    processTorrentDownloadsTaskData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
-    processTorrentDownloadsTaskData->directoryIteratorFlags = QDirIterator::Subdirectories;
+    taskProcessingControlData->listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" }; // sorted for ease of maintenance
+    taskProcessingControlData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
+    taskProcessingControlData->directoryIteratorFlags = QDirIterator::Subdirectories;
 
-    processTorrentDownloadsTaskData->targetSchema = "stage_for_master";
-    processTorrentDownloadsTaskData->tableNameToWriteNewRecordsTo = "files"; // dur. Da table.
+    taskProcessingControlData->targetSchema = "stage_for_master";
+    taskProcessingControlData->tableNameToWriteNewRecordsTo = "files"; // dur. Da table.
 
     // Copy this to two more packets to pass in.
 
-    ProcessFilesTaskData processPublishedFilesTaskData = ProcessFilesTaskData(*processTorrentDownloadsTaskData); // Files we published for FireTV explorer to pick up.
-    ProcessFilesTaskData processBackedupFilesTaskData = ProcessFilesTaskData(*processTorrentDownloadsTaskData);
+    ProcessFilesTaskData processPublishedFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData); // Files we published for FireTV explorer to pick up.
+    ProcessFilesTaskData processBackedupFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
 
-    processTorrentDownloadsTaskData->assumeFileTypeId = CommonFileTypes::torrent_file;
-    processTorrentDownloadsTaskData->file_flow_state_enum_str = "downloaded"; // see enum type in database
-    processTorrentDownloadsTaskData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
+    taskProcessingControlData->assumeFileTypeId = CommonFileTypes::torrent_file;
+    taskProcessingControlData->file_flow_state_enum_str = "downloaded"; // see enum type in database
+    taskProcessingControlData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
 
     processPublishedFilesTaskData.assumeFileTypeId = CommonFileTypes::published_file;
     processPublishedFilesTaskData.file_flow_state_enum_str = "published"; // see enum type in database
@@ -93,7 +95,7 @@ int main(int argc, char *argv[])
 
     // Test that single task still works.
     if (testSingleTask) {
-        ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processTorrentDownloadsTaskData, &qCoreApplicationInstance);
+        ProcessFilesTask *processFilesTask = new ProcessFilesTask(*taskProcessingControlData, &qCoreApplicationInstance);
         qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
         QObject::connect(processFilesTask, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
         // This will run the task from the application event loop.
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
 
     else {
         ProcessFilesTasksData processFilesTasksData;
-        processFilesTasksData.processFilesTasksData = {*processTorrentDownloadsTaskData, processPublishedFilesTaskData};
+        processFilesTasksData.processFilesTasksData = {*taskProcessingControlData, processPublishedFilesTaskData};
         ProcessFilesTask *processFilesTasks = new ProcessFilesTask(processFilesTasksData, &qCoreApplicationInstance);
         qDebug("main:QObject::connect(processFilesTasks, SIGNAL(finished()), &a, SLOT(quit()))");
         QObject::connect(processFilesTasks, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
@@ -124,4 +126,6 @@ int main(int argc, char *argv[])
     int returnvalue = qCoreApplicationInstance.exec(); // Now! the "run()" is pulled off the event queue and run.
     qDebug("main:returned value = %d", returnvalue);
     return returnvalue;
-}
+} // end main function
+
+
