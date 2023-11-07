@@ -59,8 +59,6 @@ int main(int argc, char *argv[])
 
     // Build a bean, struct of control parameters for the task ahead
     // This first set are the ones that won't change over the various folders we scan for new files.
-    // "*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv"
-
 
     processTorrentDownloadsTaskData->listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" }; // sorted for ease of maintenance
     processTorrentDownloadsTaskData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
@@ -84,7 +82,8 @@ int main(int argc, char *argv[])
 
     processBackedupFilesTaskData.assumeFileTypeId = CommonFileTypes::backedup_file;
     processBackedupFilesTaskData.file_flow_state_enum_str = "backedup"; // written to files_batch_runs_log.file_flow_state column
-    processBackedupFilesTaskData.searchPath = "G:/Video AllInOne2";
+    //processBackedupFilesTaskData.searchPath = "G:/Video AllInOne2"; // Shut down this location because I made so many changes to the root folders and reorganization, that I didn't want to pollute the backup space with a zillion duplicates.
+    processBackedupFilesTaskData.searchPath = "G:/Video AllInOne Backup"; // Better name anyways. So now any references in files to AllInOne2 are broken, and need to marked as deleted?
 
     // So, this looks sus, but I create a task WITH data.
 

@@ -308,23 +308,28 @@ CREATE TABLE stage_for_master.files_batch_runs_log (
 	code_file_last_saved           timestamptz                      NULL,
 	started_on_ts_wth_tz           timestamptz                      NULL,
 	stopped_on_ts_wth_tz           timestamptz                      NULL,   -- null if crashed
+	run_duration_in_seconds        int8 GENERATED ALWAYS AS (EXTRACT(SECOND FROM started_on_ts_wth_tz - stopped_on_ts_wth_tz)) STORED,
 	processed_at_lst_1_file        bool                             NULL,                            
 	processed_at_lst_1_directory   bool                             NULL,                            
-	files_added                    int                              NULL,
+	files_added                    int                              NULL,   -- howManyFilesAddedToDatabaseNewly
+	files_marked_as_still_there    int                              NULL,   -- howManyFilesDetectedAsBothInDbAndInFS from code.
 	files_removed                  int                              NULL,
-	files_marked_as_still_there    int                              NULL,
+	directories_created            int                              NULL,
+	directories_tested             int                              NULL,
+	directories_newly_modified_since_last int                       NULL,
 	files_same_name_but_attr_chgnd int                              NULL,
 	error_msg                      text                             NULL,
 	error_on_line_no               int                              NULL, 
-	running_what_debugger          varchar(200)                     NULL -- No idea without a stacktrace
+	running_what_debugger          varchar(200)                     NULL, -- No idea without a stacktrace, and where the heck can I get a stacktrace??
 	-- github check in?
 );
 
 --TRUNCATE TABLE stage_for_master.files_batch_runs_log RESTART IDENTITY
 ALTER TABLE stage_for_master.files_batch_runs_log ADD FOREIGN KEY (typ_id) REFERENCES public.typs(id) ON DELETE RESTRICT;
 	
+COMMENT ON COLUMN stage_for_master.files_batch_runs_log.running_what_debugger IS 'No idea without a stacktrace, and where the heck can I get a stacktrace?? So this is null for now. I''ve tried boost, and I cannot generate anything but backtrace_noop libs.';
 
--- N/A CREATE OR REPLACE TRIGGER trgupd_files_batch_runs_log_01 BEFORE UPDATE OR DELETE OR INSERT ON stage_for_master.files_batch_runs_log FOR EACH ROW EXECUTE FUNCTION trgupd_common_columns();
+-- N/A, only the stopped column is updated, and counts. CREATE OR REPLACE TRIGGER trgupd_files_batch_runs_log_01 BEFORE UPDATE OR DELETE OR INSERT ON stage_for_master.files_batch_runs_log FOR EACH ROW EXECUTE FUNCTION trgupd_common_columns();
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS stage_for_master.source_codes; -- Won't work if dependent tables files, media_files_films, tv episodes, etc. ARE still enabled.
 CREATE TABLE stage_for_master.files_batch_runs_log (
@@ -351,7 +356,7 @@ CREATE TABLE stage_for_master.directories (LIKE public.template_for_small_refere
 ALTER TABLE stage_for_master.directories ADD FOREIGN KEY (typ_id) REFERENCES public.typs(id) ON DELETE RESTRICT;
 ALTER TABLE stage_for_master.directories ALTER id SET NOT NULL, ALTER id ADD GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE -9223372036854775808 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE);
 
-COMMENT ON COLUMN stage_for_master.directories.id IS 'TODO: We need to add these into the files table';
+COMMENT ON COLUMN stage_for_master.directories.id IS 'TODO: We need to add these into the files table, though I don''t know what value it will have unless I normalize the path out of the txt file path.';
 COMMENT ON COLUMN stage_for_master.directories.txt IS 'full path of the directory';
 COMMENT ON COLUMN stage_for_master.directories.typ_id IS 'Just directory for now, maybe later spread out into local, remote, OneDrive, network path, url';
 COMMENT ON COLUMN stage_for_master.directories.txt_prev IS 'A renamed directory? I doubt it.';
@@ -437,14 +442,14 @@ CREATE TABLE stage_for_master.media_files (LIKE public.template_for_staging_tabl
 	autocleaned_txt_from_file_name          varchar(200)     NULL,
 	autocleaned_txt_from_filebot            varchar(200)     NULL,
 	cleaned_txt_with_year                   varchar(207)     NULL GENERATED ALWAYS AS ((((((txt::text || ' '::text) || '('::text) || release_year::text) || ')'::text))) STORED,
-	file_name                               varchar(204) NOT NULL,
+	file_name_no_extension                  varchar(204) NOT NULL,
 	tags_extracted_txt                      text[]           NULL,
 	parent_folder_name                      varchar(200) NOT NULL,
 	tags_extracted_from_parent_folder       text[]           NULL,
 	grandparent_folder_name                 varchar(200) NOT NULL,
 	tags_extracted_from_gparent_folder      text[]           NULL,
 	greatgrandparent_folder_name            varchar(200) NOT NULL,
-	tags_extracted_from_ggparent_folder       text[]         NULL, -- Deep enough?
+	tags_extracted_from_ggparent_folder     text[]         NULL, -- Deep enough?
 	record_version_for_same_name            int4         NOT NULL,
 	release_year                            varchar(4)       NULL,
 	release_year_from_file_name             int4             NULL,
@@ -460,7 +465,7 @@ CREATE TABLE stage_for_master.media_files (LIKE public.template_for_staging_tabl
 	language_cd                             CHAR(3)          NULL DEFAULT('eng')
 );
 
---TRUNCATE TABLE stage_for_master.media_files RESTART IDENTITY
+
 ALTER TABLE stage_for_master.media_files ADD FOREIGN KEY (typ_id) REFERENCES public.typs(id) ON DELETE RESTRICT;
 ALTER TABLE stage_for_master.media_files ADD PRIMARY KEY (id);
 ALTER TABLE stage_for_master.media_files ADD FOREIGN KEY (id) REFERENCES stage_for_master.files(id) ON DELETE RESTRICT;
@@ -468,6 +473,6 @@ ALTER TABLE stage_for_master.media_files ADD FOREIGN KEY (id) REFERENCES stage_f
 COMMENT ON COLUMN stage_for_master.media_files.id IS 'This needs to keep updating for new until a truncate with restart is run. Stage id'' for now get reset, so joining back from master won''t really work, so we''ll have a think and maybe a separate table the master links back to with perm sequence ids.  It''s just that testing will cause bloat. Note that I don''t see any reason for these to be super keys that are from a master sequence.';
 COMMENT ON COLUMN stage_for_master.media_files.txt IS 'A copy of txt from files, not the title, since we don''t know for sure what that is yet.';
 COMMENT ON COLUMN stage_for_master.media_files.typ_id IS 'video, movie, episode, series, season?';
-COMMENT ON COLUMN stage_for_master.media_files.cleaned_title_with_year IS 'Generated, and this should be unique, unless multiple versions editions of the file, director''s cut, etc.';
+COMMENT ON COLUMN stage_for_master.media_files.cleaned_txt_with_year IS 'Generated, and this should be unique, unless multiple versions editions of the file, director''s cut, etc.';
 
 CREATE OR REPLACE TRIGGER trgupd_media_files_01 BEFORE UPDATE OR DELETE OR INSERT ON stage_for_master.media_files FOR EACH ROW EXECUTE FUNCTION trgupd_common_columns();

@@ -83,6 +83,9 @@ public:
     int howManyNewDirectories                    = 0; // Added to directories table and scanned
     int howManyDirectoriesUnchanged              = 0; // And therefore skipped
     int howManyDirectoriesRecreated              = 0; // An odd thing if the created date changes.
+    int howManyDirectoriesTested                 = 0;
+
+    qint64 filesBatchRunsLog_id                    = 0;
 };
 
 

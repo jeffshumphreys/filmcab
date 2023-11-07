@@ -83,9 +83,9 @@ private:
     QSharedDataPointer<ProcessFilesTasksData> datapackets; // Set in constructor. Creator needs to populate.
 
     ///
-    /// \brief traverseDirectoryHierarchy
-    /// \param dirname
-    /// \param listOfFileTypes
+    /// \brief traverseDirectoryHierarchy Walk a given directory and skip ones we can detect that hadn't changed or have new files.
+    /// \param data all the control data about how, what which when how many, etc.
+    /// \param dirname directory to search. return without failing if directory does not exist.
     /// \param filecount each level of hierarchy adds it's count.
     /// \param directoryChanged flag set at each dive into the hierarchy and a changed date is detected, so all deeper folders are processed.
     /// \return the final file count.
@@ -255,12 +255,14 @@ private:
         foreach (QFileInfo fileInfo, dir.entryInfoList()) {
             if (fileInfo.isDir() && fileInfo.isReadable()) {
                 //qDebug() << "Is a directory:" << fileInfo.filePath() << "--" << filecount;
+                data.howManyDirectoriesTested++;
                 filecount = TraverseDirectoryHierarchy(data, fileInfo.filePath(), filecount, directoryChanged);
         } else {
                 //qDebug() << "Is NOT a directory:" << fileInfo.filePath() << "--" << filecount;
                 // Suffixes are "*.mkv" style, suffix() is just "mkv", so we prepend to match.
                 if (data.listOfFileTypes.contains("*." + fileInfo.suffix(), Qt::CaseSensitivity::CaseInsensitive)) {
-                    filecount++; // Not working, is it counting folders instead?
+                    filecount++;
+                    data.howManyFilesReadInfoFor++;
                     // Examine each file and create an MD5 for it and push it to the database
                     ProcessASingleFileEntry(data, fileInfo);
                 }
@@ -342,8 +344,10 @@ private:
                 return LoopProcessingExitCommands::system_database_different_error;
             }
             else if (howManyRowsHadSamePath == 1) {
-                //qDebug() << "**** ProcessFilesTask::ProcessASingleSearchPath(data) this file_path already in files table. updating that we saw file.";
+                printf("."); // Some sort of ack that something is happening
+                data.howManyFilesDetectedAsBothInDbAndInFS++;
                 // UPDATE table set last_verified_full_path_present_on_ts_wth_tz to now.  Then, if it goes missing, we know when it was last seen.
+
                 QString updRecAlreadyCommand = QString("UPDATE %3.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted IS false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
                 QSqlQuery updAlreadyExistentRecinStagingDatabase;
                 if (!updAlreadyExistentRecinStagingDatabase.exec(updRecAlreadyCommand)) {
@@ -400,8 +404,9 @@ private:
                                             ", file_modified_on_ts_wth_tz"
                                             ", parent_directory_created_on_ts_wth_tz"
                                             ", parent_directory_modified_on_ts_wth_tz"
-                                            ", record_deleted)"
-                                            " VALUES ("
+                                            ", record_deleted"
+                                            ", loading_batch_run_id"
+                                            ") VALUES ("
                                             // id is an identity column since this is staging and so we don't need to keep a cross-table unique-ish id. Unfortunately, the master can't link back tightly to the staging, so maybe give it a think.
                                             "/* txt */                                                '%2', " // aka full_path to the file
                                             "/* base_name */                                          '%3', " // Without the extension, which is a bit annoying sometimes
@@ -410,17 +415,18 @@ private:
                                             "/* file_md5_hash */                                      '%6'::bytea, " // Not cross-db compatible, the "::bytea" syntax
                                             "/* file_deleted */                                       false," // No such type as "false" in SQL Server, just bits
                                             "/* file_size */                                           %7 , " // int8 which is 64 bit. Lot of big video files
-                                            "/* file_created_on_ts_wth_tz */                                 '%8', " // has milliseconds
-                                            "/* file_modified_on_ts_wth_tz */                                '%9', "
-                                            "/* parent_directory_created_on_ts_wth_tz */                        '%10', "
-                                            "/* parent_directory_modified_on_ts_wth_tz */                      '%11',  " // These tell us whether to bother scanning again by comparing directories to directory table. huge time and thrash saver.
-                                            "/* record_deleted */                                     false" // Oops. was creating 100s of dups.
+                                            "/* file_created_on_ts_wth_tz */                          '%8', " // has milliseconds
+                                            "/* file_modified_on_ts_wth_tz */                         '%9', "
+                                            "/* parent_directory_created_on_ts_wth_tz */             '%10', "
+                                            "/* parent_directory_modified_on_ts_wth_tz */            '%11',  " // These tell us whether to bother scanning again by comparing directories to directory table. huge time and thrash saver.
+                                            "/* record_deleted */                                     false, " // Oops. was creating 100s of dups.
+                                            "/* loading_batch_run_id */                               %13"
                                             ")"
                                             ).arg( // Only supports string arguments
                                             /* %1 table name */ targetTableForFileInfo
                                             , /* %2 txt */FilePathPrepped
                                             , /* %3 base_name */FileNamePrepped // Any other illegal characters? Check lengths first?
-                                            , /* %4 final_extension */FileNameExtension
+                                            , /* %4 final_extension */FileNameExtension.toLower()
                                             , /* %5 typ_id */QString::number(fileTypeId)
                                             , /* %6 file_md5_hash */fileHashAsHexString
                                             , /* %7 file_size */QString::number(FileSize)
@@ -429,6 +435,7 @@ private:
                                             , /* %10 parent_directory_created_on_ts_wth_tz */fileContainerCreatedOn.toString("yyyy-MM-dd HH:mm:ss.zzz")
                                             , /* %11 parent_directory_modified_on_ts_wth_tz */fileContainerModifiedOn.toString("yyyy-MM-dd HH:mm:ss.zzz")
                                             , /* %12 schema_name */ targetSchemaForFileInfo
+                                            , /* %13 loading_batch_run_id */ QString::number(data.filesBatchRunsLog_id) // The batch number generated from outer INSERT. for trackbacks.
                                             );
 
             // Did it successfully add a new record to the database?
@@ -628,11 +635,13 @@ public slots:
                 startBatchQ.exec(logStartOfBatchRunQuery);
                 startBatchQ.next();
                 newBatchId = startBatchQ.value(0).toLongLong();
+                procFilesTaskDataPacket.filesBatchRunsLog_id = newBatchId;
+
             }
 
             qDebug() << "ProcessFilesTask::run(): Processing a single data packet: searching " << searchPath << ", new batch id:" << newBatchId;
             TraverseDirectoryHierarchy(procFilesTaskDataPacket, searchPath);
-            qDebug("ProcessFilesTask::run(): Processing a single data packet finished");
+            qDebug("**** ProcessFilesTask::run(): Processing a single data packet finished");
             qDebug("**** ProcessFilesTask::run(): How many file's infos were read from the directory scan: %d", procFilesTaskDataPacket.howManyFilesReadInfoFor);
             qDebug("**** ProcessFilesTask::run(): How many file's infos were limiting run to from directory scans: %d", procFilesTaskDataPacket.limitedToExaminingFilesFromDirectoryScan);
             qDebug("**** ProcessFilesTask::run(): How many file's infos were added to database newly: %d", procFilesTaskDataPacket.howManyFilesAddedToDatabaseNewly);
@@ -640,17 +649,19 @@ public slots:
             qDebug("**** ProcessFilesTask::run(): How many directories newly captured: %d", procFilesTaskDataPacket.howManyNewDirectories); // A bit ambiguous since the update isn't in place.
             QString logEndOfBatchRunQuery = QString("UPDATE %1.files_batch_runs_log "
                                                     "SET "
-                                                    "       stopped_on_ts_wth_tz = now(),  "
-                                                    "       files_added = %2"
-                                                    " WHERE id = %3"
+                                                    "       stopped_on_ts_wth_tz = now(), "
+                                                    "       files_added = %2, "
+                                                    "       files_marked_as_still_there = %3, "
+                                                    " WHERE id = %4"
                                                     ).arg(
-                                                    procFilesTaskDataPacket.targetSchema
-                                                    , QString::number(procFilesTaskDataPacket.howManyFilesAddedToDatabaseNewly)
-                                                    , QString::number(newBatchId)
+                                                      /* %1 */procFilesTaskDataPacket.targetSchema
+                                                    , /* %2 */QString::number(procFilesTaskDataPacket.howManyFilesAddedToDatabaseNewly)
+                                                    , /* %3 */QString::number(procFilesTaskDataPacket.howManyFilesDetectedAsBothInDbAndInFS)
+                                                    , /* %4 */QString::number(newBatchId)
                                                     );
             QSqlQuery loggedEndOfBatch;
             loggedEndOfBatch.exec(logEndOfBatchRunQuery);
-
+            // TODO: EXTRACT(DAY FROM MAX(joindate)-MIN(joindate)) in trigger
             // "UPDATE %1.files_batch_runs_log SET stopped_on_ts_wth_tz = now(), files_added, files_marked_as_still_there, processing_state = 'completed' WHERE id = %2...."
         }
 
@@ -662,17 +673,17 @@ public slots:
         qint16 timeToRunInHours        = timeToRunInMinutes      / 60;
 
         if (timeToRunInHours > 0) {
-            qDebug("**** ProcessFilesTask::run():  How many hours did the entire scan, hash, and insert take? %d", timeToRunInHours);
+            qDebug("**** ProcessFilesTask::run(): How many hours did the entire scan, hash, and insert take? %d", timeToRunInHours);
         } else if (timeToRunInMinutes > 0) {
-            qDebug("**** ProcessFilesTask::run():  How many minutes did the entire scan, hash, and insert take? %d", timeToRunInMinutes);
+            qDebug("**** ProcessFilesTask::run(): How many minutes did the entire scan, hash, and insert take? %d", timeToRunInMinutes);
         } else if (timeToRunInSeconds > 0) {
-            qDebug("**** ProcessFilesTask::run():  How many seconds did the entire scan, hash, and insert take? %d", timeToRunInSeconds);
+            qDebug("**** ProcessFilesTask::run(): How many seconds did the entire scan, hash, and insert take? %d", timeToRunInSeconds);
         } else if (timeToRunInMilliSeconds > 0) {
-            qDebug("**** ProcessFilesTask::run():  How many milliseconds did the entire scan, hash, and insert take? %lld", timeToRunInMilliSeconds);
+            qDebug("**** ProcessFilesTask::run(): How many milliseconds did the entire scan, hash, and insert take? %lld", timeToRunInMilliSeconds);
         } else if (timeToRunInMicroSeconds > 0) {
-            qDebug("**** ProcessFilesTask::run():  How many microseconds did the entire scan, hash, and insert take? %lld", timeToRunInMicroSeconds);
+            qDebug("**** ProcessFilesTask::run(): How many microseconds did the entire scan, hash, and insert take? %lld", timeToRunInMicroSeconds);
         } else if (timeToRunInNanoSeconds > 0) {
-            qDebug("**** ProcessFilesTask::run():  How many nanoseconds did the entire scan, hash, and insert take? %lld", timeToRunInNanoSeconds);
+            qDebug("**** ProcessFilesTask::run(): How many nanoseconds did the entire scan, hash, and insert take? %lld", timeToRunInNanoSeconds);
         }
 
 
