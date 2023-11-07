@@ -1,11 +1,18 @@
 /*
  *                   Master rebuild of filmcat system based on templates that I plan to use in other systems.
+ * DO NOT run complete. It's meant to be built in pieces.
  * 
  */
 SET search_path = stage_for_master, "$user", public;
 
 -- Should be NO dependencies ON these TEMPLATE TABLES. If INHERITS was used, then there will be a problem. Use LIKE.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS public.template_for_docking_tables;
 
+CREATE TABLE public.template_for_docking_tables (
+	id                       INT8 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE) PRIMARY KEY,
+	record_created_on_ts_wth_tz timestamptz           NOT NULL DEFAULT clock_timestamp()
+);
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS public.template_for_all_tables;
 
@@ -320,7 +327,7 @@ CREATE TABLE stage_for_master.files_batch_runs_log (
 	files_same_name_but_attr_chgnd int                              NULL,
 	error_msg                      text                             NULL,
 	error_on_line_no               int                              NULL, 
-	running_what_debugger          varchar(200)                     NULL, -- No idea without a stacktrace, and where the heck can I get a stacktrace??
+	running_what_debugger          varchar(200)                     NULL -- No idea without a stacktrace, and where the heck can I get a stacktrace??
 	-- github check in?
 );
 
@@ -476,3 +483,210 @@ COMMENT ON COLUMN stage_for_master.media_files.typ_id IS 'video, movie, episode,
 COMMENT ON COLUMN stage_for_master.media_files.cleaned_txt_with_year IS 'Generated, and this should be unique, unless multiple versions editions of the file, director''s cut, etc.';
 
 CREATE OR REPLACE TRIGGER trgupd_media_files_01 BEFORE UPDATE OR DELETE OR INSERT ON stage_for_master.media_files FOR EACH ROW EXECUTE FUNCTION trgupd_common_columns();
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.works_from_manually_pop_spreadsheets CASCADE; 
+CREATE TABLE receiving_dock.works_from_manually_pop_spreadsheets (LIKE public.template_for_staging_tables INCLUDING COMMENTS INCLUDING DEFAULTS INCLUDING GENERATED ,
+	content_source_id                       int8 NOT NULL, -- FOREIGN KEY REFERENCES (Keep, Memory, IMDB Watch List, IMDB Ratings? Or is this just yet again type?)
+	seen_flag                               char(1) NOT NULL DEFAULT (' '), -- ?, x, space. x means I saw it.
+    imdb_type_of_media                      text NOT NULL, -- Movie, TV Series, TV Mini-Series, TV Movie, Movie about..., Short, Webcast, Video Game, TV Show, Podcast Series, Video, TV Short
+    imdb_genres_and_format_and_subject      text[] NULL,
+    imdb_id                                 text,
+    imdb_list_entry_created_on              date,
+    imdb_list_entry_modified_on             date,
+    imdb_year_released                      int2,
+    imdb_rating                             decimal(3,1),
+    imdb_runtime_in_minutes                 int2,
+    imdb_votes                              int4,
+    imdb_released_on                        date,
+    imdb_directors                          text[],
+    imdb_my_rating                          int2,
+    imdb_date_i_rated                       date,
+    imported_from_spreadsheet_on            timestamptz,
+    imported_from_spreadsheet_path          text,
+    imported_from_spreadsheet_dated         timestamptz
+    
+    
+);
+
+
+ALTER TABLE receiving_dock.media_files ADD FOREIGN KEY (typ_id) REFERENCES public.typs(id) ON DELETE RESTRICT;
+ALTER TABLE receiving_dock.media_files ADD PRIMARY KEY (id);
+ALTER TABLE receiving_dock.media_files ADD FOREIGN KEY (id) REFERENCES receiving_dock.files(id) ON DELETE RESTRICT;
+
+COMMENT ON COLUMN receiving_dock.media_files.id IS 'This needs to keep updating for new until a truncate with restart is run. Stage id'' for now get reset, so joining back from master won''t really work, so we''ll have a think and maybe a separate table the master links back to with perm sequence ids.  It''s just that testing will cause bloat. Note that I don''t see any reason for these to be super keys that are from a master sequence.';
+COMMENT ON COLUMN receiving_dock.media_files.txt IS 'A copy of txt from files, not the title, since we don''t know for sure what that is yet.';
+COMMENT ON COLUMN receiving_dock.media_files.typ_id IS 'video, movie, episode, series, season?';
+COMMENT ON COLUMN receiving_dock.media_files.cleaned_txt_with_year IS 'Generated, and this should be unique, unless multiple versions editions of the file, director''s cut, etc.';
+
+CREATE OR REPLACE TRIGGER trgupd_media_files_01 BEFORE UPDATE OR DELETE OR INSERT ON receiving_dock.media_files FOR EACH ROW EXECUTE FUNCTION trgupd_common_columns();
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.excel_sheet_all_the_movies;
+CREATE TABLE receiving_dock.excel_sheet_all_the_movies (LIKE public.template_for_docking_tables INCLUDING ALL,
+    seen_flag                TEXT,
+	manually_corrected_title TEXT,
+	ended_with_right_paren   TEXT,
+	type_of_media            TEXT,
+	source_of_item           TEXT,
+	tags_commad              TEXT,
+	imdb_id                  TEXT,
+	imdb_added_to_list_on    TEXT,
+	imdb_changed_on_list_on  TEXT,
+	release_year             TEXT,
+	imdb_rating              TEXT,
+	runtime_in_minutes       TEXT,
+	votes                    TEXT,
+	released_on              TEXT,
+	directors_commad         TEXT,
+	imdb_my_rating           TEXT,
+	imdb_my_rating_made_on   TEXT,
+    x1 TEXT, x2 TEXT, x3 TEXT, x4 TEXT, x5 TEXT, -- garbage columns on input set
+    hash_of_all_columns text GENERATED ALWAYS AS(encode(sha256((
+    	COALESCE(seen_flag                , 'null') ||
+		COALESCE(manually_corrected_title , 'null') ||
+		COALESCE(ended_with_right_paren   , 'null') ||
+		COALESCE(type_of_media            , 'null') ||
+		COALESCE(source_of_item           , 'null') ||
+		COALESCE(tags_commad              , 'null') ||
+		COALESCE(imdb_id                  , 'null') ||
+		COALESCE(imdb_added_to_list_on    , 'null') ||
+		COALESCE(imdb_changed_on_list_on  , 'null') ||
+		COALESCE(release_year             , 'null') ||
+		COALESCE(imdb_rating              , 'null') ||
+		COALESCE(runtime_in_minutes       , 'null') ||
+		COALESCE(votes                    , 'null') ||
+		COALESCE(released_on              , 'null') ||
+		COALESCE(directors_commad         , 'null') ||
+		COALESCE(imdb_my_rating           , 'null') ||
+		COALESCE(imdb_my_rating_made_on   , 'null') 
+		)
+    	::bytea
+    	), 'hex')) STORED
+    	, CONSTRAINT ak_hash_of_all_columns UNIQUE(hash_of_all_columns)
+    );
+
+  -- must replace all 0x91 ` to ' All the Movies 2 rows-utf8.csv
+  -- cat "All the Movies 2 rows.csv.bak"|iconv -f windows-1250 -t utf8 >"All the Movies 2 rows-utf8.csv" (failed)
+  -- cat "All the Movies.csv"|iconv -f iso8859-2 -t utf8 >"All the Movies-utf8.csv" worked!
+   
+  COPY receiving_dock.excel_sheet_all_the_movies(
+  seen_flag,               
+  manually_corrected_title,
+  ended_with_right_paren  ,
+  type_of_media           ,
+  source_of_item          ,
+  tags_commad             ,
+  imdb_id                 ,
+  imdb_added_to_list_on   ,
+  imdb_changed_on_list_on ,
+  release_year            ,
+  imdb_rating             ,
+  runtime_in_minutes      ,
+  votes                   ,
+  released_on             ,
+  directors_commad        ,
+  imdb_my_rating          ,
+  imdb_my_rating_made_on  ,
+  x1,
+  x2,
+  x3,
+  x4,
+  x5
+  )
+ FROM 'D:\qt_projects\filmcab\All the Movies-utf8.csv' CSV HEADER; -- 4,621 rows.
+-- TODO: add to files table. import maybe since source may well be deleted.
+ 
+SELECT * FROM receiving_dock.excel_sheet_all_the_movies order by 4;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.json_tmdb;
+CREATE TABLE receiving_dock.json_tmdb(LIKE public.template_for_docking_tables INCLUDING ALL,
+		json_data_as_json_object json
+	);
+insert into receiving_dock.json_tmdb(json_data_as_json_object) values(pg_read_file('C:\Users\jeffs\Downloads\movies\movies\movie_81.json')::json); -- works!!!!! don't use to_json() function
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.json_tmdb_expanded;
+CREATE TABLE receiving_dock.json_tmdb_expanded (
+    id                       INT8 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE) PRIMARY KEY,
+	adult                 text,
+	backdrop_path         text,
+	belongs_to_collection text, -- name, poster_path, backdrop_path
+	budget text,
+	genres text,
+	homepage text,
+	imdb_id_no text,
+	imdb_id text,
+	original_language text,
+	original_title text,
+	overview text,
+	popularity text,
+	poster_path text,
+	production_companies text,
+	production_companies_logo_path text,
+	production_countries text,
+	release_date text,
+	revenue text,
+	run_time text,
+	spoken_languages text,
+	status text,
+	tagline text,
+	title text,
+	video text,
+	vote_average text,
+	vote_count text
+	)
+	;
+	declare lo_oid oid;
+	lo_oid := lo_import('C:\Users\jeffs\Downloads\movies\movies\movie_73.json');
+	SELECT pg_read_binary_file('C:\Users\jeffs\Downloads\movies\movies\movie_73.json'); -- worked
+	SELECT pg_read_file('C:\Users\jeffs\Downloads\movies\movies\movie_73.json'); -- worked
+	SELECT pg_read_file('C:\Users\jeffs\Downloads\movies\movies\movie_81.json')::json; -- has "title": "Nausicaä of the Valley of the Wind", "original_title": "風の谷のナウシカ", Works in notepad++
+	select  
+	     cast(data ->> 'id' as int8)                      imdb_id_no,
+	     data ->> 'imdb_id'                               imdb_tt_id,
+	     data ->> 'title'                                 title,
+--	     data ->> 'original_title'                        original_title,
+--	     data ->> 'overview'                              description,
+--	     data ->> 'tagline'                               tagline,
+	     --replace(cast(cast(x.value as json) -> 'name' as text), '"', ''))    genre,
+	     --cast(cast(json_array_elements_text(cast(data ->> 'genres' as json)) as json) -> 'name' as text) x,
+	     data ->> 'status'                                production_status,
+	     cast(data ->> 'release_date' as date)            released_on,
+	     cast(data ->> 'runtime' as int)                  runtime_in_minutes,
+	     cast(data ->> 'budget' as int8)                  budget,
+	     cast(data ->> 'revenue' as int8)                 revenue,
+	     cast(data ->> 'popularity' as decimal(10,3))     popularity,
+	     cast(data ->> 'vote_average' as decimal(3,1))    vote_average,
+	     cast(data ->> 'vote_count' as int8)    vote_average,
+	     --data ->> 'homepage'                              homepage,
+   	     data ->> 'original_language'                     original_language,
+	     --data ->> 'poster_path'                           poster_path,
+	     --data ->> 'backdrop_path'                         backdrop_path,
+	     cast(data -> 'belongs_to_collection' -> 'id' as text)          belongs_to_collection_id,
+	     cast(data -> 'belongs_to_collection' -> 'poster_path' as text) belongs_to_collection_poster_path,
+	     cast(data -> 'belongs_to_collection' -> 'name' as text)        belongs_to_collection_name,
+	     cast(data ->> 'video' as boolean)                is_video,
+	     cast(data ->> 'adult' as boolean)                is_adult,
+	     array_agg(name::text) as genres
+    from t
+    cross join json_array_elements(data -> 'genres') a(name)
+	group by 1,2,3,4,5,6,7,8,9,10,11, 12, 13, 14,15,16,17,18
+
+;
+
+	
+	select  
+	     cast(data ->> 'id' as int8)                      imdb_id_no,
+	     data ->> 'imdb_id'                               imdb_tt_id,
+	     data ->> 'title'                                 title,
+	     data ->> 'status'                                production_status,
+	     cast(data ->> 'release_date' as date)            released_on,
+	     cast(data ->> 'runtime' as int)                  runtime_in_minutes,
+	     cast(data ->> 'budget' as int8)                  budget,
+	     cast(data ->> 'revenue' as int8)                 revenue,
+	     cast(data ->> 'popularity' as decimal(10,3))     popularity,
+	     cast(data ->> 'vote_average' as decimal(3,1))    vote_average,
+	     cast(data ->> 'vote_count' as int8)              vote_count,
+	     cast(data ->> 'genres' as json)  genre
+    from t
+--    cross join 
+  --  	json_array_elements(data -> 'genres') a(value)
