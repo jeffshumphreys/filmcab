@@ -4,8 +4,21 @@
 #include <QFlags> // Necessary for it to recognize FileChangeDetectionS
 #include <QString>
 #include <QVariant>
+#include <QException>
 #include "qobjectdefs.h"
 //#include "qtmetamacros.h" // Necessary for the Q_ENUM
+
+class MyException : public QException
+{
+public:
+    void raise() const override { throw *this; }
+    MyException(QString message) {
+        qDebug() << message;
+    }
+    MyException *clone() const override { return new MyException(*this); }
+private:
+    MyException();
+};
 
 // These are aligned with items in public.typs. WARNING: if they change, this could seriously corrupt the files table.
 
@@ -21,6 +34,13 @@ enum CommonFileTypes {
 enum PreProcessTable { truncate, // Not really ready for this, makes sense in stage_for_master, receiving and shipping dock, not master.
                        leave_as_is,
                        delete_data
+};
+
+enum WhichTaskToRun {
+    LoadVideoFileInfoIntoDatabase,
+    LoadJSONFilesIntoDatabase,
+    ExpandTMDB_JSONInRecordsToTables,
+    ImportExcelVideoFilesToDatabase
 };
 
 enum AddRowsMethod {
@@ -52,4 +72,6 @@ public:
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(FileChangeDetectionClass::FileChangeDetections)
 
+
 #endif // SHAREDENUMERATIONS_H
+

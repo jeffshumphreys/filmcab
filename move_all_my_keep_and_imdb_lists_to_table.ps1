@@ -1,7 +1,12 @@
 <#
     Pull in an excel file we know to have our movie list in it
-    Stuff it into receiving one-to-one, no cleanup
-    
+    Stuff it into receiving one-to-one table, no cleanup
+    Validate the data as counts.
+    If any non-zero counts, look deeper, and fix IN EXCEL
+    run filmcab to detect new torrent downloads, new published files, and new backup entries.
+    check which published videos are in our excel list; update table and excel (?)
+    check folders in backups that are not in published. Delete.
+    check hashes from published to torrent downloads. What's missing?
 #>
 $inpath = "D:\qt_projects\filmcab\all_my_keep_and_imdb_lists.xlsm"
 $outpath = "D:\qt_projects\filmcab\all_my_keep_and_imdb_lists.UTF8.csv"
@@ -138,7 +143,10 @@ if ($dbconnopen) {
     $DBCmd.CommandText = "SELECT COUNT(*) FROM receiving_dock.all_my_keep_and_imdb_lists where trim(manually_corrected_title) <> manually_corrected_title"; $howManyTitlesAreUntrim = $DBCmd.ExecuteScalar(); Write-Output "How many titles trailing or leading spaces: $howManyTitlesAreUntrim";
     $DBCmd.CommandText = "SELECT COUNT(*) FROM receiving_dock.all_my_keep_and_imdb_lists where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is not null and (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] not between 1900 and 2026 and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitleYearsOutOfReasonableAge = $DBCmd.ExecuteScalar(); Write-Output "How many titles have unreal years: $howManyTitleYearsOutOfReasonableAge"
 
-    $DBCmd.CommandText = "SELECT manually_corrected_title FROM receiving_dock.all_my_keep_and_imdb_lists where (seen not in('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h') or have is null)"; 
+    # List out some that I haven't seen, don't have, haven't reviewed yet. Ignore any we might have watched, should want to see (heehee), will never see based on it's topic, that are not available yet, or are just getting for completeness, and aren't downloading right now.
+    # These are ones that make me go hmmmmm. Need reviewing, classifying, downloading.
+
+    $DBCmd.CommandText = "SELECT manually_corrected_title FROM receiving_dock.all_my_keep_and_imdb_lists where (seen not in('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
 
     $Reader = $DBCmd.ExecuteReader();
     $matchcount = 0;
@@ -150,10 +158,49 @@ if ($dbconnopen) {
     }
     $Reader.Close() 
     $matchcount
-    # Count corrupt titles
-    # List them out so user can correct in master spreadsheet
-    # SELECT * FROM receiving_dock.all_my_keep_and_imdb_lists where right(manually_corrected_title, 1) <> ')' and type_of_media <> 'Movie about…';
 
+    # Scan all our downloaded movies again
+    
+    # D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Release\filmcab.exe
+    <#
+    ---------------------------
+    filmcab.exe - System Error
+    ---------------------------
+    The code execution cannot proceed because Qt6Sql.dll was not found. Reinstalling the program may fix this problem. 
+    ---------------------------
+    OK   
+    ---------------------------
+    #>
+    # Added D:\Qt\6.5.3\mingw_64\bin to path for dlls.  Don't want to do a full deployment. https://wiki.qt.io/CQtDeployer
+    <#
+    ---------------------------
+    filmcab.exe - Entry Point Not Found
+    ---------------------------
+    The procedure entry point _Z11qt_assert_xPKcS0_S0_i could not be located in the dynamic link library D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe. 
+    ---------------------------
+    OK   
+    ---------------------------
+    #>
+    # http://www.dependencywalker.com/
+    # C:\Program Files (x86)\dotnet\shared\Microsoft.NETCore.App\3.1.32 has api-ms-win-core-synch-l1-2-0.dll in it.  Now dependency walker doesn't finish spinning.
+
+    <#
+    ---------------------------
+    filmcab.exe - Entry Point Not Found
+    ---------------------------
+    The procedure entry point _ZNSt3pmr20get_default_resourceEv could not be located in the dynamic link library D:\Qt\6.5.3\mingw_64\bin\Qt6Core.dll. 
+    ---------------------------
+    OK   
+    ---------------------------
+    #>
+    <#
+    DISM.exe /Online /Cleanup-image /Scanhealth 
+    DISM.exe /Online /Cleanup-image /Restorehealth 
+    DISM.exe /online /cleanup-image /startcomponentcleanup 
+    sfc /scannow
+
+
+    #>
     $DBConn.Close();
     
 }

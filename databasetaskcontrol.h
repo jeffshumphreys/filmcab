@@ -4,6 +4,8 @@
 #include "qsqldatabase.h"
 #include "sharedenumerations.h"
 
+// This is part of a multiple inheritance subclass into the ProcessFilesTaskData.
+
 class DatabaseTaskControl {
 public:
     QSqlDatabase db; // Must be set by caller or any reading/writing to db will be skipped.

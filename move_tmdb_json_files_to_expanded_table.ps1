@@ -7,8 +7,8 @@
 
 
 $source_meta_agg = "tmdb"
-$source_content_class = "movies"
-$source_content_class = "series"
+$source_content_class = "movies"; $content_source_id = 1
+$source_content_class = "series";  $content_source_id = 2
 
 $inpath = "N:\Video AllInOne Metadata\$source_meta_agg\$source_content_class";
 
@@ -53,7 +53,8 @@ if ($dbconnopen) {
             Invoke-Sql "DROP TABLE IF EXISTS receiving_dock.json_data;";
             Invoke-Sql "
                 CREATE TABLE receiving_dock.json_data(LIKE public.template_for_docking_tables INCLUDING ALL,
-                    source_meta_agg          source_meta_agg_enum
+                    content_source_id        int8
+                ,   source_meta_agg          source_meta_agg_enum
                 ,   source_content_class     source_content_class_enum
                 ,	json_data_as_json_object JSON
                 ,   inputpath                text UNIQUE
@@ -81,8 +82,8 @@ if ($dbconnopen) {
                 $cleanfilepath = $cleanfilepath.Replace('''', '''''')
                 Invoke-Sql "
                 INSERT INTO receiving_dock.json_data(
-                    source_meta_agg, source_content_class, inputpath, json_data_as_json_object) 
-                SELECT '$source_meta_agg', '$source_content_class', '$cleanfilepath', pg_read_file('$cleanfilepath')::json
+                    content_source_id, source_meta_agg, source_content_class, inputpath, json_data_as_json_object) 
+                SELECT $content_source_id, '$source_meta_agg', '$source_content_class', '$cleanfilepath', pg_read_file('$cleanfilepath')::json
                 WHERE NOT EXISTS(SELECT 1 FROM receiving_dock.json_data a WHERE '$cleanfilepath' = a.inputpath)
                 ;"
             }
@@ -164,7 +165,7 @@ if ($dbconnopen) {
         cast(json_data_as_json_object    ->> 'vote_count' as int8)                             vote_count,
         cast(json_data_as_json_object    ->> 'vote_average' as decimal(3,1))                   vote_average,
         json_data_as_json_object         ->> 'homepage'                                        homepage,
-            json_data_as_json_object         ->> 'original_language'                               original_language,
+        json_data_as_json_object         ->> 'original_language'                               original_language,
         json_data_as_json_object         ->> 'poster_path'                                     poster_path,
         json_data_as_json_object         ->> 'backdrop_path'                                   backdrop_path,
         cast(json_data_as_json_object     -> 'belongs_to_collection' -> 'id' as text)          belongs_to_collection_id,

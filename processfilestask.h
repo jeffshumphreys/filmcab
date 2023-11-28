@@ -65,7 +65,7 @@
 
 class ProcessFilesTaskData;
 ///
-/// \brief The ProcessFilesTask class
+/// \brief The ProcessFilesTask class, really just scans a given directory for new files and adds the metadata to a file table.  "OnboardFiles"?
 ///
 class ProcessFilesTask : public Task
 {
@@ -78,7 +78,9 @@ public:
     ProcessFilesTask(const ProcessFilesTask &);
     ProcessFilesTask &operator=(const ProcessFilesTask &);
     ~ProcessFilesTask();
-
+    virtual void CustomFileProcessing(bool skipHash = false, QString file_path = "", qint64 database_file_id = -1) {
+        throw MyException("Not implemented");
+    }
 private:
     QSharedDataPointer<ProcessFilesTasksData> datapackets; // Set in constructor. Creator needs to populate.
 
@@ -348,7 +350,7 @@ private:
                 data.howManyFilesDetectedAsBothInDbAndInFS++;
                 // UPDATE table set last_verified_full_path_present_on_ts_wth_tz to now.  Then, if it goes missing, we know when it was last seen.
 
-                QString updRecAlreadyCommand = QString("UPDATE %3.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted IS false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
+                QString updRecAlreadyCommand = QString("UPDATE %3.%2 SET last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '%1' AND record_deleted is false").arg(FilePathPrepped, targetTableForFileInfo, targetSchemaForFileInfo);
                 QSqlQuery updAlreadyExistentRecinStagingDatabase;
                 if (!updAlreadyExistentRecinStagingDatabase.exec(updRecAlreadyCommand)) {
                     qDebug() << updAlreadyExistentRecinStagingDatabase.lastError().text();

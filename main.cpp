@@ -9,14 +9,35 @@
 #include <QDebug>
 #include "sharedenumerations.h"
 #include "processfilestask.h"
-#include "xlsxdocument.h"
+//#include "importexcelfilestask.h"
 
 int main(int argc, char *argv[])
 {
 
+    // deployed: windeployqt --debug --verbose 2 D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug
+
     qDebug("main:QCoreApplication a(argc, argv)");
+
     QCoreApplication qCoreApplicationInstance(argc, argv);
-    QXlsx::Document xlsx;
+
+    // Let's get snazzy.  This is a command-line tool; I'm not eager to make this a dll lib to incorporate in a big gui app.
+    // So we are more into the arguments we can pass, which means all the magic numbers and strings in main will hopefully go away.
+
+    QCoreApplication::setApplicationName("filmcab processor");
+    QCoreApplication::setApplicationVersion("1.0");  // I think we're in a more 1.1 state since I'm running the debug exe from powershell once and a while, but the magic strings are still here and it's not pulling from arguments the folders and stuff, so 1.0.
+    QCoreApplication::setOrganizationName("personal, not an organization"); // Trying to be clear that there is no business here, no IPO, just me.  No such plan, either.
+
+    // We'll use the parser qt gives us, so as to be standardized for any user.
+
+    QCommandLineParser commandLineParser;
+    commandLineParser.setApplicationDescription("Command line tool to process files and videos into more usable spaces, publish and track for duplicates, clean names");
+    commandLineParser.addHelpOption();
+    commandLineParser.addVersionOption();
+
+    // Our hack testing control; should set from argument and/or gui or batch runner
+
+    WhichTaskToRun whichTaskToRun = WhichTaskToRun::LoadVideoFileInfoIntoDatabase;
+
 
     QSqlDatabase targetDbTaskProcessing = QSqlDatabase::addDatabase("QPSQL"); /* Had to add the "sql" line to the .pro file in string "QT =
             core \
@@ -31,7 +52,6 @@ int main(int argc, char *argv[])
     targetDbTaskProcessing.setUserName("postgres");
     targetDbTaskProcessing.setPassword("postgres");
 
-
     // try and connect.
 
     qDebug() << "main: Attempting to connect to:"
@@ -42,8 +62,6 @@ int main(int argc, char *argv[])
 
     bool connectedToDb = targetDbTaskProcessing.open();
     bool triedToConnect = true;
-    ProcessFilesTaskData *taskProcessingControlData = new ProcessFilesTaskData();
-    //taskProcessingControlData->triedToConnect = true;
 
     // A failed connection doesn't stop it from running, in case there's file work that can be done. Probably not, though.
 
@@ -51,76 +69,86 @@ int main(int argc, char *argv[])
         QSqlError connectionError = targetDbTaskProcessing.lastError();
         qCritical() << "main:Error on attempting to open database:" << connectionError.text(); // Test this with bad pwd: caught.
         // Still soldiers on, should still be able to get through directory.
-        //taskProcessingControlData->dbconnected = false; // Task should skip db work, do just the file stuff.
 
     }
     else {
         qDebug() << "main:Connected successfully to" << targetDbTaskProcessing.hostName() << "as" << targetDbTaskProcessing.userName() << "on" << targetDbTaskProcessing.port();
-        //taskProcessingControlData->dbconnected = true;
     }
 
     // Build a bean, struct of control parameters for the task ahead
     // This first set are the ones that won't change over the various folders we scan for new files.
 
-    taskProcessingControlData->listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" }; // sorted for ease of maintenance
-    taskProcessingControlData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
-    taskProcessingControlData->directoryIteratorFlags = QDirIterator::Subdirectories;
+    ProcessFilesTaskData *taskProcessingControlData;
 
-    taskProcessingControlData->targetSchema = "stage_for_master";
-    taskProcessingControlData->tableNameToWriteNewRecordsTo = "files"; // dur. Da table.
+    ProcessFilesTasksData processSetOfFilesTasksData;
 
-    // Copy this to two more packets to pass in.
+    if (whichTaskToRun == WhichTaskToRun::LoadVideoFileInfoIntoDatabase) {
+        taskProcessingControlData = new ProcessFilesTaskData();
+        taskProcessingControlData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
+        taskProcessingControlData->triedToConnect = triedToConnect;
+        taskProcessingControlData->dbconnected = connectedToDb;
+        taskProcessingControlData->directoryIteratorFlags = QDirIterator::Subdirectories;
 
-    ProcessFilesTaskData processPublishedFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData); // Files we published for FireTV explorer to pick up.
-    ProcessFilesTaskData processBackedupFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
+        taskProcessingControlData->listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" }; // sorted for ease of maintenance
+        taskProcessingControlData->targetSchema = "stage_for_master";
+        taskProcessingControlData->tableNameToWriteNewRecordsTo = "files"; // dur. Da table.
+        taskProcessingControlData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
+        taskProcessingControlData->assumeFileTypeId = CommonFileTypes::torrent_file;
+        taskProcessingControlData->file_flow_state_enum_str = "downloaded"; // see enum type in database
+        taskProcessingControlData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
 
-    taskProcessingControlData->assumeFileTypeId = CommonFileTypes::torrent_file;
-    taskProcessingControlData->file_flow_state_enum_str = "downloaded"; // see enum type in database
-    taskProcessingControlData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
+        ProcessFilesTaskData processPublishedFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData); // Files we published for FireTV explorer to pick up.
+        processPublishedFilesTaskData.assumeFileTypeId = CommonFileTypes::published_file;
+        processPublishedFilesTaskData.file_flow_state_enum_str = "published"; // see enum type in database
+        processPublishedFilesTaskData.searchPath = "O:/Video AllInOne";
 
-    processPublishedFilesTaskData.assumeFileTypeId = CommonFileTypes::published_file;
-    processPublishedFilesTaskData.file_flow_state_enum_str = "published"; // see enum type in database
-    processPublishedFilesTaskData.searchPath = "O:/Video AllInOne";
+        ProcessFilesTaskData processBackedupFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
+        processBackedupFilesTaskData.assumeFileTypeId = CommonFileTypes::backedup_file;
+        processBackedupFilesTaskData.file_flow_state_enum_str = "backedup"; // written to files_batch_runs_log.file_flow_state column
+        //processBackedupFilesTaskData.searchPath = "G:/Video AllInOne2"; // Shut down this location because I made so many changes to the root folders and reorganization, that I didn't want to pollute the backup space with a zillion duplicates.
+        processBackedupFilesTaskData.searchPath = "G:/Video AllInOne Backup"; // Better name anyways. So now any references in files to AllInOne2 are broken, and need to marked as deleted?
 
-    processBackedupFilesTaskData.assumeFileTypeId = CommonFileTypes::backedup_file;
-    processBackedupFilesTaskData.file_flow_state_enum_str = "backedup"; // written to files_batch_runs_log.file_flow_state column
-    //processBackedupFilesTaskData.searchPath = "G:/Video AllInOne2"; // Shut down this location because I made so many changes to the root folders and reorganization, that I didn't want to pollute the backup space with a zillion duplicates.
-    processBackedupFilesTaskData.searchPath = "G:/Video AllInOne Backup"; // Better name anyways. So now any references in files to AllInOne2 are broken, and need to marked as deleted?
+        processSetOfFilesTasksData.processFilesTasksData = {*taskProcessingControlData, processPublishedFilesTaskData, processBackedupFilesTaskData};
+    }
+    else if (whichTaskToRun == WhichTaskToRun::ImportExcelVideoFilesToDatabase) {
+//        taskProcessingControlData = new ImportExcelFilesTaskData();
+//        taskProcessingControlData->triedToConnect = triedToConnect;
+//        taskProcessingControlData->dbconnected = connectedToDb;
+//        ImportExcelFilesTaskData *importExcelFileControlData = static_cast<ImportExcelFilesTaskData *>(taskProcessingControlData);
+//        importExcelFileControlData->listOfFileTypes = {"*.xlsx" };
+//        importExcelFileControlData->directoryIteratorFlags = QDirIterator::NoIteratorFlags; // For now we don't want to go crazy
+//        importExcelFileControlData->targetSchema = "receiving_deck";
+//        importExcelFileControlData->tableNameToWriteNewRecordsTo = "excel_sheet_all_the_videos"; // Maybe....all the tv series?
+//        importExcelFileControlData->loadedSpreadsheet = false;
+//        processSetOfFilesTasksData.processFilesTasksData = {*importExcelFileControlData};
 
-    // So, this looks sus, but I create a task WITH data.
+    }
+    else {
+        throw new MyException("Unimplemented WhichTaskToRun. aborting.");
+    }
 
-    qDebug("main:ProcessFilesTask *processFilesTask = new ProcessFilesTask(*processFilesTaskData, &qCoreApplicationInstance)");
+    taskProcessingControlData->triedToConnect = triedToConnect;
+    taskProcessingControlData->dbconnected = connectedToDb;
 
     bool testSingleTask = false;  // true and just run the torrent downloads scan.
+    ProcessFilesTask *processFilesTasks;
 
     // Test that single task still works.
-    if (testSingleTask) {
-        ProcessFilesTask *processFilesTask = new ProcessFilesTask(*taskProcessingControlData, &qCoreApplicationInstance);
-        qDebug("main:QObject::connect(processFilesTask, SIGNAL(finished()), &a, SLOT(quit()))");
-        QObject::connect(processFilesTask, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
-        // This will run the task from the application event loop.
 
-        // Asynchronous run (start) the task.
-        // Every call to QTimer::singleShot(...) is executed on the event loop of the thread where it is invoked **. If invoked from the main thread, it'll be the event loop started with app.exec().
-        qDebug("main:QTimer::singleShot(0, processFilesTask, SLOT(run()))");
-        QTimer::singleShot(0, processFilesTask,
-                           SLOT(run()) // run is called from the dispatch context, where it is safe to change window contents.
-                           );
+    if (testSingleTask) {
+        processFilesTasks = new ProcessFilesTask(processSetOfFilesTasksData.processFilesTasksData[0], &qCoreApplicationInstance);
     }
 
     // Test when passing in multiple search paths if they all get processed sequentially.
 
     else {
-        ProcessFilesTasksData processFilesTasksData;
-        processFilesTasksData.processFilesTasksData = {*taskProcessingControlData, processPublishedFilesTaskData};
-        ProcessFilesTask *processFilesTasks = new ProcessFilesTask(processFilesTasksData, &qCoreApplicationInstance);
-        qDebug("main:QObject::connect(processFilesTasks, SIGNAL(finished()), &a, SLOT(quit()))");
-        QObject::connect(processFilesTasks, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
-        qDebug("main:QTimer::singleShot(0, processFilesTasks, SLOT(run()))");
-        QTimer::singleShot(0, processFilesTasks, SLOT(run()));
+        processFilesTasks = new ProcessFilesTask(processSetOfFilesTasksData, &qCoreApplicationInstance);
     }
 
-   // exit(non-zero)?
+    qDebug("main:QObject::connect(processFilesTasks, SIGNAL(finished()), &a, SLOT(quit()))");
+    QObject::connect(processFilesTasks, SIGNAL(finished()), &qCoreApplicationInstance, SLOT(quit())); // or SLOT(close()?
+    qDebug("main:QTimer::singleShot(0, processFilesTasks, SLOT(run()))");
+    QTimer::singleShot(0, processFilesTasks, SLOT(run()));
 
     qDebug("main:int returnvalue = a.exec()");
     int returnvalue = qCoreApplicationInstance.exec(); // Now! the "run()" is pulled off the event queue and run.
