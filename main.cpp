@@ -33,6 +33,31 @@ int main(int argc, char *argv[])
     commandLineParser.setApplicationDescription("Command line tool to process files and videos into more usable spaces, publish and track for duplicates, clean names");
     commandLineParser.addHelpOption();
     commandLineParser.addVersionOption();
+    commandLineParser.addPositionalArgument("source", QCoreApplication::translate("main", "Path to recursively scan for new files."));
+
+    // A boolean option with a multiple options (-p, --showprogress)
+    QCommandLineOption showProgressOption(QStringList() << "p" << "showprogress", QCoreApplication::translate("main", "Show progress during scan"));
+    commandLineParser.addOption(showProgressOption);
+
+    QCommandLineOption connectUser(QStringList() << "u" << "dbuser", QCoreApplication::translate("main", "database user login"),QCoreApplication::translate("main", "dbuser"), "postgres");
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Convert inputs to codes
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    commandLineParser.process(qCoreApplicationInstance);
+
+    // Convert arguments into meaning
+
+    const QStringList args = commandLineParser.positionalArguments();
+    if (args.count() < 1) {
+        throw new MyException("A directory is required for scanning.");
+    }
+
+    QString scanDirectory = args.at(0);
+
+    bool showProgress = commandLineParser.isSet(showProgressOption);
+
+    // D:\qt_projects\filmcab>D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe "D:\qBittorrent Downloads\Video\Movies"
 
     // Our hack testing control; should set from argument and/or gui or batch runner
 
