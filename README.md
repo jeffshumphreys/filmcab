@@ -48,3 +48,10 @@ Migrated to ERwin to show a proper Entity Relationship diagram.  Here's a PNG fr
 
 So media_files and media are on two sides of the concepts. the attributes of the file and the work are not one to one. Often 1-to-1, 1-to-0, 0-to-1.  I haven't dealt with many-to-many ideas.  One example is linking trailers, alternate bitrates and resolutions, samples.  I didn't support linkage from media to subtitles and scripts this way, but rather with media_supporting_files.  It could go either way.  I suppose we want to link videos to subtitles based on their being in the same directory, without having identified the exact work or name in IMDB yet.
 ![filmcab physical model](https://github.com/jeffshumphreys/filmcab/assets/47931319/f02d3095-e8cc-42b5-ba0f-b360b939b2d8)
+
+11/28/23
+Here's the set of active tables; not the list of awesome super tables above.  Diagrams have a tendency to reflect the ideal, not the reality.
+![image](https://github.com/jeffshumphreys/filmcab/assets/47931319/cbb2d3c9-4192-439e-bc98-f8dbe877310e)
+^these are the tables I've created and am working with at this moment. The diagram is not as flexible as LucidChart, but then LucidChart is a bit more than $0.
+I'll try to get a diagram in drawio.
+
