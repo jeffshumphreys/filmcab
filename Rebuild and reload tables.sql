@@ -5,6 +5,24 @@
  */
 SET search_path = stage_for_master, "$user", public;
 
+CREATE TYPE public.processing_state_enum AS ENUM ('started', 'completed');
+ALTER TYPE public.processing_state_enum OWNER TO postgres;
+
+CREATE TYPE public.row_op_enum AS ENUM ('inserted', 'updated');
+ALTER TYPE public.row_op_enum OWNER TO postgres;
+
+CREATE TYPE public.source_meta_agg_enum AS ENUM ('imdb', 'tmdb', 'anidb', 'omdb', 'thetvdb', 'movielens', 'wikipedia', 'kaggle', 'eachmovie', 'hydra', 'netflix', 'rottentomatoes', 'bcdb', 'citwf', 'imfdb', 'imcdb');
+ALTER TYPE public.source_meta_agg_enum OWNER to postgres;
+
+CREATE TYPE public.source_content_class_enum AS ENUM ('movies', 'series');
+ALTER TYPE public.source_content_class_enum OWNER to postgres;
+ALTER TYPE public.source_content_class_enum RENAME VALUE 'movie' TO 'do_not_use';
+CREATE TYPE public.file_flow_state_enum AS ENUM ('unknown', 'leeching', 'downloaded', 'published', 'backedup');
+ALTER TYPE public.file_flow_state_enum OWNER TO postgres;
+
+CREATE TYPE public.source_access_type_enum AS ENUM('dump', 'rest');
+ALTER TYPE public.source_access_type_enum OWNER to postgres;
+
 -- Should be NO dependencies ON these TEMPLATE TABLES. If INHERITS was used, then there will be a problem. Use LIKE.
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS public.template_for_docking_tables;
@@ -487,7 +505,7 @@ CREATE OR REPLACE TRIGGER trgupd_media_files_01 BEFORE UPDATE OR DELETE OR INSER
 DROP TABLE IF EXISTS receiving_dock.works_from_manually_pop_spreadsheets CASCADE; 
 CREATE TABLE receiving_dock.works_from_manually_pop_spreadsheets (LIKE public.template_for_staging_tables INCLUDING COMMENTS INCLUDING DEFAULTS INCLUDING GENERATED ,
 	content_source_id                       int8 NOT NULL, -- FOREIGN KEY REFERENCES (Keep, Memory, IMDB Watch List, IMDB Ratings? Or is this just yet again type?)
-	seen_flag                               char(1) NOT NULL DEFAULT (' '), -- ?, x, space. x means I saw it.
+	seen                                    char(1) NOT NULL DEFAULT (' '), -- ?, x, space. x means I saw it.
     imdb_type_of_media                      text NOT NULL, -- Movie, TV Series, TV Mini-Series, TV Movie, Movie about..., Short, Webcast, Video Game, TV Show, Podcast Series, Video, TV Short
     imdb_genres_and_format_and_subject      text[] NULL,
     imdb_id                                 text,
@@ -521,14 +539,21 @@ COMMENT ON COLUMN receiving_dock.media_files.cleaned_txt_with_year IS 'Generated
 CREATE OR REPLACE TRIGGER trgupd_media_files_01 BEFORE UPDATE OR DELETE OR INSERT ON receiving_dock.media_files FOR EACH ROW EXECUTE FUNCTION trgupd_common_columns();
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS receiving_dock.excel_sheet_all_the_movies;
-CREATE TABLE receiving_dock.excel_sheet_all_the_movies (LIKE public.template_for_docking_tables INCLUDING ALL,
-    seen_flag                TEXT,
-	manually_corrected_title TEXT,
+DROP TABLE IF EXISTS receiving_dock.all_my_keep_and_imdb_lists;
+
+CREATE TABLE receiving_dock.all_my_keep_and_imdb_lists (LIKE public.template_for_docking_tables INCLUDING ALL,
+    seen                     TEXT,
+    have                     TEXT,
+	manually_corrected_title TEXT NOT NULL CHECK (trim(manually_corrected_title) = manually_corrected_title),
+	genres_csv_list	         TEXT,
 	ended_with_right_paren   TEXT,
 	type_of_media            TEXT,
 	source_of_item           TEXT,
-	tags_commad              TEXT,
+	who_csv_list             TEXT,
+	aka_slsh_list            TEXT,
+	characters_csv_list      TEXT,
+	video_wrapper            TEXT, -- MST3K, RiffTrax, ...
+	series_in                TEXT,
 	imdb_id                  TEXT,
 	imdb_added_to_list_on    TEXT,
 	imdb_changed_on_list_on  TEXT,
@@ -537,17 +562,25 @@ CREATE TABLE receiving_dock.excel_sheet_all_the_movies (LIKE public.template_for
 	runtime_in_minutes       TEXT,
 	votes                    TEXT,
 	released_on              TEXT,
-	directors_commad         TEXT,
+	directors_csv_list       TEXT,
 	imdb_my_rating           TEXT,
 	imdb_my_rating_made_on   TEXT,
-    x1 TEXT, x2 TEXT, x3 TEXT, x4 TEXT, x5 TEXT, -- garbage columns on input set
+	date_watched             TEXT,
+	last_save_time           TEXT,
+	creation_date            TEXT,
     hash_of_all_columns text GENERATED ALWAYS AS(encode(sha256((
-    	COALESCE(seen_flag                , 'null') ||
+    	COALESCE(seen                     , 'null') ||
+    	COALESCE(have                     , 'null') ||
 		COALESCE(manually_corrected_title , 'null') ||
+		COALESCE(genres_csv_list          , 'null') ||
 		COALESCE(ended_with_right_paren   , 'null') ||
 		COALESCE(type_of_media            , 'null') ||
 		COALESCE(source_of_item           , 'null') ||
-		COALESCE(tags_commad              , 'null') ||
+		COALESCE(who_csv_list             , 'null') ||
+		COALESCE(aka_slsh_list            , 'null') ||
+		COALESCE(characters_csv_list      , 'null') ||
+		COALESCE(video_wrapper            , 'null') ||
+		COALESCE(series_in                , 'null') ||
 		COALESCE(imdb_id                  , 'null') ||
 		COALESCE(imdb_added_to_list_on    , 'null') ||
 		COALESCE(imdb_changed_on_list_on  , 'null') ||
@@ -556,26 +589,67 @@ CREATE TABLE receiving_dock.excel_sheet_all_the_movies (LIKE public.template_for
 		COALESCE(runtime_in_minutes       , 'null') ||
 		COALESCE(votes                    , 'null') ||
 		COALESCE(released_on              , 'null') ||
-		COALESCE(directors_commad         , 'null') ||
+		COALESCE(directors_csv_list       , 'null') ||
 		COALESCE(imdb_my_rating           , 'null') ||
-		COALESCE(imdb_my_rating_made_on   , 'null') 
+		COALESCE(imdb_my_rating_made_on   , 'null') ||  
+		COALESCE(date_watched             , 'null') || 
+		COALESCE(last_save_time           , 'null') ||  
+		COALESCE(creation_date            , 'null')   
 		)
     	::bytea
     	), 'hex')) STORED
+    	, dictionary_sortable_title TEXT
+    	, record_added_on  timestamptz default clock_timestamp()
     	, CONSTRAINT ak_hash_of_all_columns UNIQUE(hash_of_all_columns)
+    	, CONSTRAINT ak_title_release_year UNIQUE(manually_corrected_title)
+    	
     );
 
-  -- must replace all 0x91 ` to ' All the Movies 2 rows-utf8.csv
-  -- cat "All the Movies 2 rows.csv.bak"|iconv -f windows-1250 -t utf8 >"All the Movies 2 rows-utf8.csv" (failed)
-  -- cat "All the Movies.csv"|iconv -f iso8859-2 -t utf8 >"All the Movies-utf8.csv" worked!
-   
-  COPY receiving_dock.excel_sheet_all_the_movies(
-  seen_flag,               
+/*
+# Install-module PSExcel
+import-module psexcel
+$AssemblyFile = (get-childitem $env:windir\assembly -Recurse Microsoft.Office.Interop.Excel.dll | Select-Object -first 1).FullName
+Add-Type -Path $AssemblyFile
+$MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8 = 62
+$inpath = "D:\qt_projects\filmcab\All the Videos.xlsx"
+$outpath = "D:\qt_projects\filmcab\All the Videos.UTF8.csv"
+$Excel = New-Object -ComObject Excel.Application
+$Excel.Visible = $false
+$Excel.DisplayAlerts = $false
+$wb = $Excel.Workbooks.Open($inpath)
+$sheet = $wb.Worksheets[1]
+try {
+    $sheet.SaveAs($outpath, $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8) # https://learn.microsoft.com/en-us/office/vba/api/excel.xlfileformat
+}
+catch {
+    # Failed make sure and close
+}
+$wb = $Excel.Workbooks.Close()
+$Excel.Quit()
+
+<#
+    Issues:
+    - Locked files
+    - Blocking after creating and trying to replace
+
+#> 
+ */   
+ ;
+
+ TRUNCATE TABLE receiving_dock.all_my_keep_and_imdb_lists RESTART IDENTITY;
+ COPY receiving_dock.all_my_keep_and_imdb_lists(
+  seen                    ,
+  have                    ,
   manually_corrected_title,
+  genres_csv_list         ,
   ended_with_right_paren  ,
   type_of_media           ,
   source_of_item          ,
-  tags_commad             ,
+  who_csv_list            ,
+  aka_slsh_list           ,
+  characters_csv_list     ,
+  video_wrapper           ,
+  series_in               ,
   imdb_id                 ,
   imdb_added_to_list_on   ,
   imdb_changed_on_list_on ,
@@ -584,109 +658,282 @@ CREATE TABLE receiving_dock.excel_sheet_all_the_movies (LIKE public.template_for
   runtime_in_minutes      ,
   votes                   ,
   released_on             ,
-  directors_commad        ,
+  directors_csv_list      ,
   imdb_my_rating          ,
   imdb_my_rating_made_on  ,
-  x1,
-  x2,
-  x3,
-  x4,
-  x5
+  date_watched            ,
+  last_save_time          ,
+  creation_date
   )
- FROM 'D:\qt_projects\filmcab\All the Movies-utf8.csv' CSV HEADER; -- 4,621 rows.
+ FROM 'D:\qt_projects\filmcab\all_my_keep_and_imdb_lists.UTF8.csv' CSV HEADER; -- 4,621 rows.
 -- TODO: add to files table. import maybe since source may well be deleted.
  
-SELECT * FROM receiving_dock.excel_sheet_all_the_movies order by 4;
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS receiving_dock.json_tmdb;
-CREATE TABLE receiving_dock.json_tmdb(LIKE public.template_for_docking_tables INCLUDING ALL,
-		json_data_as_json_object json
-	);
-insert into receiving_dock.json_tmdb(json_data_as_json_object) values(pg_read_file('C:\Users\jeffs\Downloads\movies\movies\movie_81.json')::json); -- works!!!!! don't use to_json() function
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS receiving_dock.json_tmdb_expanded;
-CREATE TABLE receiving_dock.json_tmdb_expanded (
-    id                       INT8 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE) PRIMARY KEY,
-	adult                 text,
-	backdrop_path         text,
-	belongs_to_collection text, -- name, poster_path, backdrop_path
-	budget text,
-	genres text,
-	homepage text,
-	imdb_id_no text,
-	imdb_id text,
-	original_language text,
-	original_title text,
-	overview text,
-	popularity text,
-	poster_path text,
-	production_companies text,
-	production_companies_logo_path text,
-	production_countries text,
-	release_date text,
-	revenue text,
-	run_time text,
-	spoken_languages text,
-	status text,
-	tagline text,
-	title text,
-	video text,
-	vote_average text,
-	vote_count text
-	)
-	;
-	declare lo_oid oid;
-	lo_oid := lo_import('C:\Users\jeffs\Downloads\movies\movies\movie_73.json');
-	SELECT pg_read_binary_file('C:\Users\jeffs\Downloads\movies\movies\movie_73.json'); -- worked
-	SELECT pg_read_file('C:\Users\jeffs\Downloads\movies\movies\movie_73.json'); -- worked
-	SELECT pg_read_file('C:\Users\jeffs\Downloads\movies\movies\movie_81.json')::json; -- has "title": "Nausicaä of the Valley of the Wind", "original_title": "風の谷のナウシカ", Works in notepad++
-	select  
-	     cast(data ->> 'id' as int8)                      imdb_id_no,
-	     data ->> 'imdb_id'                               imdb_tt_id,
-	     data ->> 'title'                                 title,
---	     data ->> 'original_title'                        original_title,
---	     data ->> 'overview'                              description,
---	     data ->> 'tagline'                               tagline,
-	     --replace(cast(cast(x.value as json) -> 'name' as text), '"', ''))    genre,
-	     --cast(cast(json_array_elements_text(cast(data ->> 'genres' as json)) as json) -> 'name' as text) x,
-	     data ->> 'status'                                production_status,
-	     cast(data ->> 'release_date' as date)            released_on,
-	     cast(data ->> 'runtime' as int)                  runtime_in_minutes,
-	     cast(data ->> 'budget' as int8)                  budget,
-	     cast(data ->> 'revenue' as int8)                 revenue,
-	     cast(data ->> 'popularity' as decimal(10,3))     popularity,
-	     cast(data ->> 'vote_average' as decimal(3,1))    vote_average,
-	     cast(data ->> 'vote_count' as int8)    vote_average,
-	     --data ->> 'homepage'                              homepage,
-   	     data ->> 'original_language'                     original_language,
-	     --data ->> 'poster_path'                           poster_path,
-	     --data ->> 'backdrop_path'                         backdrop_path,
-	     cast(data -> 'belongs_to_collection' -> 'id' as text)          belongs_to_collection_id,
-	     cast(data -> 'belongs_to_collection' -> 'poster_path' as text) belongs_to_collection_poster_path,
-	     cast(data -> 'belongs_to_collection' -> 'name' as text)        belongs_to_collection_name,
-	     cast(data ->> 'video' as boolean)                is_video,
-	     cast(data ->> 'adult' as boolean)                is_adult,
-	     array_agg(name::text) as genres
-    from t
-    cross join json_array_elements(data -> 'genres') a(name)
-	group by 1,2,3,4,5,6,7,8,9,10,11, 12, 13, 14,15,16,17,18
+/*how many*/SELECT count(*) FROM receiving_dock.all_my_keep_and_imdb_lists;
+/* Browse */SELECT * FROM receiving_dock.all_my_keep_and_imdb_lists order by 4;
+/* Look for titles that don't follow my uniquifying title+releaseyear */SELECT * FROM receiving_dock.all_my_keep_and_imdb_lists where right(manually_corrected_title, 1) <> ')' and type_of_media <> 'Movie about…';
+/* Look for double spaces in title */SELECT 'x' || replace(manually_corrected_title, ' ', '?') || 'x' FROM receiving_dock.all_my_keep_and_imdb_lists where manually_corrected_title like '%  %';
+/* Look for untrimmed titles */SELECT * FROM receiving_dock.all_my_keep_and_imdb_lists where trim(manually_corrected_title) <> manually_corrected_title;
+SELECT * FROM receiving_dock.all_my_keep_and_imdb_lists as v where manually_corrected_title like '%''%';
 
+SELECT manually_corrected_title, unaccent(manually_corrected_title)  FROM receiving_dock.all_my_keep_and_imdb_lists where manually_corrected_title <> unaccent(manually_corrected_title);
+SELECT * FROM receiving_dock.all_my_keep_and_imdb_lists as v where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is null and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)');
+SELECT manually_corrected_title, (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] FROM receiving_dock.all_my_keep_and_imdb_lists as v where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is not null and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')
+and (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] not between 1900 and 2026;
+SELECT manually_corrected_title, (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] FROM receiving_dock.all_my_keep_and_imdb_lists as v where regexp_count(manually_corrected_title, '\((\d\d\d\d)\)') > 1;
+CREATE EXTENSION unaccent;
+select pg_client_encoding();
+select ascii('’'), ascii('‘'), ascii('‑)') /* odd hyphen */;
+select replace('A Mother''s Son (2012)', '''', '’'); -- A Mother’s Son (2012)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.content_sources;
+CREATE TABLE receiving_dock.content_sources (LIKE public.template_for_all_tables INCLUDING ALL,
+	-- txt is url or file path?
+	url_downloaded_from         text,                              -- https://www.kaggle.com/datasets/edgartanaka1/tmdb-movies-and-series/download?datasetVersionNumber=1
+	sourced_remote              text,                              -- https://www.themoviedb.org/
+	expanded_to_local_folder    text,                              -- N:\Video AllInOne Metadata\tmdb
+	expanded_to_local_folder_on date, 
+	source_meta_agg             source_meta_agg_enum,
+	source_content_class        source_content_class_enum,
+	downloaded_file_name        text,                              -- archive.zip
+	unzipped_folder             text,                              -- movies\movies
+	downloaded_file_name_renamed_to text,
+    extracted_to_remote_on      date,
+    how_many_rows_recvd         int8,
+    cleaned_by_remote_creator   boolean,
+    anthology_gathering_site    TEXT, -- Kaggle, etc.
+    source_access_type          source_access_type_enum,
+    source_gatherer             TEXT,  -- Edgar Tanaka
+    file_name_format            TEXT, -- movie_[n]n.json
+    landed_in_table             TEXT,  -- filmcab.receiving_dock.json_data
+    attributes_provided         TEXT[] -- title, imdb_tt_id, original_title, descrption, tagline, genres, production_status, released, runtime, budget, revenue, voting, original_language, posters
+);
+
+INSERT INTO receiving_dock.content_sources
+(id, txt, typ_id
+, url_downloaded_from
+, sourced_remote
+, expanded_to_local_folder
+, expanded_to_local_folder_on
+, source_meta_agg
+, source_content_class
+, downloaded_file_name
+, unzipped_folder
+, downloaded_file_name_renamed_to
+, extracted_to_remote_on
+, how_many_rows_recvd
+, cleaned_by_remote_creator
+, anthology_gathering_site
+, source_access_type
+, source_gatherer
+, file_name_format
+, landed_in_table
+, attributes_provided
+)
+VALUES(
+  1
+, 'tmdb movies (kaggle), Edgar Tanaka, 526611 movies exported from api'                                -- txt
+, 23 -- typ_id
+, 'https://www.kaggle.com/datasets/edgartanaka1/tmdb-movies-and-series/download?datasetVersionNumber=1' -- url_downloaded_from
+, 'https://www.themoviedb.org/'                                                                         -- sourced_remote
+, 'N:\Video AllInOne Metadata\tmdb'                                                                     -- expanded_to_local_folder
+, to_date('10/30/2023', 'MM/DD/YYYY')                                                                   -- expanded_to_local_folder_on
+, 'tmdb'                                                                                                -- source_meta_agg
+, 'movies'                                                                                              -- source_content_class 
+, 'archive.zip'                                                                                         -- downloaded_file_name
+, 'movies\movies'                                                                                       -- unzipped_folder
+, 'archive.500000.movies.zip'                                                                           -- downloaded_file_name_renamed_to
+, to_date('2020-07-05', 'YYYY-MM-DD')                                                                   -- extracted_to_remote_on
+, 526611                                                                                                -- how_many_rows_recvd  
+, null                                                                                                  -- cleaned_by_remote_creator
+, 'kaggle'                                                                                              -- anthology gathering_site
+, 'dump'                                                                                                -- source_access_type
+, 'Edgar Tanaka'                                                                                        -- source_gatherer
+, 'movie_[n]n.json'                                                                                     -- file_name_format
+, 'filmcab.receiving_dock.json_data'                                                                    -- landed_in_table
+, '{title, imdb_tt_id, original_title, descrption, tagline, genres, production_status, released, runtime, budget, revenue, voting, original_language, posters}' -- attributes_provided
+)
+, (
+  2
+, 'tmdb tv series (kaggle), Edgar Tanaka, 93716 tv series exported from api'                                -- txt
+, 23 -- typ_id
+, 'https://www.kaggle.com/datasets/edgartanaka1/tmdb-movies-and-series/download?datasetVersionNumber=1' -- url_downloaded_from
+, 'https://www.themoviedb.org/'                                                                         -- sourced_remote
+, 'N:\Video AllInOne Metadata\tmdb'                                                                     -- expanded_to_local_folder
+, to_date('10/30/2023', 'MM/DD/YYYY')                                                                   -- expanded_to_local_folder_on
+, 'tmdb'                                                                                                -- source_meta_agg
+, 'series'                                                                                              -- source_content_class 
+, 'archive.zip'                                                                                         -- downloaded_file_name
+, 'series\series'                                                                                       -- unzipped_folder
+, 'archive.500000.movies.zip'                                                                           -- downloaded_file_name_renamed_to
+, to_date('2020-07-05', 'YYYY-MM-DD')                                                                   -- extracted_to_remote_on
+, 93716                                                                                                -- how_many_rows_recvd  
+, null                                                                                                  -- cleaned_by_remote_creator
+, 'kaggle'                                                                                              -- anthology gathering_site
+, 'dump'                                                                                                -- source_access_type
+, 'Edgar Tanaka'                                                                                        -- source_gatherer
+, 'series_[n]n.json'                                                                                     -- file_name_format
+, 'filmcab.receiving_dock.json_data'                                                                    -- landed_in_table
+, '{series_name, original_name
+    , in_production, next_episode_to_air, first_air_date, last_air_date, last_episode_to_air, number_of_episodes
+    , episode_run_time
+    , number_of_seasons, languages, origin_country, networks, seasons, series_type, created_by               
+}' -- attributes_provided
+)
 ;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--DROP TABLE IF EXISTS receiving_dock.json_data;
+CREATE TABLE receiving_dock.json_data(LIKE public.template_for_docking_tables INCLUDING ALL,
+            source_meta_agg          source_meta_agg_enum
+        ,   source_content_class     source_content_class_enum
+        ,   content_source_id        int8 NOT NULL
+		,	json_data_as_json_object json
+		,   inputpath                text unique
+		,   record_added_on          timestamptz default clock_timestamp()	
+		);
+select count(*) FROM receiving_dock.json_data;
+select * from receiving_dock.json_data jt limit 10;
+select source_meta_agg, source_content_class, count(*) from receiving_dock.json_data jd group by source_meta_agg, source_content_class;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.json_data_expanded;
+CREATE TABLE receiving_dock.json_data_expanded (
+    id                                INT8 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE) PRIMARY KEY,
+    source_meta_agg                   source_meta_agg_enum,
+    source_content_class              source_content_class_enum,
+    content_source_id                 int8 NOT NULL,
+	imdb_id_no                        TEXT UNIQUE,                        
+	imdb_tt_id                        TEXT,                        
+	title                             TEXT,                             
+	original_title                    TEXT,                    
+	description                       TEXT,                       
+	tagline                           TEXT,                           
+	genres                              JSON,
+	genres_arr                        TEXT[],
+	production_companies                JSON,          -- BBC
+	production_companies_arr          TEXT[],              
+	production_countries                JSON,
+	production_countries_arr          TEXT[],
+	spoken_languages                    JSON,
+	spoken_languages_arr              TEXT[],
+	production_status                 TEXT,               -- for series, 'Ended', 'Returning Series'
+	released_on                       TEXT,                       
+	runtime_in_minutes                TEXT,                
+	budget                            TEXT,                            
+	revenue                           TEXT,                           
+	popularity                        TEXT,
+	vote_count                        TEXT,
+	vote_average                      TEXT,                      
+	homepage                          TEXT,                          
+	original_language                 TEXT,               -- en  
+	poster_path                       TEXT,                       
+	backdrop_path                     TEXT,                     
+	belongs_to_collection_id          TEXT,          
+	belongs_to_collection_poster_path TEXT, 
+	belongs_to_collection_name        TEXT,        
+	is_video                          TEXT,                          
+	is_adult                          TEXT,
+	-- tv
+	in_production                     TEXT,  -- true/false           
+    next_episode_to_air               TEXT,     
+    last_air_date                     TEXT,           
+    last_episode_to_air                     JSON, -- Attributes: air_date, episode#, production_code, season_no, show_id, ..........     
+    number_of_episodes                TEXT,      
+    number_of_seasons                 TEXT,       
+    episode_run_time                  TEXT,        
+    original_name                     TEXT,           
+    languages                               JSON,
+    languages_arr                     TEXT[],
+    origin_country                    TEXT,          -- GB
+    first_air_date                    TEXT,          
+    networks                          JSON,
+    networks_arr                      TEXT[],
+    seasons                                 JSON,
+    seasons_arr                       TEXT[],
+    series_type                       TEXT,               -- Documentary
+    created_by                              JSON,
+    created_by_arr                    TEXT[],
+    series_name                       TEXT,
+    added_on timestamptz default(clock_timestamp())
+    )
+	;
+	INSERT INTO receiving_dock.json_data_expanded(
+			source_meta_agg, source_content_class,
+			imdb_id_no, imdb_tt_id, title, original_title, description, tagline, 
+			genres, production_companies, production_countries, spoken_languages, 
+			production_status, released_on, runtime_in_minutes, 
+			budget, revenue, popularity, vote_count, vote_average, homepage, original_language, poster_path, backdrop_path, belongs_to_collection_id, belongs_to_collection_poster_path, belongs_to_collection_name, is_video, is_adult
+			-- Following are exclusive to tmdb series
+			in_production, next_episode_to_air, last_air_date, last_episode_to_air, number_of_episodes, number_of_seasons, episode_run_time, original_name, languages, origin_country, first_air_date, networks, seasons, series_type, created_by, series_name
 
+	)
+	SELECT  -- title, imdb_tt_id, original_title, descrption, tagline, genres, production_status, released, runtime, budget, revenue, voting, original_language, posters
+	     source_meta_agg,
+	     source_content_class,
+	     cast(json_data_as_json_object    ->> 'id' as int8)                                     imdb_id_no,
+	     json_data_as_json_object         ->> 'imdb_id'                                         imdb_tt_id,
+	     json_data_as_json_object         ->> 'title'                                           title,
+	     json_data_as_json_object         ->> 'original_title'                                  original_title,
+	     json_data_as_json_object         ->> 'overview'                                        description,
+	     json_data_as_json_object         ->> 'tagline'                                         tagline,
+	     cast(json_data_as_json_object    ->> 'genres' as json)                                 genres,
+	     cast(json_data_as_json_object    ->> 'production_companies' as json)                   production_companies,
+	     cast(json_data_as_json_object    ->> 'production_countries' as json)                   production_countries,
+	     cast(json_data_as_json_object    ->> 'spoken_languages' as json)                       spoken_languages,
+	     json_data_as_json_object         ->> 'status'                                          production_status,
+	     to_date(json_data_as_json_object ->> 'release_date', 'YYYY-MM-DD')                     released_on,
+	     cast(json_data_as_json_object    ->> 'runtime' as int)                                 runtime_in_minutes,
+	     cast(json_data_as_json_object    ->> 'budget' as int8)                                 budget,
+	     cast(json_data_as_json_object    ->> 'revenue' as int8)                                revenue,
+	     cast(json_data_as_json_object    ->> 'popularity' as decimal(10,3))                    popularity,
+	     cast(json_data_as_json_object    ->> 'vote_count' as int8)                             vote_count,
+	     cast(json_data_as_json_object    ->> 'vote_average' as decimal(3,1))                   vote_average,
+	     json_data_as_json_object         ->> 'homepage'                                        homepage,
+   	     json_data_as_json_object         ->> 'original_language'                               original_language,
+	     json_data_as_json_object         ->> 'poster_path'                                     poster_path,
+	     json_data_as_json_object         ->> 'backdrop_path'                                   backdrop_path,
+	     cast(json_data_as_json_object     -> 'belongs_to_collection' -> 'id' as text)          belongs_to_collection_id,
+	     cast(json_data_as_json_object     -> 'belongs_to_collection' -> 'poster_path' as text) belongs_to_collection_poster_path,
+	     cast(json_data_as_json_object     -> 'belongs_to_collection' -> 'name' as text)        belongs_to_collection_name,
+	     cast(json_data_as_json_object    ->> 'video' as boolean)                               is_video,
+	     cast(json_data_as_json_object    ->> 'adult' as boolean)                               is_adult,
+		 json_data_as_json_object         ->> 'in_production'                                   in_production, 
+		 json_data_as_json_object         ->> 'next_episode_to_air'                             next_episode_to_air, 
+		 json_data_as_json_object         ->> 'last_air_date'                                   last_air_date, 
+		 json_data_as_json_object         ->> 'last_episode_to_air'                             last_episode_to_air, 
+		 json_data_as_json_object         ->> 'number_of_episodes'                              number_of_episodes, 
+		 json_data_as_json_object         ->> 'number_of_seasons'                               number_of_seasons, 
+		 json_data_as_json_object         ->> 'episode_run_time'                                episode_run_time, 
+		 json_data_as_json_object         ->> 'original_name'                                   original_name, 
+		 json_data_as_json_object         ->> 'languages'                                       languages, 
+		 json_data_as_json_object         ->> 'origin_country'                                  origin_country, 
+		 json_data_as_json_object         ->> 'first_air_date'                                  first_air_date, 
+		 json_data_as_json_object         ->> 'networks'                                        networks, 
+		 json_data_as_json_object         ->> 'seasons'                                         seasons, 
+		 json_data_as_json_object         ->> 'type'                                            series_type, 
+		 json_data_as_json_object         ->> 'created_by'                                      created_by, 
+		 json_data_as_json_object         ->> 'name'                                            series_name 
+		     
+    from receiving_dock.json_data
+ ;
 	
-	select  
-	     cast(data ->> 'id' as int8)                      imdb_id_no,
-	     data ->> 'imdb_id'                               imdb_tt_id,
-	     data ->> 'title'                                 title,
-	     data ->> 'status'                                production_status,
-	     cast(data ->> 'release_date' as date)            released_on,
-	     cast(data ->> 'runtime' as int)                  runtime_in_minutes,
-	     cast(data ->> 'budget' as int8)                  budget,
-	     cast(data ->> 'revenue' as int8)                 revenue,
-	     cast(data ->> 'popularity' as decimal(10,3))     popularity,
-	     cast(data ->> 'vote_average' as decimal(3,1))    vote_average,
-	     cast(data ->> 'vote_count' as int8)              vote_count,
-	     cast(data ->> 'genres' as json)  genre
-    from t
---    cross join 
-  --  	json_array_elements(data -> 'genres') a(value)
+UPDATE receiving_dock.json_data_expanded a  set source_content_class = 'movies';
+UPDATE receiving_dock.json_data_expanded a set genres_arr =   
+(
+	SELECT array_agg(aa.name) genres_arr from receiving_dock.json_data_expanded b cross join json_array_elements(a.genres) aa(name) where a.id = b.id  group by b.id
+) ; 
+
+INSERT INTO receiving_dock.json_data(                     source_meta_agg, source_content_class, inputpath, json_data_as_json_object)                  select 'tmdb', 'movie', 'C:\Users\jeffs\Downloads\movies\movies\movie_100.json',
+      pg_read_file('C:\Users\jeffs\Downloads\movies\movies\movie_100.json')::json WHERE NOT EXISTS(SELECT 1 FROM receiving_dock.json_data a WHERE 'C:\Users\jeffs\Downloads\movies\movies\movie_100.json' = a.inputpath)      
+    ; 
+--production_companies
+--spoken_languages
+--production_countries
+
+SELECT DISTINCT json_object_keys(json_data_as_json_object) from receiving_dock.json_data; 
+SELECT COUNT(*) FROM receiving_dock.json_data jd ;
+SELECT COUNT(*) FROM receiving_dock.json_data jd  where source_content_class = 'movies';
+SELECT COUNT(*) FROM receiving_dock.json_data jd  where source_content_class = 'series';
+SELECT DISTINCT json_object_keys(json_data_as_json_object) from receiving_dock.json_data where source_content_class = 'series'; -- first_air_date, networs, seasons, type, origin_country, langages, original_name, last_air_date, next_episode_to_air, number_of_episodes, number_of_seasons, episode_run_time, in_production 
+SELECT DISTINCT json_object_keys(json_data_as_json_object) from receiving_dock.json_data where source_content_class = 'series'
+EXCEPT 
+SELECT DISTINCT json_object_keys(json_data_as_json_object) from receiving_dock.json_data where source_content_class = 'movies';
