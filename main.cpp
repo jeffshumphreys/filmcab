@@ -40,6 +40,11 @@ int main(int argc, char *argv[])
     commandLineParser.addOption(showProgressOption);
 
     QCommandLineOption connectUser(QStringList() << "u" << "dbuser", QCoreApplication::translate("main", "database user login"),QCoreApplication::translate("main", "dbuser"), "postgres");
+    commandLineParser.addOption(connectUser);
+
+    QCommandLineOption action(QStringList() << "a" << "action-to-execute", QCoreApplication::translate("main", "execute process named this"),QCoreApplication::translate("main", "procact"), "scan");
+
+    commandLineParser.addOption(action);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Convert inputs to codes
@@ -48,7 +53,10 @@ int main(int argc, char *argv[])
 
     // Convert arguments into meaning
 
+    QString reqAction = commandLineParser.value(action);
+
     const QStringList args = commandLineParser.positionalArguments();
+
     if (args.count() < 1) {
         throw new MyException("A directory is required for scanning.");
     }
@@ -57,12 +65,12 @@ int main(int argc, char *argv[])
 
     bool showProgress = commandLineParser.isSet(showProgressOption);
 
-    // D:\qt_projects\filmcab>D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe "D:\qBittorrent Downloads\Video\Movies"
+    // D:\qt_projects\filmcab>D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe -a scan "D:\qBittorrent Downloads\Video\Movies"
+
 
     // Our hack testing control; should set from argument and/or gui or batch runner
 
     WhichTaskToRun whichTaskToRun = WhichTaskToRun::LoadVideoFileInfoIntoDatabase;
-
 
     QSqlDatabase targetDbTaskProcessing = QSqlDatabase::addDatabase("QPSQL"); /* Had to add the "sql" line to the .pro file in string "QT =
             core \

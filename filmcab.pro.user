@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 11.0.3, 2023-11-27T13:06:42. -->
+<!-- Written by QtCreator 11.0.3, 2023-11-28T19:02:10. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -244,6 +244,7 @@
     <value type="bool" key="PE.EnvironmentAspect.PrintOnRun">false</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:D:/qt_projects/filmcab/filmcab.pro</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">D:/qt_projects/filmcab/filmcab.pro</value>
+    <value type="QString" key="RunConfiguration.Arguments"> -a scan &quot;D:\qBittorrent Downloads\Video\Movies&quot;</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
