@@ -69,6 +69,10 @@ ALTER TABLE public.template_for_staging_tables ALTER id SET NOT NULL, ALTER id A
 COMMENT ON TABLE public.template_for_staging_tables IS 'Staging tables operate differently than master or warehouse tables. They get truncated for one thing.';
 COMMENT ON COLUMN public.template_for_staging_tables.id IS 'This needs to keep updating for new until a truncate with restart is run. Stage id'' for now get reset, so joining back from master won''t really work, so we''ll have a think and maybe a separate table the master links back to with perm sequence ids.  It''s just that testing will cause bloat. Note that I don''t see any reason for these to be super keys that are from a master sequence. ';
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS public.template_for_tracking_tables;
+CREATE TABLE public.template_for_tracking_tables (LIKE public.template_for_all_tables INCLUDING ALL);
+ALTER TABLE public.template_for_tracking_tables ALTER id SET NOT NULL, ALTER id ADD GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE -9223372036854775808 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS public.template_for_small_reference_tables;
 CREATE TABLE public.template_for_small_reference_tables (LIKE public.template_for_all_tables INCLUDING ALL);
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -686,27 +690,116 @@ select ascii('’'), ascii('‘'), ascii('‑)') /* odd hyphen */;
 select replace('A Mother''s Son (2012)', '''', '’'); -- A Mother’s Son (2012)
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.path_processing_instructions;
+CREATE TABLE receiving_dock.path_processing_instructions (LIKE public.template_for_all_tables INCLUDING ALL,
+	-- txt = name: 
+    address_format enum (file, url, db_table),
+	files_renamable  boolean,
+	exposed_to_users boolean,
+	path_to_process  text,
+	extensions_contained text[],
+	sequence_in_file_movement int,
+	description_of_function text
+);
+ALTER TABLE receiving_dock.path_processing_instructions ALTER id SET NOT NULL, ALTER id ADD GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE -9223372036854775808 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE);
+
+INSERT INTO receiving_dock.path_processing_instructions(sequence_in_file_movement, txt, typ_id, files_renamable, exposed_to_users, path_to_process, extensions_contained)
+VALUES (1, 'incomplete downloading torrent files', 28, false, false, 'D:\qBittorrent Downloads\temp', '{*.!qB, *.parts}' );
+
+INSERT INTO receiving_dock.path_processing_instructions(sequence_in_file_movement, txt, typ_id, files_renamable, exposed_to_users, path_to_process, extensions_contained)
+VALUES (2, 'torrents actively downloading', 27, false, false, 'D:\qBittorrent Downloads\_torrent files', '{*.torrent}' );
+
+INSERT INTO receiving_dock.path_processing_instructions(sequence_in_file_movement, txt, typ_id, files_renamable, exposed_to_users, path_to_process, extensions_contained)
+VALUES (3, 'torrents finished downloading', 27, false, false, 'D:\qBittorrent Downloads\_finished_download_torrent_files', '{*.torrent}' );
+
+INSERT INTO receiving_dock.path_processing_instructions(sequence_in_file_movement, txt, typ_id, files_renamable, exposed_to_users, path_to_process, extensions_contained)
+VALUES (4, 'video torrent packages finished downloading', 7, false, false, 'D:\qBittorrent Downloads\Video', '{*.avi,*.f4v,*.flv,*.idx,*.mkv,*.mov,*.mp4,*.mpg,*.ogv,*.srt,*.sub,*.vob,*.webm,*.wmv}' );
+
+INSERT INTO receiving_dock.path_processing_instructions(sequence_in_file_movement, txt, typ_id, files_renamable, exposed_to_users, path_to_process, extensions_contained)
+VALUES (5, 'published video files for watching', 7, true, true, 'O:\Video AllInOne', '{*.avi,*.f4v,*.flv,*.idx,*.mkv,*.mov,*.mp4,*.mpg,*.ogv,*.srt,*.sub,*.vob,*.webm,*.wmv}' );
+
+INSERT INTO receiving_dock.path_processing_instructions(sequence_in_file_movement, txt, typ_id, files_renamable, exposed_to_users, path_to_process, extensions_contained)
+VALUES (6, 'backups of published video files for watching', 7, true, false, 'G:\Video AllInOne Backup', '{*.avi,*.f4v,*.flv,*.idx,*.mkv,*.mov,*.mp4,*.mpg,*.ogv,*.srt,*.sub,*.vob,*.webm,*.wmv}' );
+
+select * FROM receiving_dock.path_processing_instructions ppi ;
+/*
+ *      https://www.kaggle.com/datasets/asaniczka/tmdb-movies-dataset-2023-930k-movies
+ *      https://www.kaggle.com/datasets/asaniczka/tmdb-movies-dataset-2023-930k-movies/download?datasetVersionNumber=36
+ *      N:\Video AllInOne Metadata\tmdb\archive.Full TMDB Movies Dataset 2023 (930K Movies).zip
+ *           TMDB_movie_dataset_v11.csv
+ *      N:\Video AllInOne Metadata\tmdb\movies (movie_[n]n.json)
+ * 	    filmcab.receiving_dock.json_data
+ *      filmcab.receiving_dock.json_data_expanded
+ *      filmcab.receiving_dock.raw_works
+ *      filmcab.receiving_dock.works
+ *      filmcab.receiving_dock.sourced_metadata (keep scoring separate and linked to works, one to many)
+ */ 
+SELECT * FROM receiving_dock.path_processing_instructions;
+ALTER TABLE receiving_dock.path_processing_instructions ADD COLUMN set_stored_typ_to INT8;
+ALTER TABLE receiving_dock.path_processing_instructions ADD CONSTRAINT fk_pth_proc_inst_typ FOREIGN KEY(set_stored_typ_to) REFERENCES public.typs(id);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.path_processing_flows;
+drop table receiving_dock.file_processing_flows;
+CREATE TABLE receiving_dock.path_processing_flows(LIKE public.template_for_small_reference_tables INCLUDING ALL,
+	description TEXT,
+	program_to_process TEXT
+);
+INSERT INTO receiving_dock.path_processing_flows(id, txt, typ_id, description, program_to_process)
+VALUES(1, 'scan folders and pull file details into database', 29 /* process.flow */, 'keeps the files table up-to-date as to what files are downloaded, what are published, which are backedup.', 'filer.exe');
+update receiving_dock.path_processing_flows set program_to_process = 'filer.exe';
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.path_processing_flow_steps;
+CREATE TABLE receiving_dock.path_processing_flow_steps(LIKE public.template_for_small_reference_tables INCLUDING ALL,
+      path_processing_flow_id int8 NOT NULL REFERENCES receiving_dock.path_processing_flows(id),
+      sequence_of_processing_steps int,
+      path_processing_instructions_id int8 REFERENCES  receiving_dock.path_processing_instructions(id),
+      action_code TEXT -- scan, etc.
+);      
+INSERT INTO receiving_dock.path_processing_flow_steps(id, txt, typ_id, path_processing_flow_id, sequence_of_processing_steps, path_processing_instructions_id, action_code)
+VALUES(1, 'scan in downloaded torrent packages', 30 /*process.flow.step*/, 1, 1, 4, 'scan');
+INSERT INTO receiving_dock.path_processing_flow_steps(id, txt, typ_id, path_processing_flow_id, sequence_of_processing_steps, path_processing_instructions_id, action_code)
+VALUES(2, 'scan in published and clean name media', 30 /*process.flow.step*/, 1, 2, 5, 'scan');
+INSERT INTO receiving_dock.path_processing_flow_steps(id, txt, typ_id, path_processing_flow_id, sequence_of_processing_steps, path_processing_instructions_id, action_code)
+VALUES(3, 'scan in backed up media', 30 /*process.flow.step*/, 1, 3, 8, 'scan');
+
+DROP VIEW IF EXISTS receiving_dock.flow_step_work;
+CREATE OR REPLACE VIEW receiving_dock.flow_step_work AS
+select 
+    f.id flow_id,
+    s.id step_id,
+    ppi.id instruction_id,
+	f.txt flow_name, 
+	s.txt step_name, 
+	s.action_code,
+	ppi.path_to_process,
+	f.program_to_process,
+	ppi.set_stored_typ_to 
+from receiving_dock.path_processing_flows f join receiving_dock.path_processing_flow_steps s on f.id = s.path_processing_flow_id  
+join receiving_dock.path_processing_instructions ppi on s.path_processing_instructions_id = ppi.id
+order by s.sequence_of_processing_steps;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 DROP TABLE IF EXISTS receiving_dock.content_sources;
 CREATE TABLE receiving_dock.content_sources (LIKE public.template_for_all_tables INCLUDING ALL,
 	-- txt is url or file path?
-	url_downloaded_from         text,                              -- https://www.kaggle.com/datasets/edgartanaka1/tmdb-movies-and-series/download?datasetVersionNumber=1
-	sourced_remote              text,                              -- https://www.themoviedb.org/
-	expanded_to_local_folder    text,                              -- N:\Video AllInOne Metadata\tmdb
-	expanded_to_local_folder_on date, 
-	source_meta_agg             source_meta_agg_enum,
-	source_content_class        source_content_class_enum,
-	downloaded_file_name        text,                              -- archive.zip
-	unzipped_folder             text,                              -- movies\movies
-	downloaded_file_name_renamed_to text,
-    extracted_to_remote_on      date,
-    how_many_rows_recvd         int8,
-    cleaned_by_remote_creator   boolean,
-    anthology_gathering_site    TEXT, -- Kaggle, etc.
-    source_access_type          source_access_type_enum,
-    source_gatherer             TEXT,  -- Edgar Tanaka
-    file_name_format            TEXT, -- movie_[n]n.json
-    landed_in_table             TEXT,  -- filmcab.receiving_dock.json_data
-    attributes_provided         TEXT[] -- title, imdb_tt_id, original_title, descrption, tagline, genres, production_status, released, runtime, budget, revenue, voting, original_language, posters
+	url_downloaded_from             TEXT,                              -- https://www.kaggle.com/datasets/edgartanaka1/tmdb-movies-and-series/download?datasetVersionNumber=1
+	sourced_remote                  TEXT,                              -- https://www.themoviedb.org/
+	expanded_to_local_folder        TEXT,                              -- N:\Video AllInOne Metadata\tmdb
+	expanded_to_local_folder_on     DATE, 
+	source_meta_agg                 source_meta_agg_enum,
+	source_content_class            source_content_class_enum,
+	downloaded_file_name            TEXT,                              -- archive.zip
+	unzipped_folder                 TEXT,                              -- movies\movies
+	downloaded_file_name_renamed_to TEXT,
+    extracted_to_remote_on          DATE,
+    how_many_rows_recvd             INT8,
+    cleaned_by_remote_creator       BOOLEAN,
+    anthology_gathering_site        TEXT, -- Kaggle, etc.
+    source_access_type              source_access_type_enum,
+    source_gatherer                 TEXT,  -- Edgar Tanaka
+    file_name_format                TEXT, -- movie_[n]n.json
+    landed_in_table                 TEXT,  -- filmcab.receiving_dock.json_data
+    attributes_provided             TEXT[] -- title, imdb_tt_id, original_title, descrption, tagline, genres, production_status, released, runtime, budget, revenue, voting, original_language, posters
 );
 
 INSERT INTO receiving_dock.content_sources
@@ -807,7 +900,7 @@ CREATE TABLE receiving_dock.json_data_expanded (
 	original_title                    TEXT,                    
 	description                       TEXT,                       
 	tagline                           TEXT,                           
-	genres                              JSON,
+	genres                            JSON,
 	genres_arr                        TEXT[],
 	production_companies                JSON,          -- BBC
 	production_companies_arr          TEXT[],              
@@ -937,3 +1030,25 @@ SELECT DISTINCT json_object_keys(json_data_as_json_object) from receiving_dock.j
 SELECT DISTINCT json_object_keys(json_data_as_json_object) from receiving_dock.json_data where source_content_class = 'series'
 EXCEPT 
 SELECT DISTINCT json_object_keys(json_data_as_json_object) from receiving_dock.json_data where source_content_class = 'movies';
+select * from pg_extension_objects('unaccent');
+
+DROP TABLE IF EXISTS receiving_dock.search_strings;
+CREATE TABLE receiving_dock.search_strings(LIKE public.template_for_docking_tables INCLUDING ALL,
+	txt TEXT UNIQUE CHECK (txt <> ''),
+	typ_id INT8 NOT NULL REFERENCES public.typs(id),
+	applied_against_site text
+);
+INSERT INTO receiving_dock.search_strings(txt, typ_id, applied_against_site) VALUES('https://archive.org/search?query=%28film%29+AND+-title%3A%28JESUS%29+AND+mediatype%3A%28movies%29&page=3', 31, 'archive.org');
+DROP TABLE IF EXISTS receiving_dock.pull_attr_frm_src_log;
+CREATE TABLE receiving_dock.pull_attr_frm_src_log(LIKE public.template_for_tracking_tables INCLUDING ALL,
+    source_row_id          INT8,
+    source_datapoint       TEXT,
+    source_datapoint_val   TEXT,
+	source_row_capt_dt     TIMESTAMPTZ,
+    target_row_id          INT8,
+	target_table           TEXT,
+	target_column          TEXT,
+	target_column_orig_val TEXT,
+	target_row_dt          TIMESTAMPTZ,
+	applied                BOOLEAN         -- if the match was found in the source to the target, is the value available?  If not, then set false and block from new fetch searches for a period
+	)

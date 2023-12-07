@@ -12,7 +12,7 @@ CONFIG += c++20 cmdline
 # In order to do so, uncomment the following line.
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-# Project path helps us find meta
+# Project path helps us find meta data about the project to log
 DEFINES += PROJECT_PATH=\"\\\"$${_PRO_FILE_PWD_}/\\\"\"
 # Trying to get more detail in the stack trace. header-only is damn empty.
 # Fails DEFINES += BOOST_STACKTRACE_LINK
@@ -55,9 +55,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     databasetaskcontrol.h \
+    filetaskcontrol.h \
     importexcelfilestaskdata.h \
     processfilestask.h \
     processfilestaskdata.h \
     sharedenumerations.h \
-    task.h
+    task.h \
+    taskcontrol.h
 

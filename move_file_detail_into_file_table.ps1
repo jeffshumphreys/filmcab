@@ -4,6 +4,4 @@ REM worked. Added dlls to bin dir
 windeployqt --debug --verbose 2 D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug
 #>
 
-D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe "D:\qBittorrent Downloads\Video\Movies" "torrent_downloads" -flowstate "downloaded"
-D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe "O:\Video AllInOne" -flowstate "published"
-D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe "G:\Video AllInOne Backup" -flowstate "backedup"
+D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe -f "scan_folders_and_pull_file_details_into_database" -d filmcab --showprogress

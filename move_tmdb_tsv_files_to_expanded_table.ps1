@@ -41,105 +41,57 @@ function Invoke-Sql ($sql) {
     }
 }
 
-$load_json = $true
-$dropandrecreate_json = $false
-$expand_json = $false
-$dropandrecreate_expanded_json = $true
-
 if ($dbconnopen) {
-    if ($load_json) {
-        if ($dropandrecreate_json) {
-            Invoke-Sql "DROP TABLE IF EXISTS receiving_dock.json_data;";
-            Invoke-Sql "
-                CREATE TABLE receiving_dock.json_data(LIKE public.template_for_docking_tables INCLUDING ALL,
-                    content_source_id        int8
-                ,   source_meta_agg          source_meta_agg_enum
-                ,   source_content_class     source_content_class_enum
-                ,	json_data_as_json_object JSON
-                ,   inputpath                text UNIQUE
-                ,   record_added_on          timestamptz default clock_timestamp()	
-                );" 
-        }
-
-        $c = '.'
-        $linct = 0
-
-        Get-ChildItem $inpath -Recurse |
-        ForEach-Object {
-            $linct++
-            $cleanfilepath = $_.FullName.Replace('''', '''''')
-            if ($_.Length -eq 0)
-            {
-                Write-Error "File $cleanfilepath is empty. Skipping."
-            }
-            else {
-                if ($linct % 100 -eq 0) {
-                    if ($c -eq '.') {$c = '!'} else {$c = '.'}
-#                    Write-Host " $linct " -NoNewline
-                    Write-Host -NoNewline  $c
-                }
-                $cleanfilepath = $cleanfilepath.Replace('''', '''''')
-                Invoke-Sql "
-                INSERT INTO receiving_dock.json_data(
-                    content_source_id, source_meta_agg, source_content_class, inputpath, json_data_as_json_object) 
-                SELECT $content_source_id, '$source_meta_agg', '$source_content_class', '$cleanfilepath', pg_read_file('$cleanfilepath')::json
-                WHERE NOT EXISTS(SELECT 1 FROM receiving_dock.json_data a WHERE '$cleanfilepath' = a.inputpath)
-                ;"
-            }
-        }
-    }
-
-    if ($expand_json) {
-        if ($dropandrecreate_expanded_json) {
-        Invoke-Sql "DROP TABLE IF EXISTS receiving_dock.json_data_expanded;"
-        Invoke-Sql "
-        CREATE TABLE receiving_dock.json_data_expanded (
-            id                                INT8 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE) PRIMARY KEY,
-            source_meta_agg                   source_meta_agg_enum,
-            source_content_class              source_content_class_enum,
-            inputpath                         TEXT UNIQUE,
-            imdb_id_no                        TEXT UNIQUE,                        
-            imdb_tt_id                        TEXT,                        
-            title                             TEXT,                             
-            original_title                    TEXT,                    
-            description                       TEXT,                       
-            tagline                           TEXT,                           
-            genres                            JSON,
-            genres_arr                        TEXT[],
-            production_companies              JSON,
-            production_companies_arr          TEXT[],              
-            production_countries              JSON,
-            production_countries_arr          TEXT[],
-            spoken_languages                  JSON,
-            spoken_languages_arr              TEXT[],
-            production_status                 TEXT,                 
-            released_on                       TEXT,                       
-            runtime_in_minutes                TEXT,                
-            budget                            TEXT,                            
-            revenue                           TEXT,                           
-            popularity                        TEXT,
-            vote_count                        TEXT,
-            vote_average                      TEXT,                      
-            homepage                          TEXT,                          
-            original_language                 TEXT,                 
-            poster_path                       TEXT,                       
-            backdrop_path                     TEXT,                     
-            belongs_to_collection_id          TEXT,          
-            belongs_to_collection_poster_path TEXT, 
-            belongs_to_collection_name        TEXT,        
-            is_video                          TEXT,                          
-            is_adult                          TEXT 
-            )
-            ;
-        "
-        }
+    Invoke-Sql "DROP TABLE IF EXISTS receiving_dock.tmdb_tsv_data;";
+    # "id","title","vote_average","vote_count","status","release_date","revenue","runtime","adult","backdrop_path","budget","homepage","imdb_id","original_language","original_title","overview","popularity","poster_path","tagline","genres","production_companies","production_countries","spoken_languages"
     Invoke-Sql "
-    INSERT INTO receiving_dock.json_data_expanded(
+        CREATE TABLE receiving_dock.tmdb_tsv_data(LIKE public.template_for_docking_tables INCLUDING ALL,
+        content_source_id                 INT8,
+        source_meta_agg                   source_meta_agg_enum,
+        source_content_class              source_content_class_enum,
+        inputpath                         TEXT UNIQUE,
+        imdb_id_no                        TEXT UNIQUE,                        
+        imdb_tt_id                        TEXT,                        
+        title                             TEXT,                             
+        original_title                    TEXT,                    
+        description                       TEXT,                       
+        tagline                           TEXT,                           
+        genres                            TEXT,
+        genres_arr                        TEXT[],
+        production_companies              TEXT,
+        production_companies_arr          TEXT[],              
+        production_countries              TEXT,
+        production_countries_arr          TEXT[],
+        spoken_languages                  TEXT,
+        spoken_languages_arr              TEXT[],
+        production_status                 TEXT,                 
+        released_on                       TEXT,                       
+        runtime_in_minutes                TEXT,                
+        budget                            TEXT,                            
+        revenue                           TEXT,                           
+        popularity                        TEXT,
+        vote_count                        TEXT,
+        vote_average                      TEXT,                      
+        homepage                          TEXT,                          
+        original_language                 TEXT,                 
+        poster_path                       TEXT,                       
+        backdrop_path                     TEXT,                     
+        belongs_to_collection_id          TEXT,          
+        belongs_to_collection_poster_path TEXT, 
+        belongs_to_collection_name        TEXT,        
+        is_video                          TEXT,                          
+        is_adult                          TEXT, 
+        record_added_on                   TIMESTAMPTZ DEFAULT CLOCK_TIMESTAMP()	
+        );" 
+
+    Invoke-Sql "
+    INSERT INTO receiving_dock.tmdb_tsv_data(
         source_meta_agg, source_content_class, inputpath,
         imdb_id_no, imdb_tt_id, title, original_title, description, tagline, 
         genres, production_companies, production_countries, spoken_languages, 
         production_status, released_on, runtime_in_minutes, 
-        budget, revenue, popularity, vote_count, vote_average, homepage, original_language, poster_path, backdrop_path, belongs_to_collection_id, belongs_to_collection_poster_path, belongs_to_collection_name, is_video, is_adult
+        budget, revenue, popularity, vote_count, vote_average, homepage, original_language, poster_path, backdrop_path, 
+        belongs_to_collection_id, belongs_to_collection_poster_path, belongs_to_collection_name, is_video, is_adult
     )
     SELECT  
         source_meta_agg,
@@ -183,9 +135,16 @@ if ($dbconnopen) {
     ) 
     where source_meta_agg = '$source_meta_agg' and source_content_class = '$source_content_class'; 
     "
-    }
+
 }
-    # 
-    # load C:\Users\jeffs\Downloads\series\series into json_data
+<#
+    TMDB API key 0fd2887f5745eadb12b3eac6337d6897
+    TMDB API Read Access Token
+    eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwZmQyODg3ZjU3NDVlYWRiMTJiM2VhYzYzMzdkNjg5NyIsInN1YiI6IjY1NmQzOGRkOGVlMGE5MDEzZDZiOTc0MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.J_8lkZUjAdPW8FtMm_w51iwjRbym8AReuWUcNhU-dRY
+
+    https://api.themoviedb.org/3/movie/550?api_key=0fd2887f5745eadb12b3eac6337d6897
+
+    Other services: Trakt, Simkl
 
 
+#>

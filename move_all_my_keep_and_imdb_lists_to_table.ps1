@@ -34,7 +34,7 @@ if (1 -eq 0) {
     $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8 = 62
     $Excel = New-Object -ComObject Excel.Application
     $Excel.Visible = $false
-    $Excel.DisplayAlerts = $false
+    $Excel.DisplayAlerts = $FALSE
     $wb = $Excel.Workbooks.Open($inpath)
     $ws = $wb.Worksheets[1]
     $ws.SaveAs($outpath, $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8)

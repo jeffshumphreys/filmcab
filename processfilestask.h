@@ -106,7 +106,7 @@ private:
         QDir dir(dirname);
 
         if (!dir.exists()) {
-            return -1; // Only could happen on first call.  Caller needs to check for -1.
+            throw new MyException("path not found"); // Only could happen on first call.  Caller needs to check for -1.
         }
 
         QFileInfo dirAsFile(dirname);
@@ -476,7 +476,7 @@ private:
 
 public slots:
 
-    // Called from main() to start the async task.
+    // Called from main() to start the async task, when qCoreApplicationInstance.exec() in main.cpp
 
     void run()
     {
