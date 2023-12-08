@@ -1,0 +1,1 @@
+powershell -File fetch_tmdb_generic_datapoint_from_api.ps1 -WindowStyle Hidden
