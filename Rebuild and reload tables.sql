@@ -32,6 +32,13 @@ CREATE TABLE public.template_for_docking_tables (
 	record_created_on_ts_wth_tz timestamptz           NOT NULL DEFAULT clock_timestamp()
 );
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS public.template_for_logging_tables;
+
+CREATE TABLE public.template_for_logging_tables (
+	id                       INT8 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 CYCLE) PRIMARY KEY,
+	record_created_on_ts_wth_tz timestamptz           NOT NULL DEFAULT clock_timestamp()
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS public.template_for_all_tables;
 
 CREATE TABLE public.template_for_all_tables (
@@ -1040,7 +1047,7 @@ CREATE TABLE receiving_dock.search_strings(LIKE public.template_for_docking_tabl
 );
 INSERT INTO receiving_dock.search_strings(txt, typ_id, applied_against_site) VALUES('https://archive.org/search?query=%28film%29+AND+-title%3A%28JESUS%29+AND+mediatype%3A%28movies%29&page=3', 31, 'archive.org');
 DROP TABLE IF EXISTS receiving_dock.pull_attr_frm_src_log;
-CREATE TABLE receiving_dock.pull_attr_frm_src_log(LIKE public.template_for_tracking_tables INCLUDING ALL,
+CREATE TABLE receiving_dock.pull_attr_frm_src_log(LIKE public.template_for_logging_tables INCLUDING ALL,
     source_row_id          INT8,
     source_datapoint       TEXT,
     source_datapoint_val   TEXT,
@@ -1050,5 +1057,5 @@ CREATE TABLE receiving_dock.pull_attr_frm_src_log(LIKE public.template_for_track
 	target_column          TEXT,
 	target_column_orig_val TEXT,
 	target_row_dt          TIMESTAMPTZ,
-	applied                BOOLEAN         -- if the match was found in the source to the target, is the value available?  If not, then set false and block from new fetch searches for a period
+	applied                BOOLEAN NOT NULL        -- if the match was found in the source to the target, is the value available?  If not, then set false and block from new fetch searches for a period
 	)

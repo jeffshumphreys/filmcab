@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 11.0.3, 2023-11-28T19:02:10. -->
+<!-- Written by QtCreator 11.0.3, 2023-12-01T18:56:31. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -244,7 +244,7 @@
     <value type="bool" key="PE.EnvironmentAspect.PrintOnRun">false</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:D:/qt_projects/filmcab/filmcab.pro</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">D:/qt_projects/filmcab/filmcab.pro</value>
-    <value type="QString" key="RunConfiguration.Arguments"> -a scan &quot;D:\qBittorrent Downloads\Video\Movies&quot;</value>
+    <value type="QString" key="RunConfiguration.Arguments">-f &quot;scan_folders_and_pull_file_details_into_database&quot; -d filmcab --showprogress</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -494,6 +494,7 @@
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="int" key="RunConfiguration.UseQmlDebugger">1</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">false</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">D:/qt_projects/build-filmcab-Desktop_Qt_6_5_2_MinGW_64_bit-Debug</value>
    </valuemap>
    <value type="qlonglong" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
