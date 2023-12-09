@@ -12,7 +12,7 @@ $Error.Clear()
 $source_set = "tmdb"
 $sourceid = "$($source_set)_id"
 $data_set = "movie"
-$target_table_enhancing = "receiving_dock.$($source_set)_$($data_set)_csv_data" # tmdb_json_data_expanded
+$target_table_enhancing = "receiving_dock.$($data_set)_data" # tmdb_json_data_expanded
 
 $num_columns_changed = 0
 $num_columns_meaningful_value_diff = 0
