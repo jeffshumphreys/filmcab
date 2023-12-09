@@ -32,6 +32,5 @@
 *.app
 
 # Goofy backups
-*.drawio.bkp
-*.png.bkp
-*.png.dtmp
+*.bkp
+*.dtmp
