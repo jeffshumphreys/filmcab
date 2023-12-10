@@ -19,7 +19,8 @@ $num_columns_meaningful_value_diff = 0
 $num_columns_match = 0
 $num_columns_now_empty_in_src = 0
 $num_columns_upcast = 0 # 0.6 to 0.611 popularity for example
-
+$queryAPIResponseTime = 0
+$moviejsonpacket = $null
 function Update-ChangeStatus {
     param (
         [string]$TargetColumnName,
@@ -85,7 +86,7 @@ function Update-ChangeStatus {
 if ($dbconnopen) {
     $DBReader = $DBConn.CreateCommand()
     $sql = "SELECT tmdb_id, imdb_tt_id, title, original_title, vote_average, vote_count, popularity, status, release_date, budget, revenue, runtime, homepage, overview, tagline, backdrop_path, poster_path, genres, original_language, production_companies, production_countries, spoken_languages, adult
-    FROM $target_table_enhancing f WHERE 
+    FROM $target_table_enhancing f WHERE (
     ((TRIM(f.imdb_tt_id           )   IN('', ' ', '0', '0.0', '0.000') or f.imdb_tt_id is null) and f.popped_imdb_tt_id is null) or
     ((TRIM(f.title                )   IN('', ' ', '0', '0.0', '0.000') or f.title is null) and f.popped_title is null) or
     ((TRIM(f.original_title       )   IN('', ' ', '0', '0.0', '0.000') or f.original_title is null) and f.popped_original_title is null) or
@@ -108,8 +109,10 @@ if ($dbconnopen) {
     ((TRIM(f.production_countries )   IN('', ' ', '0', '0.0', '0.000') or f.production_countries is null) and f.popped_production_countries is null) or
     ((TRIM(f.spoken_languages     )   IN('', ' ', '0', '0.0', '0.000') or f.spoken_languages is null) and f.popped_spoken_languages is null) or
     ((TRIM(f.adult                )   IN('', ' ', '0', '0.0', '0.000') or f.adult is null) and f.popped_adult is null)
+    )
     and f.tmdb_id_not_found_in_api is null /* We tried a Rest pull previously and got 404 */
-    and (f.updated_column_change_ct is null or EXTRACT(DAY FROM clock_timestamp() - f.updated_column_change_ct) > 90)
+    and (f.updated_column_change_ct is null) /* or EXTRACT(DAY FROM clock_timestamp() - f.updated_column_change_ct) > 90)*/
+    and (f.captured_json_on is null) /*or EXTRACT(DAY FROM clock_timestamp() - f.captured_json_on) > 90)*/
             "
     $sql
     $DBReader.CommandText = $sql
@@ -130,7 +133,7 @@ if ($dbconnopen) {
         $prevms                         = $ms
         $ms                             = $stopwatch.ElapsedMilliseconds;
         $elapsed                        = $ms - $prevms
-        "$sourcerefid, api hit count    = $hit_api_count, elapsed (ms)=$elapsed"
+        "api hit count = $hit_api_count, elapsed (ms)=$elapsed, responsetime=$queryAPIResponseTime`ms, $sourceid = $sourcerefid"
 
         
         $uri = "https://api.themoviedb.org/3/$data_set/$sourcerefid"
@@ -163,34 +166,40 @@ if ($dbconnopen) {
         $original_adult                   = $rtnrows.GetValue(22)
 
         try {
-            $moviejsonpacket = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
-            [string]$s = $moviejsonpacket
+            
+            $t = Measure-Command {
+                $global:moviejsonpacket = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
+            }
+
+            $queryAPIResponseTime = $t.Milliseconds
+
+            [string]$s = $global:moviejsonpacket
             $s = $s.Replace("'", "''")
             $hit_api_count++
             Invoke-Sql "UPDATE $target_table_enhancing SET captured_json = to_json('$s'::TEXT), captured_json_on = clock_timestamp() WHERE $sourceid = $sourcerefid::TEXT"
-
-            $imdb_tt_id_pulled_val              = $moviejsonpacket.imdb_id
-            $title_pulled_val                   = $moviejsonpacket.title
-            $original_title_pulled_val          = $moviejsonpacket.original_title
-            $vote_average_pulled_val            = $moviejsonpacket.vote_average
-            $vote_count_pulled_val              = $moviejsonpacket.vote_count
-            $popularity_pulled_val              = $moviejsonpacket.popularity
-            $status_pulled_val                  = $moviejsonpacket.status
-            $release_date_pulled_val            = $moviejsonpacket.release_date
-            $budget_pulled_val                  = $moviejsonpacket.budget
-            $revenue_pulled_val                 = $moviejsonpacket.revenue
-            $runtime_pulled_val                 = $moviejsonpacket.runtime
-            $homepage_pulled_val                = $moviejsonpacket.homepage
-            $overview_pulled_val                = $moviejsonpacket.overview
-            $tagline_pulled_val                 = $moviejsonpacket.tagline
-            $backdrop_path_pulled_val           = $moviejsonpacket.backdrop_path
-            $poster_path_pulled_val             = $moviejsonpacket.poster_path
-            $genres_pulled_val                  = $moviejsonpacket.genres
-            $original_language_pulled_val       = $moviejsonpacket.original_language
-            $production_companies_pulled_val    = $moviejsonpacket.production_companies
-            $production_countries_pulled_val    = $moviejsonpacket.production_countries
-            $spoken_languages_pulled_val        = $moviejsonpacket.spoken_languages
-            $adult_pulled_val                   = $moviejsonpacket.adult
+            
+            $imdb_tt_id_pulled_val              = $global:moviejsonpacket.imdb_id
+            $title_pulled_val                   = $global:moviejsonpacket.title
+            $original_title_pulled_val          = $global:moviejsonpacket.original_title
+            $vote_average_pulled_val            = $global:moviejsonpacket.vote_average
+            $vote_count_pulled_val              = $global:moviejsonpacket.vote_count
+            $popularity_pulled_val              = $global:moviejsonpacket.popularity
+            $status_pulled_val                  = $global:moviejsonpacket.status
+            $release_date_pulled_val            = $global:moviejsonpacket.release_date
+            $budget_pulled_val                  = $global:moviejsonpacket.budget
+            $revenue_pulled_val                 = $global:moviejsonpacket.revenue
+            $runtime_pulled_val                 = $global:moviejsonpacket.runtime
+            $homepage_pulled_val                = $global:moviejsonpacket.homepage
+            $overview_pulled_val                = $global:moviejsonpacket.overview
+            $tagline_pulled_val                 = $global:moviejsonpacket.tagline
+            $backdrop_path_pulled_val           = $global:moviejsonpacket.backdrop_path
+            $poster_path_pulled_val             = $global:moviejsonpacket.poster_path
+            $genres_pulled_val                  = $global:moviejsonpacket.genres
+            $original_language_pulled_val       = $global:moviejsonpacket.original_language
+            $production_companies_pulled_val    = $global:moviejsonpacket.production_companies
+            $production_countries_pulled_val    = $global:moviejsonpacket.production_countries
+            $spoken_languages_pulled_val        = $global:moviejsonpacket.spoken_languages
+            $adult_pulled_val                   = $global:moviejsonpacket.adult
             # video
             # belongs_to_collection
 
@@ -224,14 +233,16 @@ if ($dbconnopen) {
             update-changestatus -TargetColumnName 'production_countries' -SourceColumnCurrentValue $production_countries_pulled_val -TargetColumnCurrentValue $original_production_countries -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'spoken_languages' -SourceColumnCurrentValue $spoken_languages_pulled_val -TargetColumnCurrentValue $original_spoken_languages -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'adult' -SourceColumnCurrentValue $adult_pulled_val -TargetColumnCurrentValue $original_adult -sourceid $sourceid -sourcerefid $sourcerefid
+
             if ($num_columns_upcast -gt 0) { Write-Host "upcast values in $num_columns_upcast columns"}
             if ($num_columns_meaningful_value_diff -gt 0) { Write-Host "different values (but didn't do anything with) in $num_columns_meaningful_value_diff columns"}
-            if ($num_columns_now_empty_in_src -gt 0) { Write-Host "source no longer has values for $num_columns_now_empty_in_src  columns"}
+            if ($num_columns_now_empty_in_src -gt 0) { Write-Host "source no longer has values for $num_columns_now_empty_in_src columns"}
             if ($num_columns_changed -gt 0) { Write-Host "target updated values in $num_columns_changed columns"}
 
             Invoke-Sql "UPDATE $target_table_enhancing SET num_columns_changed = $num_columns_changed, num_columns_match = $num_columns_match, num_columns_meaningful_value_diff = $num_columns_meaningful_value_diff
             , num_columns_now_empty_in_src = $num_columns_now_empty_in_src, num_columns_upcast = $num_columns_upcast
             , updated_column_change_ct = clock_timestamp() WHERE $sourceid = $sourcerefid::TEXT"
+            
             $num_columns_changed = 0; $num_columns_match = 0; $num_columns_meaningful_value_diff = 0; $num_columns_now_empty_in_src = 0; $num_columns_upcast = 0
 
         } catch {
@@ -240,7 +251,12 @@ if ($dbconnopen) {
             $Error
             $PSItem
             Write-Host $_.ScriptStackTrace
-            $status_code     = $_.Exception.Response.StatusCode.value__ # Not the 32 you see in the error, hmmm. rather, 404
+            $status_code = "-1"
+            if ( [bool]($_.Exception.PSobject.Properties.name -match "Response"))
+            {
+                $status_code     = $_.Exception.Response.StatusCode.value__ # Not the 32 you see in the error, hmmm. rather, 404
+            }
+
             #$status_message  = $_.Exception.Response.StatusDescription # Empty!
             #$request_message = $_.Exception.Response.RequestMessage.RequestUri.OriginalString
             if ($status_code -eq '404') {
@@ -248,7 +264,11 @@ if ($dbconnopen) {
                 Invoke-Sql $sql
             }
             elseif ($status_code -eq '504') {
-                Start-Sleep 30
+                Get-Date
+                Start-Sleep 60
+                #Start-Process -FilePath "powershell.exe" -ArgumentList '-NoExit', '-File', """D:\qt_projects\filmcab\fetch_tmdb_all_missing_datapoints_from_api.ps1"""
+                . $PSCommandPath
+                exit
             }
             else {
                 Write-Error "Error not handled: $status_code"
@@ -256,7 +276,8 @@ if ($dbconnopen) {
        }
 
         #Start-Sleep -Seconds .30 #LEARNT! "." values end up as zero!
-        Start-Sleep -Milliseconds 250
+        #Start-Sleep -Milliseconds 250 Just read: The limit is 50/sec, so no reason to sleep, Also can run several, like 20 threads per IP.
+        # Note: Regular vacuum fulls more than double speed. 10.99 days at 1 per second, so 5 days at 1/2 second.  
     }
     $rtnrows.Close()
    
