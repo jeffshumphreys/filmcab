@@ -187,19 +187,19 @@ int main(int argc, char *argv[])
 
     if (whichTaskToRun == WhichTaskToRun::LoadVideoFileInfoIntoDatabase) {
 
-        // Directory #1
 
         taskProcessingControlData = new ProcessFilesTaskData();
         taskProcessingControlData->directoryIteratorFilters = QDir::NoDotAndDotDot|QDir::Files;
         taskProcessingControlData->triedToConnect = triedToConnect;
         taskProcessingControlData->dbconnected = connectedToDb;
         taskProcessingControlData->directoryIteratorFlags = QDirIterator::Subdirectories;
-
         taskProcessingControlData->listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" }; // sorted for ease of maintenance
         taskProcessingControlData->targetSchema = "stage_for_master";
         taskProcessingControlData->tableNameToWriteNewRecordsTo = "files"; // dur. Da table.
+
+        // Directory #1
+
         taskProcessingControlData->assumeFileTypeId = CommonFileTypes::torrent_file;
-        taskProcessingControlData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
         taskProcessingControlData->file_flow_state_enum_str = "downloaded"; // see enum type in database
         taskProcessingControlData->searchPath = "D:/qBittorrent Downloads/Video/Movies"; // This and TV are my torrent downloads.
 
@@ -215,12 +215,21 @@ int main(int argc, char *argv[])
         ProcessFilesTaskData processBackedupFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
         processBackedupFilesTaskData.assumeFileTypeId = CommonFileTypes::backedup_file;
         processBackedupFilesTaskData.file_flow_state_enum_str = "backedup"; // written to files_batch_runs_log.file_flow_state column
-        //processBackedupFilesTaskData.searchPath = "G:/Video AllInOne2"; // Shut down this location because I made so many changes to the root folders and reorganization, that I didn't want to pollute the backup space with a zillion duplicates.
         processBackedupFilesTaskData.searchPath = "G:/Video AllInOne Backup"; // Better name anyways. So now any references in files to AllInOne2 are broken, and need to marked as deleted?
 
-        // Directories #1, #2, #3
+        // Directory #4
 
-        processSetOfFilesTasksData.processFilesTasksData = {*taskProcessingControlData, processPublishedFilesTaskData, processBackedupFilesTaskData};
+        ProcessFilesTaskData processTorrentFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
+        processTorrentFilesTaskData.assumeFileTypeId = CommonFileTypes::torrent_file;
+        processTorrentFilesTaskData.file_flow_state_enum_str = "leeching"; // written to files_batch_runs_log.file_flow_state column
+        // CREATE TYPE public.file_flow_state_enum AS ENUM ('unknown', 'leeching', 'downloaded', 'published', 'backedup');
+        // ALTER TYPE public.file_flow_state_enum ADD VALUE 'xxxx' BEFORE/AFTER 'other value'; -- NOT DELETABLE!!!!!
+        processTorrentFilesTaskData.listOfFileTypes = {"*.torrent"};
+        processTorrentFilesTaskData.searchPath = "D:/qBittorrent Downloads/_torrent files";
+
+        // Directories #4, #1, #2, #3
+
+        processSetOfFilesTasksData.processFilesTasksData = {processTorrentFilesTaskData ,*taskProcessingControlData, processPublishedFilesTaskData, processBackedupFilesTaskData};
 //    }
 //    else if (whichTaskToRun == WhichTaskToRun::ImportExcelVideoFilesToDatabase) {
 //        taskProcessingControlData = new ImportExcelFilesTaskData();
