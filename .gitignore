@@ -34,3 +34,10 @@
 # Goofy backups
 *.bkp
 *.dtmp
+
+# Total crap from creating a workspace in Beaver
+.metadata/
+.dbeaver/
+.settings/
+.project
+Scripts/
