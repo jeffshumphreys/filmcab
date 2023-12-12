@@ -227,9 +227,42 @@ int main(int argc, char *argv[])
         processTorrentFilesTaskData.listOfFileTypes = {"*.torrent"};
         processTorrentFilesTaskData.searchPath = "D:/qBittorrent Downloads/_torrent files";
 
-        // Directories #4, #1, #2, #3
+        // Directory #5
 
-        processSetOfFilesTasksData.processFilesTasksData = {processTorrentFilesTaskData ,*taskProcessingControlData, processPublishedFilesTaskData, processBackedupFilesTaskData};
+        ProcessFilesTaskData processCompletedTorrentFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
+        processCompletedTorrentFilesTaskData.assumeFileTypeId = CommonFileTypes::torrent_file;
+        processCompletedTorrentFilesTaskData.file_flow_state_enum_str = "leeched"; // written to files_batch_runs_log.file_flow_state column
+        processCompletedTorrentFilesTaskData.listOfFileTypes = {"*.torrent"};
+        processCompletedTorrentFilesTaskData.searchPath = "D:/qBittorrent Downloads/_finished_download_torrent_files";
+
+        // Directory #6
+
+        ProcessFilesTaskData processPartiallyDownloadedFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
+        processPartiallyDownloadedFilesTaskData.assumeFileTypeId = CommonFileTypes::torrent_file;
+        processPartiallyDownloadedFilesTaskData.file_flow_state_enum_str = "downloading"; // written to files_batch_runs_log.file_flow_state column
+        processPartiallyDownloadedFilesTaskData.listOfFileTypes = {"*.!qB", "*.parts"};
+        processPartiallyDownloadedFilesTaskData.searchPath = "D:/qBittorrent Downloads/temp";
+
+        // Directory #7
+
+        ProcessFilesTaskData processDownloadedFromWebFilesTaskData = ProcessFilesTaskData(*taskProcessingControlData);
+        processDownloadedFromWebFilesTaskData.assumeFileTypeId = CommonFileTypes::video_file; // Places like archive.org
+        processDownloadedFromWebFilesTaskData.file_flow_state_enum_str = "web downloaded"; // written to files_batch_runs_log.file_flow_state column
+        processDownloadedFromWebFilesTaskData.listOfFileTypes = {"*.avi", "*.f4v", "*.flv", "*.idx", "*.mkv", "*.mov", "*.mp4", "*.mpg", "*.ogv", "*.srt", "*.sub", "*.vob", "*.webm", "*.wmv" };
+        processDownloadedFromWebFilesTaskData.searchPath = "C:/Users/jeffs/Downloads";
+
+        // TODO: Add metadata files??  Good to know if hashes changed.
+        /*
+         *  Directories
+         *  #4,
+         *  #6,
+         *  #5,
+         *  #1, Torrent file downloads
+         *  #7, Check the download directory (non torrents)
+         *  #2,
+         *  #3
+         */
+        processSetOfFilesTasksData.processFilesTasksData = {processTorrentFilesTaskData, processCompletedTorrentFilesTaskData, *taskProcessingControlData, processDownloadedFromWebFilesTaskData, processPublishedFilesTaskData, processBackedupFilesTaskData};
 //    }
 //    else if (whichTaskToRun == WhichTaskToRun::ImportExcelVideoFilesToDatabase) {
 //        taskProcessingControlData = new ImportExcelFilesTaskData();
