@@ -28,8 +28,9 @@ enum CommonFileTypes {
     published_file = 9, // These get renamed alot, and I move them into different categories (directories) fairly often.
     backedup_file = 10, // Should be really still
     directory     = 12,
-    processfiles  = 14
-}; // Not all of them, just as I use them.
+    processfiles  = 14,
+    video_file    = 5    // Not audio
+}; // Not all of them, just as I use them. MUST EXIST in public.typs table!!!!!!
 
 enum PreProcessTable { truncate, // Not really ready for this, makes sense in stage_for_master, receiving and shipping dock, not master.
                        leave_as_is,
