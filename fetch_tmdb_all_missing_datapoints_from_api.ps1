@@ -9,18 +9,18 @@ Set-StrictMode -Version 2.0
 
 $Error.Clear()
 
-$source_set = "tmdb"
-$sourceid = "$($source_set)_id"
-$data_set = "movie"
+$source_set             = "tmdb"
+$sourceid               = "$($source_set)_id"
+$data_set               = "video"
+$api_endpoint           = "movie"
 $target_table_enhancing = "receiving_dock.$($data_set)_data" # tmdb_json_data_expanded
-
-$num_columns_changed = 0
-$num_columns_meaningful_value_diff = 0
-$num_columns_match = 0
-$num_columns_now_empty_in_src = 0
-$num_columns_upcast = 0 # 0.6 to 0.611 popularity for example
-$queryAPIResponseTime = 0
-$moviejsonpacket = $null
+$global:num_columns_changed               = 0
+$global:num_columns_meaningful_value_diff = 0
+$global:num_columns_match                 = 0
+$global:num_columns_now_empty_in_src      = 0
+$global:num_columns_upcast                = 0 # 0.6 to 0.611 popularity for example
+$queryAPIResponseTime              = 0
+$moviejsonpacket                   = $null
 function Update-ChangeStatus {
     param (
         [string]$TargetColumnName,
@@ -135,8 +135,19 @@ if ($dbconnopen) {
         $elapsed                        = $ms - $prevms
         "api hit count = $hit_api_count, elapsed (ms)=$elapsed, responsetime=$queryAPIResponseTime`ms, $sourceid = $sourcerefid"
 
-        
-        $uri = "https://api.themoviedb.org/3/$data_set/$sourcerefid"
+        # https://developer.themoviedb.org/docs/daily-id-exports
+        # http://files.tmdb.org/p/exports/movie_ids_05_15_2023.json.gz
+
+        # https://developer.themoviedb.org/reference/search-movie
+        # https://api.themoviedb.org/3/search/movie
+
+        # https://api.themoviedb.org/3/review/{review_id}
+        # https://api.themoviedb.org/3/movie/latest
+        # https://api.themoviedb.org/3/certification/movie/list
+
+        # https://developer.themoviedb.org/reference/movie-details
+
+        $uri = "https://api.themoviedb.org/3/$api_endpoint/$sourcerefid"
         $uri
         $headers = @{
             'Authorization' = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwZmQyODg3ZjU3NDVlYWRiMTJiM2VhYzYzMzdkNjg5NyIsInN1YiI6IjY1NmQzOGRkOGVlMGE5MDEzZDZiOTc0MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.J_8lkZUjAdPW8FtMm_w51iwjRbym8AReuWUcNhU-dRY'
@@ -211,12 +222,12 @@ if ($dbconnopen) {
 
             # If target column is empty and source column is not, then apply it
 
-            update-changestatus -TargetColumnName 'imdb_tt_id' -SourceColumnCurrentValue $imdb_tt_id_pulled_val -TargetColumnCurrentValue $original_imdb_tt_id -sourceid $sourceid -sourcerefid $sourcerefid
-            update-changestatus -TargetColumnName 'title' -SourceColumnCurrentValue $title_pulled_val -TargetColumnCurrentValue $original_title -sourceid $sourceid -sourcerefid $sourcerefid
+            update-changestatus -TargetColumnName 'imdb_tt_id'     -SourceColumnCurrentValue $imdb_tt_id_pulled_val -TargetColumnCurrentValue $original_imdb_tt_id -sourceid $sourceid -sourcerefid $sourcerefid
+            update-changestatus -TargetColumnName 'title'          -SourceColumnCurrentValue $title_pulled_val -TargetColumnCurrentValue $original_title -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'original_title' -SourceColumnCurrentValue $original_title_pulled_val -TargetColumnCurrentValue $original_original_title -sourceid $sourceid -sourcerefid $sourcerefid
-            update-changestatus -TargetColumnName 'vote_average' -SourceColumnCurrentValue $vote_average_pulled_val -TargetColumnCurrentValue $original_vote_average -sourceid $sourceid -sourcerefid $sourcerefid
-            update-changestatus -TargetColumnName 'vote_count' -SourceColumnCurrentValue $vote_count_pulled_val -TargetColumnCurrentValue $original_vote_count -sourceid $sourceid -sourcerefid $sourcerefid
-            update-changestatus -TargetColumnName 'popularity' -SourceColumnCurrentValue $popularity_pulled_val -TargetColumnCurrentValue $original_popularity -sourceid $sourceid -sourcerefid $sourcerefid
+            update-changestatus -TargetColumnName 'vote_average'   -SourceColumnCurrentValue $vote_average_pulled_val -TargetColumnCurrentValue $original_vote_average -sourceid $sourceid -sourcerefid $sourcerefid
+            update-changestatus -TargetColumnName 'vote_count'     -SourceColumnCurrentValue $vote_count_pulled_val -TargetColumnCurrentValue $original_vote_count -sourceid $sourceid -sourcerefid $sourcerefid
+            update-changestatus -TargetColumnName 'popularity'     -SourceColumnCurrentValue $popularity_pulled_val -TargetColumnCurrentValue $original_popularity -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'status' -SourceColumnCurrentValue $status_pulled_val -TargetColumnCurrentValue $original_status -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'release_date' -SourceColumnCurrentValue $release_date_pulled_val -TargetColumnCurrentValue $original_release_date -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'budget' -SourceColumnCurrentValue $budget_pulled_val -TargetColumnCurrentValue $original_budget -sourceid $sourceid -sourcerefid $sourcerefid
@@ -234,23 +245,21 @@ if ($dbconnopen) {
             update-changestatus -TargetColumnName 'spoken_languages' -SourceColumnCurrentValue $spoken_languages_pulled_val -TargetColumnCurrentValue $original_spoken_languages -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'adult' -SourceColumnCurrentValue $adult_pulled_val -TargetColumnCurrentValue $original_adult -sourceid $sourceid -sourcerefid $sourcerefid
 
-            if ($num_columns_upcast -gt 0) { Write-Host "upcast values in $num_columns_upcast columns"}
-            if ($num_columns_meaningful_value_diff -gt 0) { Write-Host "different values (but didn't do anything with) in $num_columns_meaningful_value_diff columns"}
-            if ($num_columns_now_empty_in_src -gt 0) { Write-Host "source no longer has values for $num_columns_now_empty_in_src columns"}
-            if ($num_columns_changed -gt 0) { Write-Host "target updated values in $num_columns_changed columns"}
+            if ($global:num_columns_upcast -gt 0) { Write-Host "upcast values in $global:num_columns_upcast columns"}
+            if ($global:num_columns_meaningful_value_diff -gt 0) { Write-Host "different values (but didn't do anything with) in $global:num_columns_meaningful_value_diff columns"}
+            if ($global:num_columns_now_empty_in_src -gt 0) { Write-Host "source no longer has values for $global:num_columns_now_empty_in_src columns"}
+            if ($global:num_columns_changed -gt 0) { Write-Host "target updated values in $global:num_columns_changed columns"}
 
-            Invoke-Sql "UPDATE $target_table_enhancing SET num_columns_changed = $num_columns_changed, num_columns_match = $num_columns_match, num_columns_meaningful_value_diff = $num_columns_meaningful_value_diff
-            , num_columns_now_empty_in_src = $num_columns_now_empty_in_src, num_columns_upcast = $num_columns_upcast
+            Invoke-Sql "UPDATE $target_table_enhancing SET num_columns_changed = $global:num_columns_changed, num_columns_match = $global:num_columns_match, num_columns_meaningful_value_diff = $global:num_columns_meaningful_value_diff
+            , num_columns_now_empty_in_src = $global:num_columns_now_empty_in_src, num_columns_upcast = $global:num_columns_upcast
             , updated_column_change_ct = clock_timestamp() WHERE $sourceid = $sourcerefid::TEXT"
             
-            $num_columns_changed = 0; $num_columns_match = 0; $num_columns_meaningful_value_diff = 0; $num_columns_now_empty_in_src = 0; $num_columns_upcast = 0
+            $global:num_columns_changed = 0; $global:num_columns_match = 0; $global:num_columns_meaningful_value_diff = 0; $global:num_columns_now_empty_in_src = 0; $global:num_columns_upcast = 0
 
         } catch {
             # Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
             # 504 Gateway Time-out  504 Gateway Time-out   
             $Error
-            $PSItem
-            Write-Host $_.ScriptStackTrace
             $status_code = "-1"
             if ( [bool]($_.Exception.PSobject.Properties.name -match "Response"))
             {
@@ -260,9 +269,14 @@ if ($dbconnopen) {
             #$status_message  = $_.Exception.Response.StatusDescription # Empty!
             #$request_message = $_.Exception.Response.RequestMessage.RequestUri.OriginalString
             if ($status_code -eq '404') {
+                Write-Output "Updating that id not found"
                 $sql = "UPDATE $target_table_enhancing SET tmdb_id_not_found_in_api = clock_timestamp() WHERE $sourceid = $sourcerefid::TEXT"
+                #Write-Host @sql
                 Invoke-Sql $sql
+                # Add a pause because it's so fast, I'll get 50 in a second if 50 don't come back found, which is the per second limit.
+                Start-Sleep -Milliseconds 250
             }
+            # 429: "too many requests" is known to happen for some users.
             elseif ($status_code -eq '504') {
                 Get-Date
                 Start-Sleep 60
@@ -272,6 +286,7 @@ if ($dbconnopen) {
             }
             else {
                 Write-Error "Error not handled: $status_code"
+                Start-Sleep -Milliseconds 250
             }
        }
 
