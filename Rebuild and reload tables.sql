@@ -1058,4 +1058,63 @@ CREATE TABLE receiving_dock.pull_attr_frm_src_log(LIKE public.template_for_loggi
 	target_column_orig_val TEXT,
 	target_row_dt          TIMESTAMPTZ,
 	applied                BOOLEAN NOT NULL        -- if the match was found in the source to the target, is the value available?  If not, then set false and block from new fetch searches for a period
-	)
+	);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.new_tmdb_movie_ids;
+CREATE TABLE receiving_dock.new_tmdb_movie_ids(LIKE public.template_for_logging_tables INCLUDING ALL,
+new_tmdb_movie_id int NOT NULL UNIQUE,
+not_found_in_api_on timestamptz,
+pulled_down_json_on timestamptz
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.new_tmdb_person_ids;
+CREATE TABLE receiving_dock.new_tmdb_person_ids(LIKE public.template_for_logging_tables INCLUDING ALL,
+new_tmdb_person_id int NOT NULL UNIQUE,
+not_found_in_api_on timestamptz,
+pulled_down_json_on timestamptz
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.new_tmdb_tv_series_ids;
+CREATE TABLE receiving_dock.new_tmdb_tv_series_ids(LIKE public.template_for_logging_tables INCLUDING ALL,
+new_tmdb_tv_series_id int NOT NULL UNIQUE,
+not_found_in_api_on timestamptz,
+pulled_down_json_on timestamptz
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.new_tmdb_collection_ids;
+CREATE TABLE receiving_dock.new_tmdb_collection_ids(LIKE public.template_for_logging_tables INCLUDING ALL,
+new_tmdb_collection_id int NOT NULL UNIQUE,
+not_found_in_api_on timestamptz,
+pulled_down_json_on timestamptz
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.new_tmdb_tv_network_ids;
+CREATE TABLE receiving_dock.new_tmdb_tv_network_ids(LIKE public.template_for_logging_tables INCLUDING ALL,
+new_tmdb_tv_network_id int NOT NULL UNIQUE,
+not_found_in_api_on timestamptz,
+pulled_down_json_on timestamptz
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.new_tmdb_keyword_ids;
+CREATE TABLE receiving_dock.new_tmdb_keyword_ids(LIKE public.template_for_logging_tables INCLUDING ALL,
+new_tmdb_keyword_id int NOT NULL UNIQUE,
+not_found_in_api_on timestamptz,
+pulled_down_json_on timestamptz
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS receiving_dock.new_tmdb_production_company_ids;
+CREATE TABLE receiving_dock.new_tmdb_production_company_ids(LIKE public.template_for_logging_tables INCLUDING ALL,
+new_tmdb_production_company_id int NOT NULL UNIQUE,
+not_found_in_api_on timestamptz,
+pulled_down_json_on timestamptz
+);
+create table receiving_dock.tmdb_person_data(tmdb_person_id int not null unique);
+create table receiving_dock.tmdb_tv_series_data(tmdb_tv_series_id int not null unique);
+create table receiving_dock.tmdb_collection_data(tmdb_collection_id int not null unique);
+create table receiving_dock.tmdb_production_company_data(tmdb_production_company_id int not null unique);    
+create table receiving_dock.tmdb_network_data(tmdb_network_id int not null unique);    
+ select * from receiving_dock.tmdb_keyword_data tkd;
+ select * from receiving_dock.new_tmdb_keyword_ids ntki order by new_tmdb_keyword_id;
+  DROP TABLE IF EXISTS receiving_dock.new_tmdb_tv_network_ids;
+  DROP TABLE IF EXISTS receiving_dock.tmdb_network_data;
+  DROP TABLE IF EXISTS receiving_dock.tmdb_tv_network_data;

@@ -1,3 +1,4 @@
+ROLLBACK;
 SET search_path = simplified, "$user", public;
 DROP SCHEMA IF EXISTS simplified CASCADE;
 CREATE SCHEMA IF NOT EXISTS simplified AUTHORIZATION postgres;
@@ -7,13 +8,13 @@ COMMENT ON SCHEMA simplified IS 'Absolute reduction of all the many sources that
 ';
 
 -- An enum value occupies four bytes on disk.  translations from internal enum values to textual labels are in CATALOG pg_enum
-
+BEGIN;
 CREATE TYPE video_sub_type_enum AS ENUM ('movie', 'tv movie', 'short', 'tv series', 'tv miniseries', 'tv season', 'tv episode'); 
 CREATE TYPE video_edition_type_enum AS ENUM ('theatrical release', 'director''s cut', 'restored', 'censored', 'mst3k', 'rifftrax', 'svengoolie', 'despecialized');
 CREATE TYPE computer_os_type_enum AS ENUM ('windows', 'linux', 'macos');
 CREATE TYPE isp_service_type_enum AS ENUM ('internet', 'phone', 'tv');
 CREATE TYPE isp_customer_type_enum AS ENUM ('residential', 'business');
-
+CREATE TYPE video_file_type_enum AS ENUM ('vob', 'mpg', 'wmv', 'mkv', 'mp4', 'mov', 'avi'); -- 4 bytes??? WHEN strings ARE 3?????
 -- Example of a domain: CREATE DOMAIN student_detail AS VARCHAR NOT NULL CHECK (value !~ '\s');BEGIN;
 CREATE DOMAIN NTEXT AS TEXT NOT NULL CHECK (trim(value) != '' AND value !~ '(\r\n|\r|\n|\t)' and value not like '%  %' AND value = trim(value));
 CREATE DOMAIN NNULLTEXT AS TEXT NULL CHECK ((trim(value) != '' AND value !~ '(\r\n|\r|\n|\t)' and value not like '%  %' AND value = trim(value)) OR value IS NULL);
@@ -21,9 +22,14 @@ CREATE DOMAIN WSMALLINT AS SMALLINT NULL CHECK (value > 0 OR value IS NULL);
 CREATE DOMAIN WMONEY AS MONEY NULL CHECK (value::numeric > 0.00 OR value IS NULL);
 CREATE DOMAIN WDECIMAL14_2 AS DECIMAL(14,2) NULL CHECK (value::numeric > 0.00 OR value IS NULL);
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ROLLBACK;
---BEGIN;
+CREATE FUNCTION howmanychar(what TEXT, has_in TEXT) RETURNS INTEGER LANGUAGE plpgsql
+AS 
+$$
+begin
+    RETURN (CHAR_LENGTH(what) - CHAR_LENGTH(REPLACE(what, has_in, ''))) / CHAR_LENGTH(has_in);
+end;
+$$;
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE internet_service_providers(
  internet_service_provider_id   SMALLSERIAL                  NOT NULL PRIMARY KEY,
@@ -176,10 +182,10 @@ VALUES(
 COMMENT ON TABLE computers IS 'machines! hosts! What these files sit on, so that when inevitably my computer goes boom, and these drives end up somewhere else, spread over networks, in a dust pile.';
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS volumes;
+DROP TABLE IF EXISTS volumes CASCADE;
 CREATE TABLE volumes(
  volume_id                      SMALLSERIAL             NOT NULL PRIMARY KEY,
- volume_name                    NTEXT,
+ volume_name                    NTEXT,                  -- ALL machines have a volume name.
  drive_letter                   "char"                      NULL, -- internal single byte TYPE. NULL IF linux computer.
  drive_model                    NNULLTEXT,
  is_fixed                       BOOLEAN,
@@ -196,25 +202,80 @@ CREATE TABLE volumes(
 
 COMMENT ON TABLE volumes IS 'drives on Windows, mount points on linux. Unless it''s a NAS in which case it is a computer.';
 
-INSERT INTO volumes(volume_name, drive_letter, is_fixed, is_ssd, is_nvme, is_os, size_gb, drive_model, computer_id) 
- VALUES('Boot NVMe 1 TB'                  , 'C', TRUE, TRUE,   TRUE,  TRUE,      953.27, 'KXG50ZNV1T02 NVMe TOSHIBA 1024GB', 1),
-       ('WD UltraStr 16 TB Int 3.5'       , 'D', TRUE, FALSE,  FALSE, FALSE, 1455000.00, 'WDC WUH721816ALE6L4'             , 1),
-       ('Smsng 860 EVO 4 TB Int 2.5'      , 'E', TRUE, FALSE,  TRUE,  FALSE,  364000.00, 'Samsung SSD 860 EVO 4TB'         , 1),
-       ('WD Elements 5 TB Ext'            , 'F', FALSE, FALSE, FALSE, FALSE,  455000.00, 'WDC WD50NDZ@-11BCSS0'            , 1),
-       ('WD Elements 22 TB Ext'           , 'G', FALSE, FALSE, FALSE, FALSE, 2001000.00, 'WDC WD22EDGZ-11B9PA0'            , 1),
-       ('Seagate Bkp+Hub SCSI 5.5 TB Ext' , 'I', FALSE, FALSE, FALSE, FALSE,  546000.00, 'ST6000DM003-2CY186'              , 1),
-       ('HD Elements 11 TB Ext'           , 'N', FALSE, FALSE, FALSE, FALSE, 1091000.00, 'WDC WD120EMFZ-11A6JA0'           , 1),
-       ('WD easystore 7.5 TB Ext'         , 'O', FALSE, FALSE, FALSE, FALSE,  728000.00, 'WDC WD80EFAX-68LHPN0'            , 1)
+INSERT INTO volumes(volume_name, drive_letter, is_fixed, is_ssd, is_nvme, is_os, size_gb, drive_model, seq1m_q8t1_read, computer_id) 
+ VALUES('Boot NVMe 1 TB'                  , 'C', TRUE,  TRUE,  TRUE,  TRUE,      953.27, 'KXG50ZNV1T02 NVMe TOSHIBA 1024GB', 2843, 1),
+       ('WD UltraStr 16 TB Int 3.5'       , 'D', TRUE,  FALSE, FALSE, FALSE, 1455000.00, 'WDC WUH721816ALE6L4'             ,  221, 1),
+       ('Smsng 860 EVO 4 TB Int 2.5'      , 'E', TRUE,  TRUE,  FALSE, FALSE,  364000.00, 'Samsung SSD 860 EVO 4TB'         ,  559, 1),
+       ('WD Elements 5 TB Ext'            , 'F', FALSE, FALSE, FALSE, FALSE,  455000.00, 'WDC WD50NDZ@-11BCSS0'            ,   39, 1),
+       ('WD Elements 22 TB Ext'           , 'G', FALSE, FALSE, FALSE, FALSE, 2001000.00, 'WDC WD22EDGZ-11B9PA0'            ,  238, 1),
+       ('Seagate Bkp+Hub SCSI 5.5 TB Ext' , 'I', FALSE, FALSE, FALSE, FALSE,  546000.00, 'ST6000DM003-2CY186'              ,   39, 1),
+       ('HD Elements 11 TB Ext'           , 'N', FALSE, FALSE, FALSE, FALSE, 1091000.00, 'WDC WD120EMFZ-11A6JA0'           ,   40, 1),
+       ('WD easystore 7.5 TB Ext'         , 'O', FALSE, FALSE, FALSE, FALSE,  728000.00, 'WDC WD80EFAX-68LHPN0'            ,   37, 1)
        ;                        
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS directories CASCADE;
 CREATE TABLE directories(
  directory_hash               BYTEA                     NOT NULL PRIMARY KEY,
- directory_path               NTEXT,
+ directory_path               TEXT, -- WARNING: SOME may have spaces, LIKE files
  parent_directory_hash        BYTEA                         NULL,
+ directory_date               TIMESTAMPTZ               NOT NULL,
  volume_id                    SMALLINT                  NOT NULL REFERENCES volumes(volume_id),
+ directory_still_exists       BOOLEAN                       NULL,
+ last_scanned_directory       TIMESTAMPTZ                   NULL,
  UNIQUE(directory_path, volume_id)
 );
+
+DROP TABLE IF EXISTS drivestoload;
+SELECT 
+    md5(SUBSTRING(txt,4))::bytea    AS directory_hash,
+    SUBSTRING(txt, 4)               AS directory_path, 
+    directory_modified_on_ts_wth_tz AS directory_date, 
+    howmanychar(txt, '/')           AS levels_deep,
+    array_to_string((string_to_array(SUBSTRING(txt, 4), '/'))[:(howmanychar(txt, '/')-1)], '/') parent_directory,
+    md5(array_to_string((string_to_array(SUBSTRING(txt, 4), '/'))[:(howmanychar(txt, '/')-1)], '/'))::bytea parent_directory_hash,
+    (SELECT volume_id FROM volumes WHERE drive_letter = LEFT(txt,1)) volume_id
+INTO TEMPORARY drivestoload
+FROM stage_for_master.directories WHERE LEFT(txt,1) IN('D', 'G', 'O');
+
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 1;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 2;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 3;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 4;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 5;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 6;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 7;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 8;
+WITH x AS (SELECT * FROM drivestoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 9;
+
+DROP TABLE IF EXISTS moredirstoload;
+WITH x AS(
+SELECT 
+    md5(array_to_string((string_to_array(SUBSTRING(txt, 4), '/'))[:(howmanychar(txt, '/')-1)], '/'))::bytea directory_hash, 
+    array_to_string((string_to_array(SUBSTRING(txt, 4), '/'))[:(howmanychar(txt, '/')-1)], '/') directory_path,
+    md5(array_to_string((string_to_array(SUBSTRING(txt, 5), '/'))[:(howmanychar(txt, '/')-1)], '/'))::bytea parent_directory_hash,
+    parent_directory_modified_on_ts_wth_tz directory_date,
+    howmanychar(txt, '/')           AS levels_deep,
+    (SELECT volume_id FROM volumes WHERE drive_letter = LEFT(txt,1)) volume_id
+    FROM stage_for_master.files f 
+    WHERE (record_deleted IS NULL OR record_deleted IS FALSE) AND (file_lost IS NULL OR file_lost IS FALSE)
+    AND final_extension in('avi', 'f4v', 'flv', 'mkv', 'mov', 'mp4', 'mpg', 'ogv', 'vob', 'webm', 'wmv')
+    AND base_name NOT IN('Sample')
+)
+SELECT x.* 
+INTO TEMPORARY moredirstoload
+FROM x LEFT JOIN directories d ON x.directory_hash = d.directory_hash WHERE d.directory_hash IS null
+;
+
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 1  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 2  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 3  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 4  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 5  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 6  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 7  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 8  ON CONFLICT DO nothing;
+WITH x AS (SELECT * FROM moredirstoload) INSERT INTO directories SELECT directory_hash, directory_path, parent_directory_hash, directory_date, volume_id FROM x WHERE levels_deep = 9  ON CONFLICT DO nothing;
 
 COMMENT ON TABLE  directories IS 'Useful to avoid rescanning folders if nothing changed (datestamp managed by file system). Also useful for compressing the files table. If I make this self referential then this table shrinks too. smaller = faster reading, smaller memory, etc. Good for slow-drive systems like mine.';
 COMMENT ON COLUMN directories.directory_hash IS 'Again: Hash or surrogate? If hash then it should include some local drive info? Cause same path on different drive would be a problem?? Or leave drive id or letter off, and then migration to a new drive or system and the hash would remap. Hmmmmmmmmm.';
@@ -223,24 +284,49 @@ COMMENT ON COLUMN directories.parent_directory_hash IS 'We have to support a nul
 COMMENT ON COLUMN directories.volume_id IS 'Not a hash here, since who knows what a hash for a volume or drive letter would be. Really thinking-over, paralysis analysis, buttt, moving stuff like qbittorrent''s database is nigh impossible to a new computer, so thinking.';
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-CREATE TABLE video_files(
- file_hash                    BYTEA                     NOT NULL PRIMARY KEY,
- sourced_directory_hash       BYTEA                     NOT NULL, -- FK
- sourced_file_name            TEXT                      NOT NULL,
+DROP TABLE IF EXISTS simplified.files CASCADE;
+CREATE TABLE simplified.files(
+ file_id                      SERIAL                    NOT NULL PRIMARY KEY,
+ file_hash                    BYTEA                     NOT NULL, -- NOT UNIQUE.
+ directory_hash               BYTEA                     NOT NULL REFERENCES directories(directory_hash),
+ file_name_no_ext             TEXT                      NOT NULL, -- NOT NTEXT because spacing IN files can be odd.
+ final_extension              TEXT                      NOT NULL, -- NOT an ENUM, since an ENUM IS 4 bytes. extensions ARE generally 3 CHARACTERS. TEXT TYPES DATA 
  file_size                    BIGINT                    NOT NULL,
- file_date                    TIMESTAMPTZ               NOT NULL
-);
+ file_date                    TIMESTAMPTZ               NOT NULL,
+ file_still_exists            BOOLEAN                       NULL,
+ UNIQUE (file_name_no_ext, final_extension, directory_hash)
+ );
 
-COMMENT ON TABLE  video_files IS 'by hash! Because this is the record of what we have, and therefore we will have a unique hash. Other copies we have, well, that will have to be another table if at all. I only want ever one copy of a thing, and know where it is, and have symbolic links here and there to it. If I delete a file, or lose a drive, tis gone until I can restore it.';
+COMMENT ON COLUMN files.directory_hash IS 'Could be null if we lost the file, I suppose. or the underlying drive.';
+COMMENT ON COLUMN files.file_name_no_ext IS 'This in most cases is the torrent name, a wealth of detail in an attempt by the piraters to avoid collision on the leechers'' drives. A folder works too, though. I haven''t seen any collisions. But by keeping this name we hopefully reduce re-downloads. qbittorrent recognizes these, or the magnet link internally, but if I lose all the qbittorrent metadata, then I have no way to block redownloads.
+The extension has no real meaning to the name of the file.';
+COMMENT ON COLUMN files.final_extension IS 'With torrents there are a bazillion periods, so we want the last dot and following string.  We do not use an enum since enums are 4 bytes, strings are 3 characters + a length byte.';
+COMMENT ON COLUMN files.file_date IS 'The modified date on the file, with the local time zone. We don''t keep the created timestamp.  It''s no real use except curiosity or etl analysis, which is not what simplified is for.';
+COMMENT ON COLUMN files.file_size IS 'Not space used, but reported size in bytes.';
+COMMENT ON COLUMN files.file_still_exists IS 'So we don''t churn on file stuff we don''t have. We set to true or false with a scan.';
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS simplified.video_files CASCADE;
+CREATE TABLE simplified.video_files(
+ file_hash                    BYTEA                     NOT NULL PRIMARY KEY,
+ sourced_directory_hash       BYTEA                     NOT NULL REFERENCES directories(directory_hash),
+ sourced_file_name_no_ext     TEXT                      NOT NULL, -- NOT NTEXT because spacing IN files can be odd.
+ final_extension              TEXT                      NOT NULL,
+ published_directory_hash     BYTEA                         NULL CHECK (published_directory_hash IS NULL OR published_directory_hash <> sourced_directory_hash) REFERENCES directories(directory_hash), -- must differ BETWEEN sourced!
+ published_file_name_no_ext   TEXT                          NULL, -- published may NOT be fully cleaned up yet. The BBC stuff still has spaces. Episodes don't yet GET cleaned.
+ backedup_directory_hash      BYTEA                         NULL CHECK (backedup_directory_hash IS NULL OR backedup_directory_hash <> sourced_directory_hash) REFERENCES directories(directory_hash), -- must differ BETWEEN sourced!
+ backedup_file_name_no_ext    BYTEA                         NULL, 
+ clean_title                  NNULLTEXT                     NULL, -- NO crap, but can be NULL, will be.
+ release_year                 INT2                      
+ );
+
+COMMENT ON TABLE  video_files IS 'by hash! . So we will allow ONE copy, with the 3 places those copies can exist. Because this is the record of what we have, and therefore we will have a unique hash. Other copies we have, well, that will have to be another table if at all. I only want ever one copy of a thing, and know where it is, and have symbolic links here and there to it. If I delete a file, or lose a drive, tis gone until I can restore it.';
 COMMENT ON COLUMN video_files.file_hash IS 'md5 off the files contents. slow, so do it as little as possible.';
-COMMENT ON COLUMN video_files.sourced_directory_hash IS 'Could be null if we lost the file, I suppose. or the underlying drive.';
-COMMENT ON COLUMN video_files.sourced_file_name IS 'This in most cases is the torrent name, a wealth of detail in an attempt by the piraters to avoid collision on the leechers'' drives. A folder works too, though. I haven''t seen any collisions. But by keeping this name we hopefully reduce re-downloads. qbittorrent recognizes these, or the magnet link internally, but if I lose all the qbittorrent metadata, then I have no way to block redownloads.';
-
+COMMENT ON COLUMN video_files.clean_title IS 'First we pull this from the O published stuff by the D filehash.  Have to put it somewhere.  These were manually cleaned by me, so I want to save those cleaning for pushing down to videos.';
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE videos(
  video_id                       SERIAL                  NOT NULL CONSTRAINT pk_videos PRIMARY KEY,
- primary_title                  TEXT                    NOT NULL,
- release_year                   SMALLINT                    NULL, -- Pweeze try TO fill this IN.
+ primary_title                  NTEXT                   NOT NULL,
+ release_year                   SMALLINT                    NULL CHECK , -- Pweeze try TO fill this IN.
  is_episodic                    BOOLEAN                 NOT NULL DEFAULT false,
  title_is_descriptive           BOOLEAN                     NULL DEFAULT false,
  video_edition_type             VIDEO_EDITION_TYPE_ENUM NOT NULL, 
@@ -256,9 +342,10 @@ CREATE TABLE videos(
  parent_imdb_id                 INTEGER                     NULL,
  season_no                      SMALLINT                    NULL,
  episode_no                     SMALLINT                    NULL,
- file_hash                      BYTEA                       NULL UNIQUE NULLS NOT DISTINCT,
+ file_hash                      BYTEA                       NULL UNIQUE NULLS NOT DISTINCT, -- links TO one entry IN video_files WHERE BOTH downloaded AND published ARE there.
  CONSTRAINT ak_videos_logical UNIQUE (primary_title, release_year, is_episodic, video_edition_type, parent_title, season_no, episode_no)
 );
+
 
 COMMENT ON TABLE videos IS 'all my lists: IMDB, TMDB, OMDB, and more eventually. I don''t even have OMDB yet. But I need a my id for these. IMDB, for instance, probably has the most quantity, so there will of course not be matching TMDB IDs, and so on. TMDB may have entries that are not in IMDB for some reason.
 This is to be reduced from the complexities arising in receiving_dock, but I don''t want to go too simple. So what is the function? To give me a UNIQUE list of titles, whether movies, tv movies, shorts, tv shows, seasons, or episodes. BUT, since titles are not unique, we need present things that get us closer to a logical unique state. release year is one of the most meaningful additions to titles that gives a meaningful uniqueness - closer at least. The type of title, movie or tv for example, is another meaningful individuator. Why? Because collisions happen often between a tv show and a movie created because of that show, and in the same year.
@@ -273,7 +360,8 @@ In TMDB, however, or fortunately, you get the U.S.A. release title. The one norm
 Oh, and FYI: Get Over It.';
 COMMENT ON COLUMN videos.release_year IS 'Part of an alternate key, title+year+type. But, for example, "Godzilla" has been re-released a multitude of times, and the year separates them neatly and meaningfully. Meaningful in the sense that "Godzilla (1954)" is not ever "Godzilla (1998)". Ever. Chances are if you are remembering a movie from childhood, you''ll be able to tell which one it was by when it was released.';
 COMMENT ON COLUMN videos.is_episodic IS 'Force a choice: Is it a movie or tv? Is it one thing or a series of small things that add up to a whole? TV Mini-Series are a weird thing and not like TV Series, based on the original serials, but to effectuate the KISS principal we say: is it one thing or multiple things? Forget trilogies.';
-COMMENT ON COLUMN videos.title_is_descriptive IS 'Is it a title we got from somewhere, even my head, or is is a description of something I''ve seen. Must capture even if I don''t know the exact name of it. These hopefully are converted to titles, often titles already in the database. But some are probably never to be found.';
+COMMENT ON COLUMN videos.title_is_descriptive IS 'Is it a title we got from somewhere, even my head, or is is a description of something I''ve seen. Must capture even if I don''t know the exact name of it. These hopefully are converted to titles, often titles already in the database. But some are probably never to be found.
+So "Girl kidnapped never found british single-season series" is an example.';
 COMMENT ON COLUMN videos.video_edition_type IS 'extended, director''s cut, uncut, censored, MST3K, RiffTrax, Svengoolie, despecialized. "Star Wars" is a great example of something needing recutting after George Lucas'' Director''s cut with added CGI goobers. But each of these deserves a separate entry. Why? Because "Zach Snyder''s Justice League" cut makes more sense (to me) than the studio cut, and deserves a different rating. Also, MST3K''s spoof of "This Island Earth" is not a fair treatment of the original movie, which stands on its own as early alien invasion reflection. Plotted poorly, but still canon.';
 COMMENT ON COLUMN videos.video_sub_type IS 'Not a required thing since we might not know, and we still want to track it. We HAVE to know if it''s a movie or a tv show, but is it a TV Movie, or is it just a movie I saw on TV? I may not know yet, but I want to still track it. See, I hang watch history off this table, so I need a hook to hang on even if I don''t know exactly where or what I saw. I know, weird.
 But a thing I saw in memory is must be a real thing. My knowledge of what it was does not effect its existence as a thing that could be seen.';
@@ -294,6 +382,7 @@ COMMENT ON CONSTRAINT ak_videos_logical ON videos IS 'All videos must be definab
 COMMENT ON CONSTRAINT ak_videos_imdb ON videos IS 'These must self-unique when present. Technically, yes there can be two TMDB films mapped to one IMDB id, or the opposite. The more external ids the more this is likely to occur - but I won''t support that in this table. In precursors yes I do keep that info. How I will reconcile a duality that is m-to-1 between sources, I have no idea. But storing multiple ids from a source as one entry is not acceptable here. It would spawn incredible complexity and generate an inability to trust that an entry is unique in realspace. It breaks the model. Without this we can treat duplicates (due to mispells, mis-entries) are errors, and fixable. Otherwise it puts our sources in doubt.';
 COMMENT ON CONSTRAINT ak_videos_hash ON videos IS 'Just link to ONE entry in our new files table. That table can deal with the multiple copies, urls, paths, etc.';
 
+SELECT txt, file_md5_hash FROM stage_for_master.files f;
 END;
 
 /*
@@ -314,6 +403,6 @@ SELECT * FROM local_networks;
 SELECT * FROM network_adapters;
 SELECT * FROM computers;
 SELECT * FROM volumes;
-SELECT * FROM directories;
-SELECT * FROM videos LIMIT 10;
+SELECT * FROM directories LIMIT 10;
 SELECT * FROM video_files LIMIT 10;
+SELECT * FROM videos LIMIT 10;
