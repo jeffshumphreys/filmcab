@@ -41,3 +41,6 @@
 .settings/
 .project
 Scripts/
+
+# Stupid backups
+~*
