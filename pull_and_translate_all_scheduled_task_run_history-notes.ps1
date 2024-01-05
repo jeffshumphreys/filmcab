@@ -1,0 +1,409 @@
+﻿<#
+property_id property_value                                                  
+----------- --------------                                                  
+          1 \GoogleUpdateTaskMachineUA{AFF76B46-DA4A-40B7-A0A6-9A0E506CD5DB}
+          2 NT AUTHORITY\SYSTEM                                             
+          3 cfe6272c-605c-44bd-ba7a-168d3b915906       
+#>
+
+#(Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler')|Select -expand Events|Where id -eq 102|Select -Expand Template
+<#
+property_id property_name property_type
+----------- ------------- -------------
+          1 TaskName      string       
+          2 UserContext   string       
+          3 InstanceId    GUID         
+#>
+
+#https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/how-to-list-xml-elements-in-eventdata
+#(Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler').Tasks
+<#
+Name                                      Value DisplayName                                                                               EventGuid                           
+----                                      ----- -----------                                                                               ---------                           
+task:JobExecute                             100 Task Started                                                                              00000000-0000-0000-0000-000000000000
+task:TaskStartFail                          101 Task Start Failed                                                                         00000000-0000-0000-0000-000000000000
+task:TaskCompleted                          102 Task completed                                                                            00000000-0000-0000-0000-000000000000
+task:TaskFailure                            103 Action start failed                                                                       00000000-0000-0000-0000-000000000000
+task:LogonFailure                           104 Logon failure                                                                             00000000-0000-0000-0000-000000000000
+task:ImpersonationFailure                   105 Impersonation failure                                                                     00000000-0000-0000-0000-000000000000
+task:JobRegistered                          106 Task registered                                                                           00000000-0000-0000-0000-000000000000
+task:TimeTrigger                            107 Task triggered on scheduler                                                               00000000-0000-0000-0000-000000000000
+task:EventTrigger                           108 Task triggered on event                                                                   00000000-0000-0000-0000-000000000000
+task:ImmediateTrigger                       109 Task triggered by registration                                                            00000000-0000-0000-0000-000000000000
+task:Run                                    110 Task triggered by user                                                                    00000000-0000-0000-0000-000000000000
+task:TaskTerminated                         111 Task terminated                                                                           00000000-0000-0000-0000-000000000000
+task:NoStartWithoutNetwork                  112 Launch condition not met, network unavailable                                             00000000-0000-0000-0000-000000000000
+task:RegisteredWithoutSomeTriggers          113 Task registered without some triggers                                                     00000000-0000-0000-0000-000000000000
+task:MissedTaskLaunched                     114 Missed task started                                                                       00000000-0000-0000-0000-000000000000
+task:TransactionRollbackFailure             115 Task update or deletion error                                                             00000000-0000-0000-0000-000000000000
+task:TaskRegisteredWithoutCreds             116 Task registered without credentials                                                       00000000-0000-0000-0000-000000000000
+task:IdleTrigger                            117 Task triggered on Idle                                                                    00000000-0000-0000-0000-000000000000
+task:BootTrigger                            118 Task triggered by computer startup                                                        00000000-0000-0000-0000-000000000000
+task:LogonTrigger                           119 Task triggered on logon                                                                   00000000-0000-0000-0000-000000000000
+task:ConsoleConnectTrigger                  120 Task triggered on local console connect                                                   00000000-0000-0000-0000-000000000000
+task:ConsoleDisconnectTrigger               121 Task triggered on local console disconnect                                                00000000-0000-0000-0000-000000000000
+task:RemoteConnectTrigger                   122 Task triggered on remote console connect                                                  00000000-0000-0000-0000-000000000000
+task:RemoteDisconnectTrigger                123 Task triggered on remote console disconnect                                               00000000-0000-0000-0000-000000000000
+task:SessionLockTrigger                     124 Task triggered by locking the workstation                                                 00000000-0000-0000-0000-000000000000
+task:SessionUnlockTrigger                   125 Task triggered by unlocking the workstation                                               00000000-0000-0000-0000-000000000000
+task:FailedTaskRestart                      126 Task restarted on failure                                                                 00000000-0000-0000-0000-000000000000
+task:RejectedTaskRestart                    127 Task restarted on failure                                                                 00000000-0000-0000-0000-000000000000
+task:IgnoredTaskRestart                     128 Launch condition not met, beyond end time                                                 00000000-0000-0000-0000-000000000000
+task:CreatedTaskProcess                     129 Created Task Process                                                                      00000000-0000-0000-0000-000000000000
+task:TaskNotRunServiceBusy                  130 Launch condition not met, service busy                                                    00000000-0000-0000-0000-000000000000
+task:TaskNotStartedTaskQuotaExceeded        131 Launch condition not met, quota exceeded                                                  00000000-0000-0000-0000-000000000000
+task:TaskQuotaApproaching                   132 Launch condition warning, quota approaching                                               00000000-0000-0000-0000-000000000000
+task:TaskNotStartedEngineQuotaExceeded      133 Launch condition not met, quota exceeded                                                  00000000-0000-0000-0000-000000000000
+task:EngineQuotaApproaching                 134 Launch condition warning, quota approaching                                               00000000-0000-0000-0000-000000000000
+task:NoStartWithoutIdle                     135 Launch condition not met, machine not idle                                                00000000-0000-0000-0000-000000000000
+task:JobCompletionPending                   136 Task Completion Pending                                                                   00000000-0000-0000-0000-000000000000
+task:TaskUpdated                            140 Task registration updated                                                                 00000000-0000-0000-0000-000000000000
+task:TaskDeleted                            141 Task registration deleted                                                                 00000000-0000-0000-0000-000000000000
+task:TaskDisabled                           142 Task disabled                                                                             00000000-0000-0000-0000-000000000000
+task:ComputerWakeupToStartTask              145 Task triggered by coming out of suspend mode                                              00000000-0000-0000-0000-000000000000
+task:TaskLoadFailed                         146 Task loading at service startup failed                                                    00000000-0000-0000-0000-000000000000
+task:TaskImageRecoveredAfterMigration       147 Task image recovered after OS migration                                                   00000000-0000-0000-0000-000000000000
+task:TaskImageRecoverFailedAfterMigration   148 Task image recovering failed after OS migration                                           00000000-0000-0000-0000-000000000000
+task:TaskUbpmCompatibilityIssueDetected     149 Task is using a combination of properties that is incompatible with the scheduling engine 00000000-0000-0000-0000-000000000000
+task:TaskEventSubscriptionFailed            150 Task registration on event failed                                                         00000000-0000-0000-0000-000000000000
+task:TaskInstantiateFailed                  151 Task Scheduler failed to instantiate task at service startup.                             00000000-0000-0000-0000-000000000000
+task:TaskUbpmCompatibilityIssueResolved     152 Task was redirected to legacy engine                                                      00000000-0000-0000-0000-000000000000
+task:MissedTaskRejected                     153 Missed task start rejected                                                                00000000-0000-0000-0000-000000000000
+task:Action                                 200 Action started                                                                            00000000-0000-0000-0000-000000000000
+task:ActionCompleted                        201 Action completed                                                                          00000000-0000-0000-0000-000000000000
+task:ActionFailed                           202 Action failed                                                                             00000000-0000-0000-0000-000000000000
+task:ActionFailedToStart                    203 Action failed to start                                                                    00000000-0000-0000-0000-000000000000
+task:EventRenderFailed                      204 Task failed to start on event                                                             00000000-0000-0000-0000-000000000000
+task:EventAggregateFailed                   205 Task failed to start on event pattern match                                               00000000-0000-0000-0000-000000000000
+task:Session                                300 Task engine launched                                                                      00000000-0000-0000-0000-000000000000
+task:TaskEngineExit                         301 Task engine properly shut down                                                            00000000-0000-0000-0000-000000000000
+task:TaskEngineError                        303 Task engine shut down due to error                                                        00000000-0000-0000-0000-000000000000
+task:SessionSentJob                         304 Task sent to engine                                                                       00000000-0000-0000-0000-000000000000
+task:SessionSentJobFailed                   305 Task failed to be sent to engine                                                          00000000-0000-0000-0000-000000000000
+task:SessionProcessMessage                  306 Engine failed to receive the task                                                         00000000-0000-0000-0000-000000000000
+task:SessionManagerConnectFailed            307 Service Engine connection failure                                                         00000000-0000-0000-0000-000000000000
+task:SessionManagerConnect                  308 Service Engine connected                                                                  00000000-0000-0000-0000-000000000000
+task:SessionJobsOrphaned                    309 Engine orphaned                                                                           00000000-0000-0000-0000-000000000000
+task:SessionProcessStart                    310 Task Engine started                                                                       00000000-0000-0000-0000-000000000000
+task:SessionProcessStartFailed              311 Task Engine failed to start                                                               00000000-0000-0000-0000-000000000000
+task:SessionWin32ObjCreated                 312 Task Engine job object created                                                            00000000-0000-0000-0000-000000000000
+task:SessionChannelReady                    313 Service Engine channel ready                                                              00000000-0000-0000-0000-000000000000
+task:SessionProcessIdle                     314 Task Engine idle                                                                          00000000-0000-0000-0000-000000000000
+task:SessionProcessConnect                  315 Service Engine connection failure                                                         00000000-0000-0000-0000-000000000000
+task:SessionMessageSend                     316 Engine failed to send message to service                                                  00000000-0000-0000-0000-000000000000
+task:SessionMain                            317 Task Engine started                                                                       00000000-0000-0000-0000-000000000000
+task:SessionMainShutdown                    318 Task engine properly shut down                                                            00000000-0000-0000-0000-000000000000
+task:SessionJob                             319 Task Engine received message to start task                                                00000000-0000-0000-0000-000000000000
+task:SessionJobReceivedStop                 320 Task Engine received message to stop task                                                 00000000-0000-0000-0000-000000000000
+task:NewInstanceIgnored                     322 Launch request ignored, instance already running                                          00000000-0000-0000-0000-000000000000
+task:RunningInstanceStopped                 323 Launch request acknowledged, current instance stopped                                     00000000-0000-0000-0000-000000000000
+task:NewInstanceQueued                      324 Launch request queued, instance already running                                           00000000-0000-0000-0000-000000000000
+task:TaskInstanceQueued                     325 Launch request queued                                                                     00000000-0000-0000-0000-000000000000
+task:NoStartOnBatteries                     326 Launch condition not met, computer on batteries                                           00000000-0000-0000-0000-000000000000
+task:StoppingOnBatteries                    327 Task stopping due to  switching to batteries                                              00000000-0000-0000-0000-000000000000
+task:StoppingOffIdle                        328 Task stopping due to computer not idle                                                    00000000-0000-0000-0000-000000000000
+task:StoppingOnTimeout                      329 Task stopping due to timeout reached                                                      00000000-0000-0000-0000-000000000000
+task:StoppingOnRequest                      330 Task stopping due to user request                                                         00000000-0000-0000-0000-000000000000
+task:TimeoutWontWork                        331 Task failed to stop on timeout                                                            00000000-0000-0000-0000-000000000000
+task:NoStartUserNotLogged                   332 Launch condition not met, user not logged-on                                              00000000-0000-0000-0000-000000000000
+task:NoStartOnRailSession                   333 Launch condition not met, session is RemoteApp Session                                    00000000-0000-0000-0000-000000000000
+task:NoStartOnWorkerSession                 334 Launch condition not met, session is a Worker Session                                     00000000-0000-0000-0000-000000000000
+task:ServiceMain                            400 Service started                                                                           00000000-0000-0000-0000-000000000000
+task:ServiceStartFailed                     401 Service failed to start                                                                   00000000-0000-0000-0000-000000000000
+task:ServiceStop                            402 Service is shutting down                                                                  00000000-0000-0000-0000-000000000000
+task:ServiceError                           403 Service critical error                                                                    00000000-0000-0000-0000-000000000000
+task:ServiceRPCInitError                    404 Service RPC error                                                                         00000000-0000-0000-0000-000000000000
+task:ServiceCOMInitError                    405 Service COM error                                                                         00000000-0000-0000-0000-000000000000
+task:ServiceCredStoreInitFailed             406 Cred store initialization error                                                           00000000-0000-0000-0000-000000000000
+task:ServiceLSAInitFailed                   407 LSA initialization error                                                                  00000000-0000-0000-0000-000000000000
+task:ServiceIdleInitFailed                  408 Idle detection error                                                                      00000000-0000-0000-0000-000000000000
+task:ServiceTimeChangeInitFailed            409 Time change notification error                                                            00000000-0000-0000-0000-000000000000
+task:ServiceSetWakeupTimerFailed            410 Wakeup timer error                                                                        00000000-0000-0000-0000-000000000000
+task:ServiceTimeChangeSignaled              411 Service signaled time change                                                              00000000-0000-0000-0000-000000000000
+task:TaskMisconfigured                      414 Task Misconfiguration                                                                     00000000-0000-0000-0000-000000000000
+task:IdleTaskRegister                       500 Idle Task Register                                                                        00000000-0000-0000-0000-000000000000
+task:IdleTaskUnregister                     501 Idle Task Unregister                                                                      00000000-0000-0000-0000-000000000000
+task:IdleTaskExecute                        502 Idle Task Execute                                                                         00000000-0000-0000-0000-000000000000
+task:IdleTaskNotify                         504 Idle Task Notify                                                                          00000000-0000-0000-0000-000000000000
+task:IdleTaskExplicitProcessing             506 Idle Task Explicit Processing                                                             00000000-0000-0000-0000-000000000000
+task:IdleTaskExplicitProcessingActive       508 Idle Task Explicit Processing Active                                                      00000000-0000-0000-0000-000000000000
+task:IdleTaskPowerNotificationReceived      509 Idle Task Power Notification Received                                                     00000000-0000-0000-0000-000000000000
+task:ItSpEvt_PerfTrack_IdleEntryStats       510 Idle Task PerfTrack Resource Consumption                                                  00000000-0000-0000-0000-000000000000
+task:ItSpEvt_PerfTrack_IdleExitStats        511 Idle Task PerfTrack Idle Exit                                                             00000000-0000-0000-0000-000000000000
+task:IdleCheckPoint                         512 Idle Check Point                                                                          00000000-0000-0000-0000-000000000000
+task:CompatStart                            700 Compatibility module started                                                              00000000-0000-0000-0000-000000000000
+task:CompatStartFailed                      701 Compatibility module failed to start                                                      00000000-0000-0000-0000-000000000000
+task:CompatStartRPCFailed                   702 Compatibility module RPC failed                                                           00000000-0000-0000-0000-000000000000
+task:CompatStartNetschedFailed              703 Compatibility module Net Schedule API failed                                              00000000-0000-0000-0000-000000000000
+task:CompatStartLSAFailed                   704 Compatibility module LSA failed                                                           00000000-0000-0000-0000-000000000000
+task:CompatDirectoryMonitoringFailed        705 Compatibility module directory monitoring failed                                          00000000-0000-0000-0000-000000000000
+task:CompatTaskStatusUpdateFailed           706 Compatibility module task status update failed                                            00000000-0000-0000-0000-000000000000
+task:CompatTaskDeleteFailed                 707 Compatibility module task deletion failed                                                 00000000-0000-0000-0000-000000000000
+task:CompatTaskSetSDFailed                  708 Compatibility module security descriptor failed                                           00000000-0000-0000-0000-000000000000
+task:CompatTaskUpdateFailed                 709 Compatibility module task update failed                                                   00000000-0000-0000-0000-000000000000
+task:CompatUpgradeFailed                    710 Compatibility module tasks upgrade failed                                                 00000000-0000-0000-0000-000000000000
+task:CompatUpgradeUndetermined              711 Compatibility module tasks upgrade undetermined                                           00000000-0000-0000-0000-000000000000
+task:Beta2CredStoreUpgradeFailed            712 Credential store upgrade failed                                                           00000000-0000-0000-0000-000000000000
+task:OpChannelDisabled                      719 TaskScheduler Operational log was disabled                                                00000000-0000-0000-0000-000000000000
+task:MaintenanceStateChanged                800 Maintenance state has changed                                                             00000000-0000-0000-0000-000000000000
+task:MaintenanceLaunchError                 801 Maintenance launch failed                                                                 00000000-0000-0000-0000-000000000000
+task:MaintenanceReconfigurationError        802 Maintenance re-configuration failed                                                       00000000-0000-0000-0000-000000000000
+task:MaintenanceSchedulerTaskError          803 Maintenance Scheduler engine task error                                                   00000000-0000-0000-0000-000000000000
+task:MaintenanceCycleDependencyError        804 Maintenance task cycle dependency detected                                                00000000-0000-0000-0000-000000000000
+task:MaintenanceTaskBehindDeadline          805 Maintenance task is behind deadline                                                       00000000-0000-0000-0000-000000000000
+task:MaintenanceTaskError                   806 Maintenance task processing error                                                         00000000-0000-0000-0000-000000000000
+task:MaintenanceComplete                    807 Maintenance complete                                                                      00000000-0000-0000-0000-000000000000
+task:MaintenanceTaskWakeupRequested         808 Maintenance wakeup requested                                                              00000000-0000-0000-0000-000000000000
+task:MaintenanceKeysMalformed               809 Maintenance Scheduler configuration error                                                 00000000-0000-0000-0000-000000000000
+task:MethodFailure                          998 Method Failure                                                                            00000000-0000-0000-0000-000000000000
+task:Debug                                  999 Debug                                                                                     00000000-0000-0000-0000-000000000000
+#>
+#(Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler').LogLinks
+<#
+LogName                                     IsImported DisplayName
+-------                                     ---------- -----------
+Microsoft-Windows-TaskScheduler/Operational      False Operational
+System                                            True System     
+Microsoft-Windows-TaskScheduler/Debug            False Debug      
+Microsoft-Windows-TaskScheduler/Diagnostic       False Diagnostic 
+Microsoft-Windows-TaskScheduler/Maintenance      False Maintenance
+
+PS C:\Users\jeffs> (Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler').Opcodes
+
+Name                Value DisplayName   
+----                ----- -----------   
+win:Info                0 Info          
+win:Start               1 Start         
+win:Stop                2 Stop          
+StartFailed           101 Launch Failure
+ExecutionFailed       102 Run Failure   
+ExecutionTerminated   103 Termination   
+Failed                104 Failure   
+
+PS C:\Users\jeffs> (Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler').KeyWords
+
+Name                           Value DisplayName  
+----                           ----- -----------  
+ForcedIdleProcessing               1              
+win:ResponseTime     281474976710656 Response Time
+
+PS C:\Users\jeffs> (Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler').Levels
+
+Name              Value DisplayName
+----              ----- -----------
+win:Critical          1 Critical   
+win:Error             2 Error      
+win:Warning           3 Warning    
+win:Informational     4 Information
+win:Verbose           5 Verbose    
+
+(Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler').Events|Select Id, Description, Template
+
+*****************
+Task Creation
+*****************
+106 User "%2"  registered Task Scheduler task "%1"                                                                                                                                                                                                                                          <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+113 Task registered task "%1" , but not all specified triggers will start the task. User Action: Ensure all the task triggers are valid as configured. Additional Data: Error Value: %2.                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+116 Task Scheduler validated the configuration for task "%1" , but credentials could not be stored. User Action: Re-register the task ensuring the credentials are valid. Additional Data: Error Value: %2.                                                                                 <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+115 Task Scheduler failed to roll back a transaction when updating or deleting a task. Additional Data: Error Value: %1.                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+140 User "%2"  updated Task Scheduler task "%1"                                                                                                                                                                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+141 User "%2"  deleted Task Scheduler task "%1"                                                                                                                                                                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+142 User "%2"  disabled Task Scheduler task "%1"                                                                                                                                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+*****************
+Task Pre-Instantiation
+*****************
+324 Task Scheduler queued instance "%2"  of task "%1"  and will launch it as soon as instance "%3"  completes.                                                                                                                                                                              <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+325 Task Scheduler queued instance "%2"  of task "%1".                                                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+319 Task Engine "%1"  received a message from Task Scheduler service requesting to launch task "%2" .                                                                                                                                                                                       <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+145 Task Scheduler woke up the computer to run a task.                                                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+304 Task Scheduler sent "%1"  task to Task Engine "%2" . The task instance Id is "%3" .                                                                                                                                                                                                     <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+*****************
+Task Instantiation
+*****************
+100 Task Scheduler started "%3" instance of the "%1" task for user "%2".                                                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+129 Task Scheduler launch task "%1" , instance "%2"  with process ID %3.                                                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+107 Task Scheduler launched "%2"  instance of task "%1" due to a time trigger condition.                                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+108 Task Scheduler launched "%2"  instance of task "%1"  according to an event trigger.                                                                                                                                                                                                     <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+109 Task Scheduler launched "%2"  instance of task "%1"  according to a registration trigger.                                                                                                                                                                                               <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+110 Task Scheduler launched "%2"  instance of task "%1"  for user "%3" .                                                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+117 Task Scheduler launched "%2"  instance of task "%1"  due to an idle condition.                                                                                                                                                                                                          <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+118 Task Scheduler launched "%2"  instance of task "%1"  due to system startup.                                                                                                                                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+119 Task Scheduler launched "%3"  instance of task "%1" due to user "%2"  logon.                                                                                                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+120 Task Scheduler launched "%3"  instance of task "%1"  due to user "%2"  connecting to the console trigger.                                                                                                                                                                               <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+121 Task Scheduler launched "%3"  instance of task "%1"  due to user "%2"  disconnecting from the console trigger.                                                                                                                                                                          <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+122 Task Scheduler launched "%3"  instance of task "%1"  due to user "%2"  remotely connecting trigger.                                                                                                                                                                                     <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+123 Task Scheduler launched "%3"  instance of task "%1"  due to user "%2"  remotely disconnecting trigger.                                                                                                                                                                                  <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+124 Task Scheduler launched "%3"  instance of task "%1"  due to user "%2"  locking the computer trigger.                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+125 Task Scheduler launched "%3"  instance of task "%1"  due to user "%2"  unlocking the computer trigger.                                                                                                                                                                                  <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+*****************
+Task Running Status
+*****************
+331 Task Scheduler will continue to execute Instance "%2"  of task "%1"  even after the designated timeout, due to a failure to create the timeout mechanism. Additional Data: Error Value: %3.                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+152 Task "%1" was re-directed to legacy scheduling engine.                                                                                                                                                                                                                                  <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+*****************
+Task Instantiation Failure
+*****************
+103 Task Scheduler failed to start instance "%2" of "%1"  task for user "%3" . Additional Data: Error Value: %4.                                                                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+101 Task Scheduler failed to start "%1" task for user "%2". Additional Data: Error Value: %3.                                                                                                                                                                                               <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+130 Task Scheduler failed to start task "%1" due to the service being busy.                                                                                                                                                                                                                 <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+131 Task Scheduler failed to start task "%1" because the number of tasks in the task queue exceeding the quota currently configured to %2. User Action: Reduce the number of running tasks or increase the configured queue quota.                                                          <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+112 Task Scheduler could not start task "%1"  because the network was unavailable. User Action: Ensure the computer is connected to the required network as specified in the task. If the task does not require network presence, remove the network condition from the task configuration. <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+133 Task Scheduler failed to start task %1" in TaskEngine "%2"  for user "%3". User Action: Reduce the number of tasks running in the specified user context.                                                                                                                               <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+114 Task Scheduler could not launch task "%1"  as scheduled. Instance "%2"  is started now as required by the configuration option to start the task when available, if schedule is missed.                                                                                                 <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+135 Task Scheduler could not start task "%1"  because the machine was not idle.                                                                                                                                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+128 Task Scheduler did not launch task "%1" , because current time exceeds the configured task end time. User Action: Extend the end time boundary for the task if required.                                                                                                                <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+153 Task Scheduler did not launch task "%1" as it missed its schedule. Consider using the configuration option to start the task when available, if schedule is missed.                                                                                                                     <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+332 Task Scheduler did not launch task "%1"  because user "%2" was not logged on when the launching conditions were met. User Action: Ensure user is logged on or change the task definition to allow launching when user is logged off.                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+333 Task Scheduler did not launch task "%1"  because target session is RemoteApp session. User Action: If launching the task on RemoteApp sessions is required, change the respective flag in the task configuration.                                                                       <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+334 Task Scheduler did not launch task "%1"  because target session is a WORKER session.                                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+322 Task Scheduler did not launch task "%1"  because instance "%2"  of the same task is already running.                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+326 Task Scheduler did not launch task "%1"  because computer is running on batteries. User Action: If launching the task on batteries is required, change the respective flag in the task configuration.                                                                                   <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+146 Task Scheduler failed to load task "%1" at service startup. Additional Data: Error Value: %2.                                                                                                                                                                                           <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+412 Task Scheduler service failed to launch tasks triggered by computer startup. Additional Data: Error Value: %1.                                                                                                                                                                          <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+104 Task Scheduler failed to log on "%1" . Failure occurred in "%2" . User Action: Ensure the credentials for the task are correctly specified. Additional Data: Error Value: %3.                                                                                                           <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+105 Task Scheduler failed to impersonate "%1" . Additional Data: Error Value: %2.                                                                                                                                                                                                           <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+126 Task Scheduler failed to execute task "%1" . Attempting to restart. Additional Data: Error Value: %2.                                                                                                                                                                                   <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+127 Task Scheduler failed to execute task "%1"  due to a shutdown race condition. Attempting to restart.                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+126 Task Scheduler failed to execute task "%1" . Attempting to restart. Additional Data: Error Value: %2.                                                                                                                                                                                   <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+127 Task Scheduler failed to execute task "%1"  due to a shutdown race condition. Attempting to restart.                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+205 Task Scheduler failed to match the pattern of events for task "%1" . The events will be ignored. Additional Data: Error Value: %2.                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+151 Task instantiation failed "%1". Check point: %2. Error Value: %3.                                                                                                                                                                                                                       <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+202 Task Scheduler failed to complete task "%1" , instance "%2" , action "%3" . Additional Data: Error Value: %4.                                                                                                                                                                           <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+202 Task Scheduler failed to complete task "%1" , instance "%2" , action "%3" . Additional Data: Error Value: %4.                                                                                                                                                                           <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+203 Task Scheduler failed to launch action "%3" in instance "%2" of task "%1". Additional Data: Error Value: %4.                                                                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+204 Task Scheduler failed to retrieve the event triggering values for task "%1" . The event will be ignored. Additional Data: Error Value: %2.                                                                                                                                              <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+149 Task "%1" is using a combination of properties that is incompatible with the scheduling engine.                                                                                                                                                                                         <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+305 Task Scheduler did not send "%1"  task to Task Engine "%2" . Additional Data: Error Value: %3.                                                                                                                                                                                          <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+150 Task Scheduler failed to subscribe for the event trigger for task "%1". Additional Data: Error Value: %2.                                                                                                                                                                               <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+*****************
+Task Termination
+*****************
+111 Task Scheduler terminated "%2"  instance of the "%1"  task.                                                                                                                                                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+329 Task Scheduler terminated "%2"  instance of the "%1"  task due to exceeding the time allocated for execution, as configured in the task definition. User Action: Increase the configured task timeout or investigate external reasons for the delay.                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+323 Task Scheduler stopped instance "%2"  of task "%1"  in order to launch new instance "%3" .                                                                                                                                                                                              <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+327 Task Scheduler stopped instance "%2"  of task "%1"  because the computer is switching to battery power.                                                                                                                                                                                 <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+328 Task Scheduler stopped instance "%2"  of task "%1"  because computer is no longer idle.                                                                                                                                                                                                 <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+330 Task Scheduler stopped instance "%2"  of task "%1"  as request by user "%3" .                                                                                                                                                                                                           <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+320 Task Engine "%1"  received a message from Task Scheduler service requesting to stop task instance "%2" .                                                                                                                                                                                <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+*****************
+Task Completion
+*****************
+102 Task Scheduler successfully finished "%3" instance of the "%1" task for user "%2".                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+201 Task Scheduler successfully completed task "%1" , instance "%3" , action "%2" .                                                                                                                                                                                                         <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+201 Task Scheduler successfully completed task "%1" , instance "%2" , action "%3" with return code %4.                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+201 Task Scheduler successfully completed task "%1" , instance "%2" , action "%3" with return code %4.                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+*****************
+Task Runner Capability Warning
+*****************
+132 Task Scheduler task launching queue quota is approaching its preset limit of tasks currently configured to %1. User Action: Reduce the number of running tasks or increase the configured queue quota.                                                                                  <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+134 Task Engine "%1"  for user "%2" is approaching its preset limit of tasks. User Action: Reduce the number of tasks running in the specified user context.                                                                                                                                <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+147 Task Scheduler recovered sucessfully the image of task "%1" after a corruption occured during OS upgrade.                                                                                                                                                                               <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+148 Task Scheduler failed to recover the image of task "%1" after a corruption occured during OS upgrade. Additional Data: Error Value: 0x%2.                                                                                                                                               <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+402 Task Scheduler service is shutting down.                                                                                                                                                                                                                                                <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+403 Task Scheduler service has encountered an error in "%1" . Additional Data: Error Value: %2.                                                                                                                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+404 Task Scheduler service has encountered RPC initialization error in "%1". Additional Data: Error Value: %2.                                                                                                                                                                              <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+405 Task Scheduler service has failed to initialize COM. Additional Data: Error Value: %1.                                                                                                                                                                                                  <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+406 Task Scheduler service failed to initialize credentials store. Additional Data: Error Value: %1.                                                                                                                                                                                        <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+407 Task Scheduler service failed to initialize LSA. Additional Data: Error Value: %1.                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+408 Task Scheduler service failed to initialize idle state detection module. Idle tasks may not be started as required. Additional Data: Error Value: %1.                                                                                                                                   <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+409 Task Scheduler service failed to initialize time change notification. System time updates may not be picked by the service and task schedules may not be updated. Additional Data: Error Value: %1.                                                                                     <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+410 Task Scheduler service failed to set a wakeup timer. As a result, some scheduled tasks may not run while the system is suspended. Additional Data: Error Value: %1.                                                                                                                     <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+411 Task Scheduler service received a time system change notification.                                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+413 Task Scheduler service failed to load tasks at service startup. Additional Data: Error Value: %1.                                                                                                                                                                                       <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+155 Task Scheduler is currently waiting on completion of task "%1".                                                                                                                                                                                                                         <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+200 Task Scheduler launched action "%2" in instance "%3" of task "%1".                                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+200 Task Scheduler launched action "%2" in instance "%3" of task "%1".                                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+300 Task Scheduler started Task Engine "%1"  with process ID %2.                                                                                                                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+301 Task Scheduler is shutting down Task Engine "%1"                                                                                                                                                                                                                                        <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+303 Task Scheduler is shutting down Task Engine "%1"  due to an error in "%2" .  Additional Data: Error Value: %3.                                                                                                                                                                          <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+306 For Task Scheduler Task Engine "%1" , the thread pool failed to process the message. Additional Data: Error Value: %2.                                                                                                                                                                  <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+307 Task Scheduler service failed to connect to the Task Engine "%1"  process. Additional Data: Error Value: %2.                                                                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+308 Task Scheduler connected to the Task Engine "%1"  process.                                                                                                                                                                                                                              <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+309 Task Scheduler %1 tasks orphaned during Task Engine "%2"  shutdown. User Action: Find the process run by this task in the Task Manager and kill it manually.                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+310 Task Scheduler started Task Engine "%1"  process. Command="%2" , ProcessID=%3, ThreadID=%4                                                                                                                                                                                              <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+311 Task Scheduler failed to start Task Engine "%1"  process due to an error occurring in "%3" . Command="%2" . Additional Data: Error Value: %4.                                                                                                                                           <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+312 Task Scheduler created the Win32 job object for Task Engine "%1" .                                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+313 Task Scheduler channel with Task Engine "%1"  is ready to send and receive messages.                                                                                                                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+314 Task Scheduler has no tasks running for Task Engine "%1" , and the idle timer has started.                                                                                                                                                                                              <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+315 Task Engine "%1"  process failed to connect to the Task Scheduler service. Additional Data: Error Value: %2.                                                                                                                                                                            <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+316 Task Engine "%1"  failed to send a message to the Task Scheduler service. Additional Data: Error Value: %2.                                                                                                                                                                             <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+317 Task Scheduler started Task Engine "%1"  process.                                                                                                                                                                                                                                       <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+318 Task Scheduler shutdown Task Engine "%1"  process.                                                                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+400 Task Scheduler service has started.                                                                                                                                                                                                                                                     <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+401 Task Scheduler service failed to start due to an error in "%1" . Additional Data: Error Value: %2.                                                                                                                                                                                      <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
+
+#>
+<#
+Message              : Task Scheduler successfully finished "{6a884d97-07bc-4635-91f0-72652c9fb41b}" instance of the "\Microsoft\Windows\LanguageComponentsInstaller\Installation" task for user "DSKTP-HOME-JEFF\jeffs".
+Id                   : 102
+Version              : 0                                                                         0,1,2
+Qualifiers           : 
+Level                : 4
+Task                 : 102                                                                         << 102
+Opcode               : 2                                                                          0 = info, 1 = start, 2 = stop
+Keywords             : -9223372036854775807
+RecordId             : 9857                                                                      # For ordering? Huh?
+ProviderName         : Microsoft-Windows-TaskScheduler
+ProviderId           : de7b24ea-73c8-4a09-985d-5bdadcfa9017
+LogName              : Microsoft-Windows-TaskScheduler/Operational
+ProcessId            : 1580
+ThreadId             : 33816
+MachineName          : DSKTP-HOME-JEFF
+UserId               : S-1-5-18
+TimeCreated          : 1/3/2024 4:39:30 PM
+ActivityId           : 6a884d97-07bc-4635-91f0-72652c9fb41b                                       Always empty on my machine
+RelatedActivityId    : 
+ContainerLog         : Microsoft-Windows-TaskScheduler/Operational
+MatchedQueryIds      : {}
+Bookmark             : System.Diagnostics.Eventing.Reader.EventBookmark
+LevelDisplayName     : Information
+OpcodeDisplayName    : Stop                                                                       same as opcode
+TaskDisplayName      : Task completed                                                             derive from Id
+KeywordsDisplayNames : {}                                                                         Always empty on my machine
+Properties           : {System.Diagnostics.Eventing.Reader.EventProperty, System.Diagnostics.Eventing.Reader.EventProperty, System.Diagnostics.Eventing.Reader.EventProperty}
+
+
+$taskSchedulerOpTypes      = $taskSchedulerMetaData.Opcodes
+$taskSchedulerTaskTypes    = $taskSchedulerMetaData.Tasks
+$taskSchedulerKeywordTypes = $taskSchedulerMetaData.Keywords # 2: ForcedIdleProcessing, win:ResponseTime
+
+#>
+<#
+PS D:\qt_projects\filmcab> $taskSchedulerEvents|Group event_type_id|Sort Count
+
+Count Name                      Group
+----- ----                      -----
+    2 330                       {@{event_type_id=330; general_operation_code=Info; event_version=0; event_created=12/30/2023 4:04:55 PM; event_message=Task Scheduler stopped instance "{41625525-08e9-4500-8f91-c6cdc720bb17}"  of task "\test_log_sys"  as r… 
+    3 111                       {@{event_type_id=111; general_operation_code=Termination; event_version=0; event_created=12/29/2023 5:36:22 PM; event_message=Task Scheduler terminated "{fff2b7f7-ce34-4d2a-9f16-eae7424234c9}"  instance of the "\test_log_s… 
+    3 203                       {@{event_type_id=203; general_operation_code=Launch Failure; event_version=0; event_created=12/29/2023 4:25:27 PM; event_message=Task Scheduler failed to launch action "D:\qt_projects\filmcab\General\test_log_sys.ps1" in i… 
+    3 101                       {@{event_type_id=101; general_operation_code=Launch Failure; event_version=0; event_created=12/29/2023 4:25:27 PM; event_message=Task Scheduler failed to start "\test_log_sys" task for user "DSKTP-HOME-JEFF\jeffs". Additio… 
+    6 103                       {@{event_type_id=103; general_operation_code=Run Failure; event_version=0; event_created=12/29/2023 9:29:41 PM; event_message=Task Scheduler failed to start instance "{82e8aeee-45c1-4dc0-8a16-c026f1e5551e}" of "\Microsoft\… 
+    6 202                       {@{event_type_id=202; general_operation_code=Run Failure; event_version=1; event_created=12/29/2023 9:29:41 PM; event_message=Task Scheduler failed to complete task "\Microsoft\Windows\Shell\ThemesSyncedImageDownload" , in… 
+   12 332                       {@{event_type_id=332; general_operation_code=Info; event_version=0; event_created=12/30/2023 1:20:27 PM; event_message=Task Scheduler did not launch task "\OneDrive Reporting Task-S-1-5-21-260979430-3554011381-420227292-10… 
+   17 141                       {@{event_type_id=141; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:23:05 PM; event_message=User "DSKTP-HOME-JEFF\jeffs"  deleted Task Scheduler task "\test_log_sys"; event_message_template=User … 
+   18 118                       {@{event_type_id=118; general_operation_code=Info; event_version=0; event_created=12/29/2023 11:33:27 PM; event_message=Task Scheduler launched "{a581d7c1-2d2b-4073-b023-adbe70e7be4a}"  instance of task "\Microsoft\Windows… 
+   19 106                       {@{event_type_id=106; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:23:05 PM; event_message=User "DSKTP-HOME-JEFF\jeffs"  registered Task Scheduler task "\test_log_sys"; event_message_template=Us… 
+   32 109                       {@{event_type_id=109; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:25:37 PM; event_message=Task Scheduler launched "{7d3ceffe-ecd1-40bc-b9a2-3273b23361cc}"  instance of task "\Microsoft\Windows\… 
+   33 328                       {@{event_type_id=328; general_operation_code=Info; event_version=0; event_created=12/29/2023 9:40:40 PM; event_message=Task Scheduler stopped instance "{d1c678da-695b-4d79-9fea-c7456eb2a24d}"  of task "\Microsoft\Windows\M… 
+   35 325                       {@{event_type_id=325; general_operation_code=Info; event_version=0; event_created=12/29/2023 7:41:14 PM; event_message=Task Scheduler queued instance "{3da0aa36-b08d-4667-83fe-e076a098b0d2}"  of task "\Microsoft\Windows\Po… 
+   49 329                       {@{event_type_id=329; general_operation_code=Info; event_version=0; event_created=12/29/2023 6:25:30 PM; event_message=Task Scheduler terminated "{1015adb0-3d12-45df-b9bb-50c8d8b3924f}"  instance of the "\Microsoft\Windows… 
+   71 322                       {@{event_type_id=322; general_operation_code=Info; event_version=0; event_created=12/29/2023 5:25:31 PM; event_message=Task Scheduler did not launch task "\Microsoft\Windows\MemoryDiagnostic\RunFullMemoryDiagnostic"  becau… 
+   75 119                       {@{event_type_id=119; general_operation_code=Info; event_version=0; event_created=12/29/2023 5:33:19 PM; event_message=Task Scheduler launched "{448b9489-330c-4aeb-b42b-5ea712504438}"  instance of task "\Microsoft\Windows\… 
+  123 110                       {@{event_type_id=110; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:25:27 PM; event_message=Task Scheduler launched "{b76b863d-d8f7-4f08-b07a-fdd5a9ef9ffd}"  instance of task "\test_log_sys"  for… 
+  372 108                       {@{event_type_id=108; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:39:30 PM; event_message=Task Scheduler launched "{1a1e08da-bb99-4117-865c-c06fabcbe351}"  instance of task "\Microsoft\Windows\… 
+  642 107                       {@{event_type_id=107; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:44:37 PM; event_message=Task Scheduler launched "{75898c70-02d7-4567-8314-aebc55d846fb}"  instance of task "\GoogleUpdateTaskMa… 
+ 1071 129                       {@{event_type_id=129; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:25:37 PM; event_message=Task Scheduler launch task "\Microsoft\Windows\WindowsUpdate\RUXIM\PLUGScheduler" , instance "%ProgramF… 
+ 1434 102                       {@{event_type_id=102; general_operation_code=Stop; event_version=0; event_created=12/29/2023 4:25:37 PM; event_message=Task Scheduler successfully finished "{7d3ceffe-ecd1-40bc-b9a2-3273b23361cc}" instance of the "\Microso… 
+ 1434 201                       {@{event_type_id=201; general_operation_code=Stop; event_version=2; event_created=12/29/2023 4:25:37 PM; event_message=Task Scheduler successfully completed task "\Microsoft\Windows\WindowsUpdate\RUXIM\PLUGScheduler" , ins… 
+ 1531 200                       {@{event_type_id=200; general_operation_code=Start; event_version=1; event_created=12/29/2023 4:25:37 PM; event_message=Task Scheduler launched action "%ProgramFiles%\RUXIM\PLUGscheduler.exe" in instance "{7d3ceffe-ecd1-40… 
+ 1531 100                       {@{event_type_id=100; general_operation_code=Start; event_version=0; event_created=12/29/2023 4:25:37 PM; event_message=Task Scheduler started "{7d3ceffe-ecd1-40bc-b9a2-3273b23361cc}" instance of the "\Microsoft\Windows\Wi… 
+ 3297 140                       {@{event_type_id=140; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:25:37 PM; event_message=User "WORKGROUP\DSKTP-HOME-JEFF$"  updated Task Scheduler task "\Microsoft\Windows\WindowsUpdate\RUXIM\… 
+
+#>
