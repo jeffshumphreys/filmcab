@@ -9,7 +9,12 @@
 
     Warnings:
         A full reload on my small system, for 14,100 events, took 5.5 minutes. This is mostly the part where I extract the custom attributes.
-
+        This filters out events heavily
+            1) Task Scheduler Operations - no Maintenance
+            2) Events 800 and 808 are alot, and useless
+            3) All Microsoft\Windows tasks are excluded
+            The heavy filtering reduces both the Get-WinEvents time and the merging eventdata names and values.
+            The use of the FilterXML parameter is the key to the best performance in testing
     Questions:
         What does versions 0,1, and 2 indicate in Get-WinEvent? Task versions or
         What's an activity id?
@@ -23,6 +28,8 @@
         Faster???
         Use Quartz.Net?
         Convert Write-Host to Write-Debug?
+    Idea:
+        Flush log for speed after we get it to file and/or database
 #>
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')]
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
@@ -33,10 +40,13 @@ param()
 $actionToTake  = $null
 $processEvents = $null
 
-# Force full reload: Remove-Item -Path 'clean-task-scheduler-events.xml' -Force   # Rebuilds all new, removed attributes.
+<# 
+    Force full reload: 
+    Remove-Item -Path 'clean-task-scheduler-events.xml' -Force   # Rebuilds all new, removed attributes.
+#>
+
 if (Test-Path 'clean-task-scheduler-events.xml' -PathType Leaf) {
     $actionToTake = 'Scan for new events'
-
 } else {
     $actionToTake = 'Replace from API'
     $processEvents = $true
@@ -62,13 +72,43 @@ switch ($actionToTake) {
 }
 
 if ($actionToTake -in @('Replace from API', 'Append new events')) {
+    # Highest performance of Get-WinEvents in testing came from use of FilterXml with the Suppress attribute.  The list of excluded tasknames is maxed out; I think it's the string size on the filter that is limited.
+    $xmlfilter = @"
+<QueryList>
+<Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational">
+<Select Path="Microsoft-Windows-TaskScheduler/Operational">*</Select>
+<Suppress Path="Microsoft-Windows-TaskScheduler/Operational">
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\LanguageComponentsInstaller\Installation')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\UpdateOrchestrator\Schedule Maintenance Work')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\UpdateOrchestrator\Schedule Wake To Work')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\UpdateOrchestrator\Schedule Work')]]) or
+(*[EventData[(Data[@Name='TaskName']='\GoogleUpdateTaskMachine{UAAFF76B46-DA4A-40B7-A0A6-9A0E506CD5DB}')]]) or
+(*[EventData[(Data[@Name='TaskName']='\MicrosoftEdgeUpdateTaskMachineUA')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\Flighting\OneSettings\RefreshCache')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\MemoryDiagnostic\RunFullMemoryDiagnostic')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\WindowsUpdate\RUXIM\PLUGScheduler')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\WindowsUpdate\Scheduled Start')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Office\Office Automatic Updates 2.0')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Adobe Acrobat Update Task')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Office\Office Feature Updates')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\Windows Error Reporting\QueueReporting')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\Customer Experience Improvement Program\Consolidator')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Mozilla\Firefox Background Update 308046B0AF4A39CB')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\CertificateServicesClient\SystemTask')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\CertificateServicesClient\UserTask')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Office\Office ClickToRun Service Monitor')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Mozilla\Firefox Background Update 308046B0AF4A39CB')]]) or
+(*[EventData[(Data[@Name='TaskName']='\Microsoft\Windows\SoftwareProtectionPlatform\SvcRestartTask')]])
+</Suppress>
+</Query>
+</QueryList>
+"@
     $taskSchedulerEvents =
-    Get-WinEvent -ProviderName 'Microsoft-Windows-TaskScheduler'| # Tested with FilterHashtable and no ProviderName Very slow. Using ProviderName seems faster. Need to test more vigorously.
-    Where LogName -eq 'Microsoft-Windows-TaskScheduler/Operational'|
+    Get-WinEvent -FilterXml $xmlfilter|                                         
     Where TimeCreated -ge $lastSavedEventCreatedDate|
-    Where Id -NotIn @(800, 808)|
+    Where Id -NotIn @(800, 808)|                                               
     Select @{Name = 'event_type_id'      ; Expression = {$_.Id}},
-        @{Name = 'event_type_name'       ; Expression={$_.TaskDisplayName}},     # is it taskdisplay? event code? event id?
+        @{Name = 'event_type_name'       ; Expression={$_.TaskDisplayName}},   # is it taskdisplay? event code? event id?
         @{Name = 'general_operation_code'; Expression={$_.OpcodeDisplayName}},
         @{Name = 'event_version'         ; Expression= {$_.Version}},          # I think this is the task version?
         @{Name = 'event_created'         ; Expression= {$_.TimeCreated}},
@@ -77,46 +117,46 @@ if ($actionToTake -in @('Replace from API', 'Append new events')) {
         @{Name = 'user_id'               ; Expression = {$_.UserId.Value}},     # UserId is a PSCustomObject, so take the string value
         @{Name = 'activity_id'           ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string.
         @{Name = 'record_id'             ; Expression = {$_.RecordId}},     # A rollover record id, but it gives us something to reference singular events. Sort of.
+
+        # I pre-create the eventdata custom attribute properties in hopes that it reduces population time.  This also flattens the structure so that where, sort, or group cmdlets don't fail intermittently when they hit a missing attribute.
+        
         @{Name = 'TaskName'              ; Expression = {[string]$null}},            
         @{Name = 'UserName'              ; Expression = {[string]$null}},           
         @{Name = 'InstanceId'            ; Expression = {[string]$null}},           
+        @{Name = 'QueuedTaskInstanceId'  ; Expression = {[string]$null}},           
+        @{Name = 'RunningTaskInstanceId' ; Expression = {[string]$null}},           
+        @{Name = 'TaskInstanceId'        ; Expression = {[string]$null}},           
         @{Name = 'UserContext'           ; Expression = {[string]$null}},           
         @{Name = 'ActionName'            ; Expression = {[string]$null}},           
         @{Name = 'ProcessID'             ; Expression = {[Int32]$null}},           
         @{Name = 'EnginePID'             ; Expression = {[Int32]$null}},           
-        @{Name = 'QueuedTaskInstanceId'  ; Expression = {[string]$null}},           
-        @{Name = 'ResultCode'            ; Expression = {[string]$null}},           
+        @{Name = 'ResultCode'            ; Expression = {[Int32]$null}},           
         @{Name = 'Path'                  ; Expression = {[string]$null}},           
         @{Name = 'Priority'              ; Expression = {[Int32]$null}},           
             Properties     #|Select -First 100
-    Write-Debug "Completed pull from API"
+    Write-Host "Completed pull from API"
     $scriptTimer.Elapsed.TotalSeconds
     $processEvents = ($taskSchedulerEvents.Count -gt 0); 
 }
 
 if ($processEvents) {
-    # Capture the various types in custom data, as string names so we can see if we need special handling.
-
-    $allTheCustomPropertyTypes = @()
-
-    # Since the properties of an event vary, we collect all the different ones here for review after.
-
-    $allTheCustomProperties = [PSCustomObject]@{}
-
     # if no event run cache, create. Big time savings exluding the dumb info.
     # Let's get all the events and save off the interesting ones, for speed. cache 'em
 
     # Pull a list of events classes, not event instances
 
     $taskSchedulerEventTypes = (Get-WinEvent -ListProvider 'Microsoft-Windows-TaskScheduler').Events
-
+    
     ############################################################################################################################################################################################################################################################################################################################################################################################################
     #
     #     Process all captured Events and pull apart the dynamically structured eventdata packet into discrete columns.
     #
     ############################################################################################################################################################################################################################################################################################################################################################################################################
+    $howManyNewEvents = 0
 
     Foreach ($taskSchedulerEvent in $taskSchedulerEvents) {
+                     
+        $howManyNewEvents++
 
         # We need the Event Id (aka Task, EventCode) to fetch the structure of the event data, mostly for the Template
 
@@ -132,9 +172,9 @@ if ($processEvents) {
 
         $eventCustomProperties = @()
 
-        # Multiple template nodes can exist.  The last one appears to be best?????????
+        # Multiple template nodes do exist for some event ids.  The last one appears to be best?????????
 
-        $lastTemplateIndex = @($eventType|Select Id -expand Template|Select-Xml -xpath '*').Count - 1
+        $lastTemplateIndex = @($eventType|Select -expand Template|Select-Xml -xpath '*').Count - 1
 
         # Get the event template from the specific event type so we can map eventdata values to attribute names
 
@@ -155,30 +195,9 @@ if ($processEvents) {
 
         # Now pull out the eventdata values
 
-        $taskSchedulerEvent.Properties|Foreach-Object {$i=0} { <############ WARNING! DO NOT PUT CURLY BRACE ON NEXT LINE! #>
-            $eventPropertyValue            = $_.Value # Save it BEFORE the switch DESTROYS the $_ and fills it with $eventPropertyValueType (ugh)
-            $eventPropertyValueType    = $_.Value.GetType().Name
-            $normalizedValue = ""
-
-            switch ($eventPropertyValueType) {
-                "String" {
-                    $normalizedValue = $eventPropertyValue
-                }
-                "Guid" { # Some types need a bit o' processing first
-                    $normalizedValue = $eventPropertyValue.Guid.ToString() # To string or it will still be a GUID object and not print.
-                }
-                "unsignedInt" {
-                    $normalizedValue = $eventPropertyValue.ToString()
-                }
-                "UInt32" {
-                    $normalizedValue = $eventPropertyValue.ToString()
-                }
-                default { 
-                    $normalizedValue = "?"
-                }
-            }
-
-            $eventCustomProperties[$i].property_value = $normalizedValue
+        $taskSchedulerEvent.Properties|
+        Foreach-Object {$i=0} { <############ WARNING! DO NOT PUT CURLY BRACE ON NEXT LINE! #>
+            $eventCustomProperties[$i].property_value = $_.Value
             $i++
         }
 
@@ -186,41 +205,14 @@ if ($processEvents) {
 
         $eventCustomProperties|Foreach-Object {
             $eventPropertyName = $_.property_name
-            $eventPropertyType = $_.property_type
-            if ($eventPropertyType -eq 'GUID') {
-                $eventPropertyType = 'string' # Let's not store and actual GUID type.
-            }                         
-            if ($eventPropertyType -eq 'string') {
-                $eventPropertyType = 'System.String'
-            }
-            $eventPropertyInTaskSchedulerEvent = [bool]($taskSchedulerEvent.PSObject.Properties.Name -eq "$eventPropertyName")
-            if (!$eventPropertyInTaskSchedulerEvent) {                                        
-                $taskSchedulerEvent | Add-Member NoteProperty -Name $eventPropertyName -Value $v -TypeName $eventPropertyType
-            }                                        
-
-            $v = $_.property_value
-            if ($v -eq '') {
-                $v = $null
-            }
-            $taskSchedulerEvent.$eventPropertyName = $v
-
-            if (@($allTheCustomProperties.PSObject.Properties).Count -eq 0) {
-                $allTheCustomProperties|Add-Member NoteProperty -Name $eventPropertyName -Value $v -TypeName $eventPropertyType
-            } else {
-                $eventPropertyInMasterListOfCustomProperties = [bool]($allTheCustomProperties.PSObject.Properties.Name -eq "$eventPropertyName")
-                if (!$eventPropertyInMasterListOfCustomProperties) {
-                    $allTheCustomProperties|Add-Member NoteProperty -Name $eventPropertyName -Value $v -TypeName $eventPropertyType
-                }
-            }
-            if (!$allTheCustomPropertyTypes.Contains($_.property_type))
-            {
-                $allTheCustomPropertyTypes+= $_.property_type
-            }
+            $taskSchedulerEvent.$eventPropertyName = $_.property_value
         }
-
-        $taskSchedulerEvent.PSObject.Properties.Remove('Properties')
-
-        $cleanTaskSchedulerEvents+= $taskSchedulerEvent
+         
+        # Don't add it if it's a stoopid windows task!!!
+        
+        if ($taskSchedulerEvent.TaskName.ToString() -notmatch '\\Microsoft\\Windows\\') {
+            $cleanTaskSchedulerEvents+= $taskSchedulerEvent
+        }
     }
 }
 
@@ -239,7 +231,7 @@ switch ($actionToTake) {
     'Append new events' {
         if ($processEvents) {
             $cleanTaskSchedulerEvents|Export-Clixml -Path "clean-task-scheduler-events.xml"
-            Write-Host "Wrote to xml file (appended), $howManyEvents events"
+            Write-Host "Wrote to xml file (appended), $howManyNewEvents events"
         }
     }
     'Reload from store' {
@@ -258,22 +250,21 @@ $scriptTimer.Elapsed.TotalSeconds
 
 # Scan our pile for any new task creations or deletions, or updates
                                                         
-$computer = $env:COMPUTERNAME
+$computer = $env:COMPUTERNAME # User ids vary between various prefixed ids or just the name.
 
 $cleanTaskSchedulerEvents|Select *|Where event_type_id -in @(113, 106, 116, 140, 141, 115, 142)|Where UserName -notin @('S-1-5-18')|
-Where TaskName -NotMatch '\\Microsoft\\'|
-Where TaskName -NotMatch '\\Adobe'|
 Select record_id, 
-        @{Name='task_full_path'; Expression={$_.TaskName}}, 
         event_type_name, 
         event_created,                                   
+        @{Name='task_full_path'                       ; Expression={$_.TaskName}}, 
         @{Name='event_created_as_sortable_str_with_ms'; Expression={$_.event_created.ToString('yyyy-MM-dd HH:mm:ss:fffff')}},  # The default output of datetime is only to seconds, and many of these related events are within milliseconds of each other, so ordering and understanding is improved when we can see which came first, and not depend on record_id
-        @{Name='UserName'; Expression={$_.UserName -eq '' ? $null : $_.UserName}}, 
-        @{Name='UserContext'; Expression={$_.UserContext -eq '' ? $null : $_.UserContext}} |
-        Select *, @{Name= 'user_id_raw'; Expression={($_.UserName ?? $_.UserContext).Replace($computer + '\', '')}}|
+        @{Name='UserName'                             ; Expression={$_.UserName -eq '' ? $null : $_.UserName}}, 
+        @{Name='UserContext'                          ; Expression={$_.UserContext -eq '' ? $null : $_.UserContext}},   #|
+        @{Name= 'user_id_raw'                         ; Expression={($_.UserName ?? $_.UserContext).Replace($computer + '\', '')}}|
         Select *,
-        @{Name='user_id'; Expression={Convert-SidToUser($_.user_id_raw)}} -ExcludeProperty UserContext, UserName|
-        Select * -ExcludeProperty user_id_raw|Sort event_created|  # Looks like datetime sorts including the ms portion even if it's not visible.
+        @{Name='user_id'                              ; Expression={Convert-SidToUser($_.user_id_raw)}} -ExcludeProperty UserContext, UserName, user_id_raw|
+        Select * -First 5|
+        Sort event_created|  # Looks like datetime sorts including the ms portion even if it's not visible.
         Format-Table
         
 # 113 Task registered task "%1" , but not all specified triggers will start the task. User Action: Ensure all the task triggers are valid as configured. Additional Data: Error Value: %2.                                                                                                    <template xmlns="http://schemas.microsoft.com/win/2004/08/e...
