@@ -30,13 +30,13 @@ if ($dbconnopen) {
     foreach ($foundfile in $listoffilesfound)
     {
         $escapedfile = $foundfile.Replace("'", "''")
-        Invoke-sql "UPDATE stage_for_master.files SET file_lost = false, last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '$escapedfile'"
+        Invoke-Sql "UPDATE stage_for_master.files SET file_lost = false, last_verified_full_path_present_on_ts_wth_tz = clock_timestamp() WHERE txt = '$escapedfile'"
         Write-Host -NoNewline '=' 
     }
     foreach ($missingfile in $listoffilesmissing)
     {
         $escapedfile = $missingfile.Replace("'", "''")
-        Invoke-sql "UPDATE stage_for_master.files SET file_lost = true, file_loss_detected_on_ts_wth_tz = clock_timestamp() WHERE txt = '$escapedfile'"
+        Invoke-Sql "UPDATE stage_for_master.files SET file_lost = true, file_loss_detected_on_ts_wth_tz = clock_timestamp() WHERE txt = '$escapedfile'"
         Write-Host -NoNewline '-'
     }
 }
