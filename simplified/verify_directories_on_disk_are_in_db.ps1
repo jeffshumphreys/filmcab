@@ -47,17 +47,22 @@
 
 . .\simplified\includes\include_filmcab_header.ps1 # local to base directory of base folder for some reason.
 
+$DBCmd.CommandText = 'SET search_path = simplified, "$user", public'
+$DBCmd.ExecuteNonQuery()
+
 $stack = New-Object System.Collections.Stack
 
 # All the directories across my volumes that I think have some sort of movie stuff in them.
 
 $paths = @("D:\qBittorrent Downloads\Video", "O:\Video AllInOne", "G:\Video AllInOne Backup", "D:\qBittorrent Downloads\_torrent files", 
-    "D:\qBittorrent Downloads\_finished_download_torrent_files", "C:\Users\jeffs\Downloads", # There's some not-movie stuff here, duh.
-    "D:\qBittorrent Downloads\temp")
+    "D:\qBittorrent Downloads\_finished_download_torrent_files", 
+    "C:\Users\jeffs\Downloads", # There's some not-movie stuff here, duh.
+    "D:\qBittorrent Downloads\temp" # Hmmm, what's in here
+    )
 
 foreach ($path in $paths) {
-    #Load first level
-    Get-ChildItem -Path $startpath -Directory| ForEach-Object { $stack.Push($_) }
+    #Load first level of hierarchy
+    Get-ChildItem -Path $path -Directory| ForEach-Object { $stack.Push($_) }
     #Recurse
 
     while($stack.Count -gt 0 -and ($item = $stack.Pop())) {
@@ -77,124 +82,148 @@ foreach ($path in $paths) {
                 $isarealdirectory     = $false
             }
             elseif ($item.LinkType -eq 'SymbolicLink') {
-                $currentjunctionlink  = $true
+                $currentsymboliclink  = $true
                 $currentlinktarget    = $item.LinkTarget
-                $currentsymboliclink  = $false
+                $currentjunctionlink  = $false
                 $isarealdirectory     = $false
             }
             else {
-                # Only traverse real directories
                 $currentsymboliclink  = $false
                 $currentjunctionlink  = $false
                 $currentlinktarget    = $null
-                $isarealdirectory     = $true
+                $isarealdirectory     = $true # Only traverse real directories
             }
 
             $directory_path_escaped = $directory_path.Replace("'", "''")
             $sql = "
-                SELECT directory_still_exists, is_symbolic_link, is_junction_link, linked_path, directory_date, directory_hash
-                FROM simplified.directories
-                WHERE directory_path = '$directory_path_escaped'
-                AND volume_id = (SELECT volume_id from simplified.volumes where drive_letter = '$currentdriveletter' )";
+                SELECT 
+                     directory_hash
+                   , directory_date
+                   , is_symbolic_link
+                   , is_junction_link
+                   , linked_path
+                   , directory_still_exists
+                FROM 
+                    directories
+                WHERE
+                    directory_path = '$directory_path_escaped'
+                AND 
+                    volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')";
             $sql
             $DBCmd.CommandText = $sql
             $reader = $DBCmd.ExecuteReader();
             $reader.Read() >> $null
 
-            $newdir                     = [boolean]$null
-            $updatedirectoryrecord      = [bool]$null
-            
-            $olddirstillexists          = [boolean]$null # Won't know till we query.
-            $oldsymboliclink            = [boolean]$null
-            $oldjunctionlink            = [boolean]$null
-            $oldlinktarget              = [string]$null
-            $olddirdriveletter          = [string]$null
+            $newdir                     =  [boolean]$null
+            $updatedirectoryrecord      =     [bool]$null
+             
+            $olddirstillexists          =  [boolean]$null # Won't know till we query.
+            $oldsymboliclink            =  [boolean]$null
+            $oldjunctionlink            =  [boolean]$null
+            $oldlinktarget              =   [string]$null
+            $olddriveletter             =   [string]$null
             $olddirectorydate           = [datetime]0
-            $olddirhash                 = [byte[]]$null
+            $olddirhash                 =   [byte[]]$null
 
             $newsymboliclink            = [bool]$null
             $newjunctionlink            = [bool]$null
-            $newlinktarget              = [string]$null
-            $newdirectorydate           = [datetime]0
-            $flagscandirectory          = [bool]$false
+            $newlinktarget              = [string]     $null
+            $flagscandirectory          = [bool]       $false
 
             if ($reader.HasRows) {
                 $newdir                     = $false
                 $updatedirectoryrecord      = $false
-                $olddirstillexists          = Get-SqlValue $reader 0
-                $oldsymboliclink            = Get-SqlValue $reader is_symbolic_link
-                $oldjunctionlink            = Get-SqlValue $reader 2
-                $oldlinktarget              = Get-SqlValue $reader 3
-                $olddirectorydate           = Get-SqlValue $reader 4
-                $olddirhash                 = Get-SqlValue $reader 5      # We can't exactly fetch the new id, or we don't really need it.
 
-                #$newsymboliclink            = $currentsymboliclink
+                $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists
+
+                $olddirhash                 = Get-SqlFieldValue $reader directory_hash
+                $oldsymboliclink            = Get-SqlFieldValue $reader is_symbolic_link
+                $oldjunctionlink            = Get-SqlFieldValue $reader is_junction_link
+                $oldlinktarget              = Get-SqlFieldValue $reader linked_path
+                $olddirectorydate           = Get-SqlFieldValue $reader directory_date
+
+                $newsymboliclink            = $currentsymboliclink
                 $newjunctionlink            = $currentjunctionlink
                 $newlinktarget              = $currentlinktarget
-                $newdriveletter             = $currentdriveletter
-                $newdirectorydate           = $currentdirectorydate
  
-                if ($null -eq $olddirstillexists -or $olddirstillexists -eq $false -or # We know the directory exists
-                    $oldsymboliclink -ne $currentsymboliclink -or
-                    $oldjunctionlink -ne $currentjunctionlink -or
-                    $currentdriveletter  -ne $olddirdriveletter -or
-                    $currentdirectorydate -ne $olddirectorydate
+                if ($olddirstillexists    -ne $true                    -or # We know the directory exists
+                    $oldsymboliclink      -ne $currentsymboliclink     -or
+                    $oldjunctionlink      -ne $currentjunctionlink     -or
+                    $oldlinktarget        -ne $currentlinktarget       -or
+                    $olddriveletter       -ne $currentdriveletter      -or
+                    $olddirectorydate     -ne $olddirectorydate
                 ) { 
                     $updatedirectoryrecord = $true
                 }
-                if ($currentdirectorydate -ne $olddirectorydate) # if it's lower than the old date, still trigger, though that's probably a buggy touch
-                {
-                    $flagscandirectory     = $true # date changes, set scan flag.
-                }
 
-                if ($currentlinktarget -ne $oldlinktarget) {
-                    $updatedirectoryrecord = $true
-                    if (-not ($newsymboliclink -or $newjunctionlink)) {
-                        # There's no link, so if we have something stored as a link, we need to delete it
-                        if ($oldlinktarget -ne '') {
-                            $newlinktarget         = $null
-                        }
-                    }
+                if ($olddirectorydate     -ne $currentdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
+                    $flagscandirectory     = $true # Warning: Overridden below if any links involved
                 }
             } else {
                 $newdir            = $true
-                $flagscandirectory = $true
+                $flagscandirectory = $true # Warning: Overridden below if any links involved
             }
             $reader.Close()
             
+            if ($null -eq $currentlinktarget) {
+                $currentlinktarget = '' # Give it something to test in SQL side
+            }
+            if ($null -eq $newlinktarget) {
+                $newlinktarget = ''
+            }
+
+            if ($newjunctionlink -or $newjunctionlink -or $currentjunctionlink -or $currentjunctionlink) {
+                $flagscandirectory = $false # Please do not traverse links. Even if the directory date changed.
+            }
+    
             # Do insert outside of the reader.
-            if ($newdir) { #even if it's a link
-                Write-Host "New Directory: $directory_path on $newdriveletter" 
-                $formattednewdirectorydate = $newdirectorydate.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")
+            if ($newdir) { #even if it's a link, we store it
+                Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
+                $formattedcurrentdirectorydate = $currentdirectorydate.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")
+                $currentlinktarget = $currentlinktarget.Replace("'", "''") # Pesky apostphrs
                 $sql = "
-                    INSERT INTO simplified.directories(directory_hash, directory_path, parent_directory_hash, directory_date, volume_id, directory_still_exists, scan_directory, is_symbolic_link, is_junction_link, linked_directory_path)
+                    INSERT INTO 
+                        directories(
+                            directory_hash, 
+                            directory_path, 
+                            parent_directory_hash, 
+                            directory_date, 
+                            volume_id, 
+                            directory_still_exists, 
+                            scan_directory, 
+                            is_symbolic_link, 
+                            is_junction_link, 
+                            linked_path
+                        )
                     VALUES(
-                        /*directory_hash*/         md5(array_to_string((string_to_array(SUBSTRING('$directory_path', 1), '/'))[:(howmanychar('$directory_path', '/'))], '/'))::bytea,
-                        /*directory_path*/         '$directory_path',
-                        /*parent_directory_hash*/  md5(array_to_string((string_to_array(SUBSTRING('$directory_path', 1), '/'))[:(howmanychar('$directory_path', '/')-1)], '/'))::bytea,
-                        /*directory_date*/         '$formattednewdirectorydate'::TIMESTAMPTZ,
-                        /*volume_id*/              (select volume_id from simplified.volumes where currentdriveletter  = '$newdriveletter'),
-                        /*directory_still_exists*/ True,
-                        /scan_directory*/          True,
-                        $newsymboliclink,
-                        $newjunctionlink,
-                        '$newlinktarget'
+                        /*     directory_hash         */    md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
+                        /*     directory_path         */    REPLACE('$directory_path', '/', '\'),
+                        /*     parent_directory_hash  */    md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
+                        /*     directory_date         */  '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
+                        /*     volume_id              */   (select volume_id from volumes where drive_letter  = '$currentdriveletter'),
+                        /*     directory_still_exists */    True,
+                        /*     scan_directory         */   $flagscandirectory,
+                        /*     is_symbolic_link       */   $currentsymboliclink,
+                        /*     is_junction_link       */   $currentjunctionlink,
+                        /*     linked_path            */    CASE WHEN '$currentlinktarget' = '' THEN NULL ELSE '$currentlinktarget' END
                     )
                 "
                 $sql
-                #$DBCmd.CommandText = $sql
-                #$DBCmd.ExecuteNonQuery()
+                $DBCmd.CommandText = $sql
+                $DBCmd.ExecuteNonQuery()
             } elseif ($updatedirectoryrecord) {
-                if ($newjunctionlink -or $newjunctionlink) {
-                    $flagscandirectory = $false # Please do not traverse links.
-                }
-                $sql = "UPDATE simplified.directories
-                    set scan_directory     = $flagscandirectory,
-                    is_symbolic_link       = $newsymboliclink,
-                    is_junction_link       = $newjunctionlink,
-                    linked_directory_path  = '$newlinktarget',
-                    directory_still_exists = True
-                    WHERE directory_hash   = '$olddirhash'::bytea"
+                $newlinktarget = $newlinktarget.Replace("'", "''")
+                $sql = "
+                    UPDATE 
+                        simplified.directories
+                    SET
+                        scan_directory         = $flagscandirectory,
+                        is_symbolic_link       = $newsymboliclink,
+                        is_junction_link       = $newjunctionlink,
+                        linked_directory_path  =  CASE WHEN '$newlinktarget' = '' THEN NULL ELSE '$newlinktarget' END,
+                        directory_still_exists = True
+                    WHERE 
+                        directory_hash         = '$olddirhash'::bytea"
                 $sql
                 #$DBCmd.CommandText = $sql
                 #$rowsupdated = $DBCmd.ExecuteNonQuery()
