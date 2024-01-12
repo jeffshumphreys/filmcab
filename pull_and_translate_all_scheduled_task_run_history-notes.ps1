@@ -407,3 +407,41 @@ Count Name                      Group
  3297 140                       {@{event_type_id=140; general_operation_code=Info; event_version=0; event_created=12/29/2023 4:25:37 PM; event_message=User "WORKGROUP\DSKTP-HOME-JEFF$"  updated Task Scheduler task "\Microsoft\Windows\WindowsUpdate\RUXIM\… 
 
 #>
+#$allTheCustomProperties|Select *
+<#
+    TaskName             : \test_log_sys
+    UserName             : DSKTP-HOME-JEFF\jeffs
+    UserContext          : DSKTP-HOME-JEFF\jeffs
+    ActionName           : D:\qt_projects\filmcab\General\test_log_sys.ps1
+    ProcessID            : 29716
+    EnginePID            : 29716
+    InstanceId           : b76b863d-d8f7-4f08-b07a-fdd5a9ef9ffd
+    TaskInstanceId       : b76b863d-d8f7-4f08-b07a-fdd5a9ef9ffd
+    QueuedTaskInstanceId : 3da0aa36-b08d-4667-83fe-e076a098b0d2
+    ResultCode           : 2147942593
+    Path                 : %ProgramFiles%\RUXIM\PLUGscheduler.exe
+    Priority             : 16384
+#>
+
+#$allTheCustomPropertyTypes
+
+
+<#
+$cleanTaskSchedulerEvents|Select *|Select @{Name='TaskName';Expression={$_.TaskName.Replace('{','').Replace('}', '')}}|Group TaskName|Sort Count -Descending
+1264 \GoogleUpdateTaskMachine… {@{TaskName=\GoogleUpdateTaskMachineUAAFF76B46-DA4A-40B7-A0A6-9A0E506CD5DB}, @{TaskName=\GoogleUpdateTaskMachineUAAFF76B46-DA4A-40B7-A0A6-9A0E506CD5DB}, @{TaskName=\GoogleUpdateTaskMachineUAAFF76B46-DA4A-40B7-A0A6-9A0E506C… 
+  825 \test_log_sys             {@{TaskName=\test_log_sys}, @{TaskName=\test_log_sys}, @{TaskName=\test_log_sys}, @{TaskName=\test_log_sys}…}
+   54 \Microsoft\VisualStudio\… {@{TaskName=\Microsoft\VisualStudio\VSIX Auto Update}, @{TaskName=\Microsoft\VisualStudio\VSIX Auto Update}, @{TaskName=\Microsoft\VisualStudio\VSIX Auto Update}, @{TaskName=\Microsoft\VisualStudio\VSIX Auto Update}…}       
+   48 \Git for Windows Updater  {@{TaskName=\Git for Windows Updater}, @{TaskName=\Git for Windows Updater}, @{TaskName=\Git for Windows Updater}, @{TaskName=\Git for Windows Updater}…}
+   48 \GoogleUpdateTaskMachine… {@{TaskName=\GoogleUpdateTaskMachineCoreBC91BB73-D4D5-4CCB-A3DA-CFC5AA666225}, @{TaskName=\GoogleUpdateTaskMachineCoreBC91BB73-D4D5-4CCB-A3DA-CFC5AA666225}, @{TaskName=\GoogleUpdateTaskMachineCoreBC91BB73-D4D5-4CCB-A3DA-CF… 
+   48 \MicrosoftEdgeUpdateTask… {@{TaskName=\MicrosoftEdgeUpdateTaskMachineCore}, @{TaskName=\MicrosoftEdgeUpdateTaskMachineCore}, @{TaskName=\MicrosoftEdgeUpdateTaskMachineCore}, @{TaskName=\MicrosoftEdgeUpdateTaskMachineCore}…}
+   48 \Mozilla\Firefox Default… {@{TaskName=\Mozilla\Firefox Default Browser Agent 308046B0AF4A39CB}, @{TaskName=\Mozilla\Firefox Default Browser Agent 308046B0AF4A39CB}, @{TaskName=\Mozilla\Firefox Default Browser Agent 308046B0AF4A39CB}, @{TaskName=\Mo… 
+   48 \OneDrive Per-Machine St… {@{TaskName=\OneDrive Per-Machine Standalone Update Task}, @{TaskName=\OneDrive Per-Machine Standalone Update Task}, @{TaskName=\OneDrive Per-Machine Standalone Update Task}, @{TaskName=\OneDrive Per-Machine Standalone Upd… 
+   48 \OneDrive Reporting Task… {@{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-3554011381-420227292-1001}, @{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-3554011381-420227292-1001}, @{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-… 
+   34 \6b0f4ef7-aae8-40e4-87b8… {@{TaskName=\6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}, @{TaskName=\6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}, @{TaskName=\6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}, @{TaskName=\6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}…}
+   12 \Dell SupportAssistAgent… {@{TaskName=\Dell SupportAssistAgent AutoUpdate}, @{TaskName=\Dell SupportAssistAgent AutoUpdate}, @{TaskName=\Dell SupportAssistAgent AutoUpdate}, @{TaskName=\Dell SupportAssistAgent AutoUpdate}…}
+    8 \OneDrive Reporting Task… {@{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-3554011381-420227292-1007}, @{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-3554011381-420227292-1007}, @{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-… 
+    8 \OneDrive Reporting Task… {@{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-3554011381-420227292-1009}, @{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-3554011381-420227292-1009}, @{TaskName=\OneDrive Reporting Task-S-1-5-21-260979430-… 
+    7 \Microsoft\VisualStudio\… {@{TaskName=\Microsoft\VisualStudio\Updates\UpdateConfiguration_S-1-5-21-260979430-3554011381-420227292-1001}, @{TaskName=\Microsoft\VisualStudio\Updates\UpdateConfiguration_S-1-5-21-260979430-3554011381-420227292-1001}, @… 
+    4 \Microsoft\VisualStudio\… {@{TaskName=\Microsoft\VisualStudio\Updates\UpdateConfiguration_S-1-5-21-260979430-3554011381-420227292-1007}, @{TaskName=\Microsoft\VisualStudio\Updates\UpdateConfiguration_S-1-5-21-260979430-3554011381-420227292-1007}, @… 
+    1 NT TASK\test_log_sys      {@{TaskName=NT TASK\test_log_sys}}
+#>
