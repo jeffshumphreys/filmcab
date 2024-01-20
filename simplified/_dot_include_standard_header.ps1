@@ -169,7 +169,8 @@ function Invoke-Sql {
     )
     try {
         $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set?
-        [void] $DatabaseCommand.ExecuteNonQuery();
+        [Int32] $howManyRowsAffected = $DatabaseCommand.ExecuteNonQuery();
+        return $howManyRowsAffected
     } catch {   
         Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
     }
