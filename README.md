@@ -1,9 +1,9 @@
 # FilmCab
 This repository is the code base for a Powershell desktop application that manages my movie and television collection, and also collects as much metadata as is available. I chose the name FilmCab as an abbreviation of Film Cabinet.  The cabinet itself is just physical drives, though, and this does more than that.  It's a film collector management program.  Perhaps FilmColl would be better.  But I've gotten attached to the name now.
 
-The code is now all written using PowerShell 7 Core, ODBC, and PostgreSQL 15. I use the Visual Studio Code editor to write code, using the PowerShell Extension (Pre-Release Edition).
+The code is now all being rewritten using PowerShell 7 Core, ODBC, and PostgreSQL 15. I use the Visual Studio Code editor to write code, using the PowerShell Extension (Pre-Release Edition).  C++ and Qt are off the table for now.
 
-The code has been simplified to a set of Windows Task Scheduler Task. Each Task runs a Powershell script of the same name as the Task so as to ease debugging.
+The code is being simplified to a set of Windows Task Scheduler Task. Each Task runs a Powershell script of the same name as the Task so as to ease debugging.
 
 The goal I'm driving towards is automating all the things I now do manually: Search torrent sites and starting downloads, adding torrent and payload detail to a database, backing up large files that are easily lost as drives shift or fail, etc.
 
