@@ -136,8 +136,10 @@ function Show-Error {
     # WARNING: DONT use Write-Error. The code will stop. It's really "Write-then-Error"
     Write-Host $scriptWhichProducedError
     Write-Host "Message: $($_.Exception.Message)"
-    Write-Host "StackTrace: $($_.Exception.StackTrace)"
-    Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)" -ErrorAction Ignore  # Some exceptions don't have a loader exception.
+    Write-Host "StackTrace: $($_.Exception.StackTrace)"             
+    try {
+    Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
+    } catch {}
     
     if (-not $DontExit) {                                                              # Double-negative. Meh.
         exit($exitcode); # These don't seem to get back to the Task Scheduler 
@@ -540,6 +542,40 @@ Function New-ArrayIndex {
 # Close does not delete the entry from pg_stat_activity, nor does Dispose
 # It seems to decay on it's own.
 
+<#
+.SYNOPSIS
+Humanize labels for numbers in output to humans.
+
+.DESCRIPTION
+Long description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER number
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
+Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null) {
+    if ($number -eq 1) {return $singularLabel}
+    If ([String]::IsNullOrEmpty($pluralLabel)) {
+        if ($singularLabel.Substring(-1) -eq 'y') { $pluralLabel = $singularLabel.TrimEnd('y') + 'ies'}  # Directory => Directories
+        elseif ($singularLabel.Substring(-1) -eq 's') { $pluralLabel = $singularLabel + 'es'}            # Dress => Dresses
+        else {
+            $pluralLabel = $singularLabel + 's'                                                          # Cat => Cats
+        }
+    }
+    if ($number -ge 2 -or $number -eq 0) { return $pluralLabel}
+    return '?'
+}
 function main_for_dot_include_standard_header() {
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
@@ -587,8 +623,8 @@ function main_for_dot_include_standard_header() {
     $Script:AttemptedToConnectToDatabase = $true
 
     if ($DatabaseConnectionIsOpen) {
-        Invoke-Sql "SET application_name to '$($Script:ScriptName)'"    
-        Invoke-Sql 'SET search_path = simplified, "$user", public'       # I'm in the simplified folder. So just set this here.
+        Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
+        Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
     }
 }
 main_for_dot_include_standard_header # So as not to collide with dot includer
