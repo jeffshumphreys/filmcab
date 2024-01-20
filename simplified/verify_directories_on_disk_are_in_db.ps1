@@ -44,25 +44,34 @@
                     -D:\qBittorrent Downloads\Video\Movies\Blade.I.II.III.1998-2004.The.Ultimate.Collection.1080p.Bluray.x264.anoXmous\03.Blade.Trinity.2004.1080p.BluRay.x264.anoXmous     Collections of movies
 
 #>
+                                                                 
+# Full path necessary for scheduled tasks to work? I'm not using Scheduler's working directory option since I don't know if it works
 
-. .\simplified\includes\include_filmcab_header.ps1 # local to base directory of base folder for some reason.
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
 
-$DBCmd.CommandText = 'SET search_path = simplified, "$user", public'
-$DBCmd.ExecuteNonQuery()
+Invoke-Sql 'SET search_path = simplified, "$user", public'
 
 $stack = New-Object System.Collections.Stack
 
 # All the directories across my volumes that I think have some sort of movie stuff in them.
 
-$paths = @("D:\qBittorrent Downloads\Video", "O:\Video AllInOne", "G:\Video AllInOne Backup", "D:\qBittorrent Downloads\_torrent files", 
+$paths = @(
+    "D:\qBittorrent Downloads\Video", 
+    "O:\Video AllInOne", 
+    "G:\Video AllInOne Backup", 
+    "D:\qBittorrent Downloads\_torrent files", 
     "D:\qBittorrent Downloads\_finished_download_torrent_files", 
-    "C:\Users\jeffs\Downloads", # There's some not-movie stuff here, duh.
-    "D:\qBittorrent Downloads\temp" # Hmmm, what's in here
+    "C:\Users\jeffs\Downloads",                                            # There's some not-movie stuff here, duh.
+    "D:\qBittorrent Downloads\temp"                                        # Hmmm, what's in here
     )
 
 foreach ($path in $paths) {
     #Load first level of hierarchy
-    Get-ChildItem -Path $path -Directory| ForEach-Object { $stack.Push($_) }
+    if (-not(Test-Path $path)) {
+        Write-Host "path $path not found; skipping scan."
+        return # the PS way to continue, whereas PS continue is break
+    }
+    Get-ChildItem -Path $path -Directory | ForEach-Object { $stack.Push($_) }
     #Recurse
 
     while($stack.Count -gt 0 -and ($item = $stack.Pop())) {
@@ -103,16 +112,14 @@ foreach ($path in $paths) {
                    , is_junction_link
                    , linked_path
                    , directory_still_exists
+                   , directory_path
                 FROM 
                     directories
                 WHERE
                     directory_path = '$directory_path_escaped'
                 AND 
                     volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')";
-            $sql
-            $DBCmd.CommandText = $sql
-            $reader = $DBCmd.ExecuteReader();
-            $reader.Read() >> $null
+            $reader = (Select-Sql $sql).Value # Cannot return value directly
 
             $newdir                     =  [boolean]$null
             $updatedirectoryrecord      =     [bool]$null
@@ -122,21 +129,21 @@ foreach ($path in $paths) {
             $oldjunctionlink            =  [boolean]$null
             $oldlinktarget              =   [string]$null
             $olddriveletter             =   [string]$null
-            $olddirectorydate           = [datetime]0
-            $olddirhash                 =   [byte[]]$null
+            $olddirectorydate           = [datetime]0     # No $nulls for datetime type.
+            # For additional functionality later: $olddirhash   [byte[]]$null
 
-            $newsymboliclink            = [bool]$null
-            $newjunctionlink            = [bool]$null
-            $newlinktarget              = [string]     $null
-            $flagscandirectory          = [bool]       $false
+            $newsymboliclink            = [bool]    $null
+            $newjunctionlink            = [bool]    $null
+            $newlinktarget              = [string]  $null
+            $flagscandirectory          = [bool]    $false
 
             if ($reader.HasRows) {
                 $newdir                     = $false
                 $updatedirectoryrecord      = $false
-
+                                   
                 $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists
 
-                $olddirhash                 = Get-SqlFieldValue $reader directory_hash
+                #For additional functionality later: $olddirhash $olddirhash                 = Get-SqlFieldValue $reader directory_hash
                 $oldsymboliclink            = Get-SqlFieldValue $reader is_symbolic_link
                 $oldjunctionlink            = Get-SqlFieldValue $reader is_junction_link
                 $oldlinktarget              = Get-SqlFieldValue $reader linked_path
@@ -197,7 +204,7 @@ foreach ($path in $paths) {
                         )
                     VALUES(
                         /*     directory_hash         */    md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
-                        /*     directory_path         */    REPLACE('$directory_path', '/', '\'),
+                        /*     directory_path         */    REPLACE('$directory_path_escaped', '/', '\'),
                         /*     parent_directory_hash  */    md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
                         /*     directory_date         */  '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
                         /*     volume_id              */   (select volume_id from volumes where drive_letter  = '$currentdriveletter'),
@@ -220,13 +227,14 @@ foreach ($path in $paths) {
                         scan_directory         = $flagscandirectory,
                         is_symbolic_link       = $newsymboliclink,
                         is_junction_link       = $newjunctionlink,
-                        linked_directory_path  =  CASE WHEN '$newlinktarget' = '' THEN NULL ELSE '$newlinktarget' END,
+                        linked_path  =  CASE WHEN '$newlinktarget' = '' THEN NULL ELSE '$newlinktarget' END,
                         directory_still_exists = True
                     WHERE 
-                        directory_hash         = '$olddirhash'::bytea"
+                        directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
                 $sql
-                #$DBCmd.CommandText = $sql
-                #$rowsupdated = $DBCmd.ExecuteNonQuery()
+                $DBCmd.CommandText = $sql
+                $rowsupdated = $DBCmd.ExecuteNonQuery()
+                Write-Host "Updated $rowsupdated"
             }
 
             if ($isarealdirectory) {
