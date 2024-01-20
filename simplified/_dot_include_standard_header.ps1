@@ -587,6 +587,7 @@ function main_for_dot_include_standard_header() {
 
     if ($DatabaseConnectionIsOpen) {
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'"    
+        Invoke-Sql 'SET search_path = simplified, "$user", public'       # I'm in the simplified folder. So just set this here.
     }
 }
 main_for_dot_include_standard_header # So as not to collide with dot includer
