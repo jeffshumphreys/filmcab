@@ -49,8 +49,6 @@
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
 
-Invoke-Sql 'SET search_path = simplified, "$user", public'
-
 $stack = New-Object System.Collections.Stack
 
 # All the directories across my volumes that I think have some sort of movie stuff in them.
@@ -158,17 +156,17 @@ foreach ($path in $paths) {
                     $oldjunctionlink      -ne $currentjunctionlink     -or
                     $oldlinktarget        -ne $currentlinktarget       -or
                     $olddriveletter       -ne $currentdriveletter      -or
-                    $olddirectorydate     -ne $olddirectorydate
+                    $olddirectorydate     -ne $currentdirectorydate
                 ) { 
                     $updatedirectoryrecord = $true
                 }
 
                 if ($olddirectorydate     -ne $currentdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
-                    $flagscandirectory     = $true # Warning: Overridden below if any links involved
+                    $flagscandirectory     = $true 
                 }
             } else {
                 $newdir            = $true
-                $flagscandirectory = $true # Warning: Overridden below if any links involved
+                $flagscandirectory = $true 
             }
             $reader.Close()
             
