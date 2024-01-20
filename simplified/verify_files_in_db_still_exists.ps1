@@ -4,7 +4,8 @@
 
     This is done early in the batch so as to reduce labor later, trying to generate hashes on nonexistent files, listing files a dups when one doesn't exist.
 #>
-. .\simplified\includes\include_filmcab_header.ps1 # local to base directory of base folder for some reason.
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
 
 $listoffilesmissing = @()
 $listoffilesfound = @()
