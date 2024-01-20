@@ -1,113 +1,352 @@
 <#
     Put in profile? No, I want it to be part of the codebase. Else any idiot using this code will be in the lurch.
     Rename to "standard_include_header"? But leave it as a cut&paste copy into app folders? Makes git easier. Or we make a module. Hmmmmmmm.
+
+    Framework Notes: 
+        ###### Fri Jan 19 12:50:09 MST 2024
+        PS Core 7.4.1 (C:\Program Files\PowerShell\7\pwsh.exe)
+        PowerShell for Visual Studio Code: v2024.1.0 Pre-Release
+        Install-Module -Name PowerShellGet -Repository PSGallery -Scope CurrentUser -Force -AllowClobber.
+        Install-Module -Name 'PSRule' -Repository PSGallery -Scope CurrentUser           # https://microsoft.github.io/PSRule/stable/install-instructions/
+
+        Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
 #>                                                                                                                
 
-# Seems to close the popup console window almost immediately if you're calling from Windows Task Scheduler.
+param()
 
-add-type -name user32 -namespace win32 -memberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
-$consoleHandle = (get-process -id $pid).mainWindowHandle
-[void][win32.user32]::showWindow($consoleHandle, 0)
+# Following code seems to close the popup console window almost immediately if you're calling from Windows Task Scheduler. At least very fast.  I like things that run in the background to run in the background.
 
-$ErrorActionPreference = 'Stop'
-Set-StrictMode -Version Latest
-$scriptTimer = [Diagnostics.Stopwatch]::StartNew()   # Host to use: $scriptTimer.Elapsed.TotalSeconds                  
+    Add-Type -name user32 -namespace win32 -memberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
+    $consoleHandle = (get-process -id $pid).mainWindowHandle
+    [void][win32.user32]::showWindow($consoleHandle, 0)
 
-# This needs parameterization, obviously.  Don't steal my password!
+############## Environment things FORCED on the user of this dot file.
 
-$MyServer = "localhost";$MyPort  = "5432";$MyDB = "filmcab";$MyUid = "postgres";$MyPass = "postgres"
-$DBConn = New-Object System.Data.Odbc.OdbcConnection;
-$connString = "Driver={PostgreSQL UNICODE(x64)};Server=$MyServer;Port=$MyPort;Database=$MyDB;Uid=$MyUid;Pwd=$MyPass;";
-$DBConn.ConnectionString = $connString
-$dbconnopen = $false
-try {
-    $DBConn.Open();
-    $dbconnopen = $true;
-} catch {
-    Write-Error "Message: $($_.Exception.Message)"
-    Write-Error "StackTrace: $($_.Exception.StackTrace)"
-    Write-Error "LoaderExceptions: $($_.Exception.LoaderExceptions)"
-    $dbconnopen = $false;
-    exit(2);
-}
+    # Stop on an error, please.  Lazy shits at City of Boise prefer scripts that NEVER error in production - even if there's an issue.
+    $ErrorActionPreference = 'Stop'            
 
-$DBCmd = $DBConn.CreateCommand();
-                                                                                        
+    # This makes the run Stop if attempting to use an unassigned variable. Lazy shits at City of Boise prefer scripts that NEVER error in production - even if there's an issue. How did I ever survive in this crap worthless world of hacks???
+
+    Set-StrictMode -Version Latest
+
+    # Always time everything.  Eventually you will always want to know how long the damn script ran.
+
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $scriptTimer = [Diagnostics.Stopwatch]::StartNew()   # Host to use: $scriptTimer.Elapsed.TotalSeconds                  
+
+############ Capture some common globals.  I don't remember "$env:". Ever.
+                                                                                                                                
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $MyComputerName = $env:COMPUTERNAME     # DSKTP-HOME-JEFF            
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $OneDriveDirectory = $env:OneDrive   # D:\OneDrive
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $OSUserName = $env:USERNAME   # jeffs
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $OSUserFiles       = $env:USERPROFILE    # C:\Users\jeffs
+
+    # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
+
+    $MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
+
+    if ([String]::IsNullOrEmpty($masterScriptPath)) {                                                                
+        # So instead of "ScriptName", we've got "Line", "Statement", "MyCommand" (which is actually the Script Name), and "PositionMessage" which is a bit messy, but could be used to get the caller.
+        $MasterScriptPath = $MyInvocation.Line.Trim("`'. ") # No ScriptName if running this file directly, just Line = . 'D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1'  This of course will devolve over PS versions. Why? Because developer constantly finesse stuff and break code.
+    }                                          
+    
+    # For debugging/logging, when was this file changed? When a script changes, you can toss all previous testing out the window.  This script HASNT been tested.  When did your error first occur? Right after the last write time changed? Interesting, maybe it was what changed that broke.
+                                                                                          
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $FileTimeStampForParentScript = (Get-Item -Path $MasterScriptPath).LastWriteTime
+    
+    # We're going to call "scriptName" the Name WITHOUT the bloody directory it's in. I'm torn on name with or without extension - BUT since two files can have same base name with different extensions, and soon there'll be a "ps2" (kidding?), we might as well be careful.
+     
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $ScriptName = (Get-Item -Path $masterScriptPath).Name # Unlike "BaseName" this includes the extension
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Base name is nice for labelling
+
+    # Maybe grab HistoryId for how many runs in this session. Debug meta? Note that it resets if the powershell terminal is killt.
+                                                                                          
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $CurrentDebugSessionNo = $MyInvocation.HistoryId
+    
 <#
 .SYNOPSIS
-Mostly just to reduce caller bloat.  There's no $DBCmd.ExecuteNonQuery("Select 1") like there is in C#. And I don't think Powershell supports extended functions.
+Use in parameter [ValidateScript] call.  Only way I can find to fully document and test for the possibilities.
 
-.DESCRIPTION                                                                                                          
-Also captures as much error detail as it can. Forces a stoppage even if ErrorAction is not Stop.  That's probably bad.
+.DESCRIPTION
+Trap these problems as early as possible, and get good error messages about what happened.
 
-.PARAMETER sql
-Parameter description
+.PARAMETER s
+The string we're testing.
+
+.PARAMETER varname
+The name of the parameter testing for documentation only.
 
 .EXAMPLE
-An example
+ [CmdletBinding()]
+    param(           
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+    )
 
 .NOTES
 General notes
 #>
-function Invoke-Sql ($sql) {
-    $DBCmd.CommandText = $sql
-    try {
+function Assert-MeaningfulString([string]$s, $varname = 'string') {
+    if ($null -eq $s){                            # Inquiring minds want to know.  Send me 4 spaces?  Big clue.  Not the same as being sent a null.
+        throw "Your $varname is null."
+    } elseif ([string]::IsNullOrEmpty($s)){
+        throw "Your $varname is an empty string."
+    } elseif ([string]::IsNullOrWhiteSpace($s)){                 # The number of blanks may matter.  I've had places where secretaries cut and paste from the web or Excel and drop an NL in there.  Worth a test (need to add)
+        throw "Your $varname is an blank string of $($s.Length)."
+    } else {
+        $true
+    }
+}
+<#
+.SYNOPSIS
+Display all the error messages availale and exit.
 
-        [void] $DBCmd.ExecuteNonQuery();
-    } catch {
-        Write-Error $sql
-        Write-Error "Message: $($_.Exception.Message)"
-        Write-Error "StackTrace: $($_.Exception.StackTrace)"
-        Write-Error "LoaderExceptions: $($_.Exception.LoaderExceptions)"
-        exit(1);
+.DESCRIPTION
+Initially I had cut and pasted this code around - until I suddenly noticed it was only display the first "Write-Error"!  I converted to Write-Host, but all the copies. Ugh.  And the failing on LoaderExceptions which isn't always there.
+
+.PARAMETER scriptWhichProducedError
+Usually sql, but not necessarily. Yes it reveals secrets to the hack types, I don't care I want to see what failed.  Maintenance before security.
+
+.PARAMETER exitcode
+If DontExit is false, then what number to return to the OS?
+
+.PARAMETER DontExit
+I default to exiting when there's an error.  My thing. Even in production. Explicitly tell me you've got it covered.
+
+.EXAMPLE
+Show-Error -exitcode 23920  #(Int32 I think is Windows limit)
+
+.NOTES
+Could be enhanced. Log to file. Detect new errors, which are more important in debugging. Often lazy developers ignore errors in a priority basis.
+#>
+function Show-Error {
+    param(
+        [Parameter(Position=0,mandatory=$false)]        [string]$scriptWhichProducedError,    
+        [Parameter(Position=1,mandatory=$false)]        [int32] $exitcode = 1, # non-zero generally means failure in executable world
+        [switch]$DontExit # switches always default to false. I forget that sometimes.
+    )                                                                        
+
+    # WARNING: DONT use Write-Error. The code will stop. It's really "Write-then-Error"
+    Write-Host $scriptWhichProducedError
+    Write-Host "Message: $($_.Exception.Message)"
+    Write-Host "StackTrace: $($_.Exception.StackTrace)"
+    Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)" -ErrorAction Ignore  # Some exceptions don't have a loader exception.
+    
+    if (-not $DontExit) {                                                              # Double-negative. Meh.
+        exit($exitcode); # These don't seem to get back to the Task Scheduler 
+    }
+}
+                                                                                        
+<#
+.SYNOPSIS
+Execute SQL commands.
+
+.DESCRIPTION                                                                                                          
+Also captures as much error detail as it can. Forces a stoppage even if ErrorAction is not Stop.  That's probably bad.
+Mostly just to reduce caller bloat.  There's no $DatabaseCommand.ExecuteNonQuery("Select 1") like there is in C#. And I don't think Powershell supports extended functions.
+Doesn't capture return values.
+
+.PARAMETER sql
+Script to execute.
+
+.EXAMPLE
+Invoke-Sql 'SET search_path = simplified, "$user", public'
+
+.NOTES
+Also good way to enforce some sort of error response. Damn! Even displays the sql executed!!!!!!! Hell has broken out on the face of the Earth!
+#>
+function Invoke-Sql {
+    [CmdletBinding()]
+    param(           
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+    )
+    try {
+        $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set?
+        [void] $DatabaseCommand.ExecuteNonQuery();
+    } catch {   
+        Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
     }
 }
 
+
 <#
 .SYNOPSIS
-Getting a value from a DbDataReader record is a tad more typing, and remembering than I like.
+Execute a SELECT statement and return a traversable cursor.
 
 .DESCRIPTION
-I wanted to get a column value either by it's ordinal # or it's column name. And, if it happens to be DBNull, pretty please just return a $null?  Is that rally hard?
+Tired of rekeying this code over and over. I usually (always) only need one reader ever open in on thread. So this works.
+
+.PARAMETER sql
+SQL script that I guess could execute a function (stored proc) that returned a result set, but I use it for selects. Not for batches, though.
+
+.EXAMPLE
+$reader = (Select-Sql 'SELECT * FROM t').Value          # Cannot return DatabaseColumnValue directly
+
+.NOTES
+There is no way to return a LOCALLY INSTANTIATED ODBCDataReader object as a DatabaseColumnValue. It will always ALWAYS resolve to null for the caller. I wish the example would be "$reader = Select-Sql 'select 1'" but I can't get it to work. hmmmmmmm
+#>
+Function Select-Sql {
+    [CmdletBinding()]
+    param(           
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+    )
+    try {
+        $DBReaderCommand = New-Object [Data.Common.DbDataReader]
+        $DBReaderCommand.CommandText = $sql
+        $reader = [REF]$DBReaderCommand.ExecuteReader();
+        $reader = $reader.Value
+        $reader.Read() >> $null   
+        return [REF]$reader                      # Forces caller to deref!!!!! But only way to get it to work.
+    } catch {
+        Show-Error $sql -exitcode 2
+    }   
+}
+                               
+<#
+.SYNOPSIS
+Fetch a typed DatabaseColumnValue from a reader by either ordinal or name.
+
+.DESCRIPTION
+Not as easy as it looks.
 
 .PARAMETER reader
 Parameter description
 
-.PARAMETER ordinal
-Either an integer or a string. I suppose if you send a string ordinal over, it'll crash.
+.PARAMETER ordinalNoOrColumnName
+Allows you pass in the ordinal number, usually the position of the field, or the name of the field.  I prefer passing in names rather than ordinals, and if I change the sql order, oops. 😬
 
 .EXAMPLE
-An example
+ $DatabaseColumnValue          = Get-SqlFieldValue $reader $DatabaseColumnName
+ $DatabaseColumnValue          = Get-SqlFieldValue $reader 1
+ $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists  # comes back [bool] if set, [object] if not set
 
 .NOTES
-General notes
+Far from perfect. Only solution I can find is to do my own pg_types query and get the postgres column type, and if it's an array.
 #>
 function Get-SqlFieldValue {
-    param ([System.Data.Common.DbDataReader]$reader, $ordinal)
-    [object]$ob = $null
+    param (
+        [Parameter(Position=0,Mandatory=$true)][System.Data.Common.DbDataReader] $reader, # Child types are DataTableReader, Odbc.OdbcDataReader, OleDb.OleDbDataReader, SqlClient.SqlDataReader
+        [Parameter(Position=1,Mandatory=$true)][Object] $ordinalNoOrColumnName
+    )
 
-    if ($ordinal -is [Int32]) {
-        $ob = $reader.GetValue($ordinal)
+    [Int32]$ordinal = $null
+    [object]$columnValue = $null
+
+    $columnODBCMetadata = $null
+
+    if ($ordinalNoOrColumnName -is [Int32]) {
+        $columnODBCMetadata = $reader.GetSchemaTable() | Select-Object *|Where-Object ColumnOrdinal -eq $ordinalNoOrColumnName
     } else {
-        $i = $reader.GetSchemaTable() | Select-Object ColumnName, ColumnOrdinal|Where-Object ColumnName -eq $ordinal|Select-Object ColumnOrdinal
-        $i = $i.ColumnOrdinal
-        if ($i -ne -1) {
-            $ob = $reader.GetValue($i)
-        } else {
-            # Throw error.
+        $columnODBCMetadata = $reader.GetSchemaTable() | Select-Object *|Where-Object ColumnName -eq $ordinalNoOrColumnName
+    }
+
+    if ($null -eq $columnODBCMetadata) {
+        throw [System.Exception] "GetSchemaTable returned nothing for $ordinalNoOrColumnName"
+    }        
+
+    $ordinal = $columnODBCMetadata.ColumnOrdinal
+
+    if ($ordinal -eq -1) { # Not sure this happens.
+        throw [System.Exception] "ordinal not set or found for $ordinalNoOrColumnName"
+    }
+                                             
+    ##### Nows to the typing of our DatabaseColumnValue, which we want to maintain in the script. Only tested for Postgres 15
+    
+    $columnValue = $reader.GetValue($ordinal)
+    $columnDataType = $columnODBCMetadata.DataType
+    $columnPostgresTypeId = $columnODBCMetadata.ProviderType # Only way to distinguish
+    $columnPostgresType = [type][String] # Default type
+
+    switch ($columnPostgresTypeId)
+    {
+         9 {$columnPostgresType = [type][byte[]]}
+        11 {$columnPostgresType = [type][datetime]}                                               # timestamp in database
+        23 {$columnPostgresType = [type][datetime]}                                               # date in database
+        24 {$columnPostgresType = [type][timespan]}                                               # time in database
+        22 {$columnPostgresType = [type][bool]}
+        12 {$columnPostgresType = [type][string]}                                                 # varchar in database
+         1 {                                    
+            if ($columnDataType -eq 'System.Int64') {    # May alter the connection string to force int8 returns
+                $columnPostgresType = [type][Int64]
+            } else {
+                $columnPostgresType = [type][string]
+            }
+        }                                                 # char in database
+        13 {$columnPostgresType = [type][string]}                                                 # name in database
+         4 {$columnPostgresType = [type][Int32]}                                                  
+        10 {$columnPostgresType = [type][Int32]}                                                  # int4 in database
+         5 {$columnPostgresType = [type][Int16]}                                                  
+        17 {$columnPostgresType = [type][Int16]}                                                  # int2 in database
+        14 {$columnPostgresType = [type][single]}                                                 # float4 in database
+         8 {$columnPostgresType = [type][double]}                                                 # float8 in database
+         7 {$columnPostgresType = [type][decimal]}                                                # numeric in database
+        15 {$columnPostgresType = [type][guid]}                                                   # uuid in database
+        
+        default { 
+            throw [System.Exception] "Unimplemented type $columnPostgresTypeId for data type $columnDataType and column $ordinalNoOrColumnName"
         }
     }
-    if ($ob -is [System.DBNull]) {
-        return $null
-    }
-    return $ob
+
+    $columnValue = $columnValue -as $columnPostgresType
+    
+    # Warning: Nulls will NOT return as typed. No can do.
+    return $columnValue
 }
-           
+
 <#
 .SYNOPSIS
-Looked for my perfect logging tool. Made one myself. All the githubs I looked at were a bit off for my needs.  Easy-Peezy with buttloads of detail is what I want.
+Get better data typing on a query's columns.
 
 .DESCRIPTION
+Needs work. Right now it just displays them.  
+
+.PARAMETER reader
+Data reader object.  These can be passed in if created at the callers level.
+
+.EXAMPLE
+$reader = (Select-Sql 'SELECT * FROM t').Value # Cannot return DatabaseColumnValue directly
+Get-SqlColDefinitions $reader
+
+.NOTES
+Dependent on Get-SqlFieldValue so that's why it's up above.
+#>
+Function Get-SqlColDefinitions {
+    param(
+        [Parameter(Position=0,Mandatory=$true)] [System.Data.Common.DbDataReader] $reader 
+    )
+    
+    $ResultSetColumnDefinitions = $reader.GetSchemaTable()
+
+    foreach ($ResultSetColumnDefinition in $ResultSetColumnDefinitions) {             
+        $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
+        $DatabaseColumnType = $ResultSetColumnDefinition.DataType
+        $DatabaseDriverTypeNo = $ResultSetColumnDefinition.ProviderType
+        $DatabaseColumnValue          = Get-SqlFieldValue $reader $DatabaseColumnName
+
+        if ($null -eq $DatabaseColumnValue) {
+            "column {0} is column type {1}, and value of null, provider type #{3}" -f 
+            $DatabaseColumnName, $DatabaseColumnType, $DatabaseColumnValue, $DatabaseDriverTypeNo
+        } else {
+            $DatabaseColumnValueType = $DatabaseColumnValue.GetType().Name
+            "column {0} is column type {1} and a value of {2}, provider type #{3}, and a value type of {4}" -f 
+            $DatabaseColumnName, $DatabaseColumnType, $DatabaseColumnValue, $DatabaseDriverTypeNo, $DatabaseColumnValueType
+        }
+    }
+}
+                                                
+<#
+.SYNOPSIS
+Set up persistent logging.
+
+.DESCRIPTION                                                                                                                                                      
+Looked for my perfect logging tool. Made one myself. All the githubs I looked at were a bit off for my needs.  Easy-Peezy with buttloads of detail is what I want.
 My goal was to make it easy for the caller. Least number of parameters you have to send. So 'Log' is a verb.  Not 'Write-LogInfo", "Write-LogError", etc.
 Requirement: Call Start-Log, with no params if you like. It captures as much as it can, regardless of the performance.
 
@@ -115,19 +354,7 @@ Requirement: Call Start-Log, with no params if you like. It captures as much as 
 Start-Log
 
 .NOTES
-The inevitable always happens. Hence inevitable. You don't wish you have gooder logging until your production system fails, the original developer was hit by a bus, and you have no idea what happened.
-You start stuffing debugs everywhere. You reinvent the wheel.
-For instance, say your app failed in the middle of the night. You assume it was called from the Windows Task Scheduler. ASS(outa)U(and)ME.  Maybe some crazy developer is running from his JAMS instance? ran it from the command line to try an emergency fix? Or kicked the task manually? Who kicked it?
-The code to identify who and what started your code, it's not floating around the Internet. And it's not intuitive.
-First, this code deals with the process id (PID) and traverses up the call heirarchy getting process detail. A lot can be determined from the process tree.
-So I can tell:
-    a) Code.exe: There are usually two of these in the tree if you're in VS Code.  This means it's running under a user in the editor, and may well be developing and changing the code. The output of this code is suspect. Often in dev, I hit a breakpoint and stop, and I don't continue through the rest of a loop.
-       I set "Select * -First 1".  Will that count be helpful in stats?
-    b) svchost.exe: If the CommandLine includes the text "schedule", We're running the Windows Task Scheduler. Now we have a complexity using Get-WinEvents to pull down which Task this Probably is. It's more a heuristic.
-    c) "command line": I don't know what command string will be since I haven't tried it from the command line yet. posh.exe? cmd.exe? powershell.exe? Or from ISE, which has some oddities in behavior.
-
-Get the "deets".  And start up the file in the default "..\log\[yyyymmdd][nameofapp].txt"  Not ".log" Write out a standard header line or two.
-Can't stand all the other log libs and their complexity of targets, running in the background, etc. Though to catch abend, we probably need a background process.
+Over complicated and adds risk and delay.  aka - Features.
 #>
 
 function Start-Log {
@@ -137,9 +364,9 @@ function Start-Log {
     )
 
     New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
-    $DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"}
+    $DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up ordering.
     
-    # Header 1
+    # Header Line 1
     Log-Line "Starting Log $(Get-Date) on $((Get-Date).DayOfWeek) $DSTTag in $((Get-Date).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
     
     $PSVersion       = $PSVersionTable.PSVersion
@@ -148,7 +375,7 @@ function Start-Log {
     $CommandOrigin   = $MyInvocation.CommandOrigin
     $CurrentFunction = $MyInvocation.MyCommand
 
-    # Header 2
+    # Header Line 2   
     Log-Line "`$ScriptFullPath: $ScriptFullPath, `$PSVersion = $PSVersion, `$PEdition = $PEdition, `$CommandOrigin = $CommandOrigin, Current Function = $CurrentFunction"
 
     # Get all our parent processes to detect (try) what started us
@@ -168,7 +395,7 @@ function Start-Log {
         $determinorOfCaller = $processtree[1]
         $partofcmdline = $determinorOfCaller.CommandLine.SubString(0,100)
      
-        $allregisteredtasks = Import-Clixml -Path 'D:\qt_projects\filmcab\scheduled_tasks.xml' # Written periodically, sloooooow, especially if lots of tasks
+        $allregisteredtasks = Import-Clixml -Path 'D:\qt_projects\filmcab\simplified\data\scheduled_tasks.xml' # Written periodically, sloooooow, especially if lots of tasks
 
         if ($null -eq $allregisteredtasks) {
             Log-Line "Error: cannot Get-ScheduledTask listing"
@@ -230,49 +457,56 @@ function Start-Log {
             Log-Line ($determinorOfCaller.CommandLine)
             # Other callers could be the command line, JAMS, a bat file, another powershell script, that one at Simplot, the other one at Ivinci, the one at BofA
         }
+
+        #Log-Li
     }
     else {
         Log-Line "gfgfasgadgads"
     }
     if (1 -eq 0) {
-        $i = 0
+        $ordinal = 0
         ForEach ($p in $processtree) {
             $partofcmdline = ""
             if ($p.CommandLine -eq $null) {
                 $partofcmdline = "(empty)"
+
+            
             } elseif ($p.CommandLine.Length -lt 100) {
+
+                $partofcmdli
                 $partofcmdline = $p.CommandLine
             } else {
                 $partofcmdline = $p.CommandLine.SubString(0,100)
             }
-            Log-Line "$i $($p.Name), #$($p.ProcessId), $partofcmdline"
-            $i++
+            Log-Line "$ordinal $($p.Name), #$($p.ProcessId), $partofcmdline"
+            $ordinal++
         }
     }
 }
 
 <#
 .SYNOPSIS
-Hack reductive way to get annoying sid strings to something readable.  But, to keep the call simple, if a user id or name is passed in, it just returns that string.  Making life easier, one day at a time.
+Return the best readable string for a SID DatabaseColumnValue.
 
 .DESCRIPTION
-Long description
+Hack reductive way to get annoying sid strings to something readable.  But, to keep the call simple, if a user id or name is passed in and we can't convert it to a name, it just returns that string.  Making life easier, one day at a time.
+
 
 .PARAMETER sidString
-Parameter description
+Either a sid, or a user's login id, machine id, etc.
 
 .EXAMPLE
 An example
 
 .NOTES
-General notes
+This function is necessary since an unrecognized sid throws an error.
 #>
 Function Convert-SidToUser {
     param($sidString)
     try {
-        $sid = new-object System.Security.Principal.SecurityIdentifier($sidString)
+        $sid = New-Object System.Security.Principal.SecurityIdentifier($sidString)
         $user = $sid.Translate([System.Security.Principal.NTAccount])
-        $user.value
+        $user.Value
     } catch {
         return $sidString
     }
@@ -280,17 +514,18 @@ Function Convert-SidToUser {
 
 <#
 .SYNOPSIS
-Our "trick" to get a running index in "Select "
+Generate an ordinal column inside a pipeline block.
 
 .DESCRIPTION
 Many arrays output by cmdlets are just an ordered list without any index. I had to join one list to another keyless list, and there's no way to do that without a slow ForEach.
+Our "trick" to get a running index in "Select "
 
 .EXAMPLE
 $idxfunctor = New-ArrayIndex
 Get-Process| Select *, @{Name='idx'; Expression= { & $idxfunctor}}
 
 .NOTES
-General notes
+Each instance you create is separate running values. Very helpful in the Scheduled Task event logs, joining up eventdata attribute names and attribute values, only linkable by position in returned arrays.
 #>
 Function New-ArrayIndex {
     $index = 0;
@@ -299,3 +534,59 @@ Function New-ArrayIndex {
         $index
     }.GetNewClosure()
 }                    
+
+# Note: Stopping a run in debug does not close the connection
+# Close does not delete the entry from pg_stat_activity, nor does Dispose
+# It seems to decay on it's own.
+
+function main_for_dot_include_standard_header() {
+    # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
+
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingCmdletAliases', '')]
+    param()
+    
+    # Hide these inside here. Why? So that callers can update this script instead of adding hacks to their scripts, like "if driver -eq then do this." Centralize my hacks.
+
+    $MyOdbcDatabaseDriver = "PostgreSQL Unicode(x64)"
+    $MyDatabaseServer = "localhost";
+    $MyDatabaseServerPort = "5432";
+    $MyDatabaseName = "filmcab";
+    $MyDatabaseUserName = "filmcab_superuser";
+    $MyDatabaseUsersPassword = "filmcab_superuser"  # Hmmmm. Will I ever lock down a database securely?  Is my ass white?
+
+    $DatabaseConnectionString = "
+    Driver={$MyOdbcDatabaseDriver};
+    Servername=$MyDatabaseServer;
+    Port=$MyDatabaseServerPort;
+    Database=$MyDatabaseName;
+    Username=$MyDatabaseUserName;
+    Password=$MyDatabaseUsersPassword;
+    Parse=True;
+    ";                    
+
+    $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection;
+     
+    $ODBCDriver = Get-OdbcDriver -Name $MyOdbcDatabaseDriver
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $ODBCDriverDllPath = $ODBCDriver|Select -ExpandProperty Attribute|Select Driver      # Just if you're having problems, need to update the driver.
+    $DatabaseConnection.ConnectionString = $DatabaseConnectionString               
+    $Script:DatabaseCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand()
+
+    # Rather than cloning this code everywhere, do it once.  The dot includer may not be using a database, but for now, (me) I'm only ever connecting to one database locally.
+    # Granted, it assumes the dot includer wants any data connection
+    $Script:AttemptedToConnectToDatabase = $false
+    $Script:DatabaseConnectionIsOpen = $false
+    try {
+        $Script:DatabaseConnection.Open();
+        $Script:DatabaseConnectionIsOpen = $true;
+    } catch {
+        Show-Error -exitcode = 3 -DontExit
+        $Script:DatabaseConnectionIsOpen = $false;
+    }               
+    $Script:AttemptedToConnectToDatabase = $true
+
+    if ($DatabaseConnectionIsOpen) {
+        Invoke-Sql "SET application_name to '$($Script:ScriptName)'"    
+    }
+}
+main_for_dot_include_standard_header # So as not to collide with dot includer
