@@ -61,7 +61,7 @@ $paths = @(
     "D:\qBittorrent Downloads\_finished_download_torrent_files", 
     "C:\Users\jeffs\Downloads",                                            # There's some not-movie stuff here, duh.
     "D:\qBittorrent Downloads\temp"                                        # Hmmm, what's in here
-    )
+)
 
 foreach ($path in $paths) {
     #Load first level of hierarchy
@@ -94,6 +94,7 @@ foreach ($path in $paths) {
                 $currentjunctionlink  = $false
                 $isarealdirectory     = $false
             }
+            # Note: HardLinks are for files only.
             else {
                 $currentsymboliclink  = $false
                 $currentjunctionlink  = $false
@@ -104,7 +105,7 @@ foreach ($path in $paths) {
             $directory_path_escaped = $directory_path.Replace("'", "''")
             $sql = "
                 SELECT 
-                     directory_hash
+                     directory_hash /* key */
                    , directory_date
                    , is_symbolic_link
                    , is_junction_link
@@ -117,20 +118,20 @@ foreach ($path in $paths) {
                     directory_path = '$directory_path_escaped'
                 AND 
                     volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')";
-            $reader = (Select-Sql $sql).Value # Cannot return value directly
+            $reader = (Select-Sql $sql).Value # Cannot return reader value directly from a function
 
             $newdir                     =  [boolean]$null
-            $updatedirectoryrecord      =     [bool]$null
+            $updatedirectoryrecord          =     [bool]$null
              
             $olddirstillexists          =  [boolean]$null # Won't know till we query.
             $oldsymboliclink            =  [boolean]$null
             $oldjunctionlink            =  [boolean]$null
             $oldlinktarget              =   [string]$null
             $olddriveletter             =   [string]$null
-            $olddirectorydate           = [datetime]0     # No $nulls for datetime type.
-            # For additional functionality later: $olddirhash   [byte[]]$null
+            $olddirectorydate               = [datetime]0     # No $nulls for datetime type.
+            # For additional functionality later $olddirhash   [byte[]]$null
 
-            $newsymboliclink            = [bool]    $null
+            $newsymboliclink                = [bool]    $null
             $newjunctionlink            = [bool]    $null
             $newlinktarget              = [string]  $null
             $flagscandirectory          = [bool]    $false
@@ -141,7 +142,7 @@ foreach ($path in $paths) {
                                    
                 $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists
 
-                #For additional functionality later: $olddirhash $olddirhash                 = Get-SqlFieldValue $reader directory_hash
+                #For additional functionality later, $olddirhash $olddirhash = Get-SqlFieldValue $reader directory_hash
                 $oldsymboliclink            = Get-SqlFieldValue $reader is_symbolic_link
                 $oldjunctionlink            = Get-SqlFieldValue $reader is_junction_link
                 $oldlinktarget              = Get-SqlFieldValue $reader linked_path
@@ -177,12 +178,13 @@ foreach ($path in $paths) {
                 $newlinktarget = ''
             }
 
-            if ($newjunctionlink -or $newjunctionlink -or $currentjunctionlink -or $currentjunctionlink) {
+            if ($newjunctionlink -or $currentjunctionlink) { # Possible bug: junction converted to physical path: Not scanned.
                 $flagscandirectory = $false # Please do not traverse links. Even if the directory date changed.
             }
     
             # Do insert outside of the reader.
             if ($newdir) { #even if it's a link, we store it
+                $howManyNewDirectories++
                 Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
                 $formattedcurrentdirectorydate = $currentdirectorydate.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")
                 $currentlinktarget = $currentlinktarget.Replace("'", "''") # Pesky apostphrs
@@ -213,14 +215,18 @@ foreach ($path in $paths) {
                         /*     linked_path            */    CASE WHEN '$currentlinktarget' = '' THEN NULL ELSE '$currentlinktarget' END
                     )
                 "
-                $sql
-                $DBCmd.CommandText = $sql
-                $DBCmd.ExecuteNonQuery()
+
+                Invoke-Sql $sql
+
             } elseif ($updatedirectoryrecord) {
+                $howManyUpdatedDirectories++
+                if ($flagscandirectory) {$howManyFlagsToScanDirectory}
+                if ($newsymboliclink) {$howManyNewSymbolicLinks}
+                if ($newjunctionlink) {$howManyNewJunctionLinks}
                 $newlinktarget = $newlinktarget.Replace("'", "''")
                 $sql = "
                     UPDATE 
-                        simplified.directories
+                        directories
                     SET
                         scan_directory         = $flagscandirectory,
                         is_symbolic_link       = $newsymboliclink,
@@ -229,10 +235,9 @@ foreach ($path in $paths) {
                         directory_still_exists = True
                     WHERE 
                         directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
-                $sql
-                $DBCmd.CommandText = $sql
-                $rowsupdated = $DBCmd.ExecuteNonQuery()
-                Write-Host "Updated $rowsupdated"
+
+                $rowsUpdated = Invoke-Sql $sql
+                $hoWManyRowsUpdated+= $rowsUpdated
             }
 
             if ($isarealdirectory) {
@@ -242,4 +247,5 @@ foreach ($path in $paths) {
     }
 }
 
-
+# Display counts. If nothing is happening in certain areas, investigate.
+Write-Host Format-Plural 'Count' $hoWManyRowsUpdated
