@@ -40,42 +40,34 @@ function RecurseDownXSD($xml, [int32]$lvl=0) {
 function main() {
                                                     
     # Unlike Get-WinEvents, where you can prefilter out stuff by dates and such, Get-ScheduledTask gets either all or single. A few thousand tasks might be problematic.
-    $scheduledTaskDefs = (Get-ScheduledTask)
-            
-    foreach ($scheduledTaskDef in $scheduledTaskDefs) {
-        $taskPath = $scheduledTaskDef.TaskPath
-        $taskName = $scheduledTaskDef.TaskName              
-        $taskXML = [XML](Export-ScheduledTask -TaskName "$taskName" -TaskPath "$taskPath")
-        $utf8WithoutBom = New-Object System.Text.UTF8Encoding($false)
-        $sw = New-Object System.IO.StreamWriter('x.xml', $false, $utf8WithoutBom)
-        $taskXML.Save($sw)     
-        $sw.Close()
-        $dataSet = New-Object -TypeName System.Data.DataSet
-        $dataSet.ReadXml('x.xml') 
-        $dataSet.WriteXmlSchema('x.xsd')
-        #$taskXMLSchema = $dataSet.GetXMLSchema()
-        $schemaSet = New-Object -TypeName 'System.Xml.Schema.XmlSchemaSet'
-        $schemaSet.Add('http://schemas.microsoft.com/windows/2004/02/mit/task', 'x.xsd')
-        $schemaSet.Compile()
+$scheduledTaskDefs = (Get-ScheduledTask)
+           
+# Strictly Core 7 - until they break it again.
+              
+$scheduledTaskDefPaths = 
+$scheduledTaskDefs|
+Where Author -notin @('Adobe Systems Incorporated', 'Dell, Inc.', 'NVIDIA Corporation', 'Microsoft Office', 'Microsoft VisualStudio', 'Microsoft Visual Studio', 'Microsoft Corporation', 'Microsoft', 'Mozilla', 'Realtek')|
+Where TaskPath -notlike '\Microsoft*'|  
+Where TaskName -notlike 'Google*'|  
+Where TaskName -notlike 'Microsoft*'|  
+Where TaskName -notin @('Git for Windows Updater')|
+Select TaskName, TaskPath
 
-        Write-Host "************************** $taskPath\$taskName ******************************"
-        Write-Host
-            
-        $schema = $schemaSet.Schemas()[0]
-        RecurseDownXSD $schema
-    }
-}
-        
-main
+$taskDefs = @()
 
-<#
+foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
+    $taskPath = $scheduledTaskDefPath.TaskPath
+    $taskName = $scheduledTaskDefPath.TaskName              
+    $taskXML = [XML](Export-ScheduledTask -TaskName "$taskName" -TaskPath "$taskPath")
+ 
     #$taskDetails = 
-    $taskDef= [PSCustomObject]@{
+    $taskDef = [PSCustomObject]@{
         task_full_path         = $taskXML.Task.RegistrationInfo.URI
         task_name              = $taskName
         task_path              = $taskPath
         task_xml_version       = $taskXML.Task.version
         task_creation_date    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Date').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Date : '')
+        task_author    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Author').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Author : '')
         task_description    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Description').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Description : '')
         task_source    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Source').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Source : '')
         task_principal_id = (@($taskXML.Task.Principals.Principal.PSObject.Properties.Name -eq 'id').Count -eq 1 ? $taskXML.Task.Principals.Principal.Id : '')
@@ -108,7 +100,7 @@ main
 
     foreach ($taskAction in $taskActionsXML) {
         $actionType = (@($taskAction.PSObject.Properties.Name -eq 'Exec').Count -eq 1 ? 'Exec': '?')
-        $actionContext = (@($taskAction.PSObject.Properties.Name -eq 'Context').Count -eq 1 ? $taskAction.Context: '')
+        # Any value Yet? Used to be a user. $actionContext = (@($taskAction.PSObject.Properties.Name -eq 'Context').Count -eq 1 ? $taskAction.Context: '')
         $actionDef = [PSCustomObject]@{
             Command   = ''
             Arguments = ''
@@ -122,119 +114,28 @@ main
         }
     }                       
     
-    $taskTriggersXML = $taskXML.Task.Triggers
+    #$taskTriggersXML = $taskXML.Task.Triggers
 
     # Get trigger type, then split out Calendars, Time, Event, etc.
 }
 
-$taskDefs
-<#
-RegistrationInfo : RegistrationInfo
-Principals       : Principals
-Settings         : Settings
-Triggers         : Triggers
-Actions          : Actions
+function GetSchema {
+    $utf8WithoutBom = New-Object System.Text.UTF8Encoding($false)
+    $sw = New-Object System.IO.StreamWriter('x.xml', $false, $utf8WithoutBom)
+    $taskXML.Save($sw)     
+    $sw.Close()
+    $dataSet = New-Object -TypeName System.Data.DataSet
+    $dataSet.ReadXml('x.xml') 
+    $dataSet.WriteXmlSchema('x.xsd')
+    #$taskXMLSchema = $dataSet.GetXMLSchema()
+    $schemaSet = New-Object -TypeName 'System.Xml.Schema.XmlSchemaSet'
+    $schemaSet.Add('http://schemas.microsoft.com/windows/2004/02/mit/task', 'x.xsd')
+    $schemaSet.Compile()
 
+    Write-Host "************************** $taskPath\$taskName ******************************"
+    Write-Host
+        
+    $schema = $schemaSet.Schemas()[0]
+    RecurseDownXSD $schema
 
-<#
-$Scheduledtasksxml = @()
-$howmanyScheduledtasks = (Get-ScheduledTask).Count
-for (($i = 0); $i -lt $howmanyScheduledtasks; $i++) {
-    $i
-    try {
-        $Scheduledtaskxml = [XML]((Get-ScheduledTask)[$i] | Export-ScheduledTask)
-        $Scheduledtasksxml+= [pscustomobject]@{id=$i; xmldata = $Scheduledtaskxml}
-        }
-        catch {
-            Write-Host "Error on #$i"
-            $blockedExport = (Get-ScheduledTask)[$i]
-            $blockedTaskPath = $blockedExport.TaskPath
-            $blockedTaskName = $blockedExport.TaskName
-            $blockedtaskxml = [XML](Export-ScheduledTask -TaskName "$blockedTaskName" -TaskPath "$blockedTaskPath")
-            $Scheduledtasksxml+= [pscustomobject]@{id=$i; xmldata = $blockedtaskxml}
-        }
 }
-                     
-
-<# 
-    Force full reload: 
-    Remove-Item -Path 'task-scheduler-events.xml' -Force   # Rebuilds all new, removed attributes.
-
-
-if (Test-Path 'task-scheduler-defs.xml' -PathType Leaf) {
-    $oldtaskSchedulerDefs = Import-Clixml -Path "task-scheduler-defs.xml"
-    $file = Get-Item '.\task-scheduler-defs.xml'
-    $Script:lastSavedDefCreatedDate = $file.CreationTime
-} else {
-    $Script:lastSavedDefCreatedDate = 0 # Force a full reload
-}
-
-# Write/Merge to file
-
-$taskRegistrationInfo = $Scheduledtasksxml|Select  @{name = 'task_id';expression = {$_.id}} -expand xmldata|select task_id -expand task|Select task_id -ExpandProperty RegistrationInfo|
-    Select task_id, 
-        @{Name = 'task_full_name'; Expression = {$_.URI}},
-        @{Name = 'task_creation_date'; Expression = {$_.Date}},
-        @{Name = 'task_author'; Expression = {$_.Author}},
-        @{Name = 'task_description'; Expression = {$_.Description}},
-        @{Name = 'task_security_descriptor'; Expression = {$_.SecurityDescriptor}},
-        @{Name = 'task_source'; Expression = {$_.Source}}|
-        Select * 
-
-$taskPrincipals = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Principals|select task_id -expand Principal|select task_id, id, UserId, LogonType, GroupId, RunLevel
-
-$taskActionsExec = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Actions|select task_id -expand Exec -ErrorAction Ignore|Select task_id, Command, Arguments, WorkingDirectory
-$taskActionsCom = $Scheduledtasksxml|
-    Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|
-    Select task_id -expand Task|select task_id -expand Actions|select task_id, Context -Expand ComHandler -ErrorAction Ignore|
-    Select task_id, Context, ClassId, Data|
-    Select task_id, Context, ClassId, Data -ExpandProperty Data
-$taskActionsComData = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Actions|select task_id, Context -Expand ComHandler -ErrorAction Ignore|Select -Expand Data -ErrorAction Ignore
-$taskLogonTriggers = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Triggers| Select task_id -expand LogonTrigger -ErrorAction Ignore
-$taskCalendarTriggers = $Scheduledtasksxml| ForEach-Object {
-    $_|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Triggers|select task_id -ExpandProperty CalendarTrigger -ErrorAction Ignore|
-        ForEach-Object {$index = 0} {
-            [PSCustomObject] @{ Task_Id = $_.task_id; Index = $index; Object = $_ }; $index++
-        }
-    }
-
-$taskLogonTriggerRepetitions = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Triggers| Select task_id -expand LogonTrigger -ErrorAction Ignore|Select task_id -ExpandProperty Repetition -ErrorAction Ignore
-$taskCalendarTriggerSchedByDay = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Triggers|select task_id -ExpandProperty CalendarTrigger -ErrorAction Ignore|Select task_id -ExpandProperty ScheduleByDay -ErrorAction Ignore
-$taskCalendarTriggerSchedByWeek = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Triggers|select task_id -ExpandProperty CalendarTrigger -ErrorAction Ignore|Select task_id -ExpandProperty ScheduleByWeek -ErrorAction Ignore
-$taskCalendarTriggerSchedByMonth = $Scheduledtasksxml|Select @{name = 'task_id';expression = {$_.id}} -ExpandProperty xmldata|select task_id -expand Task|select task_id -expand Triggers|select task_id -ExpandProperty CalendarTrigger -ErrorAction Ignore|Select task_id -ExpandProperty ScheduleByMonth -ErrorAction Ignore
-
-
-Class TaskFlatDef {
-    [int]     $task_id
-    [string]  $task_full_name
-    [datetime] $task_creation_date
-    [string]   $task_description
-    [string]   $task_author
-    [string]   $task_security_descriptor
-    [string]   $task_source
-
-    TaskFlatDef([pscustomobject]$ob) {
-        $ob.psobject.properties | Foreach { 
-            $_.TypeNameOfValue
-            # System.Int32
-            $type = $_.TypeNameOfValue
-            Write-Host "$type prope= = $type"
-            if ($_.TypeNameOfValue -eq 'System.datetime' -and $null -eq $_.Value) {
-                $this.($_.Name) = 0
-            } else {
-                $this.($_.Name) = $_.Value
-            }
-        }
-    }
-    TaskFlatDef() {$this.Init(@{}) }
-    TaskFlatDef([hashtable]$Properties) { $this.Init($Properties) }
-    [void] Init([hashtable]$Properties) {
-        foreach ($Property in $Properties.Keys) {
-            $this.$Property = $Properties.$Property
-        }
-    }
-}
-
-$TaskFlatDefInst = [TaskFlatDef]::new($taskRegistrationInfo[0])
-
-#>

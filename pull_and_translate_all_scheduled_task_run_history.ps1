@@ -36,8 +36,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
 param()
 
-$computer = $env:COMPUTERNAME # User ids vary between various prefixed ids or just the name.
-
 . .\simplified\_dot_include_standard_header.ps1 
 
 $newtaskSchedulerEvents      = @()

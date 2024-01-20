@@ -1,12 +1,4 @@
 SET search_path = simplified, "$user", public;
-WITH x AS (SELECT txt file_path, id as file_id from stage_for_master.files 
-    WHERE (file_lost IS NULL OR file_lost IS FALSE)
-    AND (updated_file_hash IS NULL OR updated_file_hash IS FALSE)
-) SELECT count(*) FROM x;
--- Getting ready to pull these over into simplified.video_files.
-SELECT txt, file_size, file_md5_hash, updated_file_hash, file_lost  FROM stage_for_master.files WHERE id IN(20240, 18234, 20408);
-SELECT file_hash, volume_id, sourced_directory_hash, sourced_file_name_no_ext, final_extension, file_size, file_date, file_still_exists 
-FROM video_files vf ;
 -- Create simplified.files and store it all.
 SELECT
       -- file_id gen int4
@@ -22,11 +14,12 @@ SELECT
 FROM
     stage_for_master.files f
     WHERE (f.file_lost IS NULL OR f.file_lost IS FALSE) AND f.updated_file_hash IS TRUE
-    --AND final_extension IN('mkv', 'mp4', 'vob', 'f4v', 'avi', 'flv', 'mov', 'mpg', 'ogv', 'webm', 'wmv') 
-    --AND NOT (lower(base_name) = lower('sample') OR base_name ILIKE '%sample')
- ORDER BY file_size 
- -- delete To Have and Have Not (1944) on volume 5 of size 0
- -- no deletions off vol 2 (downloads)
+    AND final_extension IN('mkv', 'mp4', 'vob', 'f4v', 'avi', 'flv', 'mov', 'mpg', 'ogv', 'webm', 'wmv') 
+    AND NOT (lower(base_name) = lower('sample') OR base_name ILIKE '%sample')
+    AND file_size > 4
+ ORDER BY file_size; 
+
+ 
  DROP TABLE IF EXISTS stage_for_master_files_to_simp_video_files;
 WITH x AS(
 SELECT 
@@ -36,7 +29,6 @@ SELECT
     final_extension                                                                                         AS final_extension,
     file_size                                                                                               AS file_size,
     file_modified_on_ts_wth_tz                                                                              AS file_date,
-    NULL::BOOLEAN                                                                                           AS file_still_exists
     FROM stage_for_master.files f 
     WHERE (record_deleted IS NULL OR record_deleted IS FALSE) AND (file_lost IS NULL OR file_lost IS FALSE)
     AND final_extension in('avi', 'f4v', 'flv', 'mkv', 'mov', 'mp4', 'mpg', 'ogv', 'vob', 'webm', 'wmv')
@@ -55,3 +47,7 @@ SELECT COUNT(*) FROM (SELECT file_hash, COUNT(*) FROM stage_for_master_files_to_
 SELECT * FROM stage_for_master_files_to_simp_video_files WHERE file_hash = 'd41d8cd98f00b204e9800998ecf8427e';
 SELECT txt AS file_path, id AS file_id, file_size, Count(*) over() FROM stage_for_master.files WHERE (file_lost IS NULL OR file_lost IS FALSE) AND (updated_file_hash IS NULL OR updated_file_hash IS FALSE)
 ORDER BY file_id;
+  SELECT directory_still_exists, is_symbolic_link, is_junction_link, linked_path, directory_date, directory_hash
+                FROM simplified.directories
+                WHERE directory_path = 'D:\qBittorrent Downloads\Video\youtube-PO37TbI4kF4'
+                AND volume_id = (SELECT volume_id from simplified.volumes where drive_letter = 'D' );

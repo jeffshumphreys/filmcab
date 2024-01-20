@@ -406,3 +406,4 @@ SELECT * FROM volumes;
 SELECT * FROM directories LIMIT 10;
 SELECT * FROM video_files LIMIT 10;
 SELECT * FROM videos LIMIT 10;
+SELECT clock_timestamp();
