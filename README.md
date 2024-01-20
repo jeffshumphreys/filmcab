@@ -1,7 +1,7 @@
-# filmcab
-This desktop app is a file cabinet, a way to manage my film and television collection on local disks.
+# FilmCab
+This repository is the code base for a Powershell desktop application that manages my movie and television collection, and also collects as much metadata as is available. I chose the name FilmCab as an abbreviation of Film Cabinet.  The cabinet itself is just physical drives, though, and this does more than that.  It's a film collector management program.  Perhaps FilmColl would be better.  But I've gotten attached to the name now.
 
-It is primarily Powershell 7 Core, ODBC, and PostgreSQL 15.
+The code is now all written using PowerShell 7 Core, ODBC, and PostgreSQL 15. I use the Visual Studio Code editor to write code, using the PowerShell Extension (Pre-Release Edition).
 
 The code has been simplified to a set of Windows Task Scheduler Task. Each Task runs a Powershell script of the same name as the Task so as to ease debugging.
 
@@ -19,7 +19,7 @@ But with Powershell, though the syntax can be galling, there's often a single li
 
 Something that is strongly discouraged in all languages is the physical inclusion of executable code directly into a code file.  In C and C++ there were .h files, and no one put executable code in there.  The errors that would occur as each new code file included such a header would be a disaster.
 
-But with Powershell, I discovered dot sourcing, and I really enjoy it? When I change the sourced file, does it risk breaking all code that has ever included that code? Yes. Risk must always be weighed, but depending on hard and fast rules that someone else made, that is not something that works for me.
+But with PowerShell, I discovered dot sourcing, which allows you to include executable code, and I really enjoy it.  Now when I change the included source file, does it risk breaking all the code that has ever included that dot source? Yes. Risk must always be weighed, but depending on hard and fast rules that someone else made, that is not something that has worked for me.
 
 --------------------------------------------------------------------------------------------------------------
 10/26/23
