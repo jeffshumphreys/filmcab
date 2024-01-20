@@ -36,7 +36,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
 param()
 
-. .\simplified\_dot_include_standard_header.ps1 
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
 
 $newtaskSchedulerEvents      = @()
 $oldtaskSchedulerEvents      = @()
@@ -45,10 +45,11 @@ $oldtaskSchedulerEvents      = @()
     Force full reload: 
     Remove-Item -Path 'clean-task-scheduler-events.xml' -Force   # Rebuilds all new, removed attributes.
 #>
-
-if (Test-Path 'clean-task-scheduler-events.xml' -PathType Leaf) {
-    $oldtaskSchedulerEvents = Import-Clixml -Path "clean-task-scheduler-events.xml"
-    $file = Get-Item '.\clean-task-scheduler-events.xml'
+                                        
+$TaskSchedulerEventsFileName = 'D:\qt_projects\filmcab\simplified\data\task-scheduler-events.xml'
+if (Test-Path $TaskSchedulerEventsFileName -PathType Leaf) {
+    $oldtaskSchedulerEvents = Import-Clixml -Path $TaskSchedulerEventsFileName
+    $file = Get-Item $TaskSchedulerEventsFileName
     $Script:lastSavedEventCreatedDate = $file.CreationTime
 } else {
     $Script:lastSavedEventCreatedDate = 0 # Force a full reload
@@ -98,7 +99,7 @@ Select @{Name = 'event_type_id'      ; Expression = {$_.Id}}            ,
     @{Name = 'event_message'         ; Expression= {$_.Message}}    ,
     @{Name = 'event_message_template'; Expression= {[string]$null}}  ,       # Filled in later
     @{Name = 'user_id'               ; Expression = {$_.UserId.Value}},     # UserId is a PSCustomObject, so take the string value
-    @{Name = 'activity_id'           ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string.
+    @{Name = 'activity_id'           ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string. aka correllation_id?
     @{Name = 'record_id'             ; Expression = {$_.RecordId}},     # A rollover record id, but it gives us something to reference singular events. Sort of.
     @{Name='Account'; Expression = {
         if ($_.Id -in @(711)) {
@@ -532,12 +533,12 @@ if ($howManyNewEvents -ne 0) {
     } else {
         $taskSchedulerEvents = $newtaskSchedulerEvents
     }
-    $taskSchedulerEvents|Export-Clixml -Path "clean-task-scheduler-events.xml"
+    $taskSchedulerEvents|Export-Clixml -Path $TaskSchedulerEventsFileName
     Write-Host "Wrote to xml file, $howManyNewEvents new events"                                      
     
     # Set the file date to the event date, thereby having an easy metadata value without creating other stores.
     
-    $file = Get-Item '.\clean-task-scheduler-events.xml'          
+    $file = Get-Item $TaskSchedulerEventsFileName          
     $Script:latestEventCreatedDate = ($taskSchedulerEvents|Select event_created).event_created|Sort -Descending|Select -first 1
     $file.CreationTime = $Script:latestEventCreatedDate
 }
