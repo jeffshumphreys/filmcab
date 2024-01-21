@@ -11,6 +11,8 @@
 
         Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
 #>                                                                                                                
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')] # We don't need no stinkin' badges
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')] # Why?
 
 param()
 
@@ -171,6 +173,9 @@ function Invoke-Sql {
     )
     try {
         $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set?
+
+        # Hypothetically, you could determine if the sql was a select or an update/insert, and run the right function?
+
         [Int32] $howManyRowsAffected = $DatabaseCommand.ExecuteNonQuery();
         return $howManyRowsAffected
     } catch {   
@@ -200,10 +205,10 @@ Function Select-Sql {
     param(           
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
     )
-    try {
-        $DBReaderCommand = New-Object [Data.Common.DbDataReader]
-        $DBReaderCommand.CommandText = $sql
-        $reader = [REF]$DBReaderCommand.ExecuteReader();
+    try { 
+        $DatabaseCommand = $DatabaseConnection.CreateCommand()
+        $DatabaseCommand.CommandText = $sql
+        $reader = [REF]$DatabaseCommand.ExecuteReader(); # Too many refs?
         $reader = $reader.Value
         $reader.Read() >> $null   
         return [REF]$reader                      # Forces caller to deref!!!!! But only way to get it to work.
@@ -211,7 +216,50 @@ Function Select-Sql {
         Show-Error $sql -exitcode 2
     }   
 }
-                               
+
+<#
+.SYNOPSIS
+Convert select output to a data table.
+
+.DESCRIPTION
+Long description
+
+.PARAMETER sql
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+I don't like the verb "Show".  But this function just to blow a select output on the screen is sorely lacking for the lazy developer.
+"Out-Sql" isn't great. I want the output. Select-Sql returns a reader.
+#>
+Function Out-Sql {
+    [CmdletBinding()]
+    param(           
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
+        [Switch]$DontOutputToConsole,
+        [Switch]$DontWriteSqlToConsole
+    )
+    try {
+        $DatabaseCommand = $DatabaseConnection.CreateCommand()
+        $DatabaseCommand.CommandText = $sql
+        $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand 
+        $dataset = New-Object System.Data.DataSet
+        $adapter.Fill($dataSet) | out-null
+        if (-not $DontWriteSqlToConsole) {
+            Write-Host $sql
+        }
+        if (-not $DontOutputToConsole) {
+            
+            $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
+        }
+        return $dataset
+    } catch {
+        Show-Error $sql -exitcode 3
+    }   
+}
+
 <#
 .SYNOPSIS
 Fetch a typed DatabaseColumnValue from a reader by either ordinal or name.
@@ -575,7 +623,20 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
     }
     if ($number -ge 2 -or $number -eq 0) { return $pluralLabel}
     return '?'
-}
+}   
+<#
+.SYNOPSIS
+Execute any actions standard across all scripts in this folder.
+
+.DESCRIPTION
+Long description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
 function main_for_dot_include_standard_header() {
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
@@ -591,6 +652,15 @@ function main_for_dot_include_standard_header() {
     $MyDatabaseUserName = "filmcab_superuser";
     $MyDatabaseUsersPassword = "filmcab_superuser"  # Hmmmm. Will I ever lock down a database securely?  Is my ass white?
 
+    # Options from https://odbc.postgresql.org/docs/config-opt.html
+    # https://odbc.postgresql.org/docs/config.html                                                     
+    # Display Optional Error Message: Display optional(detail, hint, statement position etc) error messages.
+    <#
+    Parse Statements: Tell the driver how to gather the information about result columns of queries, if the application requests that information before executing the query. See also ServerSide Prepare options.
+    The driver checks this option first. If disabled then it checks the Server Side Prepare option.
+    If this option is enabled, the driver will parse an SQL query statement to identify the columns and tables and gather statistics about them such as precision, nullability, aliases, etc. It then reports this information in SQLDescribeCol, SQLColAttributes, and SQLNumResultCols.
+    When this option is disabled (the default), the query is sent to the server to be parsed and described. If the parser can not deal with a column (because it is a function or expression, etc.), it will fall back to describing the statement in the server. The parser is fairly sophisticated and can handle many things such as column and table aliases, quoted identifiers, literals, joins, cross-products, etc. It can correctly identify a function or expression column, regardless of the complexity, but it does not attempt to determine the data type or precision of these columns.
+    #>    
     $DatabaseConnectionString = "
     Driver={$MyOdbcDatabaseDriver};
     Servername=$MyDatabaseServer;
@@ -599,6 +669,7 @@ function main_for_dot_include_standard_header() {
     Username=$MyDatabaseUserName;
     Password=$MyDatabaseUsersPassword;
     Parse=True;
+    OptionalErrors            =True;
     ";                    
 
     $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
@@ -607,8 +678,7 @@ function main_for_dot_include_standard_header() {
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $ODBCDriverDllPath = $ODBCDriver|Select -ExpandProperty Attribute|Select Driver      # Just if you're having problems, need to update the driver.
     $DatabaseConnection.ConnectionString = $DatabaseConnectionString               
-    $Script:DatabaseCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand()
-
+    
     # Rather than cloning this code everywhere, do it once.  The dot includer may not be using a database, but for now, (me) I'm only ever connecting to one database locally.
     # Granted, it assumes the dot includer wants any data connection
     $Script:AttemptedToConnectToDatabase = $false
@@ -617,12 +687,14 @@ function main_for_dot_include_standard_header() {
         $Script:DatabaseConnection.Open();
         $Script:DatabaseConnectionIsOpen = $true;
     } catch {
-        Show-Error -exitcode = 3 -DontExit
+        Show-Error -exitcode = 3 -DontExit # dot includer can decide if no db connection is bad or not.
         $Script:DatabaseConnectionIsOpen = $false;
     }               
     $Script:AttemptedToConnectToDatabase = $true
 
-    if ($DatabaseConnectionIsOpen) {
+    if ($DatabaseConnectionIsOpen) {                                                                   
+        $Script:DatabaseCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        # PostgreSql specific settings, also specific to filmcab, and the simplified effort.
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
         Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
     }
