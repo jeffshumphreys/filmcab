@@ -217,10 +217,10 @@ Function Select-Sql {
 Fetch a typed DatabaseColumnValue from a reader by either ordinal or name.
 
 .DESCRIPTION
-Not as easy as it looks.
+Not as easy as it looks. The various and sorded ways information is gotten are mixed between what PostgreSQL returns, what ODBC driver interprets, and finally what the .Net driver interprets as the right return type.
 
 .PARAMETER reader
-Parameter description
+Must be open, or it will crash. I use DbDataReader because it's abstract.
 
 .PARAMETER ordinalNoOrColumnName
 Allows you pass in the ordinal number, usually the position of the field, or the name of the field.  I prefer passing in names rather than ordinals, and if I change the sql order, oops. 😬
@@ -228,10 +228,10 @@ Allows you pass in the ordinal number, usually the position of the field, or the
 .EXAMPLE
  $DatabaseColumnValue          = Get-SqlFieldValue $reader $DatabaseColumnName
  $DatabaseColumnValue          = Get-SqlFieldValue $reader 1
- $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists  # comes back [bool] if set, [object] if not set
+ $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists  # comes back [bool] if set, [object] if not set (Was DbNull internally somewhere)
 
 .NOTES
-Far from perfect. Only solution I can find is to do my own pg_types query and get the postgres column type, and if it's an array.
+Far from perfect. Only solution I can find is to do my own pg_types query and get the postgres column type, and if it's an array. Maybe if I type the columns in the SQL?
 #>
 function Get-SqlFieldValue {
     param (
@@ -322,7 +322,7 @@ Dependent on Get-SqlFieldValue so that's why it's up above.
 #>
 Function Get-SqlColDefinitions {
     param(
-        [Parameter(Position=0,Mandatory=$true)] [System.Data.Common.DbDataReader] $reader 
+        [Parameter(Position=0,Mandatory=$true)] [Data.Common.DbDataReader] $reader 
     )
     
     $ResultSetColumnDefinitions = $reader.GetSchemaTable()
@@ -363,7 +363,7 @@ Over complicated and adds risk and delay.  aka - Features.
 function Start-Log {
     [CmdletBinding()]
     param(
-        # Override filename
+        # i.e., Override filename
     )
 
     New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
@@ -601,7 +601,7 @@ function main_for_dot_include_standard_header() {
     Parse=True;
     ";                    
 
-    $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection;
+    $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
      
     $ODBCDriver = Get-OdbcDriver -Name $MyOdbcDatabaseDriver
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
