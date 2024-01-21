@@ -445,3 +445,12 @@ $cleanTaskSchedulerEvents|Select *|Select @{Name='TaskName';Expression={$_.TaskN
     4 \Microsoft\VisualStudio\… {@{TaskName=\Microsoft\VisualStudio\Updates\UpdateConfiguration_S-1-5-21-260979430-3554011381-420227292-1007}, @{TaskName=\Microsoft\VisualStudio\Updates\UpdateConfiguration_S-1-5-21-260979430-3554011381-420227292-1007}, @… 
     1 NT TASK\test_log_sys      {@{TaskName=NT TASK\test_log_sys}}
 #>
+
+Errors: ?????
+https://github.com/tpn/winsdk-10/blob/master/Include/10.0.10240.0/shared/winerror.h#L30530
+Error when Schedule tasks try to run when desktop not logged in
+Task Scheduler failed to launch action "C:\Program Files\PowerShell\7\pwsh.exe" in instance "{b6eabe53-6b2c-40cf-bdf8-62fa31299044}" of task "\FilmCab\back_up_unbackedup_published_media". Additional Data: Error Value: 2147942402.
+Hex is 80070002          
+2147942402 translates to "File not Found" - which is a very appropriate response
+80070006 is invalid handle
+80070005 is Access Denied
