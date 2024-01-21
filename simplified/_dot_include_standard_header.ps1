@@ -139,8 +139,9 @@ function Show-Error {
     Write-Host $scriptWhichProducedError
     Write-Host "Message: $($_.Exception.Message)"
     Write-Host "StackTrace: $($_.Exception.StackTrace)"             
+    Write-Host "Failed on $($_.InvocationInfo.ScriptLineNumber)"
     try {
-    Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
+        Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
     } catch {}
     
     if (-not $DontExit) {                                                              # Double-negative. Meh.
@@ -199,6 +200,8 @@ $reader = (Select-Sql 'SELECT * FROM t').Value          # Cannot return Database
 
 .NOTES
 There is no way to return a LOCALLY INSTANTIATED ODBCDataReader object as a DatabaseColumnValue. It will always ALWAYS resolve to null for the caller. I wish the example would be "$reader = Select-Sql 'select 1'" but I can't get it to work. hmmmmmmm
+Better name for a command that runs a query and returns a cursor?  Invoke is more like it does something and leaves it.
+"Read-Sql"? GetHandleToSQLInvokationOutput?  Maybe it's a Get-Sql. Traverse-Sql? Browse? Walk? ForEach-Sql?  That's what happens when you return the reader. Return an enumerator perhaps.  Even While-Sql
 #>
 Function Select-Sql {
     [CmdletBinding()]
@@ -228,11 +231,12 @@ Long description
 Parameter description
 
 .EXAMPLE
-An example
+Out-Sql 'SELECT 1 as One' > $null
 
 .NOTES
 I don't like the verb "Show".  But this function just to blow a select output on the screen is sorely lacking for the lazy developer.
-"Out-Sql" isn't great. I want the output. Select-Sql returns a reader.
+"Out-Sql" isn't great. I want the output. Select-Sql returns a reader. I suppose "Select-Sql" would behave more like a Select both PS and SQL.
+"Out-Sql" might be more of a block or copy command to a database.  Treating the server as a device.
 #>
 Function Out-Sql {
     [CmdletBinding()]
@@ -671,12 +675,8 @@ function main_for_dot_include_standard_header() {
     Parse=True;
     OptionalErrors            =True;
     ";                    
-
+    # The above, if any invalid syntax, will break when ConnectionString is set, not on Open, with:Exception setting "ConnectionString": "Format of the initialization string does not conform to specification starting at index 194."
     $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
-     
-    $ODBCDriver = Get-OdbcDriver -Name $MyOdbcDatabaseDriver
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $ODBCDriverDllPath = $ODBCDriver|Select -ExpandProperty Attribute|Select Driver      # Just if you're having problems, need to update the driver.
     $DatabaseConnection.ConnectionString = $DatabaseConnectionString               
     
     # Rather than cloning this code everywhere, do it once.  The dot includer may not be using a database, but for now, (me) I'm only ever connecting to one database locally.
