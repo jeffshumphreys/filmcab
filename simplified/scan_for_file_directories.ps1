@@ -53,6 +53,7 @@ $stack = New-Object System.Collections.Stack
 
 # All the directories across my volumes that I think have some sort of movie stuff in them.
 
+$reader = (Select-Sql 'SELECT ')
 $paths = @(
     "D:\qBittorrent Downloads\Video", 
     "O:\Video AllInOne", 
@@ -62,6 +63,15 @@ $paths = @(
     "C:\Users\jeffs\Downloads",                                            # There's some not-movie stuff here, duh.
     "D:\qBittorrent Downloads\temp"                                        # Hmmm, what's in here
 )
+
+$howManyNewDirectories = 0
+$howManyUpdatedDirectories = 0
+$howManyDirectoriesFlaggedToScan = 0
+$howManyNewSymbolicLinks = 0
+$howManyNewJunctionLinks= 0
+$hoWManyRowsUpdated = 0
+$hoWManyRowsInserted = 0
+$hoWManyRowsDeleted = 0
 
 foreach ($path in $paths) {
     #Load first level of hierarchy
@@ -183,6 +193,10 @@ foreach ($path in $paths) {
             }
     
             # Do insert outside of the reader.
+            if ($flagscandirectory) {$howManyDirectoriesFlaggedToScan++}
+            if ($newsymboliclink) {$howManyNewSymbolicLinks++}
+            if ($newjunctionlink) {$howManyNewJunctionLinks++}
+    
             if ($newdir) { #even if it's a link, we store it
                 $howManyNewDirectories++
                 Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
@@ -216,13 +230,11 @@ foreach ($path in $paths) {
                     )
                 "
 
-                Invoke-Sql $sql
+                $rowsInserted = Invoke-Sql $sql
+                $hoWManyRowsInserted+= $rowsInserted
 
             } elseif ($updatedirectoryrecord) {
                 $howManyUpdatedDirectories++
-                if ($flagscandirectory) {$howManyFlagsToScanDirectory}
-                if ($newsymboliclink) {$howManyNewSymbolicLinks}
-                if ($newjunctionlink) {$howManyNewJunctionLinks}
                 $newlinktarget = $newlinktarget.Replace("'", "''")
                 $sql = "
                     UPDATE 
@@ -248,4 +260,11 @@ foreach ($path in $paths) {
 }
 
 # Display counts. If nothing is happening in certain areas, investigate.
-Write-Host Format-Plural 'Count' $hoWManyRowsUpdated
+Write-Host "How many new directories were found: $howManyNewDirectories" $(Format-Plural 'Directory' $howManyNewDirectories 'Directories') 
+Write-Host "How many old directories were updated: $howManyUpdatedDirectories" $(Format-Plural 'Directory' $howManyUpdatedDirectories 'Directories') 
+Write-Host "How many rows were updated: $howManyRowsUpdated" $(Format-Plural 'Row' $howManyRowsUpdated) 
+Write-Host "How many rows were inserted: $hoWManyRowsInserted" $(Format-Plural 'Row' $hoWManyRowsInserted) 
+Write-Host "How many rows were deleted: $hoWManyRowsDeleted" $(Format-Plural 'Row' $hoWManyRowsDeleted) 
+Write-Host "How many new junction linked directories were found: $howManyNewJunctionLinks" $(Format-Plural 'Link' $howManyNewJunctionLinks) 
+Write-Host "How many new symbolically linked directories were found: $howManyNewSymbolicLinks" $(Format-Plural 'Link' $howManyNewSymbolicLinks) 
+Write-Host "How many directories were flagged for scanning: $howManyDirectoriesFlaggedToScan" $(Format-Plural 'Directory' $howManyDirectoriesFlaggedToScan 'Directories' ) 
