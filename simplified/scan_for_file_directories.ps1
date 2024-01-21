@@ -48,12 +48,13 @@
 # Full path necessary for scheduled tasks to work? I'm not using Scheduler's working directory option since I don't know if it works
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
+                                            
+# Method from script kidding web example to traverse directories
 
 $stack = New-Object System.Collections.Stack
 
 # All the directories across my volumes that I think have some sort of movie stuff in them.
 
-$reader = (Select-Sql 'SELECT ')
 $paths = @(
     "D:\qBittorrent Downloads\Video", 
     "O:\Video AllInOne", 
