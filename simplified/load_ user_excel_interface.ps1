@@ -7,6 +7,9 @@
     check which published videos are in our excel list; update table and excel (?)
     check folders in backups that are not in published. Delete.
     check hashes from published to torrent downloads. What's missing?
+
+    ###### Sat Jan 20 18:59:12 MST 2024
+    We are no longer using transactions. They lock and block everything if debugging is going on.
 #>
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
@@ -14,7 +17,7 @@
 #$inpath = "D:\OneDrive\Documents\user_excel_interface.xlsm"
 $inpath = "https://d.docs.live.net/89bc08e19187b035/Documents/user_excel_interface.xlsm" # Trying to get live file.
 $outpath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.UTF8.csv"
-$targettable = user_excel_interface
+$targettable = 'user_excel_interface'
 
 $columns_csv = "
     seen, 
@@ -66,13 +69,15 @@ if (1 -eq 1) {
     $Excel= New-Object -ComObject Excel.Application
     $Excel.Visible  = $false
     $Excel.DisplayAlerts = $false
+    
     # Following returns "Excel cannot open the file 'user_excel_interface.xlsm' because the file format or file extension is not valid. Verify that the file has not been corrupted and that the file extension matches the format of the file." if file is open.
+    
     try {
-    $wb = $Excel.Workbooks.Open($inpath)
-    $ws = $wb.Worksheets[1]
-    $ws.SaveAs($outpath, $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8)
-    $wb.Close($true)
-    $NewExcelCSVFileGenerated = $true
+        $wb = $Excel.Workbooks.Open($inpath)
+        $ws = $wb.Worksheets[1]
+        $ws.SaveAs($outpath, $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8)
+        $wb.Close($true)
+        $NewExcelCSVFileGenerated = $true
     }
     finally {
         $Excel.Quit()
@@ -88,17 +93,11 @@ if (1 -eq 1) {
 
 if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     $DatabaseCommand = $DatabaseConnection.CreateCommand();
-    if (1 -eq 1) {
-        $transaction = $DatabaseCommand.BeginTransaction();
-        $DatabaseCommand.Transaction = $transaction;
+    if (1 -eq 1) {                   
         try {
-            $DatabaseCommand.CommandText = "DROP TABLE IF EXISTS $targettable;";
-            $i = $DatabaseCommand.ExecuteNonQuery();
+            Invoke-Sql "DROP TABLE IF EXISTS $targettable;" > $null
         } catch {
-            Display-Error -DontExit
-            $transaction.Rollback();
-            $transaction.Dispose();
-            exit(0);
+            Show-Error $sql -exitcode 0
         }
 
         try {
@@ -122,15 +121,11 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
             $sql+= " "*8 + ", CONSTRAINT ak_title_release_year UNIQUE(manually_corrected_title)" + [System.Environment]::NewLine;
             $sql+= " "*4 + ");" + [System.Environment]::NewLine;
 
-            $DatabaseCommand.CommandText = $sql;
-            $i = $DatabaseCommand.ExecuteNonQuery();
+            Invoke-Sql $sql > $null
         } catch {
-            Display-Error -DontExit
-            $transaction.Rollback();
-            $transaction.Dispose();
-            exit(0);
+            Show-Error $sql -exitcode 1
         }
-
+        
         try {
             $sql = "COPY $targettable("
             foreach($columnname in $columns)
@@ -139,17 +134,26 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
             }
 
             $sql+= "FROM '$outpath' CSV HEADER;" + [System.Environment]::NewLine;
-            $i = Invoke-Sql $sql;
+            Invoke-Sql $sql > $null
         } catch {
-            Display-Error -DontExit
-            $transaction.Rollback();
-            $transaction.Dispose();
-            exit(0);
+            Show-Error $sql -exitcode 2
         }
-        $DatabaseCommand.Transaction = $null;
-        $transaction.Commit();
-        $transaction.Dispose();
     }
+
+    $DatabaseCommand.CommandText = "SELECT manually_corrected_title FROM user_excel_interface where (seen not in('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
+
+    $Reader = $DatabaseCommand.ExecuteReader();
+    $matchcount = 0;
+
+    while ($Reader.Read()) {
+        $title = $Reader["manually_corrected_title"]
+        Write-Host "$title"                         
+        # TODO: SEARCH database for a match first!!!!!!! Duh!
+        $matchcount++;
+    }
+    $Reader.Close() 
+    $matchcount
+
     $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable"; $howManyRows = $DatabaseCommand.ExecuteScalar(); Write-Output "How many rows: $howManyRows"
     $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where right(manually_corrected_title, 1) <> ')' and type_of_media <> 'Movie about…'"; $howManyBadParens = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles not end in right parens: $howManyBadParens"
     $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where manually_corrected_title like '%  %'"; $howManyMultiSpacedTitles = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have multiple spaces: $howManyMultiSpacedTitles"
@@ -159,62 +163,13 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
 
     # List out some that I haven't seen, don't have, haven't reviewed yet. Ignore any we might have watched, should want to see (heehee), will never see based on it's topic, that are not available yet, or are just getting for completeness, and aren't downloading right now.
     # These are ones that make me go hmmmmm. Need reviewing, classifying, downloading.
+        
+    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where right(manually_corrected_title, 1) <> ')' and type_of_media <> 'Movie about…'"; $howManyBadParens = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles not end in right parens: $howManyBadParens"
+    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where manually_corrected_title like '%  %'"; $howManyMultiSpacedTitles = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have multiple spaces: $howManyMultiSpacedTitles"
+    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is null and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitlesMisformedYears = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have malformed years: $howManyTitlesMisformedYears"
+    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where trim(manually_corrected_title) <> manually_corrected_title"; $howManyTitlesAreUntrim = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles trailing or leading spaces: $howManyTitlesAreUntrim";
+    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is not null and (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] not between 1900 and 2026 and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitleYearsOutOfReasonableAge = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have unreal years: $howManyTitleYearsOutOfReasonableAge"
 
-    $DatabaseCommand.CommandText = "SELECT manually_corrected_title FROM user_excel_interface where (seen not in('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
-
-    $Reader = $DatabaseCommand.ExecuteReader();
-    $matchcount = 0;
-
-    while ($Reader.Read()) {
-        $title = $Reader["manually_corrected_title"]
-        Write-Host "$title"
-        $matchcount++;
-    }
-    $Reader.Close() 
-    $matchcount
-
-    # Scan all our downloaded movies again
-    
-    # D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Release\filmcab.exe
-    <#
-    ---------------------------
-    filmcab.exe - System Error
-    ---------------------------
-    The code execution cannot proceed because Qt6Sql.dll was not found. Reinstalling the program may fix this problem. 
-    ---------------------------
-    OK   
-    ---------------------------
-    #>
-    # Added D:\Qt\6.5.3\mingw_64\bin to path for dlls.  Don't want to do a full deployment. https://wiki.qt.io/CQtDeployer
-    <#
-    ---------------------------
-    filmcab.exe - Entry Point Not Found
-    ---------------------------
-    The procedure entry point _Z11qt_assert_xPKcS0_S0_i could not be located in the dynamic link library D:\qt_projects\build-filmcab-Desktop_Qt_6_5_3_MinGW_64_bit-Debug\debug\filmcab.exe. 
-    ---------------------------
-    OK   
-    ---------------------------
-    #>
-    # http://www.dependencywalker.com/
-    # C:\Program Files (x86)\dotnet\shared\Microsoft.NETCore.App\3.1.32 has api-ms-win-core-synch-l1-2-0.dll in it.  Now dependency walker doesn't finish spinning.
-
-    <#
-    ---------------------------
-    filmcab.exe - Entry Point Not Found
-    ---------------------------
-    The procedure entry point _ZNSt3pmr20get_default_resourceEv could not be located in the dynamic link library D:\Qt\6.5.3\mingw_64\bin\Qt6Core.dll. 
-    ---------------------------
-    OK   
-    ---------------------------
-    #>
-    <#
-    DISM.exe /Online /Cleanup-image /Scanhealth 
-    DISM.exe /Online /Cleanup-image /Restorehealth 
-    DISM.exe /online /cleanup-image /startcomponentcleanup 
-    sfc /scannow
-
-
-    #>
     $DatabaseConnection.Close();
-    
+    $DatabaseConnection.Dispose();
 }
