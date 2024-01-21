@@ -1,5 +1,5 @@
 <#
-    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file (?)
+    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
     Status: Run when run manually from Task Scheduler. The full paths were missing and so the log failed.
     Status: Update when runs at 11:52 PM tonight and generates log.
 
