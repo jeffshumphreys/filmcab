@@ -140,7 +140,7 @@ foreach ($SearchPath in $SearchPaths) {
             $directory_path_escaped = $directory_path.Replace("'", "''")
             $sql = "
                 SELECT 
-                     directory_hash /* key */
+                     directory_hash /* PK */
                    , directory_date
                    , is_symbolic_link
                    , is_junction_link
@@ -228,7 +228,7 @@ foreach ($SearchPath in $SearchPaths) {
     
             # Do insert outside of the reader.
             if ($flagscandirectory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
-            if ($newsymboliclink -and -not $newsymboliclink) {
+            if ($newsymboliclink -and -not $oldsymboliclink) {
                 $howManyNewSymbolicLinks++
             }
             if ($newjunctionlink -and -not $oldjunctionlink)  {
