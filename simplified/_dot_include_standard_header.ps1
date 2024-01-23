@@ -12,24 +12,25 @@
         Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
        
     A pile of possible helpful icons for output.
-    🚨🛑🚚🏗⚓🌡☁🧨   🎉   🎟   🎯   🪄🕹🎭👓🦺   👑   🎓   🖥   🎞   📺   💡   📼  📀📕📚📒🔖🏷💰💳📧📦📬✏📅
-     📉 📊 📌 📏 🗃 🗄 🗑 🗝 ⛏ 🛠  🔧 ⚙ 🔗 ⛓️‍💥 ⛓ 🧰  💊 🚪  ⚰  ⚠ 🚫☢ ↩ ♾    ✳ 🆕 🆗 🔴 🔘 🚩 🏁 🎌 🏴‍☠️ 🏓 ❄ 🌊 🌪   🚜🚑🐣🏃‍♂️👷🕵️‍♂️🙋‍♂️👴👈🗯 
-    ♻ ✂                                                                          
+    🚨🛑🚚🏗⚓🧨🎉🎯🦺👑💡📼📀📒🔖💰💳📧📬✏📅📉📊📌📏⛏🛠🔧🔗⛓️‍💥⛓🧰💊🚪🚫🆕🆗🔴🔘🚩🏁🎌🏴‍☠️🏓❄🌪🚜🚑🐣🏃‍♂️👷🕵️‍♂️🙋‍♂️👈⚠🗯♻✂☢↩♾✳🌡☁🕹🎟🖥🎞🏷🗃🗄🗑🗝⚙⚰
     ⛔, ❌, ❎  => Delete.
-    ⭐ => Added, inserted. Not great.
-    📝 => Update or edit. No good update I can find. Suggested 🔄, but more like a Refresh. 🔨?
-    🥂 => Success, in terms of a feature completed
+    ⭐, 🌟 => Added, inserted. Not great. 
+    📝, ✍ => Update or edit. No good update I can find. Suggested 🔄, but more like a Refresh. 🔨?
+    🥂, 👏 => Success, in terms of a feature completed
     💣 => Crashed. Not a captured fail. Also, 💥 which is collision, maybe a deadlock? Race condition?
+    🙁 => Failed opposite of success, but not a crash
+    🤨 => Warning, concerned. Why'd we get that value?
+
     🚧 => Working on. Still good after 30 years.
     👀 => Detected an event or error.                                                            
     🔍 => Search for or a field allowing a user to enter search values.
-    📈, ✅, ✔.  => Verified correct.
+    📈, ✅, 👌, 👍, ✔.  => Verified correct.
     🏭 => Factory
     🌙 => "This process runs at night"
     🧹 => clean up after.
     📦 => A package that is to be delivered or made available for download.
     📃 => Document, not necessarily a text document.       
-    🧪 => Test.     
+    🧪 => Test. 🎓 Passed all tests. Deployable.
     ⏰=> Scheduled event or task, triggers an execution
     ⚡ => Execute, start a process. Probably should be different between blocking and async.
     ⏳ => Some unwanted but perhaps unavoidable delay. Long running process.
@@ -40,6 +41,20 @@
     🧙 => Wizard, no sure what exactly to apply to
     🔒 => Is locked, or does lock
     💀 => This code or path or branch is dead, not being worked on
+    💩 => This code or program or module is crap.
+    🎭 => media files or streamed media, movies, films, tv shows, audio, print, pdfs. Could use 📕📚 for print.
+    📺 => for specifically TV stuff, maybe streaming
+    🐛 => bug!     
+    👓 => scan or flag for scanning
+    👴 => Code is showing its age
+    💤, 😴 => Process is sleeping
+    🏋️‍♂️ => Portion of code doing the majority of the work
+    🎲 => Random output, or quasi-random, or intermittent failure
+    🧮 => Counts?
+    🌊 => Flood of data, tsunami of input or output
+    🪓=> This needs refactoring
+    🔁 => Try op again
+    
 #>                                                                                                
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')] # We don't need no stinkin' badges
