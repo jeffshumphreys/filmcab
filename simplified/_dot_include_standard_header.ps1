@@ -10,7 +10,11 @@
         Install-Module -Name 'PSRule' -Repository PSGallery -Scope CurrentUser           # https://microsoft.github.io/PSRule/stable/install-instructions/
 
         Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
-#>                                                                                                                
+
+    🚧 🚨 🛑 🚚    🏭    🏗    ⚓   🛎    ⏳    ⏰    🌡   ☁   ⚡   🧨   🎉   🎟   🎯   🪄   🕹   🎭   👓   🦺   👑   🎓   🖥   🎞   📺   🔍   💡   📼  📀    📕 📚 📒 📃 🔖 🏷  💰 💳 📧 📦 📬 ✏ 📝 📝 📅
+    📈 📉 📊 📌 📏 🗃 🗄 🗑 🗝 🔒 🔨 ⛏ 🛠 💣 🔧 ⚙ 🔗 ⛓️‍💥 ⛓ 🧰 🧪 💊 🚪 🧹 ⚰  ⚠ ⛔🚫☢ ↩ 🔄 ♾ ✅ ✔ ❌ ❎ ✳ 🆕 🆗 🔴 🔘 🚩 🏁 🎌 🏴‍☠️ 🏓 ❄ 🌊 🌪 ⭐ 🌙 🚜🚑🌱 🐣 🏃‍♂️ 👷🕵️‍♂️ 🙋‍♂️ 👴 👀 👈 🗯 
+#>                                                                                                
+
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')] # We don't need no stinkin' badges
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')] # Why?
 
@@ -315,6 +319,10 @@ function Get-SqlFieldValue {
     ##### Nows to the typing of our DatabaseColumnValue, which we want to maintain in the script. Only tested for Postgres 15
     
     $columnValue = $reader.GetValue($ordinal)
+    if ($columnValue -is [System.DBNull]) {
+        $columnValue = $null
+    }
+    
     $columnDataType = $columnODBCMetadata.DataType
     $columnPostgresTypeId = $columnODBCMetadata.ProviderType # Only way to distinguish
     $columnPostgresType = [type][String] # Default type
@@ -325,10 +333,14 @@ function Get-SqlFieldValue {
         11 {$columnPostgresType = [type][datetime]}                                               # timestamp in database
         23 {$columnPostgresType = [type][datetime]}                                               # date in database
         24 {$columnPostgresType = [type][timespan]}                                               # time in database
-        22 {$columnPostgresType = [type][bool]}
+        22 {
+            $columnPostgresType = [type][bool]
+            $columnValue = [Int32]$columnValue # The string "0" -as System.Boolean = $True !!! So unfortunate
+            $columnValue = [bool]$columnValue
+        }
         12 {$columnPostgresType = [type][string]}                                                 # varchar in database
          1 {                                    
-            if ($columnDataType -eq 'System.Int64') {    # May alter the connection string to force int8 returns
+            if ($columnDataType -eq 'Int64') {    # May alter the connection string to force int8 returns
                 $columnPostgresType = [type][Int64]
             } else {
                 $columnPostgresType = [type][string]
@@ -337,7 +349,13 @@ function Get-SqlFieldValue {
         13 {$columnPostgresType = [type][string]}                                                 # name in database
          4 {$columnPostgresType = [type][Int32]}                                                  
         10 {$columnPostgresType = [type][Int32]}                                                  # int4 in database
-         5 {$columnPostgresType = [type][Int16]}                                                  
+         5 {
+            if ($columnDataType.Name -eq 'DateTime') { # More bugs!!!!
+                $columnPostgresType = [type][datetime]
+            } else {
+                $columnPostgresType = [type][Int16]
+            }
+        }                                                  
         17 {$columnPostgresType = [type][Int16]}                                                  # int2 in database
         14 {$columnPostgresType = [type][single]}                                                 # float4 in database
          8 {$columnPostgresType = [type][double]}                                                 # float8 in database
@@ -590,6 +608,32 @@ Function New-ArrayIndex {
     }.GetNewClosure()
 }                    
 
+Function Least([array]$things) {
+    return ($things|Measure -Minimum).Minimum
+}                                            
+
+Function Left([string]$val, [int32]$howManyChars = 1) {
+    if ([String]::IsNullOrEmpty($val)) { 
+        # Made up rule: Empty doesn't have a Leftmost character
+        return $null
+    }               
+    $actualLengthWeWillGet = Least $howManyChars  $val.Length
+    return $val.Substring(0,$actualLengthWeWillGet)
+}
+
+Function Right([string]$val, [int32]$howManyChars = 1) {
+    if ([String]::IsNullOrEmpty($val)) { 
+        return $null
+    }               
+    $actualLengthWeWillGet = Least $howManyChars  $val.Length
+    
+    return $val.Substring($val.Length - $actualLengthWeWillGet)           
+}
+
+Function Greatest([array]$things) {
+    return ($things|Measure -Maximum).Maximum
+}                                            
+
 # Note: Stopping a run in debug does not close the connection
 # Close does not delete the entry from pg_stat_activity, nor does Dispose
 # It seems to decay on it's own.
@@ -619,15 +663,70 @@ General notes
 Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null) {
     if ($number -eq 1) {return $singularLabel}
     If ([String]::IsNullOrEmpty($pluralLabel)) {
-        if ($singularLabel.Substring(-1) -eq 'y') { $pluralLabel = $singularLabel.TrimEnd('y') + 'ies'}  # Directory => Directories
-        elseif ($singularLabel.Substring(-1) -eq 's') { $pluralLabel = $singularLabel + 'es'}            # Dress => Dresses
+        $LastCharacter = Right $singularLabel
+        $Last2Characters = Right $singularLabel 2
+        $SecondLastCharacter = Left $Last2Characters # Concise. Dont repit yourself.
+
+        $Irregulars =@{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
+        $NonCount = @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
+        $OnlyS =@('photo', 'halo', 'piano')                                                                                                                
+        $ExceptionsToFE = @('chef', 'roof')      
+           
+        if ($singularLabel -in $NonCount) {
+            $plurallabel = $singularLabel 
+        }                                                                        
+        elseif ($singularLabel -in $Irregulars.Keys) {
+            $plurallabel = $Irregulars[$singularLabel]
+        }
+        elseif ($singularLabel -in $OnlyS -or $singularLabel -in $ExceptionsToFE) {
+            $plurallabel = $singularLabel + 's'
+        }
+        elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) { 
+            $pluralLabel = $singularLabel + 'es'
+        }  
+        elseif ($Last2Characters -in @('f', 'fe')) { 
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'ves' # Wife => Wives
+        }  
+        elseif ($LastCharacter -in @('f', 'fe')) { 
+            $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ves'   # Calf => Calves
+        }  
+        elseif ($Last2Characters -in @('us')) {  
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'i'   # Cactus => Cacti
+        }  
+        elseif ($Last2Characters -in @('is')) {  
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'es'   # Analysis => analyses
+        }  
+        elseif ($Last2Characters -in @('on')) {  
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'a'   # Phenomenon => Phenomena
+        }  
+        elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) { 
+            $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ies' # City => Cities
+        }  
         else {
-            $pluralLabel = $singularLabel + 's'                                                          # Cat => Cats
+            $pluralLabel = $singularLabel + 's'                             # Cat => Cats
         }
     }
     if ($number -ge 2 -or $number -eq 0) { return $pluralLabel}
-    return '?'
+    return $singularLabel
 }   
+
+Function NullIf([string]$val, [string]$ifthis = '') {
+    if ($null -eq $val -or $val.Trim() -eq $ifthis) {return $null}
+    return $val
+}                        
+
+Function TrimToMillseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
+{
+    # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
+    [DateTime]::ParseExact($date.ToString("yyyy-MM-dd hh:mm:ss.fff"), "yyyy-MM-dd hh:mm:ss.fff", $null)
+}                                
+
+Function TrimToMicroseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
+{
+    # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
+    [DateTime]::ParseExact($date.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), "yyyy-MM-dd hh:mm:ss.ffffff", $null)
+}                                
+
 <#
 .SYNOPSIS
 Execute any actions standard across all scripts in this folder.
@@ -646,7 +745,9 @@ function main_for_dot_include_standard_header() {
 
     [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingCmdletAliases', '')]
     param()
-    
+
+    # Test: Format-Plural 'Directory' 2
+
     # Hide these inside here. Why? So that callers can update this script instead of adding hacks to their scripts, like "if driver -eq then do this." Centralize my hacks.
 
     $MyOdbcDatabaseDriver = "PostgreSQL Unicode(x64)"
@@ -674,6 +775,7 @@ function main_for_dot_include_standard_header() {
     Password=$MyDatabaseUsersPassword;
     Parse=True;
     OptionalErrors            =True;
+    BoolsAsChar               =False;
     ";                    
     # The above, if any invalid syntax, will break when ConnectionString is set, not on Open, with:Exception setting "ConnectionString": "Format of the initialization string does not conform to specification starting at index 194."
     $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
