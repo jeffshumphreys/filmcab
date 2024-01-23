@@ -10,9 +10,12 @@
         Install-Module -Name 'PSRule' -Repository PSGallery -Scope CurrentUser           # https://microsoft.github.io/PSRule/stable/install-instructions/
 
         Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
-
+       
+    A pile of possible helpful icons for output.
     🚧 🚨 🛑 🚚    🏭    🏗    ⚓   🛎    ⏳    ⏰    🌡   ☁   ⚡   🧨   🎉   🎟   🎯   🪄   🕹   🎭   👓   🦺   👑   🎓   🖥   🎞   📺   🔍   💡   📼  📀    📕 📚 📒 📃 🔖 🏷  💰 💳 📧 📦 📬 ✏ 📝 📝 📅
     📈 📉 📊 📌 📏 🗃 🗄 🗑 🗝 🔒 🔨 ⛏ 🛠 💣 🔧 ⚙ 🔗 ⛓️‍💥 ⛓ 🧰 🧪 💊 🚪 🧹 ⚰  ⚠ ⛔🚫☢ ↩ 🔄 ♾ ✅ ✔ ❌ ❎ ✳ 🆕 🆗 🔴 🔘 🚩 🏁 🎌 🏴‍☠️ 🏓 ❄ 🌊 🌪 ⭐ 🌙 🚜🚑🌱 🐣 🏃‍♂️ 👷🕵️‍♂️ 🙋‍♂️ 👴 👀 👈 🗯 
+    ♻ ✂                                                                                                                                      
+    
 #>                                                                                                
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')] # We don't need no stinkin' badges
