@@ -43,7 +43,7 @@
                         ENG.srt, FRE.srt, GER.srt, GRE.srt, ITA.srt, POR.srt, SPA.srt
                     -D:\qBittorrent Downloads\Video\Movies\Blade.I.II.III.1998-2004.The.Ultimate.Collection.1080p.Bluray.x264.anoXmous\03.Blade.Trinity.2004.1080p.BluRay.x264.anoXmous     Collections of movies
 
-
+    Example of output where a file is edited and flagged for scan: 🥱 📝👓🥱 🥱 🥱
 
 #>
 
