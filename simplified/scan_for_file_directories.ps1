@@ -234,12 +234,13 @@ foreach ($SearchPath in $SearchPaths) {
             if ($newjunctionlink -and -not $oldjunctionlink)  {
                 $howManyNewJunctionLinks++
             }
-    
+                
+            $formattedcurrentdirectorydate = $currentdirectorydate.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
+            $newlinktarget = $newlinktarget.Replace("'", "''")
+
             if ($newdir) { #even if it's a link, we store it
                 $howManyNewDirectories++
                 Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
-                $formattedcurrentdirectorydate = $currentdirectorydate.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-                $currentlinktarget = $currentlinktarget.Replace("'", "''") # Pesky apostphrs
                 $sql = "
                     INSERT INTO 
                         directories(
@@ -264,7 +265,7 @@ foreach ($SearchPath in $SearchPaths) {
                         /*     scan_directory         */   $flagscandirectory,
                         /*     is_symbolic_link       */   $currentsymboliclink,
                         /*     is_junction_link       */   $currentjunctionlink,
-                        /*     linked_path            */    CASE WHEN '$currentlinktarget' = '' THEN NULL ELSE '$currentlinktarget' END
+                        /*     linked_path            */    CASE WHEN '$newlinktarget' = '' THEN NULL ELSE '$newlinktarget' END
                     )
                 "
 
@@ -274,8 +275,6 @@ foreach ($SearchPath in $SearchPaths) {
 
             } elseif ($updatedirectoryrecord) {
                 $howManyUpdatedDirectories++
-                $formattedcurrentdirectorydate = $currentdirectorydate.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-                $newlinktarget = $newlinktarget.Replace("'", "''")
                 $sql = "
                     UPDATE 
                         directories
@@ -291,7 +290,7 @@ foreach ($SearchPath in $SearchPaths) {
 
                 $rowsUpdated = Invoke-Sql $sql
                 Write-Host '📝' -NoNewline
-                if ($flagscandirectory) { write-host '!' -NoNewLine}
+                if ($flagscandirectory) { write-host '👓' -NoNewLine}
                 $hoWManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
