@@ -294,7 +294,8 @@ foreach ($SearchPath in $SearchPaths) {
                 if ($flagscandirectory) { write-host '!' -NoNewLine}
                 $hoWManyRowsUpdated+= $rowsUpdated
             } else {
-                Write-Host '⚪' -NoNewline
+                # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
+                Write-Host '🥱' -NoNewline
             }
 
             if ($isarealdirectory <# -and directory changed #>) {
