@@ -269,7 +269,7 @@ foreach ($SearchPath in $SearchPaths) {
                 "
 
                 $rowsInserted = Invoke-Sql $sql
-                Write-Host '+' -NoNewline
+                Write-Host '⭐' -NoNewline
                 $hoWManyRowsInserted+= $rowsInserted
 
             } elseif ($updatedirectoryrecord) {
@@ -290,11 +290,11 @@ foreach ($SearchPath in $SearchPaths) {
                         directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
 
                 $rowsUpdated = Invoke-Sql $sql
-                Write-Host 'o' -NoNewline
+                Write-Host '📝' -NoNewline
                 if ($flagscandirectory) { write-host '!' -NoNewLine}
                 $hoWManyRowsUpdated+= $rowsUpdated
             } else {
-                Write-Host 'x' -NoNewline
+                Write-Host '⚪' -NoNewline
             }
 
             if ($isarealdirectory <# -and directory changed #>) {
