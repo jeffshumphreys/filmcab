@@ -230,6 +230,16 @@ function Invoke-Sql {
     }
 }
 
+Function PrepForSql {
+    param (
+        $val,
+        [Switch]$KeepEmpties
+    )
+    if ($null -eq$val) { return 'NULL'}      
+                 
+    if ($val.Trim() -eq '' -and -not $KeepEmpties) { return 'NULL'}
+    return "'" + $val.Replace("'", "''") + "'"
+}
 
 <#
 .SYNOPSIS
