@@ -1,13 +1,11 @@
 <#
- #    FilmCab Daily morning batch run process: Verify SearchPaths on our specific volumes are recorded in the database.
+ #    FilmCab Daily morning batch run process: Scan for new or updated directories in various search paths.
  #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
- #    Status: Testing, added to batch run.
+ #    Status: Prepping for addition to schedule.
  #    ###### Tue Jan 23 18:23:11 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
- #    Function:Scan specific drives and directories in file system, and update the data store Detect if timestamp has changed.If so then flag it for file scanning and pulling file metadata into the data store.
  #>
-
-<#
+ <#
     Here's a crap example diagram of this.
 
     This PC (on Windows)
@@ -84,8 +82,8 @@ It is not updated for these actions:
 #TODO: Figger out what better prefixes than old and new would be. on_fs_ and in_table_?
 #FIXME: It's still detecting need to scan. Not updating?? Should perhaps pull old flag and block if already set.
 
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
@@ -266,8 +264,6 @@ foreach ($SearchPath in $searchPaths) {
             $formattedcurrentdirectorydate = $currentdirectorydate.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
             $preppednewlinktarget = PrepForSql $newlinktarget
 
-            $walkdownthefilehierarchy = $true # Default to going deeper.
-
             if ($foundANewDirectory) { #even if it's a link, we store it
                 $howManyNewDirectories++
                 Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
@@ -326,7 +322,7 @@ foreach ($SearchPath in $searchPaths) {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
                 
                 #Write-Host "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
-                $walkdownthefilehierarchy = $false
+                #$walkdownthefilehierarchy = $false (Didn't work on detection)
             }
 
             # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
