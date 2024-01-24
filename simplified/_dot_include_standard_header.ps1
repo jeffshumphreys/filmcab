@@ -278,7 +278,7 @@ Function Select-Sql {
 
 <#
 .SYNOPSIS
-Convert select output to a data table.
+Convert select output to a string array (no hashtable!).
 
 .DESCRIPTION
 Long description
@@ -287,7 +287,10 @@ Long description
 Parameter description
 
 .EXAMPLE
-Out-Sql 'SELECT 1 as One' > $null
+$searchPaths = Out-SqlToList 'SELECT search_path FROM search_paths ORDER BY search_path_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
+foreach ($SearchPath in $searchPaths) {
+    if (-not(Test-Path $SearchPath)) {}
+}
 
 .NOTES
 I don't like the verb "Show".  But this function just to blow a select output on the screen is sorely lacking for the lazy developer.
@@ -727,16 +730,16 @@ An example
 .NOTES
 General notes
 #>
-Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null) {
+Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null, [switch]$includeCount) {
     if ($number -eq 1) {return $singularLabel}
     If ([String]::IsNullOrEmpty($pluralLabel)) {
         $LastCharacter = Right $singularLabel
         $Last2Characters = Right $singularLabel 2
         $SecondLastCharacter = Left $Last2Characters # Concise. Dont repit yourself.
 
-        $Irregulars =@{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
-        $NonCount = @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
-        $OnlyS =@('photo', 'halo', 'piano')                                                                                                                
+        $Irregulars     = @{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
+        $NonCount= @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
+        $OnlyS = @('photo', 'halo', 'piano')                                                                                                                
         $ExceptionsToFE = @('chef', 'roof')      
            
         if ($singularLabel -in $NonCount) {
@@ -772,9 +775,14 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
         else {
             $pluralLabel = $singularLabel + 's'                             # Cat => Cats
         }
+    }   
+    $ct = ""
+
+    if ($includeCount) {
+        $ct = $number.ToString() + " "
     }
-    if ($number -ge 2 -or $number -eq 0) { return $pluralLabel}
-    return $singularLabel
+    if ($number -ge 2 -or $number -eq 0) { return ($ct + $pluralLabel)}
+    return ($ct + $singularLabel)
 }   
 
 Function NullIf([string]$val, [string]$ifthis = '') {
