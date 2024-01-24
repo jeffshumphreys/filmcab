@@ -16,22 +16,22 @@ if ($elapsed.Days -gt 0) {
     Format-Plural 'Day' $($elapsed.Days) -includeCount
 }
 elseif ($elapsed.Hours -gt 0) {
-    Format-Plural 'Hour' $($elapsed.Hours)
+    Format-Plural 'Hour' $($elapsed.Hours) -includeCount
 }
 elseif ($elapsed.Minutes -gt 0) {
-    Format-Plural 'Minute' $($elapsed.Minutes)
+    Format-Plural 'Minute' $($elapsed.Minutes) -includeCount
 }
 elseif ($elapsed.Seconds -gt 0) {
-    Format-Plural 'Second' $($elapsed.Seconds)
+    Format-Plural 'Second' $($elapsed.Seconds) -includeCount
 }
 elseif ($elapsed.Milliseconds -gt 0) {
     Format-Plural 'Millisecond' $($elapsed.Milliseconds) -includeCount
 }
 elseif ($elapsed.Microseconds -gt 0) {
-    Format-Plural 'Microsecond' $($elapsed.Microseconds)
+    Format-Plural 'Microsecond' $($elapsed.Microseconds) -includeCount
 }
 elseif ($elapsed.Ticks -gt 0) {
-    Format-Plural 'Tick' $($elapsed.Ticks)
+    Format-Plural 'Tick' $($elapsed.Ticks) -includeCount
 }
 
 # Log-ScriptCompleted
