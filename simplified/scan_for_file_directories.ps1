@@ -50,6 +50,35 @@
 
 #>
 
+<#
+
++50
+
+Disclaimer: I tested all of these myself on Windows 10. I could not find an authoritative source documenting all of these behaviours. It is entirely possible that I made a mistake somewhere.
+
+The folder's last modified time is updated for these actions:
+
+    new file or folder directly in target folder
+    renamed file or folder directly in target folder
+    deleted file or folder directly in target folder
+    hardlink create/delete/rename - same as files
+    file/folder symlink create/delete/rename
+    directory junction create/delete/rename
+
+It is not updated for these actions:
+
+    modified contents of file directly in target folder
+    edit target of symlink or junction contained in target folder
+    file's or sub-folder's created/modified date changing
+    edit basic attributes (hidden/archive/system) of a direct child
+    NTFS compression/encryption change of a direct child
+    anything at all happening in a sub-folder - literally anything
+    changing attributes of the folder itself
+    changing owner/ACL of the folder itself
+    owner or ACL of a direct child changing
+    if the folder is a directory junction, changing the target
+    adding/deleting alt data streams to a direct child file
+#>
 #TODO: Don't scan directories below a directory that hasn't changed (Performance)
 #TODO: Figger out what better prefixes than old and new would be. on_fs_ and in_table_?
 #FIXME: It's still detecting need to scan. Not updating?? Should perhaps pull old flag and block if already set.
@@ -211,18 +240,11 @@ foreach ($SearchPath in $searchPaths) {
                     $flagscandirectory     = $true 
                 }
             } else {
-                $foundANewDirectory            = $true
+                $foundANewDirectory        = $true
                 $flagscandirectory = $true 
             }
             $reader.Close()
             
-            # if ($null -eq $currentlinktarget) {
-            #     $currentlinktarget = '' # Give it something to test in SQL side
-            # }
-            # if ($null -eq $newlinktarget) {
-            #     $newlinktarget = ''
-            # }
-
             if ($newjunctionlink -or $currentjunctionlink) { # Possible bug: junction converted to physical SearchPath: Not scanned.
                 $flagscandirectory = $false # Please do not traverse links. Even if the directory date changed.
             }
@@ -258,16 +280,16 @@ foreach ($SearchPath in $searchPaths) {
                                linked_path
                         )
                     VALUES(
-                        /*     directory_hash         */    md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
-                        /*     directory_path         */    REPLACE('$directory_path_escaped', '/', '\'),
-                        /*     parent_directory_hash  */    md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
-                        /*     directory_date         */   '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
-                        /*     volume_id              */   (select volume_id from volumes where drive_letter = '$currentdriveletter'),
-                        /*     directory_still_exists */    True,
-                        /*     scan_directory         */   $flagscandirectory,
-                        /*     is_symbolic_link       */   $currentsymboliclink,
-                        /*     is_junction_link       */   $currentjunctionlink,
-                        /*     linked_path            */   $preppednewlinktarget
+                        /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
+                        /*     directory_path         */  REPLACE('$directory_path_escaped', '/', '\'),
+                        /*     parent_directory_hash  */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
+                        /*     directory_date         */ '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
+                        /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
+                        /*     directory_still_exists */  True,
+                        /*     scan_directory         */ $flagscandirectory,
+                        /*     is_symbolic_link       */ $currentsymboliclink,
+                        /*     is_junction_link       */ $currentjunctionlink,
+                        /*     linked_path            */ $preppednewlinktarget
                     )
                 "
 
@@ -296,17 +318,22 @@ foreach ($SearchPath in $searchPaths) {
                 $hoWManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
-                Write-Host "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
+                
+                #Write-Host "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
                 $walkdownthefilehierarchy = $false
             }
 
             # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
-            if ($isarealdirectory -and $walkdownthefilehierarchy) {
+            # Performance without skip:   2 minutes 
+            # Performance with skip and no changes: 720 ms (so 60 times faster for empties)
+            # DOESNT WORK !!!!! if ($isarealdirectory -and $walkdownthefilehierarchy ) { # https://stackoverflow.com/questions/1025187/rules-for-date-modified-of-folders-in-windows-explorer
+            if ($isarealdirectory ) { # No way to avoid it as of Windows 10: Must traverse
                 Get-ChildItem -Path $item.FullName | ForEach-Object { $FIFOstack.Enqueue($_) }
             }
         }
     }
 }
+
 
 # Display counts. If nothing is happening in certain areas, investigate.
 Write-Host # Get off the last nonewline
@@ -319,5 +346,7 @@ Write-Host "How many rows were deleted:                               $hoWManyRo
 Write-Host "How many new junction linked directories were found:      $howManyNewJunctionLinks"         $(Format-Plural 'Link'      $howManyNewJunctionLinks) 
 Write-Host "How many new symbolically linked directories were found:  $howManyNewSymbolicLinks"         $(Format-Plural 'Link'      $howManyNewSymbolicLinks) 
 Write-Host "How many directories were flagged for scanning:           $howManyDirectoriesFlaggedToScan" $(Format-Plural 'Directory' $howManyDirectoriesFlaggedToScan) 
+#TODO: Update counts to session table
 
+# Da Fuutar!!!
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
