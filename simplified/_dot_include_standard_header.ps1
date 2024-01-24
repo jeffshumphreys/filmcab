@@ -731,7 +731,13 @@ An example
 General notes
 #>
 Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null, [switch]$includeCount) {
-    if ($number -eq 1) {return $singularLabel}
+    $ct = ""
+
+    if ($includeCount) {
+        $ct = $number.ToString() + " "
+    }   
+
+    if ($number -eq 1) {return ($ct + $singularLabel)}
     If ([String]::IsNullOrEmpty($pluralLabel)) {
         $LastCharacter = Right $singularLabel
         $Last2Characters = Right $singularLabel 2
@@ -776,11 +782,7 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
             $pluralLabel = $singularLabel + 's'                             # Cat => Cats
         }
     }   
-    $ct = ""
 
-    if ($includeCount) {
-        $ct = $number.ToString() + " "
-    }
     if ($number -ge 2 -or $number -eq 0) { return ($ct + $pluralLabel)}
     return ($ct + $singularLabel)
 }   
@@ -824,8 +826,9 @@ function main_for_dot_include_standard_header() {
     #Start-Log
 
     # Test: Format-Plural 'Directory' 2
+    # Test: Format-Plural 'Second' 1 -includeCount
 
-    # Hide these inside here. Why? So that callers can update this script instead of adding hacks to their scripts, like "if driver -eq then do this." Centralize my hacks.
+    # Hide these variables inside here. Why? So that callers can update this script instead of adding hacks to their scripts, like "if driver -eq then do this." Centralize my hacks.
 
     $MyOdbcDatabaseDriver = "PostgreSQL Unicode(x64)"
     $MyDatabaseServer = "localhost";
