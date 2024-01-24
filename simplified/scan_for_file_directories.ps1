@@ -48,7 +48,8 @@
 #>
 
 #TODO: Don't scan directories below a directory that hasn't changed (Performance)
-#BUG: It's still detecting need to scan. Not updating??
+#TODO: Figger out what better prefixes than old and new would be. on_fs_ and in_table_?
+#FIXME: It's still detecting need to scan. Not updating?? Should perhaps pull old flag and block if already set.
 
 # Full SearchPath necessary for scheduled tasks to work? I'm not using Scheduler's working directory option since I don't know if it works
 
@@ -60,19 +61,7 @@ $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 202
 
 $stack = New-Object Collections.Stack
 
-# All the directories across my volumes that I think have some sort of movie stuff in them.
-
-$SearchPaths = @(
-    "D:\qBittorrent Downloads\Video", 
-    "O:\Video AllInOne", 
-    "G:\Video AllInOne Backup", 
-    "D:\qBittorrent Downloads\_torrent files", 
-    "D:\qBittorrent Downloads\_finished_download_torrent_files", 
-    "C:\Users\jeffs\Downloads",                                            # There's some not-movie stuff here, duh.
-    "D:\qBittorrent Downloads\temp"                                        # Hmmm, what's in here
-)
-
-# Track some stats
+# Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
 $howManyNewDirectories = 0
 $howManyUpdatedDirectories = 0
@@ -83,7 +72,9 @@ $hoWManyRowsUpdated = 0
 $hoWManyRowsInserted = 0
 $hoWManyRowsDeleted = 0
 
-foreach ($SearchPath in $SearchPaths) {
+$searchPaths = Out-SqlToList 'SELECT search_path FROM search_paths ORDER BY search_path_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
+
+foreach ($SearchPath in $searchPaths) {
     #Load first level of hierarchy
     if (-not(Test-Path $SearchPath)) {
         Write-Host "SearchPath $SearchPath not found; skipping scan."
@@ -155,7 +146,7 @@ foreach ($SearchPath in $SearchPaths) {
                     volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')";
             $reader = (Select-Sql $sql).Value # Cannot return reader value directly from a function
 
-            $newdir                     =  [boolean]$null
+            $foundANewDirectory                     =  [boolean]$null
             $updatedirectoryrecord          =     [bool]$null
              
             $olddirstillexists          =  [boolean]$null # Won't know till we query.
@@ -169,10 +160,11 @@ foreach ($SearchPath in $SearchPaths) {
             $newsymboliclink                = [bool]    $null
             $newjunctionlink            = [bool]    $null
             $newlinktarget              = [string]  $null
+            $newdirectorydate = [datetime]0
             $flagscandirectory          = [bool]    $false
 
             if ($reader.HasRows) {
-                $newdir                     = $false
+                $foundANewDirectory                     = $false
                 $updatedirectoryrecord      = $false
                                    
                 try {
@@ -206,27 +198,26 @@ foreach ($SearchPath in $SearchPaths) {
 
                 # WARNING: postgres can only store to 3 places of milliseconds. File info is stored to 7 places. So they'll never match.
 
-                if ($olddirectorydate     -ne $currentdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
+                if ($olddirectorydate     -ne $newdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
                     $flagscandirectory     = $true 
                 }
             } else {
-                $newdir            = $true
+                $foundANewDirectory            = $true
                 $flagscandirectory = $true 
             }
             $reader.Close()
             
-            if ($null -eq $currentlinktarget) {
-                $currentlinktarget = '' # Give it something to test in SQL side
-            }
-            if ($null -eq $newlinktarget) {
-                $newlinktarget = ''
-            }
+            # if ($null -eq $currentlinktarget) {
+            #     $currentlinktarget = '' # Give it something to test in SQL side
+            # }
+            # if ($null -eq $newlinktarget) {
+            #     $newlinktarget = ''
+            # }
 
             if ($newjunctionlink -or $currentjunctionlink) { # Possible bug: junction converted to physical SearchPath: Not scanned.
                 $flagscandirectory = $false # Please do not traverse links. Even if the directory date changed.
             }
     
-            # Do insert outside of the reader.
             if ($flagscandirectory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
             if ($newsymboliclink -and -not $oldsymboliclink) {
                 $howManyNewSymbolicLinks++
@@ -236,9 +227,9 @@ foreach ($SearchPath in $SearchPaths) {
             }
                 
             $formattedcurrentdirectorydate = $currentdirectorydate.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-            $newlinktarget = $newlinktarget.Replace("'", "''")
+            $preppednewlinktarget = PrepForSql $newlinktarget
 
-            if ($newdir) { #even if it's a link, we store it
+            if ($foundANewDirectory) { #even if it's a link, we store it
                 $howManyNewDirectories++
                 Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
                 $sql = "
@@ -260,12 +251,12 @@ foreach ($SearchPath in $SearchPaths) {
                         /*     directory_path         */    REPLACE('$directory_path_escaped', '/', '\'),
                         /*     parent_directory_hash  */    md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
                         /*     directory_date         */   '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
-                        /*     volume_id              */   (select volume_id from volumes where drive_letter  = '$currentdriveletter'),
+                        /*     volume_id              */   (select volume_id from volumes where drive_letter = '$currentdriveletter'),
                         /*     directory_still_exists */    True,
                         /*     scan_directory         */   $flagscandirectory,
                         /*     is_symbolic_link       */   $currentsymboliclink,
                         /*     is_junction_link       */   $currentjunctionlink,
-                        /*     linked_path            */    CASE WHEN '$newlinktarget' = '' THEN NULL ELSE '$newlinktarget' END
+                        /*     linked_path            */   $preppednewlinktarget
                     )
                 "
 
@@ -283,7 +274,7 @@ foreach ($SearchPath in $SearchPaths) {
                         directory_date         ='$formattedcurrentdirectorydate'::TIMESTAMPTZ,
                         is_symbolic_link       = $newsymboliclink,
                         is_junction_link       = $newjunctionlink,
-                        linked_path  =  CASE WHEN '$newlinktarget' = '' THEN NULL ELSE '$newlinktarget' END,
+                        linked_path  = $preppednewlinktarget,
                         directory_still_exists = True
                     WHERE 
                         directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
@@ -294,7 +285,7 @@ foreach ($SearchPath in $SearchPaths) {
                 $hoWManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
-                Write-Host '🥱' -NoNewline
+                Write-Host '🥱' -NoNewline # Warning: Generates a space after. The others are not.
             }
 
             if ($isarealdirectory <# -and directory changed #>) {
