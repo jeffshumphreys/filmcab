@@ -1,14 +1,14 @@
 <#
-    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
-    Status: Run when run manually from Task Scheduler. The full paths were missing and so the log failed.
-    Status: Update when runs at 11:52 PM tonight and generates log.
-#   https://github.com/jeffshumphreys/filmcab/tree/master/simplified
-    Notes: I don't just love the verbose log output, but I'm only keeping the one copy.
-    ###### Tue Jan 16 19:10:55 MST 2024 - Moved to Yet Another Subfolder. Updated actual task. Exported.
-
-#>
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
+ #   FilmCab Daily morning batch run process: backup published media to alternate spindle.
+ #   Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
+ #   Status: Run when run manually from Task Scheduler. The full paths were missing and so the log failed.
+ #   Status: Update when runs at 11:52 PM tonight and generates log.
+ #   https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #   Notes: I don't just love the verbose log output, but I'm only keeping the one copy.
+ #   ###### Tue Jan 16 19:10:55 MST 2024 - Moved to Yet Another Subfolder. Updated actual task. Exported.
+ #>
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 
