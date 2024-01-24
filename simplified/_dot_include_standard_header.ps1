@@ -186,6 +186,8 @@ function Show-Error {
     Write-Host "Message: $($_.Exception.Message)"
     Write-Host "StackTrace: $($_.Exception.StackTrace)"             
     Write-Host "Failed on $($_.InvocationInfo.ScriptLineNumber)"
+    Get-PSCallStack
+    
     try {
         Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
     } catch {}
@@ -321,20 +323,39 @@ Function Out-SqlToList {
         $stringlist = @()
         foreach ($s in $dataset.Tables[0].Rows)
         {
-            #$v = $s.search_path
             $v = $s[0].ToString()
             $stringlist+= $v
         }
-        return $STRINGLIST # ($dataset.Tables[0].Rows|Select search_path)
-        # $toObjectArray = @()                                                                                      
-        # Foreach ($row in $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors)
-        # {
-        #     $toObjectArray+=  $row|Select search_path
-        # }
-        # return $toObjectArray
-        #return  $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors
+        return $stringlist
     } catch {
         Show-Error $sql -exitcode 3
+    }   
+}
+
+Function Out-SqlToDataset {
+    [CmdletBinding()]
+    param(           
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
+        [Switch]$DontOutputToConsole,
+        [Switch]$DontWriteSqlToConsole
+    )
+    try {
+        $DatabaseCommand = $DatabaseConnection.CreateCommand()
+        $DatabaseCommand.CommandText = $sql
+        $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand 
+        $dataset = New-Object System.Data.DataSet
+        $adapter.Fill($dataSet) | out-null
+        if (-not $DontWriteSqlToConsole) {
+            Write-Host $sql
+        }
+        if (-not $DontOutputToConsole) {
+            
+            $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
+        }                          
+        return $dataset.Tables[0].Rows
+        
+    } catch {
+        Show-Error $sql -exitcode 4
     }   
 }
 
