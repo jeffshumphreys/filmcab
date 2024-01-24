@@ -294,7 +294,7 @@ I don't like the verb "Show".  But this function just to blow a select output on
 "Out-Sql" isn't great. I want the output. Select-Sql returns a reader. I suppose "Select-Sql" would behave more like a Select both PS and SQL.
 "Out-Sql" might be more of a block or copy command to a database.  Treating the server as a device.
 #>
-Function Out-Sql {
+Function Out-SqlToList {
     [CmdletBinding()]
     param(           
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
@@ -313,8 +313,23 @@ Function Out-Sql {
         if (-not $DontOutputToConsole) {
             
             $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
+        }      
+        
+        $stringlist = @()
+        foreach ($s in $dataset.Tables[0].Rows)
+        {
+            #$v = $s.search_path
+            $v = $s[0].ToString()
+            $stringlist+= $v
         }
-        return $dataset
+        return $STRINGLIST # ($dataset.Tables[0].Rows|Select search_path)
+        # $toObjectArray = @()                                                                                      
+        # Foreach ($row in $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors)
+        # {
+        #     $toObjectArray+=  $row|Select search_path
+        # }
+        # return $toObjectArray
+        #return  $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors
     } catch {
         Show-Error $sql -exitcode 3
     }   
@@ -797,6 +812,8 @@ function main_for_dot_include_standard_header() {
 
     [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingCmdletAliases', '')]
     param()
+                                                                             
+    #Start-Log
 
     # Test: Format-Plural 'Directory' 2
 
@@ -851,6 +868,9 @@ function main_for_dot_include_standard_header() {
         # PostgreSql specific settings, also specific to filmcab, and the simplified effort.
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
         Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
+
+        #Test $searchPathCursor = Out-SqlToArray 'SELECT search_path FROM search_paths ORDER BY search_path_id'
+
     }
 }
 main_for_dot_include_standard_header # So as not to collide with dot includer
