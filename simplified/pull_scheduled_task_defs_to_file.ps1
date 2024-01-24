@@ -1,15 +1,20 @@
 ﻿<#
-    Pull all scheduled task definitions registered.
+ #    FilmCab Daily morning batch run process: Pull scheduled task definitions for documentation.
+ #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
+ #    Status: Prepping for deployment.
+ #    ###### Wed Jan 24 13:27:54 MST 2024
+ #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #    Pull all scheduled task definitions registered to the Windows Task Scheduler on localhost.
 
     Performance Measurements:
     - Measure-Command {[void](Get-ScheduledTask)}                     520 ms
     - Measure-Command {(Get-ScheduledTask -TaskPath '\')}             501 ms
-#>
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
+ #>
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. .\simplified\_dot_include_standard_header.ps1 
+. .\simplified\_dot_include_standard_header.ps1
 
 function RecurseDownXSD($xml, [int32]$lvl=0) {
     foreach ($element in $xml.Items) {
@@ -138,3 +143,5 @@ function GetSchema {
     RecurseDownXSD $schema
 
 }
+
+. .\simplified\_dot_include_standard_footer.ps1
