@@ -1,10 +1,11 @@
 <#
-    FilmCab Daily morning process: Verify SearchPaths on our specific volumes are recorded in the database.
-    Status: Testing, getting ready to add to batch run.
-    ###### Tue Jan 23 18:23:11 MST 2024
-    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
-    Function:Scan specific drives and directories in file system, and update the data store Detect if timestamp has changed.If so then flag it for file scanning and pulling file metadata into the data store.
->#
+ #    FilmCab Daily morning process: Verify SearchPaths on our specific volumes are recorded in the database.
+ #    Status: Testing, getting ready to add to batch run.
+ #    ###### Tue Jan 23 18:23:11 MST 2024
+ #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #    Function:Scan specific drives and directories in file system, and update the data store Detect if timestamp has changed.If so then flag it for file scanning and pulling file metadata into the data store.
+ #>
+
 <#
     Here's a crap example diagram of this.
 
@@ -299,6 +300,7 @@ foreach ($SearchPath in $searchPaths) {
                 $walkdownthefilehierarchy = $false
             }
 
+            # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
             if ($isarealdirectory -and $walkdownthefilehierarchy) {
                 Get-ChildItem -Path $item.FullName | ForEach-Object { $FIFOstack.Enqueue($_) }
             }
@@ -317,3 +319,5 @@ Write-Host "How many rows were deleted:                               $hoWManyRo
 Write-Host "How many new junction linked directories were found:      $howManyNewJunctionLinks"         $(Format-Plural 'Link'      $howManyNewJunctionLinks) 
 Write-Host "How many new symbolically linked directories were found:  $howManyNewSymbolicLinks"         $(Format-Plural 'Link'      $howManyNewSymbolicLinks) 
 Write-Host "How many directories were flagged for scanning:           $howManyDirectoriesFlaggedToScan" $(Format-Plural 'Directory' $howManyDirectoriesFlaggedToScan) 
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
