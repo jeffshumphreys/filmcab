@@ -1,5 +1,6 @@
 <#
- #    FilmCab Daily morning process: Verify SearchPaths on our specific volumes are recorded in the database.
+ #    FilmCab Daily morning batch run process: Verify SearchPaths on our specific volumes are recorded in the database.
+ #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
  #    Status: Testing, getting ready to add to batch run.
  #    ###### Tue Jan 23 18:23:11 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
