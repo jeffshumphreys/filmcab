@@ -1,7 +1,7 @@
 <#
  #    FilmCab Daily morning batch run process: Verify SearchPaths on our specific volumes are recorded in the database.
  #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
- #    Status: Testing, getting ready to add to batch run.
+ #    Status: Testing, added to batch run.
  #    ###### Tue Jan 23 18:23:11 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #    Function:Scan specific drives and directories in file system, and update the data store Detect if timestamp has changed.If so then flag it for file scanning and pulling file metadata into the data store.
@@ -84,7 +84,12 @@ It is not updated for these actions:
 #TODO: Figger out what better prefixes than old and new would be. on_fs_ and in_table_?
 #FIXME: It's still detecting need to scan. Not updating?? Should perhaps pull old flag and block if already set.
 
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
+param()
+
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
+
 
 $DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
 # FYI: $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
