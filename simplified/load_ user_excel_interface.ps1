@@ -1,18 +1,29 @@
 <#
-    Pull in an excel file we know to have our movie list in it
-    Stuff it into receiving one-to-one table, no cleanup
-    Validate the data as counts.
-    If any non-zero counts, look deeper, and fix IN EXCEL
-    run filmcab to detect new torrent downloads, new published files, and new backup entries.
-    check which published videos are in our excel list; update table and excel (?)
-    check folders in backups that are not in published. Delete.
-    check hashes from published to torrent downloads. What's missing?
-
-    ###### Sat Jan 20 18:59:12 MST 2024
-    We are no longer using transactions. They lock and block everything if debugging is going on.
+ #   FilmCab Daily morning batch run process: Pull in an excel file we know to have our movie list in it.
+ #   Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
+ #   Status: Haven't scheduled, need to test a little more
+ #   ###### Wed Jan 24 16:21:20 MST 2024
+ #   https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #
+ #   ###### Tue Jan 16 19:10:55 MST 2024 - Moved to Yet Another Subfolder. Updated actual task. Exported.
+ #
+ #   Stuff it into receiving one-to-one table, no cleanup
+ #   Validate the data as counts.
+ #   If any non-zero counts, look deeper, and fix IN EXCEL
+ #   run filmcab to detect new torrent downloads, new published files, and new backup entries.
+ #   check which published videos are in our excel list; update table and excel (?)
+ #   check folders in backups that are not in published. Delete.
+ #   check hashes from published to torrent downloads. What's missing?
+ #
+ #   ###### Sat Jan 20 18:59:12 MST 2024
+ #   We are no longer using transactions. They lock and block everything if debugging is going on.
 #>
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
+param()
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
 
 #$inpath = "D:\OneDrive\Documents\user_excel_interface.xlsm"
 $inpath = "https://d.docs.live.net/89bc08e19187b035/Documents/user_excel_interface.xlsm" # Trying to get live file.
@@ -173,3 +184,5 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     $DatabaseConnection.Close();
     $DatabaseConnection.Dispose();
 }
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
