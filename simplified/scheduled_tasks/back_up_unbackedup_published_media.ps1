@@ -19,5 +19,8 @@ param()
 # /NOOFFLOAD Copy files without using the Windows Copy Offload mechanism.        
 # /R:1 retry once instead of default 1 million
 # /XJ :: eXclude symbolic links (for both files and directories) and Junction points.  (Not doing this, just FYI)
+# Not dating the log; just want the last one for now.
 
 Robocopy.exe "O:\Video AllInOne" "G:\Video AllInOne Backup" /E /J /NOOFFLOAD /R:1 /V /UNILOG:D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
