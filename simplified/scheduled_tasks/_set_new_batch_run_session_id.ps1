@@ -1,5 +1,5 @@
 <#
- #    FilmCab Daily morning batch run process: Verify SearchPaths on our specific volumes are recorded in the database.
+ #    FilmCab Daily morning batch run process: Start tracking # for this batch run session.
  #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
  #    Status: Basics in place; scheduling.
  #    ###### Wed Jan 24 12:16:40 MST 2024
@@ -7,8 +7,8 @@
  #    Set a number and UUID for this session so we can track upstream activity to downstream consequences.  Bet the lovely Meridian School District IT team (bless them) never considered that. Gary, the fat worm.
  #>
                                             
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 
