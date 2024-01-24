@@ -1,4 +1,11 @@
 ﻿<#
+ #    FilmCab Daily morning batch run process: Pull in new scheduled task events for identifying which tasks are okay, failing, running long, not getting kicked off.
+ #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
+ #    Status: Prepping.
+ #    ###### Tue Jan 23 18:23:11 MST 2024
+ #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #>
+ <#
     In support of the logging system, I want to capture what scheduled task ran a script from within the Start-Log of any script. See test_log_sys.ps1
     I hope to avoid unnecessary performance delay to scripts calling Start-Log, but when debugging, it's important to know how a script got started, and with what arguments.
         Was this started from within VS Code?  A debugging run where the user can stop, skip, and completely drop from finishing? If a script run is stopped before completion, that
@@ -32,8 +39,8 @@
     Idea:
         Flush log for speed after we get it to file and/or database
 #>
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
