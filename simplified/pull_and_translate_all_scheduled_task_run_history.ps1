@@ -46,7 +46,7 @@ $oldtaskSchedulerEvents      = @()
     Remove-Item -Path 'clean-task-scheduler-events.xml' -Force   # Rebuilds all new, removed attributes.
 #>
                                         
-$TaskSchedulerEventsFileName = 'D:\qt_projects\filmcab\simplified\data\task-scheduler-events.xml'
+$TaskSchedulerEventsFileName = 'D:\qt_projects\filmcab\simplified\_data\task-scheduler-events.xml'
 if (Test-Path $TaskSchedulerEventsFileName -PathType Leaf) {
     $oldtaskSchedulerEvents = Import-Clixml -Path $TaskSchedulerEventsFileName
     $file = Get-Item $TaskSchedulerEventsFileName
