@@ -37,9 +37,8 @@ function RecurseDownXSD($xml, [int32]$lvl=0) {
     }
 }    
 
-function main() {
-                                                    
-    # Unlike Get-WinEvents, where you can prefilter out stuff by dates and such, Get-ScheduledTask gets either all or single. A few thousand tasks might be problematic.
+                                                   
+# Unlike Get-WinEvents, where you can prefilter out stuff by dates and such, Get-ScheduledTask gets either all or single. A few thousand tasks might be problematic.
 $scheduledTaskDefs = (Get-ScheduledTask)
            
 # Strictly Core 7 - until they break it again.
