@@ -1,9 +1,11 @@
 <#
     FilmCab Daily morning process: Verify SearchPaths on our specific volumes are recorded in the database.
-    Status: Beginning
-
-    Traverse every directory I know, to get new directories and capture the change timestamp of directories.  All the filesystems I know update all the way up the heirarchy when a file is deleted, created, or changed.
-
+    Status: Testing, getting ready to add to batch run.
+    ###### Tue Jan 23 18:23:11 MST 2024
+    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+    Function:Scan specific drives and directories in file system, and update the data store Detect if timestamp has changed.If so then flag it for file scanning and pulling file metadata into the data store.
+>#
+<#
     Here's a crap example diagram of this.
 
     This PC (on Windows)
@@ -51,15 +53,14 @@
 #TODO: Figger out what better prefixes than old and new would be. on_fs_ and in_table_?
 #FIXME: It's still detecting need to scan. Not updating?? Should perhaps pull old flag and block if already set.
 
-# Full SearchPath necessary for scheduled tasks to work? I'm not using Scheduler's working directory option since I don't know if it works
-
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
 
 $DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
-$DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
-# Method from script kidding web example to traverse directories
+# FYI: $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
 
-$stack = New-Object Collections.Stack
+# Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
+
+$FIFOstack = New-Object System.Collections.Queue
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
@@ -72,37 +73,44 @@ $hoWManyRowsUpdated = 0
 $hoWManyRowsInserted = 0
 $hoWManyRowsDeleted = 0
 
+# Fetch a string array of paths to search.
+
 $searchPaths = Out-SqlToList 'SELECT search_path FROM search_paths ORDER BY search_path_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
 
+# Search down each search path for directories that are different or missing from our data store.
+
 foreach ($SearchPath in $searchPaths) {
+
     #Load first level of hierarchy
+
     if (-not(Test-Path $SearchPath)) {
         Write-Host "SearchPath $SearchPath not found; skipping scan."
         return # the PS way to continue, whereas PS continue is break
     }
 
-    # Stuff the search root SearchPath in the stack so that we can completely shortcut search SearchPath if nothing's changed. Has to be a DirectoryInfo object.
+    # Stuff the search root SearchPath in the FIFOstack so that we can completely shortcut search SearchPath if nothing's changed. Has to be a DirectoryInfo object.
     $BaseDirectoryInfoForSearchPath = Get-Item $SearchPath
                       
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
         Write-Host "SearchPath $SearchPath is not a container; skipping scan."
     }
-    $stack.Push($BaseDirectoryInfoForSearchPath)
+
+    $FIFOstack.Enqueue($BaseDirectoryInfoForSearchPath)
     
     Get-ChildItem -Path $SearchPath -Directory | ForEach-Object { 
-        $stack.Push($_) 
+        $FIFOstack.Enqueue($_) 
     }
     
     # Recurse down the file hierarchy
 
-    while($stack.Count -gt 0 -and ($item = $stack.Pop())) {
+    while($FIFOstack.Count -gt 0 -and ($item = $FIFOstack.Dequeue())) {
         if ($item.PSIsContainer) {
             $directory_path        = $item.FullName
-            $currentdriveletter    = $item.FullName[0]
+            $currentdriveletter    = [string]$item.FullName[0]
             $currentsymboliclink   = [bool]$null
             $currentjunctionlink   = [bool]$null
             $currentlinktarget     = NullIf($item.LinkTarget)   # Probably should verify, eventually
-            $currentdirectorydate  = TrimToMicroseconds($item.LastWriteTime) # Postgres cannot store past 3 decimals of milliseconds (Is this true, Jeff???), so on Windows will always cause a mismatch
+            $currentdirectorydate  = TrimToMicroseconds($item.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since it's 7.
             $isarealdirectory      = [bool]$null          # as in not a hard link or junction or symbolic link
 
             if ($item.LinkType -eq 'Junction') {
@@ -229,6 +237,8 @@ foreach ($SearchPath in $searchPaths) {
             $formattedcurrentdirectorydate = $currentdirectorydate.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
             $preppednewlinktarget = PrepForSql $newlinktarget
 
+            $walkdownthefilehierarchy = $true # Default to going deeper.
+
             if ($foundANewDirectory) { #even if it's a link, we store it
                 $howManyNewDirectories++
                 Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
@@ -285,11 +295,12 @@ foreach ($SearchPath in $searchPaths) {
                 $hoWManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
-                Write-Host '🥱' -NoNewline # Warning: Generates a space after. The others are not.
+                Write-Host "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
+                $walkdownthefilehierarchy = $false
             }
 
-            if ($isarealdirectory <# -and directory changed #>) {
-                Get-ChildItem -Path $item.FullName | ForEach-Object { $stack.Push($_) }
+            if ($isarealdirectory -and $walkdownthefilehierarchy) {
+                Get-ChildItem -Path $item.FullName | ForEach-Object { $FIFOstack.Enqueue($_) }
             }
         }
     }
