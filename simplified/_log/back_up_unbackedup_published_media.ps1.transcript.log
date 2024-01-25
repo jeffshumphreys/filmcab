@@ -1,17 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20240124170452
+Start time: 20240124235217
 Username: DSKTP-HOME-JEFF\jeffs
 RunAs User: DSKTP-HOME-JEFF\jeffs
 Configuration Name: 
 Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\jeffs\.vscode\extensions\ms-vscode.powershell-2024.1.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2024.1.0' -AdditionalModules @('PowerShellEditorServices.VSCode') -BundledModulesPath 'c:\Users\jeffs\.vscode\extensions\ms-vscode.powershell-2024.1.0\modules' -EnableConsoleRepl -StartupBanner "PowerShell Extension v2024.1.0
-Copyright (c) Microsoft Corporation.
-
-https://aka.ms/vscode-powershell
-Type 'help' to get help.
-" -LogLevel 'Normal' -LogPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\logs\1706140900-b7b8a794-4da6-4696-9cb4-704afe8f44621706140895380\EditorServices.log' -SessionDetailsPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-20808-555279.json' -FeatureFlags @() 
-Process ID: 21228
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -WindowStyle Hidden -ExecutionPolicy Bypass D:\qt_projects\filmcab\simplified\scheduled_tasks\back_up_unbackedup_published_media.ps1
+Process ID: 8332
 PSVersion: 7.4.1
 PSEdition: Core
 GitCommitId: 7.4.1
@@ -23,37 +18,11 @@ SerializationVersion: 1.1.0.1
 WSManStackVersion: 3.0
 **********************
 Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.ps1.transcript.log
-**********************
-Command start time: 20240124170452
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124170452
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124170452
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170452
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170453
-**********************
-PS>CommandInvocation(Get-Command): "Get-Command"
->> ParameterBinding(Get-Command): name="ListImported"; value="True"
->> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
 
  Log File : D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
 
-7 Seconds
+2 Seconds
 **********************
 PowerShell transcript end
-End time: 20240124170459
+End time: 20240124235220
 **********************

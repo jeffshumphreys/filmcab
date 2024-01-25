@@ -1,17 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20240124173035
+Start time: 20240125000118
 Username: DSKTP-HOME-JEFF\jeffs
 RunAs User: DSKTP-HOME-JEFF\jeffs
 Configuration Name: 
 Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\jeffs\.vscode\extensions\ms-vscode.powershell-2024.1.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2024.1.0' -AdditionalModules @('PowerShellEditorServices.VSCode') -BundledModulesPath 'c:\Users\jeffs\.vscode\extensions\ms-vscode.powershell-2024.1.0\modules' -EnableConsoleRepl -StartupBanner "PowerShell Extension v2024.1.0
-Copyright (c) Microsoft Corporation.
-
-https://aka.ms/vscode-powershell
-Type 'help' to get help.
-" -LogLevel 'Normal' -LogPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\logs\1706140900-b7b8a794-4da6-4696-9cb4-704afe8f44621706140895380\EditorServices.log' -SessionDetailsPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-20808-555279.json' -FeatureFlags @() 
-Process ID: 21228
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -WindowStyle Hidden -ExecutionPolicy Bypass D:\qt_projects\filmcab\simplified\scheduled_tasks\pull_scheduled_task_events.ps1
+Process ID: 13332
 PSVersion: 7.4.1
 PSEdition: Core
 GitCommitId: 7.4.1
@@ -24,330 +19,648 @@ WSManStackVersion: 3.0
 **********************
 Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\pull_scheduled_task_events.ps1.transcript.log
 Completed pull from API
-1.8827589
-Wrote to xml file, 10 new events
+4.2986943
+Wrote to xml file, 209 new events
 **********************
-Command start time: 20240124173037
-**********************
-PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
-**********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240124173037
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240125000122
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 
-record_id event_type_name             event_created         task_full_path                                  event_created_as_sortable_str_with_ms user_id
---------- ---------------             -------------         --------------                                  ------------------------------------- -------
-    13948 Task triggered on scheduler 1/5/2024 5:21:01 PM   \Dell SupportAssistAgent AutoUpdate             2024-01-05 17:21:01:58986
-    13949 Created Task Process        1/5/2024 5:21:01 PM   \Dell SupportAssistAgent AutoUpdate             2024-01-05 17:21:01:59562
-    13950 Task Started                1/5/2024 5:21:01 PM   \Dell SupportAssistAgent AutoUpdate             2024-01-05 17:21:01:59604
-    13953 Task completed              1/5/2024 5:21:08 PM   \Dell SupportAssistAgent AutoUpdate             2024-01-05 17:21:08:76761
-    14725 Task triggered on scheduler 1/6/2024 12:01:01 AM  \test_log_sys                                   2024-01-06 00:01:01:14664
-    14726 Created Task Process        1/6/2024 12:01:01 AM  \test_log_sys                                   2024-01-06 00:01:01:15590
-    14727 Task Started                1/6/2024 12:01:01 AM  \test_log_sys                                   2024-01-06 00:01:01:15622
-    14730 Task completed              1/6/2024 12:01:10 AM  \test_log_sys                                   2024-01-06 00:01:10:89248
-    14758 Task Started                1/6/2024 12:35:00 AM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-06 00:35:00:50226
-    15470 Task Started                1/6/2024 12:35:00 PM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-06 12:35:00:51301
-    16751 Task triggered on scheduler 1/7/2024 12:01:01 AM  \test_log_sys                                   2024-01-07 00:01:01:14466
-    16752 Created Task Process        1/7/2024 12:01:01 AM  \test_log_sys                                   2024-01-07 00:01:01:15375
-    16753 Task Started                1/7/2024 12:01:01 AM  \test_log_sys                                   2024-01-07 00:01:01:15400
-    16756 Task completed              1/7/2024 12:03:27 AM  \test_log_sys                                   2024-01-07 00:03:27:61773
-    16790 Task Started                1/7/2024 12:35:00 AM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-07 00:35:00:51235
-    17549 Task Started                1/7/2024 12:35:00 PM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-07 12:35:00:51180
-    18890 Task triggered on scheduler 1/8/2024 12:01:01 AM  \test_log_sys                                   2024-01-08 00:01:01:15048
-    18891 Created Task Process        1/8/2024 12:01:01 AM  \test_log_sys                                   2024-01-08 00:01:01:15971
-    18892 Task Started                1/8/2024 12:01:01 AM  \test_log_sys                                   2024-01-08 00:01:01:16001
-    18895 Task completed              1/8/2024 12:02:28 AM  \test_log_sys                                   2024-01-08 00:02:28:51213
-    18942 Task Started                1/8/2024 12:35:00 AM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-08 00:35:00:50528
-    19615 Task Started                1/8/2024 12:35:00 PM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-08 12:35:00:50505
-    20309 Task triggered on scheduler 1/8/2024 6:00:01 PM   \klcp_update                                    2024-01-08 18:00:01:28647
-    20310 Created Task Process        1/8/2024 6:00:01 PM   \klcp_update                                    2024-01-08 18:00:01:29691
-    20311 Task Started                1/8/2024 6:00:01 PM   \klcp_update                                    2024-01-08 18:00:01:29712
-    20939 Task completed              1/8/2024 10:21:49 PM  \klcp_update                                    2024-01-08 22:21:49:58890
-    20945 Task registration updated   1/8/2024 10:22:00 PM  \klcp_update                                    2024-01-08 22:22:00:56324
-    21099 Task triggered on scheduler 1/9/2024 12:01:01 AM  \test_log_sys                                   2024-01-09 00:01:01:15785
-    21100 Created Task Process        1/9/2024 12:01:01 AM  \test_log_sys                                   2024-01-09 00:01:01:16656
-    21101 Task Started                1/9/2024 12:01:01 AM  \test_log_sys                                   2024-01-09 00:01:01:16683
-    21104 Task completed              1/9/2024 12:01:07 AM  \test_log_sys                                   2024-01-09 00:01:07:99301
-    21144 Task Started                1/9/2024 12:35:00 AM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-09 00:35:00:51533
-    21955 Task Started                1/9/2024 12:35:00 PM  \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-09 12:35:00:51003
-    23496 Task triggered on scheduler 1/10/2024 12:01:01 AM \test_log_sys                                   2024-01-10 00:01:01:17837
-    23497 Created Task Process        1/10/2024 12:01:01 AM \test_log_sys                                   2024-01-10 00:01:01:18601
-    23498 Task Started                1/10/2024 12:01:01 AM \test_log_sys                                   2024-01-10 00:01:01:18623
-    23501 Task completed              1/10/2024 12:03:25 AM \test_log_sys                                   2024-01-10 00:03:25:29776
-    23532 Task Started                1/10/2024 12:35:00 AM \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-10 00:35:00:50682
-    24465 Task Started                1/10/2024 12:35:00 PM \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-10 12:35:00:51022
-    26074 Task triggered on scheduler 1/11/2024 12:01:01 AM \test_log_sys                                   2024-01-11 00:01:01:18489
-    26075 Created Task Process        1/11/2024 12:01:01 AM \test_log_sys                                   2024-01-11 00:01:01:19394
-    26076 Task Started                1/11/2024 12:01:01 AM \test_log_sys                                   2024-01-11 00:01:01:19422
-    26079 Task completed              1/11/2024 12:01:58 AM \test_log_sys                                   2024-01-11 00:01:58:51545
-    26207 Task Started                1/11/2024 12:35:00 AM \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-11 00:35:00:51533
-    27408 Task Started                1/11/2024 12:35:00 PM \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-11 12:35:00:51334
-    29088 Task triggered on scheduler 1/12/2024 12:01:01 AM \test_log_sys                                   2024-01-12 00:01:01:19143
-    29089 Created Task Process        1/12/2024 12:01:01 AM \test_log_sys                                   2024-01-12 00:01:01:20216
-    29090 Task Started                1/12/2024 12:01:01 AM \test_log_sys                                   2024-01-12 00:01:01:20243
-    29093 Task completed              1/12/2024 12:01:08 AM \test_log_sys                                   2024-01-12 00:01:08:46563
-    29124 Task Started                1/12/2024 12:35:00 AM \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-12 00:35:00:50281
-    30284 Task Started                1/12/2024 12:35:00 PM \{6b0f4ef7-aae8-40e4-87b8-8f45f868d7c0}         2024-01-12 12:35:00:51657
-    30641 Task completed              1/12/2024 2:33:06 PM  \RtHDVBg_PushButton                             2024-01-12 14:33:06:74865
-    31062 Created Task Process        1/12/2024 3:59:51 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-12 15:59:51:86990
-    31063 Task Started                1/12/2024 3:59:51 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-12 15:59:51:87009
-    31099 Task completed              1/12/2024 3:59:57 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-12 15:59:57:56446
-    31108 Created Task Process        1/12/2024 4:00:22 PM  \RtHDVBg_PushButton                             2024-01-12 16:00:22:35462
-    31109 Task Started                1/12/2024 4:00:22 PM  \RtHDVBg_PushButton                             2024-01-12 16:00:22:35487
-    52313 Task Started                1/24/2024 7:52:00 AM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-24 07:52:00:51176
-    52623 Task registered             1/24/2024 1:18:25 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24 13:18:25:49029
-    52624 Created Task Process        1/24/2024 1:18:52 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24 13:18:52:26476
-    52625 Task Started                1/24/2024 1:18:52 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24 13:18:52:26496
-    52629 Task completed              1/24/2024 1:18:53 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24 13:18:53:12709
-    53046 Task registered             1/24/2024 5:25:46 PM  \FilmCab\load_user_excel_interface              2024-01-24 17:25:46:43787
+record_id event_type_name             event_created         task_full_path                                  event_creat
+                                                                                                            ed_as_sorta
+                                                                                                            ble_str_wit
+                                                                                                            h_ms
+--------- ---------------             -------------         --------------                                  -----------
+    36190 Task Started                1/15/2024 1:01:00 PM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-15…
+    37061 Task triggered on scheduler 1/16/2024 12:01:01 AM \test_log_sys                                   2024-01-16…
+    37062 Created Task Process        1/16/2024 12:01:01 AM \test_log_sys                                   2024-01-16…
+    37063 Task Started                1/16/2024 12:01:01 AM \test_log_sys                                   2024-01-16…
+    37066 Task completed              1/16/2024 12:01:07 AM \test_log_sys                                   2024-01-16…
+    37122 Task Started                1/16/2024 1:01:00 AM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-16…
+    37877 Task Started                1/16/2024 1:01:00 PM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-16…
+    38300 Task registered             1/16/2024 6:54:35 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38306 Task registration updated   1/16/2024 6:59:32 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38307 Created Task Process        1/16/2024 6:59:49 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38308 Task Started                1/16/2024 6:59:49 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38312 Task completed              1/16/2024 6:59:50 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38313 Created Task Process        1/16/2024 7:03:27 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38314 Task Started                1/16/2024 7:03:27 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38318 Task completed              1/16/2024 7:03:33 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38319 Task registration updated   1/16/2024 7:09:33 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38975 Task triggered on scheduler 1/16/2024 11:52:16 PM \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38976 Created Task Process        1/16/2024 11:52:16 PM \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38977 Task Started                1/16/2024 11:52:16 PM \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    38980 Task completed              1/16/2024 11:52:18 PM \FilmCab\back_up_unbackedup_published_media     2024-01-16…
+    39004 Task triggered on scheduler 1/17/2024 12:01:01 AM \test_log_sys                                   2024-01-17…
+    39005 Created Task Process        1/17/2024 12:01:01 AM \test_log_sys                                   2024-01-17…
+    39006 Task Started                1/17/2024 12:01:01 AM \test_log_sys                                   2024-01-17…
+    39009 Task completed              1/17/2024 12:01:07 AM \test_log_sys                                   2024-01-17…
+    39061 Task Started                1/17/2024 1:01:00 AM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-17…
+    39813 Task Started                1/17/2024 1:01:00 PM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-17…
+    40780 Task triggered on scheduler 1/17/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-17…
+    40781 Created Task Process        1/17/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-17…
+    40782 Task Started                1/17/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-17…
+    40785 Task completed              1/17/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-17…
+    40803 Task triggered on scheduler 1/18/2024 12:01:01 AM \test_log_sys                                   2024-01-18…
+    40804 Created Task Process        1/18/2024 12:01:01 AM \test_log_sys                                   2024-01-18…
+    40805 Task Started                1/18/2024 12:01:01 AM \test_log_sys                                   2024-01-18…
+    40808 Task completed              1/18/2024 12:01:07 AM \test_log_sys                                   2024-01-18…
+    40921 Task Started                1/18/2024 1:01:00 AM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-18…
+    41703 Task Started                1/18/2024 1:01:00 PM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-18…
+    42700 Task triggered on scheduler 1/18/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-18…
+    42701 Created Task Process        1/18/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-18…
+    42702 Task Started                1/18/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-18…
+    42705 Task completed              1/18/2024 11:54:53 PM \FilmCab\back_up_unbackedup_published_media     2024-01-18…
+    42723 Task triggered on scheduler 1/19/2024 12:01:01 AM \test_log_sys                                   2024-01-19…
+    42724 Created Task Process        1/19/2024 12:01:01 AM \test_log_sys                                   2024-01-19…
+    42725 Task Started                1/19/2024 12:01:01 AM \test_log_sys                                   2024-01-19…
+    42728 Task completed              1/19/2024 12:01:10 AM \test_log_sys                                   2024-01-19…
+    42773 Task Started                1/19/2024 1:01:00 AM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-19…
+    43494 Task Started                1/19/2024 1:01:00 PM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-19…
+    43892 Task triggered on scheduler 1/19/2024 5:21:01 PM  \Dell SupportAssistAgent AutoUpdate             2024-01-19…
+    43893 Created Task Process        1/19/2024 5:21:01 PM  \Dell SupportAssistAgent AutoUpdate             2024-01-19…
+    43894 Task Started                1/19/2024 5:21:01 PM  \Dell SupportAssistAgent AutoUpdate             2024-01-19…
+    43897 Task completed              1/19/2024 5:21:07 PM  \Dell SupportAssistAgent AutoUpdate             2024-01-19…
+    44486 Task triggered on scheduler 1/19/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-19…
+    44487 Created Task Process        1/19/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-19…
+    44488 Task Started                1/19/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-19…
+    44491 Task completed              1/19/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-19…
+    44509 Task triggered on scheduler 1/20/2024 12:01:01 AM \test_log_sys                                   2024-01-20…
+    44510 Created Task Process        1/20/2024 12:01:01 AM \test_log_sys                                   2024-01-20…
+    44511 Task Started                1/20/2024 12:01:01 AM \test_log_sys                                   2024-01-20…
+    44514 Task completed              1/20/2024 12:01:10 AM \test_log_sys                                   2024-01-20…
+    44559 Task Started                1/20/2024 1:01:00 AM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-20…
+    45223 Task Started                1/20/2024 1:01:00 PM  \{0aac14fe-bd96-4c4f-ae69-416670fa1d35}         2024-01-20…
+    45398 Task registration deleted   1/20/2024 2:33:32 PM  \test_log_sys                                   2024-01-20…
+    45745 Task completed              1/20/2024 7:06:31 PM  \RtHDVBg_PushButton                             2024-01-20…
+    45812 Created Task Process        1/20/2024 7:09:13 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-20…
+    45813 Task Started                1/20/2024 7:09:13 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-20…
+    45874 Task completed              1/20/2024 7:09:20 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-20…
+    45887 Created Task Process        1/20/2024 7:09:43 PM  \RtHDVBg_PushButton                             2024-01-20…
+    45888 Task Started                1/20/2024 7:09:43 PM  \RtHDVBg_PushButton                             2024-01-20…
+    46491 Task completed              1/20/2024 10:42:04 PM \RtHDVBg_PushButton                             2024-01-20…
+    46688 Task triggered on scheduler 1/20/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-20…
+    47243 Created Task Process        1/21/2024 10:50:28 AM \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-21…
+    47244 Task Started                1/21/2024 10:50:28 AM \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-21…
+    47282 Task completed              1/21/2024 10:50:34 AM \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-21…
+    47291 Created Task Process        1/21/2024 10:50:59 AM \RtHDVBg_PushButton                             2024-01-21…
+    47292 Task Started                1/21/2024 10:50:59 AM \RtHDVBg_PushButton                             2024-01-21…
+    47658 Created Task Process        1/21/2024 3:09:06 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    47659 Task Started                1/21/2024 3:09:06 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    47708 Task registration updated   1/21/2024 4:09:09 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    47710 Task completed              1/21/2024 4:12:27 PM  \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    48095 Task Started                1/21/2024 7:52:00 PM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-21…
+    48385 Task triggered on scheduler 1/21/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    48386 Created Task Process        1/21/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    48387 Task Started                1/21/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    48390 Task completed              1/21/2024 11:52:18 PM \FilmCab\back_up_unbackedup_published_media     2024-01-21…
+    48860 Task Started                1/22/2024 7:52:00 AM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-22…
+    49807 Task Started                1/22/2024 7:52:00 PM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-22…
+    50057 Task triggered on scheduler 1/22/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-22…
+    50058 Created Task Process        1/22/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-22…
+    50059 Task Started                1/22/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-22…
+    50062 Task completed              1/22/2024 11:52:18 PM \FilmCab\back_up_unbackedup_published_media     2024-01-22…
+    50512 Task Started                1/23/2024 7:52:00 AM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-23…
+    51369 Task Started                1/23/2024 7:52:00 PM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-23…
+    51383 Task registered             1/23/2024 7:56:42 PM  \FilmCab\scan_for_file_directories              2024-01-23…
+    51777 Task triggered on scheduler 1/23/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-23…
+    51778 Created Task Process        1/23/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-23…
+    51779 Task Started                1/23/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-23…
+    51781 Task triggered on scheduler 1/23/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-23…
+    51782 Created Task Process        1/23/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-23…
+    51783 Task Started                1/23/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-23…
+    51786 Task completed              1/23/2024 11:52:19 PM \FilmCab\back_up_unbackedup_published_media     2024-01-23…
+    51788 Task completed              1/23/2024 11:53:35 PM \FilmCab\scan_for_file_directories              2024-01-23…
+    52313 Task Started                1/24/2024 7:52:00 AM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-24…
+    52623 Task registered             1/24/2024 1:18:25 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    52624 Created Task Process        1/24/2024 1:18:52 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    52625 Task Started                1/24/2024 1:18:52 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    52629 Task completed              1/24/2024 1:18:53 PM  \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    53046 Task registered             1/24/2024 5:25:46 PM  \FilmCab\load_user_excel_interface              2024-01-24…
+    53047 Task registered             1/24/2024 5:43:14 PM  \FilmCab\pull_scheduled_task_events             2024-01-24…
+    53387 Task Started                1/24/2024 7:52:00 PM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-24…
+    53671 Task triggered on scheduler 1/24/2024 11:50:01 PM \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    53672 Created Task Process        1/24/2024 11:50:01 PM \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    53673 Task Started                1/24/2024 11:50:01 PM \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    53676 Task completed              1/24/2024 11:50:02 PM \FilmCab\_set_new_batch_run_session_id          2024-01-24…
+    53677 Task triggered on scheduler 1/24/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-24…
+    53678 Created Task Process        1/24/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-24…
+    53679 Task Started                1/24/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-24…
+    53681 Task triggered on scheduler 1/24/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-24…
+    53682 Created Task Process        1/24/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-24…
+    53683 Task Started                1/24/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-24…
+    53686 Task completed              1/24/2024 11:52:19 PM \FilmCab\scan_for_file_directories              2024-01-24…
+    53688 Task completed              1/24/2024 11:52:20 PM \FilmCab\back_up_unbackedup_published_media     2024-01-24…
+    53689 Task triggered on scheduler 1/24/2024 11:54:17 PM \FilmCab\load_user_excel_interface              2024-01-24…
+    53690 Created Task Process        1/24/2024 11:54:17 PM \FilmCab\load_user_excel_interface              2024-01-24…
+    53691 Task Started                1/24/2024 11:54:17 PM \FilmCab\load_user_excel_interface              2024-01-24…
+    53705 Task triggered on scheduler 1/25/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-25…
+    53706 Created Task Process        1/25/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-25…
+    53707 Task Started                1/25/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-25…
 
 
-2 Seconds
+4 Seconds
 **********************
 PowerShell transcript end
-End time: 20240124173037
+End time: 20240125000122
 **********************

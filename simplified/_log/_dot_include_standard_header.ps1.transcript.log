@@ -1,6 +1,6 @@
 **********************
 PowerShell transcript start
-Start time: 20240124165721
+Start time: 20240125132855
 Username: DSKTP-HOME-JEFF\jeffs
 RunAs User: DSKTP-HOME-JEFF\jeffs
 Configuration Name: 
@@ -10,8 +10,8 @@ Copyright (c) Microsoft Corporation.
 
 https://aka.ms/vscode-powershell
 Type 'help' to get help.
-" -LogLevel 'Normal' -LogPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\logs\1706139662-1a38f6a6-c335-4b73-ba9e-f6aeae7e02bf1706139660545\EditorServices.log' -SessionDetailsPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-8384-215890.json' -FeatureFlags @() 
-Process ID: 3148
+" -LogLevel 'Normal' -LogPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\logs\1706140900-b7b8a794-4da6-4696-9cb4-704afe8f44621706140895380\EditorServices.log' -SessionDetailsPath 'c:\Users\jeffs\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-20808-555279.json' -FeatureFlags @() 
+Process ID: 21228
 PSVersion: 7.4.1
 PSEdition: Core
 GitCommitId: 7.4.1
@@ -22,64 +22,12 @@ PSRemotingProtocolVersion: 2.3
 SerializationVersion: 1.1.0.1
 WSManStackVersion: 3.0
 **********************
-Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.txt
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124165721
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124165722
-**********************
-PS>CommandInvocation(Get-Command): "Get-Command"
->> ParameterBinding(Get-Command): name="ListImported"; value="True"
->> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
-**********************
-Command start time: 20240124165823
-**********************
-PS>CommandInvocation(Get-Command): "Get-Command"
->> ParameterBinding(Get-Command): name="ListImported"; value="True"
->> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.log
 ]633;E;. 'D:\x5cqt_projects\x5cfilmcab\x5csimplified\x5c_dot_include_standard_header.ps1';]633;D;0]633;A]633;P;Cwd=D:\x5cqt_projects\x5cfilmcabPS D:\qt_projects\filmcab> ]633;B
 **********************
-Command start time: 20240124165945
+Command start time: 20240125132900
 **********************
-PS>CommandInvocation(Get-Command): "Get-Command"
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
 >> ParameterBinding(Get-Command): name="ListImported"; value="True"
 >> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
 
@@ -126,9 +74,13 @@ Alias           fw -> Format-Wide
 Alias           gal -> Get-Alias
 Alias           gbp -> Get-PSBreakpoint
 Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
 Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
 Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
 Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
 Alias           gcs -> Get-PSCallStack
 Alias           gdr -> Get-PSDrive
 Alias           gerr -> Get-Error
@@ -150,6 +102,7 @@ Alias           gu -> Get-Unique
 Alias           gv -> Get-Variable
 Alias           h -> Get-History
 Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
 Alias           icm -> Invoke-Command
 Alias           iex -> Invoke-Expression
 Alias           ihy -> Invoke-History
@@ -170,6 +123,9 @@ Alias           move -> Move-Item
 Alias           mp -> Move-ItemProperty
 Alias           mv -> Move-Item
 Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
 Alias           ndr -> New-PSDrive
 Alias           ni -> New-Item
 Alias           nmo -> New-Module
@@ -184,7 +140,10 @@ Alias           pushd -> Push-Location
 Alias           pwd -> Get-Location
 Alias           r -> Invoke-History
 Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
 Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
 Alias           rcsn -> Receive-PSSession
 Alias           rd -> Remove-Item
 Alias           rdr -> Remove-PSDrive
@@ -206,6 +165,7 @@ Alias           saps -> Start-Process
 Alias           sasv -> Start-Service
 Alias           sbp -> Set-PSBreakpoint
 Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
 Alias           select -> Select-Object
 Alias           set -> Set-Variable
 Alias           shcm -> Show-Command
@@ -228,9 +188,9 @@ Alias           wjb -> Wait-Job
 Alias           write -> Write-Output
 
 **********************
-Command start time: 20240124165946
+Command start time: 20240125132918
 **********************
-PS>CommandInvocation(Get-Command): "Get-Command"
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
 >> ParameterBinding(Get-Command): name="ListImported"; value="True"
 >> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
 
@@ -277,9 +237,13 @@ Alias           fw -> Format-Wide
 Alias           gal -> Get-Alias
 Alias           gbp -> Get-PSBreakpoint
 Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
 Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
 Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
 Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
 Alias           gcs -> Get-PSCallStack
 Alias           gdr -> Get-PSDrive
 Alias           gerr -> Get-Error
@@ -301,6 +265,7 @@ Alias           gu -> Get-Unique
 Alias           gv -> Get-Variable
 Alias           h -> Get-History
 Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
 Alias           icm -> Invoke-Command
 Alias           iex -> Invoke-Expression
 Alias           ihy -> Invoke-History
@@ -321,6 +286,9 @@ Alias           move -> Move-Item
 Alias           mp -> Move-ItemProperty
 Alias           mv -> Move-Item
 Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
 Alias           ndr -> New-PSDrive
 Alias           ni -> New-Item
 Alias           nmo -> New-Module
@@ -335,7 +303,10 @@ Alias           pushd -> Push-Location
 Alias           pwd -> Get-Location
 Alias           r -> Invoke-History
 Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
 Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
 Alias           rcsn -> Receive-PSSession
 Alias           rd -> Remove-Item
 Alias           rdr -> Remove-PSDrive
@@ -357,6 +328,7 @@ Alias           saps -> Start-Process
 Alias           sasv -> Start-Service
 Alias           sbp -> Set-PSBreakpoint
 Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
 Alias           select -> Select-Object
 Alias           set -> Set-Variable
 Alias           shcm -> Show-Command
@@ -379,9 +351,9 @@ Alias           wjb -> Wait-Job
 Alias           write -> Write-Output
 
 **********************
-Command start time: 20240124165956
+Command start time: 20240125132926
 **********************
-PS>CommandInvocation(Get-Command): "Get-Command"
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
 >> ParameterBinding(Get-Command): name="ListImported"; value="True"
 >> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
 
@@ -428,9 +400,13 @@ Alias           fw -> Format-Wide
 Alias           gal -> Get-Alias
 Alias           gbp -> Get-PSBreakpoint
 Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
 Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
 Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
 Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
 Alias           gcs -> Get-PSCallStack
 Alias           gdr -> Get-PSDrive
 Alias           gerr -> Get-Error
@@ -452,6 +428,7 @@ Alias           gu -> Get-Unique
 Alias           gv -> Get-Variable
 Alias           h -> Get-History
 Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
 Alias           icm -> Invoke-Command
 Alias           iex -> Invoke-Expression
 Alias           ihy -> Invoke-History
@@ -472,6 +449,9 @@ Alias           move -> Move-Item
 Alias           mp -> Move-ItemProperty
 Alias           mv -> Move-Item
 Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
 Alias           ndr -> New-PSDrive
 Alias           ni -> New-Item
 Alias           nmo -> New-Module
@@ -486,7 +466,10 @@ Alias           pushd -> Push-Location
 Alias           pwd -> Get-Location
 Alias           r -> Invoke-History
 Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
 Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
 Alias           rcsn -> Receive-PSSession
 Alias           rd -> Remove-Item
 Alias           rdr -> Remove-PSDrive
@@ -508,6 +491,7 @@ Alias           saps -> Start-Process
 Alias           sasv -> Start-Service
 Alias           sbp -> Set-PSBreakpoint
 Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
 Alias           select -> Select-Object
 Alias           set -> Set-Variable
 Alias           shcm -> Show-Command
@@ -529,145 +513,818 @@ Alias           where -> Where-Object
 Alias           wjb -> Wait-Job
 Alias           write -> Write-Output
 
-]633;E]633;D]633;A]633;P;Cwd=D:\x5cqt_projects\x5cfilmcabPS D:\qt_projects\filmcab> ]633;B
 **********************
-Command start time: 20240124170018
+Command start time: 20240125132934
 **********************
-PS>. 'D:\qt_projects\filmcab\simplified\scheduled_tasks\_set_new_batch_run_session_id.ps1'
-Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_set_new_batch_run_session_id.ps1.transcript.txt
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170019
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170020
-**********************
-PS>CommandInvocation(Get-Command): "Get-Command"
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
 >> ParameterBinding(Get-Command): name="ListImported"; value="True"
 >> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Global"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Script"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-**********************
-Command start time: 20240124170024
-**********************
-PS>CommandInvocation(Get-Variable): "Get-Variable"
->> ParameterBinding(Get-Variable): name="Scope"; value="Local"
-SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running
 
-batch_run_session_id started
--------------------- -------
-                   3 1/24/2024 1:18:53 PM
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Alias           % -> ForEach-Object
+Alias           ? -> Where-Object
+Alias           ac -> Add-Content
+Alias           cat -> Get-Content
+Alias           cd -> Set-Location
+Alias           chdir -> Set-Location
+Alias           clc -> Clear-Content
+Alias           clear -> Clear-Host
+Alias           clhy -> Clear-History
+Alias           cli -> Clear-Item
+Alias           clp -> Clear-ItemProperty
+Alias           cls -> Clear-Host
+Alias           clv -> Clear-Variable
+Alias           cnsn -> Connect-PSSession
+Alias           compare -> Compare-Object
+Alias           copy -> Copy-Item
+Alias           cp -> Copy-Item
+Alias           cpi -> Copy-Item
+Alias           cpp -> Copy-ItemProperty
+Alias           cvpa -> Convert-Path
+Alias           dbp -> Disable-PSBreakpoint
+Alias           del -> Remove-Item
+Alias           diff -> Compare-Object
+Alias           dir -> Get-ChildItem
+Alias           dnsn -> Disconnect-PSSession
+Alias           ebp -> Enable-PSBreakpoint
+Alias           echo -> Write-Output
+Alias           epal -> Export-Alias
+Alias           epcsv -> Export-Csv
+Alias           erase -> Remove-Item
+Alias           etsn -> Enter-PSSession
+Alias           exsn -> Exit-PSSession
+Alias           fc -> Format-Custom
+Alias           fhx -> Format-Hex                                  7.0.0.0    Microsoft.PowerShell.Utility
+Alias           fl -> Format-List
+Alias           foreach -> ForEach-Object
+Alias           ft -> Format-Table
+Alias           fw -> Format-Wide
+Alias           gal -> Get-Alias
+Alias           gbp -> Get-PSBreakpoint
+Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
+Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
+Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
+Alias           gcs -> Get-PSCallStack
+Alias           gdr -> Get-PSDrive
+Alias           gerr -> Get-Error
+Alias           ghy -> Get-History
+Alias           gi -> Get-Item
+Alias           gin -> Get-ComputerInfo                            7.0.0.0    Microsoft.PowerShell.Management
+Alias           gjb -> Get-Job
+Alias           gl -> Get-Location
+Alias           gm -> Get-Member
+Alias           gmo -> Get-Module
+Alias           gp -> Get-ItemProperty
+Alias           gps -> Get-Process
+Alias           gpv -> Get-ItemPropertyValue
+Alias           group -> Group-Object
+Alias           gsn -> Get-PSSession
+Alias           gsv -> Get-Service
+Alias           gtz -> Get-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           gu -> Get-Unique
+Alias           gv -> Get-Variable
+Alias           h -> Get-History
+Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
+Alias           icm -> Invoke-Command
+Alias           iex -> Invoke-Expression
+Alias           ihy -> Invoke-History
+Alias           ii -> Invoke-Item
+Alias           ipal -> Import-Alias
+Alias           ipcsv -> Import-Csv
+Alias           ipmo -> Import-Module
+Alias           irm -> Invoke-RestMethod
+Alias           iwr -> Invoke-WebRequest
+Alias           kill -> Stop-Process
+Alias           ls -> Get-ChildItem
+Alias           man -> help
+Alias           md -> mkdir
+Alias           measure -> Measure-Object
+Alias           mi -> Move-Item
+Alias           mount -> New-PSDrive
+Alias           move -> Move-Item
+Alias           mp -> Move-ItemProperty
+Alias           mv -> Move-Item
+Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
+Alias           ndr -> New-PSDrive
+Alias           ni -> New-Item
+Alias           nmo -> New-Module
+Alias           nsn -> New-PSSession
+Alias           nv -> New-Variable
+Alias           ogv -> Out-GridView
+Alias           oh -> Out-Host
+Alias           popd -> Pop-Location
+Alias           ps -> Get-Process
+Alias           psedit -> Open-EditorFile                          0.2.0      PowerShellEditorServices.Commands
+Alias           pushd -> Push-Location
+Alias           pwd -> Get-Location
+Alias           r -> Invoke-History
+Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
+Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
+Alias           rcsn -> Receive-PSSession
+Alias           rd -> Remove-Item
+Alias           rdr -> Remove-PSDrive
+Alias           ren -> Rename-Item
+Alias           ri -> Remove-Item
+Alias           rjb -> Remove-Job
+Alias           rm -> Remove-Item
+Alias           rmdir -> Remove-Item
+Alias           rmo -> Remove-Module
+Alias           rni -> Rename-Item
+Alias           rnp -> Rename-ItemProperty
+Alias           rp -> Remove-ItemProperty
+Alias           rsn -> Remove-PSSession
+Alias           rv -> Remove-Variable
+Alias           rvpa -> Resolve-Path
+Alias           sajb -> Start-Job
+Alias           sal -> Set-Alias
+Alias           saps -> Start-Process
+Alias           sasv -> Start-Service
+Alias           sbp -> Set-PSBreakpoint
+Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
+Alias           select -> Select-Object
+Alias           set -> Set-Variable
+Alias           shcm -> Show-Command
+Alias           si -> Set-Item
+Alias           sl -> Set-Location
+Alias           sleep -> Start-Sleep
+Alias           sls -> Select-String
+Alias           sort -> Sort-Object
+Alias           sp -> Set-ItemProperty
+Alias           spjb -> Stop-Job
+Alias           spps -> Stop-Process
+Alias           spsv -> Stop-Service
+Alias           start -> Start-Process
+Alias           stz -> Set-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           sv -> Set-Variable
+Alias           tee -> Tee-Object
+Alias           type -> Get-Content
+Alias           where -> Where-Object
+Alias           wjb -> Wait-Job
+Alias           write -> Write-Output
 
+**********************
+Command start time: 20240125132935
+**********************
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
+>> ParameterBinding(Get-Command): name="ListImported"; value="True"
+>> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
 
-11 Seconds
-Transcript stopped, output file is D:\qt_projects\filmcab\simplified\_log\_set_new_batch_run_session_id.ps1.transcript.txt
-]633;E;. 'D:\x5cqt_projects\x5cfilmcab\x5csimplified\x5cscheduled_tasks\x5c_set_new_batch_run_session_id.ps1';]633;D;0]633;A]633;P;Cwd=D:\x5cqt_projects\x5cfilmcabPS D:\qt_projects\filmcab> ]633;B
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Alias           % -> ForEach-Object
+Alias           ? -> Where-Object
+Alias           ac -> Add-Content
+Alias           cat -> Get-Content
+Alias           cd -> Set-Location
+Alias           chdir -> Set-Location
+Alias           clc -> Clear-Content
+Alias           clear -> Clear-Host
+Alias           clhy -> Clear-History
+Alias           cli -> Clear-Item
+Alias           clp -> Clear-ItemProperty
+Alias           cls -> Clear-Host
+Alias           clv -> Clear-Variable
+Alias           cnsn -> Connect-PSSession
+Alias           compare -> Compare-Object
+Alias           copy -> Copy-Item
+Alias           cp -> Copy-Item
+Alias           cpi -> Copy-Item
+Alias           cpp -> Copy-ItemProperty
+Alias           cvpa -> Convert-Path
+Alias           dbp -> Disable-PSBreakpoint
+Alias           del -> Remove-Item
+Alias           diff -> Compare-Object
+Alias           dir -> Get-ChildItem
+Alias           dnsn -> Disconnect-PSSession
+Alias           ebp -> Enable-PSBreakpoint
+Alias           echo -> Write-Output
+Alias           epal -> Export-Alias
+Alias           epcsv -> Export-Csv
+Alias           erase -> Remove-Item
+Alias           etsn -> Enter-PSSession
+Alias           exsn -> Exit-PSSession
+Alias           fc -> Format-Custom
+Alias           fhx -> Format-Hex                                  7.0.0.0    Microsoft.PowerShell.Utility
+Alias           fl -> Format-List
+Alias           foreach -> ForEach-Object
+Alias           ft -> Format-Table
+Alias           fw -> Format-Wide
+Alias           gal -> Get-Alias
+Alias           gbp -> Get-PSBreakpoint
+Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
+Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
+Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
+Alias           gcs -> Get-PSCallStack
+Alias           gdr -> Get-PSDrive
+Alias           gerr -> Get-Error
+Alias           ghy -> Get-History
+Alias           gi -> Get-Item
+Alias           gin -> Get-ComputerInfo                            7.0.0.0    Microsoft.PowerShell.Management
+Alias           gjb -> Get-Job
+Alias           gl -> Get-Location
+Alias           gm -> Get-Member
+Alias           gmo -> Get-Module
+Alias           gp -> Get-ItemProperty
+Alias           gps -> Get-Process
+Alias           gpv -> Get-ItemPropertyValue
+Alias           group -> Group-Object
+Alias           gsn -> Get-PSSession
+Alias           gsv -> Get-Service
+Alias           gtz -> Get-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           gu -> Get-Unique
+Alias           gv -> Get-Variable
+Alias           h -> Get-History
+Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
+Alias           icm -> Invoke-Command
+Alias           iex -> Invoke-Expression
+Alias           ihy -> Invoke-History
+Alias           ii -> Invoke-Item
+Alias           ipal -> Import-Alias
+Alias           ipcsv -> Import-Csv
+Alias           ipmo -> Import-Module
+Alias           irm -> Invoke-RestMethod
+Alias           iwr -> Invoke-WebRequest
+Alias           kill -> Stop-Process
+Alias           ls -> Get-ChildItem
+Alias           man -> help
+Alias           md -> mkdir
+Alias           measure -> Measure-Object
+Alias           mi -> Move-Item
+Alias           mount -> New-PSDrive
+Alias           move -> Move-Item
+Alias           mp -> Move-ItemProperty
+Alias           mv -> Move-Item
+Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
+Alias           ndr -> New-PSDrive
+Alias           ni -> New-Item
+Alias           nmo -> New-Module
+Alias           nsn -> New-PSSession
+Alias           nv -> New-Variable
+Alias           ogv -> Out-GridView
+Alias           oh -> Out-Host
+Alias           popd -> Pop-Location
+Alias           ps -> Get-Process
+Alias           psedit -> Open-EditorFile                          0.2.0      PowerShellEditorServices.Commands
+Alias           pushd -> Push-Location
+Alias           pwd -> Get-Location
+Alias           r -> Invoke-History
+Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
+Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
+Alias           rcsn -> Receive-PSSession
+Alias           rd -> Remove-Item
+Alias           rdr -> Remove-PSDrive
+Alias           ren -> Rename-Item
+Alias           ri -> Remove-Item
+Alias           rjb -> Remove-Job
+Alias           rm -> Remove-Item
+Alias           rmdir -> Remove-Item
+Alias           rmo -> Remove-Module
+Alias           rni -> Rename-Item
+Alias           rnp -> Rename-ItemProperty
+Alias           rp -> Remove-ItemProperty
+Alias           rsn -> Remove-PSSession
+Alias           rv -> Remove-Variable
+Alias           rvpa -> Resolve-Path
+Alias           sajb -> Start-Job
+Alias           sal -> Set-Alias
+Alias           saps -> Start-Process
+Alias           sasv -> Start-Service
+Alias           sbp -> Set-PSBreakpoint
+Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
+Alias           select -> Select-Object
+Alias           set -> Set-Variable
+Alias           shcm -> Show-Command
+Alias           si -> Set-Item
+Alias           sl -> Set-Location
+Alias           sleep -> Start-Sleep
+Alias           sls -> Select-String
+Alias           sort -> Sort-Object
+Alias           sp -> Set-ItemProperty
+Alias           spjb -> Stop-Job
+Alias           spps -> Stop-Process
+Alias           spsv -> Stop-Service
+Alias           start -> Start-Process
+Alias           stz -> Set-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           sv -> Set-Variable
+Alias           tee -> Tee-Object
+Alias           type -> Get-Content
+Alias           where -> Where-Object
+Alias           wjb -> Wait-Job
+Alias           write -> Write-Output
+
+**********************
+Command start time: 20240125132946
+**********************
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
+>> ParameterBinding(Get-Command): name="ListImported"; value="True"
+>> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Alias           % -> ForEach-Object
+Alias           ? -> Where-Object
+Alias           ac -> Add-Content
+Alias           cat -> Get-Content
+Alias           cd -> Set-Location
+Alias           chdir -> Set-Location
+Alias           clc -> Clear-Content
+Alias           clear -> Clear-Host
+Alias           clhy -> Clear-History
+Alias           cli -> Clear-Item
+Alias           clp -> Clear-ItemProperty
+Alias           cls -> Clear-Host
+Alias           clv -> Clear-Variable
+Alias           cnsn -> Connect-PSSession
+Alias           compare -> Compare-Object
+Alias           copy -> Copy-Item
+Alias           cp -> Copy-Item
+Alias           cpi -> Copy-Item
+Alias           cpp -> Copy-ItemProperty
+Alias           cvpa -> Convert-Path
+Alias           dbp -> Disable-PSBreakpoint
+Alias           del -> Remove-Item
+Alias           diff -> Compare-Object
+Alias           dir -> Get-ChildItem
+Alias           dnsn -> Disconnect-PSSession
+Alias           ebp -> Enable-PSBreakpoint
+Alias           echo -> Write-Output
+Alias           epal -> Export-Alias
+Alias           epcsv -> Export-Csv
+Alias           erase -> Remove-Item
+Alias           etsn -> Enter-PSSession
+Alias           exsn -> Exit-PSSession
+Alias           fc -> Format-Custom
+Alias           fhx -> Format-Hex                                  7.0.0.0    Microsoft.PowerShell.Utility
+Alias           fl -> Format-List
+Alias           foreach -> ForEach-Object
+Alias           ft -> Format-Table
+Alias           fw -> Format-Wide
+Alias           gal -> Get-Alias
+Alias           gbp -> Get-PSBreakpoint
+Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
+Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
+Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
+Alias           gcs -> Get-PSCallStack
+Alias           gdr -> Get-PSDrive
+Alias           gerr -> Get-Error
+Alias           ghy -> Get-History
+Alias           gi -> Get-Item
+Alias           gin -> Get-ComputerInfo                            7.0.0.0    Microsoft.PowerShell.Management
+Alias           gjb -> Get-Job
+Alias           gl -> Get-Location
+Alias           gm -> Get-Member
+Alias           gmo -> Get-Module
+Alias           gp -> Get-ItemProperty
+Alias           gps -> Get-Process
+Alias           gpv -> Get-ItemPropertyValue
+Alias           group -> Group-Object
+Alias           gsn -> Get-PSSession
+Alias           gsv -> Get-Service
+Alias           gtz -> Get-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           gu -> Get-Unique
+Alias           gv -> Get-Variable
+Alias           h -> Get-History
+Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
+Alias           icm -> Invoke-Command
+Alias           iex -> Invoke-Expression
+Alias           ihy -> Invoke-History
+Alias           ii -> Invoke-Item
+Alias           ipal -> Import-Alias
+Alias           ipcsv -> Import-Csv
+Alias           ipmo -> Import-Module
+Alias           irm -> Invoke-RestMethod
+Alias           iwr -> Invoke-WebRequest
+Alias           kill -> Stop-Process
+Alias           ls -> Get-ChildItem
+Alias           man -> help
+Alias           md -> mkdir
+Alias           measure -> Measure-Object
+Alias           mi -> Move-Item
+Alias           mount -> New-PSDrive
+Alias           move -> Move-Item
+Alias           mp -> Move-ItemProperty
+Alias           mv -> Move-Item
+Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
+Alias           ndr -> New-PSDrive
+Alias           ni -> New-Item
+Alias           nmo -> New-Module
+Alias           nsn -> New-PSSession
+Alias           nv -> New-Variable
+Alias           ogv -> Out-GridView
+Alias           oh -> Out-Host
+Alias           popd -> Pop-Location
+Alias           ps -> Get-Process
+Alias           psedit -> Open-EditorFile                          0.2.0      PowerShellEditorServices.Commands
+Alias           pushd -> Push-Location
+Alias           pwd -> Get-Location
+Alias           r -> Invoke-History
+Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
+Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
+Alias           rcsn -> Receive-PSSession
+Alias           rd -> Remove-Item
+Alias           rdr -> Remove-PSDrive
+Alias           ren -> Rename-Item
+Alias           ri -> Remove-Item
+Alias           rjb -> Remove-Job
+Alias           rm -> Remove-Item
+Alias           rmdir -> Remove-Item
+Alias           rmo -> Remove-Module
+Alias           rni -> Rename-Item
+Alias           rnp -> Rename-ItemProperty
+Alias           rp -> Remove-ItemProperty
+Alias           rsn -> Remove-PSSession
+Alias           rv -> Remove-Variable
+Alias           rvpa -> Resolve-Path
+Alias           sajb -> Start-Job
+Alias           sal -> Set-Alias
+Alias           saps -> Start-Process
+Alias           sasv -> Start-Service
+Alias           sbp -> Set-PSBreakpoint
+Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
+Alias           select -> Select-Object
+Alias           set -> Set-Variable
+Alias           shcm -> Show-Command
+Alias           si -> Set-Item
+Alias           sl -> Set-Location
+Alias           sleep -> Start-Sleep
+Alias           sls -> Select-String
+Alias           sort -> Sort-Object
+Alias           sp -> Set-ItemProperty
+Alias           spjb -> Stop-Job
+Alias           spps -> Stop-Process
+Alias           spsv -> Stop-Service
+Alias           start -> Start-Process
+Alias           stz -> Set-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           sv -> Set-Variable
+Alias           tee -> Tee-Object
+Alias           type -> Get-Content
+Alias           where -> Where-Object
+Alias           wjb -> Wait-Job
+Alias           write -> Write-Output
+
+**********************
+Command start time: 20240125132947
+**********************
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
+>> ParameterBinding(Get-Command): name="ListImported"; value="True"
+>> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Alias           % -> ForEach-Object
+Alias           ? -> Where-Object
+Alias           ac -> Add-Content
+Alias           cat -> Get-Content
+Alias           cd -> Set-Location
+Alias           chdir -> Set-Location
+Alias           clc -> Clear-Content
+Alias           clear -> Clear-Host
+Alias           clhy -> Clear-History
+Alias           cli -> Clear-Item
+Alias           clp -> Clear-ItemProperty
+Alias           cls -> Clear-Host
+Alias           clv -> Clear-Variable
+Alias           cnsn -> Connect-PSSession
+Alias           compare -> Compare-Object
+Alias           copy -> Copy-Item
+Alias           cp -> Copy-Item
+Alias           cpi -> Copy-Item
+Alias           cpp -> Copy-ItemProperty
+Alias           cvpa -> Convert-Path
+Alias           dbp -> Disable-PSBreakpoint
+Alias           del -> Remove-Item
+Alias           diff -> Compare-Object
+Alias           dir -> Get-ChildItem
+Alias           dnsn -> Disconnect-PSSession
+Alias           ebp -> Enable-PSBreakpoint
+Alias           echo -> Write-Output
+Alias           epal -> Export-Alias
+Alias           epcsv -> Export-Csv
+Alias           erase -> Remove-Item
+Alias           etsn -> Enter-PSSession
+Alias           exsn -> Exit-PSSession
+Alias           fc -> Format-Custom
+Alias           fhx -> Format-Hex                                  7.0.0.0    Microsoft.PowerShell.Utility
+Alias           fl -> Format-List
+Alias           foreach -> ForEach-Object
+Alias           ft -> Format-Table
+Alias           fw -> Format-Wide
+Alias           gal -> Get-Alias
+Alias           gbp -> Get-PSBreakpoint
+Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
+Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
+Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
+Alias           gcs -> Get-PSCallStack
+Alias           gdr -> Get-PSDrive
+Alias           gerr -> Get-Error
+Alias           ghy -> Get-History
+Alias           gi -> Get-Item
+Alias           gin -> Get-ComputerInfo                            7.0.0.0    Microsoft.PowerShell.Management
+Alias           gjb -> Get-Job
+Alias           gl -> Get-Location
+Alias           gm -> Get-Member
+Alias           gmo -> Get-Module
+Alias           gp -> Get-ItemProperty
+Alias           gps -> Get-Process
+Alias           gpv -> Get-ItemPropertyValue
+Alias           group -> Group-Object
+Alias           gsn -> Get-PSSession
+Alias           gsv -> Get-Service
+Alias           gtz -> Get-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           gu -> Get-Unique
+Alias           gv -> Get-Variable
+Alias           h -> Get-History
+Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
+Alias           icm -> Invoke-Command
+Alias           iex -> Invoke-Expression
+Alias           ihy -> Invoke-History
+Alias           ii -> Invoke-Item
+Alias           ipal -> Import-Alias
+Alias           ipcsv -> Import-Csv
+Alias           ipmo -> Import-Module
+Alias           irm -> Invoke-RestMethod
+Alias           iwr -> Invoke-WebRequest
+Alias           kill -> Stop-Process
+Alias           ls -> Get-ChildItem
+Alias           man -> help
+Alias           md -> mkdir
+Alias           measure -> Measure-Object
+Alias           mi -> Move-Item
+Alias           mount -> New-PSDrive
+Alias           move -> Move-Item
+Alias           mp -> Move-ItemProperty
+Alias           mv -> Move-Item
+Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
+Alias           ndr -> New-PSDrive
+Alias           ni -> New-Item
+Alias           nmo -> New-Module
+Alias           nsn -> New-PSSession
+Alias           nv -> New-Variable
+Alias           ogv -> Out-GridView
+Alias           oh -> Out-Host
+Alias           popd -> Pop-Location
+Alias           ps -> Get-Process
+Alias           psedit -> Open-EditorFile                          0.2.0      PowerShellEditorServices.Commands
+Alias           pushd -> Push-Location
+Alias           pwd -> Get-Location
+Alias           r -> Invoke-History
+Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
+Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
+Alias           rcsn -> Receive-PSSession
+Alias           rd -> Remove-Item
+Alias           rdr -> Remove-PSDrive
+Alias           ren -> Rename-Item
+Alias           ri -> Remove-Item
+Alias           rjb -> Remove-Job
+Alias           rm -> Remove-Item
+Alias           rmdir -> Remove-Item
+Alias           rmo -> Remove-Module
+Alias           rni -> Rename-Item
+Alias           rnp -> Rename-ItemProperty
+Alias           rp -> Remove-ItemProperty
+Alias           rsn -> Remove-PSSession
+Alias           rv -> Remove-Variable
+Alias           rvpa -> Resolve-Path
+Alias           sajb -> Start-Job
+Alias           sal -> Set-Alias
+Alias           saps -> Start-Process
+Alias           sasv -> Start-Service
+Alias           sbp -> Set-PSBreakpoint
+Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
+Alias           select -> Select-Object
+Alias           set -> Set-Variable
+Alias           shcm -> Show-Command
+Alias           si -> Set-Item
+Alias           sl -> Set-Location
+Alias           sleep -> Start-Sleep
+Alias           sls -> Select-String
+Alias           sort -> Sort-Object
+Alias           sp -> Set-ItemProperty
+Alias           spjb -> Stop-Job
+Alias           spps -> Stop-Process
+Alias           spsv -> Stop-Service
+Alias           start -> Start-Process
+Alias           stz -> Set-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           sv -> Set-Variable
+Alias           tee -> Tee-Object
+Alias           type -> Get-Content
+Alias           where -> Where-Object
+Alias           wjb -> Wait-Job
+Alias           write -> Write-Output
+
+**********************
+Command start time: 20240125132947
+**********************
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\_dot_include_standard_header.ps1.transcript.logCommandInvocation(Get-Command): "Get-Command"
+>> ParameterBinding(Get-Command): name="ListImported"; value="True"
+>> ParameterBinding(Get-Command): name="CommandType"; value="Alias"
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Alias           % -> ForEach-Object
+Alias           ? -> Where-Object
+Alias           ac -> Add-Content
+Alias           cat -> Get-Content
+Alias           cd -> Set-Location
+Alias           chdir -> Set-Location
+Alias           clc -> Clear-Content
+Alias           clear -> Clear-Host
+Alias           clhy -> Clear-History
+Alias           cli -> Clear-Item
+Alias           clp -> Clear-ItemProperty
+Alias           cls -> Clear-Host
+Alias           clv -> Clear-Variable
+Alias           cnsn -> Connect-PSSession
+Alias           compare -> Compare-Object
+Alias           copy -> Copy-Item
+Alias           cp -> Copy-Item
+Alias           cpi -> Copy-Item
+Alias           cpp -> Copy-ItemProperty
+Alias           cvpa -> Convert-Path
+Alias           dbp -> Disable-PSBreakpoint
+Alias           del -> Remove-Item
+Alias           diff -> Compare-Object
+Alias           dir -> Get-ChildItem
+Alias           dnsn -> Disconnect-PSSession
+Alias           ebp -> Enable-PSBreakpoint
+Alias           echo -> Write-Output
+Alias           epal -> Export-Alias
+Alias           epcsv -> Export-Csv
+Alias           erase -> Remove-Item
+Alias           etsn -> Enter-PSSession
+Alias           exsn -> Exit-PSSession
+Alias           fc -> Format-Custom
+Alias           fhx -> Format-Hex                                  7.0.0.0    Microsoft.PowerShell.Utility
+Alias           fl -> Format-List
+Alias           foreach -> ForEach-Object
+Alias           ft -> Format-Table
+Alias           fw -> Format-Wide
+Alias           gal -> Get-Alias
+Alias           gbp -> Get-PSBreakpoint
+Alias           gc -> Get-Content
+Alias           gcai -> Get-CimAssociatedInstance                  7.0.0.0    CimCmdlets
+Alias           gcb -> Get-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           gci -> Get-ChildItem
+Alias           gcim -> Get-CimInstance                            7.0.0.0    CimCmdlets
+Alias           gcls -> Get-CimClass                               7.0.0.0    CimCmdlets
+Alias           gcm -> Get-Command
+Alias           gcms -> Get-CimSession                             7.0.0.0    CimCmdlets
+Alias           gcs -> Get-PSCallStack
+Alias           gdr -> Get-PSDrive
+Alias           gerr -> Get-Error
+Alias           ghy -> Get-History
+Alias           gi -> Get-Item
+Alias           gin -> Get-ComputerInfo                            7.0.0.0    Microsoft.PowerShell.Management
+Alias           gjb -> Get-Job
+Alias           gl -> Get-Location
+Alias           gm -> Get-Member
+Alias           gmo -> Get-Module
+Alias           gp -> Get-ItemProperty
+Alias           gps -> Get-Process
+Alias           gpv -> Get-ItemPropertyValue
+Alias           group -> Group-Object
+Alias           gsn -> Get-PSSession
+Alias           gsv -> Get-Service
+Alias           gtz -> Get-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           gu -> Get-Unique
+Alias           gv -> Get-Variable
+Alias           h -> Get-History
+Alias           history -> Get-History
+Alias           icim -> Invoke-CimMethod                           7.0.0.0    CimCmdlets
+Alias           icm -> Invoke-Command
+Alias           iex -> Invoke-Expression
+Alias           ihy -> Invoke-History
+Alias           ii -> Invoke-Item
+Alias           ipal -> Import-Alias
+Alias           ipcsv -> Import-Csv
+Alias           ipmo -> Import-Module
+Alias           irm -> Invoke-RestMethod
+Alias           iwr -> Invoke-WebRequest
+Alias           kill -> Stop-Process
+Alias           ls -> Get-ChildItem
+Alias           man -> help
+Alias           md -> mkdir
+Alias           measure -> Measure-Object
+Alias           mi -> Move-Item
+Alias           mount -> New-PSDrive
+Alias           move -> Move-Item
+Alias           mp -> Move-ItemProperty
+Alias           mv -> Move-Item
+Alias           nal -> New-Alias
+Alias           ncim -> New-CimInstance                            7.0.0.0    CimCmdlets
+Alias           ncms -> New-CimSession                             7.0.0.0    CimCmdlets
+Alias           ncso -> New-CimSessionOption                       7.0.0.0    CimCmdlets
+Alias           ndr -> New-PSDrive
+Alias           ni -> New-Item
+Alias           nmo -> New-Module
+Alias           nsn -> New-PSSession
+Alias           nv -> New-Variable
+Alias           ogv -> Out-GridView
+Alias           oh -> Out-Host
+Alias           popd -> Pop-Location
+Alias           ps -> Get-Process
+Alias           psedit -> Open-EditorFile                          0.2.0      PowerShellEditorServices.Commands
+Alias           pushd -> Push-Location
+Alias           pwd -> Get-Location
+Alias           r -> Invoke-History
+Alias           rbp -> Remove-PSBreakpoint
+Alias           rcie -> Register-CimIndicationEvent                7.0.0.0    CimCmdlets
+Alias           rcim -> Remove-CimInstance                         7.0.0.0    CimCmdlets
+Alias           rcjb -> Receive-Job
+Alias           rcms -> Remove-CimSession                          7.0.0.0    CimCmdlets
+Alias           rcsn -> Receive-PSSession
+Alias           rd -> Remove-Item
+Alias           rdr -> Remove-PSDrive
+Alias           ren -> Rename-Item
+Alias           ri -> Remove-Item
+Alias           rjb -> Remove-Job
+Alias           rm -> Remove-Item
+Alias           rmdir -> Remove-Item
+Alias           rmo -> Remove-Module
+Alias           rni -> Rename-Item
+Alias           rnp -> Rename-ItemProperty
+Alias           rp -> Remove-ItemProperty
+Alias           rsn -> Remove-PSSession
+Alias           rv -> Remove-Variable
+Alias           rvpa -> Resolve-Path
+Alias           sajb -> Start-Job
+Alias           sal -> Set-Alias
+Alias           saps -> Start-Process
+Alias           sasv -> Start-Service
+Alias           sbp -> Set-PSBreakpoint
+Alias           scb -> Set-Clipboard                               7.0.0.0    Microsoft.PowerShell.Management
+Alias           scim -> Set-CimInstance                            7.0.0.0    CimCmdlets
+Alias           select -> Select-Object
+Alias           set -> Set-Variable
+Alias           shcm -> Show-Command
+Alias           si -> Set-Item
+Alias           sl -> Set-Location
+Alias           sleep -> Start-Sleep
+Alias           sls -> Select-String
+Alias           sort -> Sort-Object
+Alias           sp -> Set-ItemProperty
+Alias           spjb -> Stop-Job
+Alias           spps -> Stop-Process
+Alias           spsv -> Stop-Service
+Alias           start -> Start-Process
+Alias           stz -> Set-TimeZone                                7.0.0.0    Microsoft.PowerShell.Management
+Alias           sv -> Set-Variable
+Alias           tee -> Tee-Object
+Alias           type -> Get-Content
+Alias           where -> Where-Object
+Alias           wjb -> Wait-Job
+Alias           write -> Write-Output
+
