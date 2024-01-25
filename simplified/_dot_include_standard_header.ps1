@@ -118,11 +118,31 @@ param()
                                                                                           
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $CurrentDebugSessionNo = $MyInvocation.HistoryId
-
+                                               
+    $tryToStartTranscriptAttempts = 0
+    
     # Transcript logging is weak, but something
-    Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
+    # It locks up in debugging if you restart too soon, and don't hit the Stop-Transcript in the footer.  One try is probably enough
+    while ($tryToStartTranscriptAttempts -lt 3) {
+        try {
+            $tryToStartTranscriptAttempts++
+            Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
+            break
+        }
+        catch [System.IO.IOException]{
+            # Close it, then try, at least two more times.
+            # Transcription cannot be started due to the error: The process cannot access the file 'D:\qt_projects\filmcab\simplified\_log\pull_scheduled_task_definitions.ps1.transcript.log' because it is being used by another process.
+            try {
+                Stop-Transcript "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log"
+                Start-Sleep -Milliseconds 10.0
+            }                                                                                      
+            catch {
+                # Fails so ignore.
+            }
+        }                                  
+    }
 
-function Enable-PSScriptBlockLogging
+Function Enable-PSScriptBlockLogging
 {
     $basePath = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' 
 
@@ -866,6 +886,31 @@ Function TrimToMicroseconds([datetime]$date) # Format only for PowerShell! Not P
 
 <#
 .SYNOPSIS
+Move identically-named properties between objects.
+
+.DESCRIPTION
+We also have to test if they exist first.
+
+.PARAMETER targetob
+Parameter description
+
+.PARAMETER sourceob
+Parameter description
+
+.PARAMETER prop
+Parameter description
+
+.EXAMPLE
+Fill-Property $triggerDef $taskTrigger.CalendarTrigger.Repetition 'Duration'
+
+.NOTES
+All types are string types :)
+#>
+Function Fill-Property ($targetob, $sourceob, $prop) {
+    $targetob.$prop = (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+}
+<#
+.SYNOPSIS
 Execute any actions standard across all scripts in this folder.
 
 .DESCRIPTION
@@ -883,7 +928,7 @@ function main_for_dot_include_standard_header() {
                                                                  
     $null = New-Item -Path D:\qt_projects\filmcab\simplified\_log -ItemType Directory -ErrorAction Ignore
     # https://adamtheautomator.com/powershell-logging-2/
-    
+
     Enable-PSScriptBlockLogging # Event Type Id = 4104
     
     #Start-Log
