@@ -8,8 +8,13 @@
     One nice thing using the hash as a foreign key, if a file goes missing and then is reacquired, they'll line right up.
     That and the hash will link up across any future tables.
 #>
+                                                  
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
+param()
 
-. .\simplified\includes\include_filmcab_header.ps1 # local to base directory of base folder for some reason.
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
+
 :doitallover while($true) {
 $DBReader = $DBConn.CreateCommand()
 $DBReader.CommandText = "SELECT txt AS file_path, id AS file_id, file_size FROM stage_for_master.files WHERE file_lost IS DISTINCT FROM FALSE AND updated_file_hash IS DISTINCT FROM FALSE
@@ -103,3 +108,5 @@ if ($rowsleft -gt 0) {
 }
 }
 Write-Host "Fine!"
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
