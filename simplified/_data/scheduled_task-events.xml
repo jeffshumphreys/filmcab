@@ -6651,11 +6651,7 @@
     </MS>
   </Obj>
   <Obj RefId="109">
-    <TN RefId="2">
-      <T>Selected.System.Diagnostics.Eventing.Reader.EventLogRecord</T>
-      <T>System.Management.Automation.PSCustomObject</T>
-      <T>System.Object</T>
-    </TN>
+    <TNRef RefId="0" />
     <MS>
       <I32 N="event_type_id">200</I32>
       <S N="event_type_name">Action started</S>
@@ -6668,10 +6664,7 @@
       <G N="activity_id">a209369f-6ad3-4f20-8d91-0ccbfdb4ef7b</G>
       <I64 N="record_id">31110</I64>
       <Obj N="Account" RefId="110">
-        <TN RefId="3">
-          <T>System.Management.Automation.PSCustomObject</T>
-          <T>System.Object</T>
-        </TN>
+        <TNRef RefId="1" />
       </Obj>
       <S N="ActionName">C:\Program Files\Realtek\Audio\HDA\RAVBg64.exe</S>
       <Ref N="Command" RefId="110" />
@@ -6722,6 +6715,665 @@
       <Ref N="TimeSinceUserNotPresent" RefId="110" />
       <Ref N="UserContext" RefId="110" />
       <Ref N="UserName" RefId="110" />
+    </MS>
+  </Obj>
+  <Obj RefId="111">
+    <TN RefId="2">
+      <T>Selected.System.Diagnostics.Eventing.Reader.EventLogRecord</T>
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <I32 N="event_type_id">106</I32>
+      <S N="event_type_name">Task registered</S>
+      <By N="event_version">0</By>
+      <S N="general_operation_code">Info</S>
+      <DT N="event_created">2024-01-24T17:25:46.4378748-07:00</DT>
+      <S N="event_message">User "jeffs"  registered Task Scheduler task "\FilmCab\load_user_excel_interface"</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <Nil N="activity_id" />
+      <I64 N="record_id">53046</I64>
+      <Obj N="Account" RefId="112">
+        <TN RefId="3">
+          <T>System.Management.Automation.PSCustomObject</T>
+          <T>System.Object</T>
+        </TN>
+      </Obj>
+      <Ref N="ActionName" RefId="112" />
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <Ref N="EnginePID" RefId="112" />
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <Ref N="InstanceId" RefId="112" />
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <Ref N="TaskInstanceId" RefId="112" />
+      <S N="TaskName">\FilmCab\load_user_excel_interface</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <S N="UserContext">jeffs</S>
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="113">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">102</I32>
+      <S N="event_type_name">Task completed</S>
+      <By N="event_version">0</By>
+      <S N="general_operation_code">Stop</S>
+      <DT N="event_created">2024-01-24T13:18:53.1270971-07:00</DT>
+      <S N="event_message">Task Scheduler successfully finished "{b5783943-8800-413a-9d8c-209e2551903e}" instance of the "\FilmCab\_set_new_batch_run_session_id" task for user "DSKTP-HOME-JEFF\jeffs".</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <G N="activity_id">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <I64 N="record_id">52629</I64>
+      <Ref N="Account" RefId="112" />
+      <Ref N="ActionName" RefId="112" />
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <Ref N="EnginePID" RefId="112" />
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <G N="InstanceId">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <Ref N="TaskInstanceId" RefId="112" />
+      <S N="TaskName">\FilmCab\_set_new_batch_run_session_id</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <S N="UserContext">DSKTP-HOME-JEFF\jeffs</S>
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="114">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">201</I32>
+      <S N="event_type_name">Action completed</S>
+      <By N="event_version">2</By>
+      <S N="general_operation_code">Stop</S>
+      <DT N="event_created">2024-01-24T13:18:53.1268815-07:00</DT>
+      <S N="event_message">Task Scheduler successfully completed task "\FilmCab\_set_new_batch_run_session_id" , instance "{b5783943-8800-413a-9d8c-209e2551903e}" , action "C:\Program Files\PowerShell\7\pwsh.exe" with return code 0.</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <G N="activity_id">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <I64 N="record_id">52628</I64>
+      <Ref N="Account" RefId="112" />
+      <S N="ActionName">C:\Program Files\PowerShell\7\pwsh.exe</S>
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <U32 N="EnginePID">18268</U32>
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <Ref N="InstanceId" RefId="112" />
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <U32 N="ResultCode">0</U32>
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <G N="TaskInstanceId">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <S N="TaskName">\FilmCab\_set_new_batch_run_session_id</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <Ref N="UserContext" RefId="112" />
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="115">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">110</I32>
+      <S N="event_type_name">Task triggered by user</S>
+      <By N="event_version">0</By>
+      <S N="general_operation_code">Info</S>
+      <DT N="event_created">2024-01-24T13:18:52.2650925-07:00</DT>
+      <S N="event_message">Task Scheduler launched "{b5783943-8800-413a-9d8c-209e2551903e}"  instance of task "\FilmCab\_set_new_batch_run_session_id"  for user "jeffs" .</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <G N="activity_id">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <I64 N="record_id">52627</I64>
+      <Ref N="Account" RefId="112" />
+      <Ref N="ActionName" RefId="112" />
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <Ref N="EnginePID" RefId="112" />
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <G N="InstanceId">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <Ref N="TaskInstanceId" RefId="112" />
+      <S N="TaskName">\FilmCab\_set_new_batch_run_session_id</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <S N="UserContext">jeffs</S>
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="116">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">200</I32>
+      <S N="event_type_name">Action started</S>
+      <By N="event_version">1</By>
+      <S N="general_operation_code">Start</S>
+      <DT N="event_created">2024-01-24T13:18:52.2649706-07:00</DT>
+      <S N="event_message">Task Scheduler launched action "C:\Program Files\PowerShell\7\pwsh.exe" in instance "{b5783943-8800-413a-9d8c-209e2551903e}" of task "\FilmCab\_set_new_batch_run_session_id".</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <G N="activity_id">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <I64 N="record_id">52626</I64>
+      <Ref N="Account" RefId="112" />
+      <S N="ActionName">C:\Program Files\PowerShell\7\pwsh.exe</S>
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <U32 N="EnginePID">18268</U32>
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <Ref N="InstanceId" RefId="112" />
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <G N="TaskInstanceId">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <S N="TaskName">\FilmCab\_set_new_batch_run_session_id</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <Ref N="UserContext" RefId="112" />
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="117">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">100</I32>
+      <S N="event_type_name">Task Started</S>
+      <By N="event_version">0</By>
+      <S N="general_operation_code">Start</S>
+      <DT N="event_created">2024-01-24T13:18:52.2649695-07:00</DT>
+      <S N="event_message">Task Scheduler started "{b5783943-8800-413a-9d8c-209e2551903e}" instance of the "\FilmCab\_set_new_batch_run_session_id" task for user "DSKTP-HOME-JEFF\jeffs".</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <G N="activity_id">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <I64 N="record_id">52625</I64>
+      <Ref N="Account" RefId="112" />
+      <Ref N="ActionName" RefId="112" />
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <Ref N="EnginePID" RefId="112" />
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <G N="InstanceId">b5783943-8800-413a-9d8c-209e2551903e</G>
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <Ref N="TaskInstanceId" RefId="112" />
+      <S N="TaskName">\FilmCab\_set_new_batch_run_session_id</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <S N="UserContext">DSKTP-HOME-JEFF\jeffs</S>
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="118">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">129</I32>
+      <S N="event_type_name">Created Task Process</S>
+      <By N="event_version">0</By>
+      <S N="general_operation_code">Info</S>
+      <DT N="event_created">2024-01-24T13:18:52.2647692-07:00</DT>
+      <S N="event_message">Task Scheduler launch task "\FilmCab\_set_new_batch_run_session_id" , instance "C:\Program Files\PowerShell\7\pwsh.exe"  with process ID 18268.</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <Nil N="activity_id" />
+      <I64 N="record_id">52624</I64>
+      <Ref N="Account" RefId="112" />
+      <Ref N="ActionName" RefId="112" />
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <Ref N="EnginePID" RefId="112" />
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <Ref N="InstanceId" RefId="112" />
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <S N="Path">C:\Program Files\PowerShell\7\pwsh.exe</S>
+      <U32 N="Priority">16384</U32>
+      <U32 N="ProcessId">18268</U32>
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <Ref N="TaskInstanceId" RefId="112" />
+      <S N="TaskName">\FilmCab\_set_new_batch_run_session_id</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <Ref N="UserContext" RefId="112" />
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="119">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">106</I32>
+      <S N="event_type_name">Task registered</S>
+      <By N="event_version">0</By>
+      <S N="general_operation_code">Info</S>
+      <DT N="event_created">2024-01-24T13:18:25.4902985-07:00</DT>
+      <S N="event_message">User "jeffs"  registered Task Scheduler task "\FilmCab\_set_new_batch_run_session_id"</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <Nil N="activity_id" />
+      <I64 N="record_id">52623</I64>
+      <Ref N="Account" RefId="112" />
+      <Ref N="ActionName" RefId="112" />
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <Ref N="EnginePID" RefId="112" />
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <Ref N="InstanceId" RefId="112" />
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <Ref N="TaskInstanceId" RefId="112" />
+      <S N="TaskName">\FilmCab\_set_new_batch_run_session_id</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <S N="UserContext">jeffs</S>
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="120">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">200</I32>
+      <S N="event_type_name">Action started</S>
+      <By N="event_version">1</By>
+      <S N="general_operation_code">Start</S>
+      <DT N="event_created">2024-01-24T07:52:00.5117681-07:00</DT>
+      <S N="event_message">Task Scheduler launched action "Global\JD_TaskSchedulerSchedule_{6E938E7C-8444-4A93-BAC3-6F364A1A7179}" in instance "{8cbc1745-5481-4073-a982-3a4b4ce375d5}" of task "\{cfc04d04-6710-4c15-a05b-90f9e108489b}".</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <G N="activity_id">8cbc1745-5481-4073-a982-3a4b4ce375d5</G>
+      <I64 N="record_id">52314</I64>
+      <Ref N="Account" RefId="112" />
+      <S N="ActionName">Global\JD_TaskSchedulerSchedule_{6E938E7C-8444-4A93-BAC3-6F364A1A7179}</S>
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <U32 N="EnginePID">0</U32>
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <Ref N="InstanceId" RefId="112" />
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <G N="TaskInstanceId">8cbc1745-5481-4073-a982-3a4b4ce375d5</G>
+      <S N="TaskName">\{cfc04d04-6710-4c15-a05b-90f9e108489b}</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <Ref N="UserContext" RefId="112" />
+      <Ref N="UserName" RefId="112" />
+    </MS>
+  </Obj>
+  <Obj RefId="121">
+    <TNRef RefId="2" />
+    <MS>
+      <I32 N="event_type_id">100</I32>
+      <S N="event_type_name">Task Started</S>
+      <By N="event_version">0</By>
+      <S N="general_operation_code">Start</S>
+      <DT N="event_created">2024-01-24T07:52:00.5117654-07:00</DT>
+      <S N="event_message">Task Scheduler started "{8cbc1745-5481-4073-a982-3a4b4ce375d5}" instance of the "\{cfc04d04-6710-4c15-a05b-90f9e108489b}" task for user "DSKTP-HOME-JEFF\jeffs".</S>
+      <S N="event_message_template"></S>
+      <S N="user_id">S-1-5-18</S>
+      <G N="activity_id">8cbc1745-5481-4073-a982-3a4b4ce375d5</G>
+      <I64 N="record_id">52313</I64>
+      <Ref N="Account" RefId="112" />
+      <Ref N="ActionName" RefId="112" />
+      <Ref N="Command" RefId="112" />
+      <Ref N="Context" RefId="112" />
+      <Ref N="CurrentQuota" RefId="112" />
+      <Ref N="DATA" RefId="112" />
+      <Ref N="DATA1" RefId="112" />
+      <Ref N="DATA2" RefId="112" />
+      <Ref N="DetectionResult" RefId="112" />
+      <Ref N="EnginePID" RefId="112" />
+      <Ref N="ErrorCode" RefId="112" />
+      <Ref N="ErrorDescription" RefId="112" />
+      <Ref N="Failure Reason" RefId="112" />
+      <Ref N="File" RefId="112" />
+      <Ref N="hc_stateid" RefId="112" />
+      <Ref N="HRESULT" RefId="112" />
+      <Ref N="IdleTaskId" RefId="112" />
+      <Ref N="InfoCode" RefId="112" />
+      <G N="InstanceId">8cbc1745-5481-4073-a982-3a4b4ce375d5</G>
+      <Ref N="LastRunDateTime" RefId="112" />
+      <Ref N="LauncherId" RefId="112" />
+      <Ref N="Line" RefId="112" />
+      <Ref N="LogPoint" RefId="112" />
+      <Ref N="Name" RefId="112" />
+      <Ref N="NewTaskInstanceId" RefId="112" />
+      <Ref N="NoIdleReason" RefId="112" />
+      <Ref N="NotificationType" RefId="112" />
+      <Ref N="Parameter" RefId="112" />
+      <Ref N="Path" RefId="112" />
+      <Ref N="Priority" RefId="112" />
+      <Ref N="ProcessId" RefId="112" />
+      <Ref N="QueuedTaskInstanceId" RefId="112" />
+      <Ref N="Reason" RefId="112" />
+      <Ref N="ResultCode" RefId="112" />
+      <Ref N="RunningTaskInstanceId" RefId="112" />
+      <Ref N="SecurityDescriptor" RefId="112" />
+      <Ref N="State" RefId="112" />
+      <Ref N="StoppedTaskInstanceId" RefId="112" />
+      <Ref N="String" RefId="112" />
+      <Ref N="Task" RefId="112" />
+      <Ref N="TaskCount" RefId="112" />
+      <Ref N="TaskEngineName" RefId="112" />
+      <Ref N="TaskInstanceId" RefId="112" />
+      <S N="TaskName">\{cfc04d04-6710-4c15-a05b-90f9e108489b}</S>
+      <Ref N="TaskPath" RefId="112" />
+      <Ref N="TaskStatus" RefId="112" />
+      <Ref N="ThreadID" RefId="112" />
+      <Ref N="TimeSinceUserNotPresent" RefId="112" />
+      <S N="UserContext">DSKTP-HOME-JEFF\jeffs</S>
+      <Ref N="UserName" RefId="112" />
     </MS>
   </Obj>
 </Objs>

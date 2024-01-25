@@ -53,7 +53,7 @@ $oldtaskSchedulerEvents      = @()
     Remove-Item -Path 'clean-task-scheduler-events.xml' -Force   # Rebuilds all new, removed attributes.
 #>
                                         
-$TaskSchedulerEventsFileName = 'D:\qt_projects\filmcab\simplified\_data\task-scheduler-events.xml'
+$TaskSchedulerEventsFileName = 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-events.xml'
 if (Test-Path $TaskSchedulerEventsFileName -PathType Leaf) {
     $oldtaskSchedulerEvents = Import-Clixml -Path $TaskSchedulerEventsFileName
     $file = Get-Item $TaskSchedulerEventsFileName
@@ -106,7 +106,7 @@ Select @{Name = 'event_type_id'      ; Expression = {$_.Id}}            ,
     @{Name = 'event_message'         ; Expression= {$_.Message}}    ,
     @{Name = 'event_message_template'; Expression= {[string]$null}}  ,       # Filled in later
     @{Name = 'user_id'               ; Expression = {$_.UserId.Value}},     # UserId is a PSCustomObject, so take the string value
-    @{Name = 'activity_id'           ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string. aka correllation_id?
+    @{Name = 'activity_id'           ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string. aka correllation_id
     @{Name = 'record_id'             ; Expression = {$_.RecordId}},     # A rollover record id, but it gives us something to reference singular events. Sort of.
     @{Name='Account'; Expression = {
         if ($_.Id -in @(711)) {
@@ -577,3 +577,5 @@ Select  record_id,
 # Is last task def in storage older than latest scanned event task creation event?
 
 # Yes? Pull new tasks and add to our storage
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
