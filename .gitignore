@@ -49,5 +49,5 @@ General/text.txt
 x.xml
 x.xsd
 
-# I want one copy of these, but not sure how to accomplish as more of these get added.
-simplified/_log/back_up_unbackedup_published_media.log
+# I want one copy of these, but not sure how to accomplish as more of these get added. every day, a new one.
+simplified/_log/*.log
