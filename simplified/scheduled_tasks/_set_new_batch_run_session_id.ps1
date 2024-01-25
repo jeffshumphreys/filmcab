@@ -15,13 +15,19 @@ param()
       
 $state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running"
 
+# Check if old session still marked as active
+
 if ($null -ne $state_of_session) {
     # TODO: Check what's running??
     # Check what time: Is it like midnight??
-    # Should child tasks lock the row?g
+    # Should child tasks lock the row?
+
+    # Flush out the active marked record so we can start a new session.
+    
     Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName' WHERE running" > $null
 }
-
+    
+# "Starts"
 Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran) VALUES('$scriptName')" > $null
 
 # Get last id from batch_run_sessions table.                    

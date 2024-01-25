@@ -118,7 +118,22 @@ param()
                                                                                           
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $CurrentDebugSessionNo = $MyInvocation.HistoryId
-    
+
+    # Transcript logging is weak, but something
+    Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
+
+function Enable-PSScriptBlockLogging
+{
+    $basePath = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' 
+
+    if(-not (Test-Path $basePath)) {     
+        $null = New-Item $basePath -Force     
+        New-ItemProperty $basePath -Name "EnableScriptBlockLogging" -PropertyType Dword 
+    } 
+
+    Set-ItemProperty $basePath -Name "EnableScriptBlockLogging" -Value "1"
+}
+
 <#
 .SYNOPSIS
 Use in parameter [ValidateScript] call.  Only way I can find to fully document and test for the possibilities.
@@ -331,7 +346,31 @@ Function Out-SqlToList {
         Show-Error $sql -exitcode 3
     }   
 }
+                                                 
+<#
+.SYNOPSIS
+Returns a dataset that I can . reference properties from.
 
+.DESCRIPTION
+Long description
+
+.PARAMETER sql
+SQL script that returns a result set, probably a small set?
+
+.PARAMETER DontOutputToConsole
+Parameter description
+
+.PARAMETER DontWriteSqlToConsole
+Parameter description
+
+.EXAMPLE
+$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running"
+if ($null -ne $state_of_session) {
+if ($state_of_session.batch_run_session_id -lt 100000) {...}
+
+.NOTES
+General notes
+#>
 Function Out-SqlToDataset {
     [CmdletBinding()]
     param(           
@@ -839,11 +878,13 @@ An example
 General notes
 #>
 function main_for_dot_include_standard_header() {
-    # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
-
     [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingCmdletAliases', '')]
     param()
-                                                                             
+                                                                 
+    $null = New-Item -Path D:\qt_projects\filmcab\simplified\_log -ItemType Directory -ErrorAction Ignore
+    # https://adamtheautomator.com/powershell-logging-2/
+    Enable-PSScriptBlockLogging
+    
     #Start-Log
 
     # Test: Format-Plural 'Directory' 2
@@ -906,3 +947,30 @@ function main_for_dot_include_standard_header() {
     }
 }
 main_for_dot_include_standard_header # So as not to collide with dot includer
+
+function Enable-PSTranscriptionLogging {
+	param(
+		[Parameter(Mandatory)]
+		[string]$OutputDirectory
+	)
+
+     # Registry path
+     $basePath = 'HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\Transcription'
+
+     # Create the key if it does not exist
+     if(-not (Test-Path $basePath))
+     {
+         $null = New-Item $basePath -Force
+
+         # Create the correct properties
+         New-ItemProperty $basePath -Name "EnableInvocationHeader" -PropertyType Dword
+         New-ItemProperty $basePath -Name "EnableTranscripting" -PropertyType Dword
+         New-ItemProperty $basePath -Name "OutputDirectory" -PropertyType String
+     }
+
+     # These can be enabled (1) or disabled (0) by changing the value
+     Set-ItemProperty $basePath -Name "EnableInvocationHeader" -Value "1"
+     Set-ItemProperty $basePath -Name "EnableTranscripting" -Value "1"
+     Set-ItemProperty $basePath -Name "OutputDirectory" -Value $OutputDirectory
+ 
+}
