@@ -48,12 +48,14 @@ param()
 $newtaskSchedulerEvents      = @()
 $oldtaskSchedulerEvents      = @()
 
-<# 
-    Force full reload: 
-    Remove-Item -Path 'clean-task-scheduler-events.xml' -Force   # Rebuilds all new, removed attributes.
-#>
                                         
 $TaskSchedulerEventsFileName = 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-events.xml'
+
+<# 
+    Force full reload: Warning: YOU WILL LOSE ALL HISTORY!!!!!!! Warning
+    Remove-Item -Path "$TaskSchedulerEventsFileName" -Force   # Rebuilds all new, removed attributes.
+#>
+
 if (Test-Path $TaskSchedulerEventsFileName -PathType Leaf) {
     $oldtaskSchedulerEvents = Import-Clixml -Path $TaskSchedulerEventsFileName
     $file = Get-Item $TaskSchedulerEventsFileName
