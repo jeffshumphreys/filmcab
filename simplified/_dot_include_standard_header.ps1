@@ -902,13 +902,23 @@ Parameter description
 
 .EXAMPLE
 Fill-Property $triggerDef $taskTrigger.CalendarTrigger.Repetition 'Duration'
+Fill-Property $triggerDef $taskTrigger.CalendarTrigger.Repetition # Not implemented: Would move over all properties
 
 .NOTES
 All types are string types :)
 #>
 Function Fill-Property ($targetob, $sourceob, $prop) {
+    # TODO: Add property if not found.
+    # TODO: take in an array of properties all at once!!!!
+    # IDEA: Could just move all properties over???
+    
     $targetob.$prop = (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
 }
+
+Function Get-Property ($sourceob, $prop) {
+    (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+}
+
 <#
 .SYNOPSIS
 Execute any actions standard across all scripts in this folder.
