@@ -883,7 +883,7 @@ function main_for_dot_include_standard_header() {
                                                                  
     $null = New-Item -Path D:\qt_projects\filmcab\simplified\_log -ItemType Directory -ErrorAction Ignore
     # https://adamtheautomator.com/powershell-logging-2/
-    Enable-PSScriptBlockLogging
+    Enable-PSScriptBlockLogging # Event Type Id = 4104
     
     #Start-Log
 
