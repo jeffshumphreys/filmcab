@@ -16,55 +16,18 @@ param()
 
 . .\simplified\_dot_include_standard_header.ps1
 
-function RecurseDownXSD($xml, [int32]$lvl=0) {
-    foreach ($element in $xml.Items) {
-        Write-Host "lvl= $lvl, $($element.Name)"                                          
-        if ($element.ElementSchemaType -is [System.Xml.Schema.XmlSchemaComplexType]) {
-            [System.Xml.Schema.XmlSchemaComplexType] $complexType = $element.ElementSchemaType;
-            foreach ($item in $complexType.AttributeUses) {
-                foreach ($n in $item.Values) {
-                    Write-Host "lvl= $lvl,    attribute=$($n.Name)"
-                    Write-Host "lvl= $lvl,    attribute use=$($n.Use)"
-                }
-            } 
-            $particle = $complexType.Particle
-            foreach ($item in $particle) {
-                RecurseDownXSD $item ($lvl+1)
-            }
-    
-        }
-        elseif ($element.ElementSchemaType -is [System.Xml.Schema.XmlSchemaSimpleType]) {
-            Write-Host "lvl = $lvl, type is$element.SchemaTypeName"
-        }
-        else {
-            Write-Host "type?"
-        }
-    }
-}    
-
-                                                   
 # Unlike Get-WinEvents, where you can prefilter out stuff by dates and such, Get-ScheduledTask gets either all or single. A few thousand tasks might be problematic.
-$scheduledTaskDefs = (Get-ScheduledTask)
-           
-# Strictly Core 7 - until they break it again.
-              
-$scheduledTaskDefPaths = 
-$scheduledTaskDefs|
-Where Author -notin @('Adobe Systems Incorporated', 'Dell, Inc.', 'NVIDIA Corporation', 'Microsoft Office', 'Microsoft VisualStudio', 'Microsoft Visual Studio', 'Microsoft Corporation', 'Microsoft', 'Mozilla', 'Realtek')|
-Where TaskPath -notlike '\Microsoft*'|  
-Where TaskName -notlike 'Google*'|  
-Where TaskName -notlike 'Microsoft*'|  
-Where TaskName -notin @('Git for Windows Updater')|
-Select TaskName, TaskPath
+$scheduledTaskDefPaths = (Get-ScheduledTask -TaskPath '\FilmCab\*')|Select TaskPath, TaskName
 
 $taskDefs = @()
+$actionDefs = @()
+$triggerDefs = @()
 
 foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
     $taskPath = $scheduledTaskDefPath.TaskPath
     $taskName = $scheduledTaskDefPath.TaskName              
     $taskXML = [XML](Export-ScheduledTask -TaskName "$taskName" -TaskPath "$taskPath")
- 
-    #$taskDetails = 
+
     $taskDef = [PSCustomObject]@{
         task_full_path         = $taskXML.Task.RegistrationInfo.URI
         task_name              = $taskName
@@ -99,13 +62,14 @@ foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
 
     }    
     $taskDefs+= $taskDef
-
+    
     $taskActionsXML = $taskXML.Task.Actions
 
     foreach ($taskAction in $taskActionsXML) {
         $actionType = (@($taskAction.PSObject.Properties.Name -eq 'Exec').Count -eq 1 ? 'Exec': '?')
         # Any value Yet? Used to be a user. $actionContext = (@($taskAction.PSObject.Properties.Name -eq 'Context').Count -eq 1 ? $taskAction.Context: '')
-        $actionDef = [PSCustomObject]@{
+        $actionDef= [PSCustomObject]@{
+            task_full_path = $taskXML.Task.RegistrationInfo.URI
             Command   = ''
             Arguments = ''
             WorkingDirectory = ''
@@ -116,32 +80,28 @@ foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
             $actionDef.Arguments = $taskAction.Exec.Arguments
             $actionDef.WorkingDirectory = (@($taskAction.Exec.PSObject.Properties.Name -eq 'WorkingDirectory').Count -eq 1 ? $taskAction.Exec.WorkingDirectory : '')
         }
+        $actionDefs+= $actionDef
     }                       
     
-    #$taskTriggersXML = $taskXML.Task.Triggers
+    $taskTriggersXML = $taskXML.Task.Triggers
+    
+    foreach ($taskTrigger in $taskTriggersXML) {
+        $triggerType = (@($taskTrigger.PSObject.Properties.Name -eq 'CalendarTrigger').Count -eq 1 ? 'Calendar': '?')  # Registration, Boot, Idle, Time, Event, Logon, SessionStateChange
+        $triggerDef        = [PSCustomObject]@{
+            task_full_path = $taskXML.Task.RegistrationInfo.URI
+            StartBoundary = [Datetime]0
+            EndBoundary = [Datetime]0
+            Repetition = ''
+            ExecutionTimeLimit = ''
+        }                                                 
 
-    # Get trigger type, then split out Calendars, Time, Event, etc.
+        if ($triggerType -eq 'Calendar') {
+            $triggerDef.StartBoundary = $taskTrigger.CalendarTrigger.StartBoundary
+            $triggerDef.EndBoundary = (@($taskTrigger.CalendarTrigger.PSObject.Properties.Name -eq 'EndBoundary').Count -eq 1 ? $taskTrigger.CalendarTrigger.EndBoundary : '')
+        }
+        $triggerDefs+= $triggerDef
+    }
 }
 
-function GetSchema {
-    $utf8WithoutBom = New-Object System.Text.UTF8Encoding($false)
-    $sw = New-Object System.IO.StreamWriter('x.xml', $false, $utf8WithoutBom)
-    $taskXML.Save($sw)     
-    $sw.Close()
-    $dataSet = New-Object -TypeName System.Data.DataSet
-    $dataSet.ReadXml('x.xml') 
-    $dataSet.WriteXmlSchema('x.xsd')
-    #$taskXMLSchema = $dataSet.GetXMLSchema()
-    $schemaSet = New-Object -TypeName 'System.Xml.Schema.XmlSchemaSet'
-    $schemaSet.Add('http://schemas.microsoft.com/windows/2004/02/mit/task', 'x.xsd')
-    $schemaSet.Compile()
-
-    Write-Host "************************** $taskPath\$taskName ******************************"
-    Write-Host
-        
-    $schema = $schemaSet.Schemas()[0]
-    RecurseDownXSD $schema
-
-}
 
 . .\simplified\_dot_include_standard_footer.ps1
