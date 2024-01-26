@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20240125000118
+Start time: 20240126000118
 Username: DSKTP-HOME-JEFF\jeffs
 RunAs User: DSKTP-HOME-JEFF\jeffs
 Configuration Name: 
 Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
 Host Application: C:\Program Files\PowerShell\7\pwsh.dll -WindowStyle Hidden -ExecutionPolicy Bypass D:\qt_projects\filmcab\simplified\scheduled_tasks\pull_scheduled_task_events.ps1
-Process ID: 13332
+Process ID: 10576
 PSVersion: 7.4.1
 PSEdition: Core
 GitCommitId: 7.4.1
@@ -19,510 +19,650 @@ WSManStackVersion: 3.0
 **********************
 Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\pull_scheduled_task_events.ps1.transcript.log
 Completed pull from API
-4.2986943
-Wrote to xml file, 209 new events
+2.680711
+Wrote to xml file, 60 new events
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 **********************
-Command start time: 20240125000122
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
+**********************
+PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
+**********************
+Command start time: 20240126000121
 **********************
 PS>TerminatingError(New-Object): "A constructor was not found. Cannot find an appropriate constructor for type System.Security.Principal.SecurityIdentifier."
 
@@ -657,10 +797,45 @@ record_id event_type_name             event_created         task_full_path      
     53705 Task triggered on scheduler 1/25/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-25…
     53706 Created Task Process        1/25/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-25…
     53707 Task Started                1/25/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-25…
+    53710 Task completed              1/25/2024 12:01:22 AM \FilmCab\pull_scheduled_task_events             2024-01-25…
+    54195 Task Started                1/25/2024 7:52:00 AM  \{cfc04d04-6710-4c15-a05b-90f9e108489b}         2024-01-25…
+    54787 Task registration updated   1/25/2024 3:07:22 PM  \FilmCab\scan_for_file_directories              2024-01-25…
+    54791 Task completed              1/25/2024 3:07:41 PM  \FilmCab\load_user_excel_interface              2024-01-25…
+    54794 Task completed              1/25/2024 3:09:55 PM  \RtHDVBg_PushButton                             2024-01-25…
+    54860 Created Task Process        1/25/2024 3:13:12 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-25…
+    54861 Task Started                1/25/2024 3:13:12 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-25…
+    54895 Task completed              1/25/2024 3:13:20 PM  \nWizard_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} 2024-01-25…
+    54941 Created Task Process        1/25/2024 3:13:42 PM  \RtHDVBg_PushButton                             2024-01-25…
+    54942 Task Started                1/25/2024 3:13:42 PM  \RtHDVBg_PushButton                             2024-01-25…
+    55029 Created Task Process        1/25/2024 3:16:29 PM  \FilmCab\load_user_excel_interface              2024-01-25…
+    55030 Task Started                1/25/2024 3:16:29 PM  \FilmCab\load_user_excel_interface              2024-01-25…
+    55034 Task completed              1/25/2024 3:16:32 PM  \FilmCab\load_user_excel_interface              2024-01-25…
+    55573 Task registered             1/25/2024 9:38:06 PM  \FilmCab\pull_scheduled_task_definitions        2024-01-25…
+    55737 Task triggered on scheduler 1/25/2024 11:50:01 PM \FilmCab\_set_new_batch_run_session_id          2024-01-25…
+    55738 Created Task Process        1/25/2024 11:50:01 PM \FilmCab\_set_new_batch_run_session_id          2024-01-25…
+    55739 Task Started                1/25/2024 11:50:01 PM \FilmCab\_set_new_batch_run_session_id          2024-01-25…
+    55742 Task completed              1/25/2024 11:50:02 PM \FilmCab\_set_new_batch_run_session_id          2024-01-25…
+    55743 Task triggered on scheduler 1/25/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-25…
+    55744 Created Task Process        1/25/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-25…
+    55745 Task Started                1/25/2024 11:52:17 PM \FilmCab\back_up_unbackedup_published_media     2024-01-25…
+    55747 Task triggered on scheduler 1/25/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-25…
+    55748 Created Task Process        1/25/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-25…
+    55749 Task Started                1/25/2024 11:52:17 PM \FilmCab\scan_for_file_directories              2024-01-25…
+    55752 Task completed              1/25/2024 11:52:18 PM \FilmCab\scan_for_file_directories              2024-01-25…
+    55753 Task triggered on scheduler 1/25/2024 11:54:17 PM \FilmCab\load_user_excel_interface              2024-01-25…
+    55754 Created Task Process        1/25/2024 11:54:17 PM \FilmCab\load_user_excel_interface              2024-01-25…
+    55755 Task Started                1/25/2024 11:54:17 PM \FilmCab\load_user_excel_interface              2024-01-25…
+    55758 Task completed              1/25/2024 11:58:47 PM \FilmCab\load_user_excel_interface              2024-01-25…
+    55771 Task triggered on scheduler 1/26/2024 12:01:17 AM \FilmCab\pull_scheduled_task_definitions        2024-01-26…
+    55772 Created Task Process        1/26/2024 12:01:17 AM \FilmCab\pull_scheduled_task_definitions        2024-01-26…
+    55773 Task Started                1/26/2024 12:01:17 AM \FilmCab\pull_scheduled_task_definitions        2024-01-26…
+    55775 Task triggered on scheduler 1/26/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-26…
+    55776 Created Task Process        1/26/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-26…
+    55777 Task Started                1/26/2024 12:01:17 AM \FilmCab\pull_scheduled_task_events             2024-01-26…
 
 
-4 Seconds
+3 Seconds
 **********************
 PowerShell transcript end
-End time: 20240125000122
+End time: 20240126000121
 **********************

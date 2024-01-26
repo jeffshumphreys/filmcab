@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20240124235217
+Start time: 20240125235218
 Username: DSKTP-HOME-JEFF\jeffs
 RunAs User: DSKTP-HOME-JEFF\jeffs
 Configuration Name: 
 Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
 Host Application: C:\Program Files\PowerShell\7\pwsh.dll -WindowStyle Hidden -ExecutionPolicy Bypass D:\qt_projects\filmcab\simplified\scheduled_tasks\back_up_unbackedup_published_media.ps1
-Process ID: 8332
+Process ID: 16784
 PSVersion: 7.4.1
 PSEdition: Core
 GitCommitId: 7.4.1
@@ -21,8 +21,8 @@ Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\back_u
 
  Log File : D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
 
-2 Seconds
+50 Minutes
 **********************
 PowerShell transcript end
-End time: 20240124235220
+End time: 20240126004257
 **********************
