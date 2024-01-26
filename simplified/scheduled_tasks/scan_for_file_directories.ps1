@@ -119,6 +119,7 @@ foreach ($SearchPath in $searchPaths) {
 
     if (-not(Test-Path $SearchPath)) {
         Write-Host "SearchPath $SearchPath not found; skipping scan."
+        #TODO: Update search path.
         return # the PS way to continue, whereas PS continue is break
     }
 
@@ -146,19 +147,19 @@ foreach ($SearchPath in $searchPaths) {
             $currentlinktarget     = NullIf($item.LinkTarget)   # Probably should verify, eventually
             $currentdirstillexists= $true # Cuz it's there?
             $currentdriveletter    = [string]$item.FullName[0]
-            $isarealdirectory      = [bool]$null          # as in not a hard link or junction or symbolic link
+            $IsARealDirectory      = [bool]$null          # as in not a hard link or junction or symbolic link
 
             if ($item.LinkType -eq 'Junction') {
                 $currentjunctionlink  = $true
                 $currentlinktarget    = NullIf($item.LinkTarget)
                 $currentsymboliclink  = $false
-                $isarealdirectory     = $false
+                $IsARealDirectory     = $false
             }
             elseif ($item.LinkType -eq 'SymbolicLink') {
                 $currentsymboliclink  = $true
                 $currentlinktarget    = NullIf($item.LinkTarget) # blanks and $nulls never equal each other.
                 $currentjunctionlink  = $false
-                $isarealdirectory     = $false
+                $IsARealDirectory     = $false
             }                                    
             elseif (-not [String]::IsNullOrWhiteSpace($item.LinkType)) {
                 throw [Exception]"New unrecognized link type for $directory_path, type is $($item.LinkType)"
@@ -168,7 +169,7 @@ foreach ($SearchPath in $searchPaths) {
                 $currentsymboliclink  = $false
                 $currentjunctionlink  = $false
                 $currentlinktarget    = $null
-                $isarealdirectory     = $true # Only traverse real directories
+                $IsARealDirectory     = $true # Only traverse real directories
             }
 
             $directory_path_escaped = $directory_path.Replace("'", "''")
@@ -186,7 +187,7 @@ foreach ($SearchPath in $searchPaths) {
                 AND 
                     volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')
                 AND
-                    (deleted IS NULL OR deleted = False) /* Exclude entries marked as deleted. Obviously they exist since I found them with Get-Item, so 
+                    (deleted IS NULL OR deleted = False) /* Exclude entries marked as deleted. Obviously they exist since I found them with Get-Item, so */
             ";
             $readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
             $reader = $readerHandle.Value # Now we can unbox!  Ta da!
@@ -290,7 +291,7 @@ foreach ($SearchPath in $searchPaths) {
                         /*     parent_directory_hash  */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
                         /*     directory_date         */ '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
                         /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
-                        /*     directory_still_exists */  True,
+                        /*     directory_still_exists */ $newdirstillexists,
                         /*     scan_directory         */ $flagScanDirectory,
                         /*     is_symbolic_link       */ $currentsymboliclink,
                         /*     is_junction_link       */ $currentjunctionlink,
@@ -315,7 +316,8 @@ foreach ($SearchPath in $searchPaths) {
                         is_symbolic_link       = $newsymboliclink,
                         is_junction_link       = $newjunctionlink,
                         linked_path  = $preppednewlinktarget,
-                        directory_still_exists = True
+                        directory_still_exists = $newdirstillexists,
+                        volume_id              = (SELECT volume_id FROM volumes WHERE drive_letter = '$newdriveletter'),
                         deleted                =  False,
                         deleted_on             =  NULL
                     WHERE 
@@ -329,14 +331,14 @@ foreach ($SearchPath in $searchPaths) {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
                 
                 #Write-Host "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
-                #$walkdownthefilehierarchy = $false (Didn't work on detection)
+                #$walkdownthefilehierarchy = $false (Didn't work on detection of grandparents of changed files)
             }
 
             # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
             # Performance without skip:   2 minutes 
             # Performance with skip and no changes: 720 ms (so 60 times faster for empties)
-            # DOESNT WORK !!!!! if ($isarealdirectory -and $walkdownthefilehierarchy ) { # https://stackoverflow.com/questions/1025187/rules-for-date-modified-of-folders-in-windows-explorer
-            if ($isarealdirectory ) { # No way to avoid it as of Windows 10: Must traverse
+            # DOESNT WORK !!!!! if ($IsARealDirectory -and $walkdownthefilehierarchy ) { # https://stackoverflow.com/questions/1025187/rules-for-date-modified-of-folders-in-windows-explorer
+            if ($IsARealDirectory ) { # No way to avoid it as of Windows 10: Must traverse
                 Get-ChildItem -Path $item.FullName | ForEach-Object { $FIFOstack.Enqueue($_) }
             }
         }
