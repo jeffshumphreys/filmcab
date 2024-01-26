@@ -7,7 +7,6 @@
 
 param()
 
-
 $elapsed = $scriptTimer.Elapsed # Tada!!
 
 Write-Host
@@ -37,3 +36,5 @@ elseif ($elapsed.Ticks -gt 0) {
 # Log-ScriptCompleted
           
 try {Stop-Transcript}catch{}
+
+exit 0
