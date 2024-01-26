@@ -911,12 +911,26 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
     # TODO: Add property if not found.
     # TODO: take in an array of properties all at once!!!!
     # IDEA: Could just move all properties over???
+    $propAlreadyInTarget = @($targetob.PSObject.Properties|Where Name -eq "$prop").Count
+                                
+    if (-not $propAlreadyInTarget) {
+        $targetob | Add-Member -MemberType NoteProperty -Name $prop -Value ''
+    }
     
-    $targetob.$prop = (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+    if ($sourceob -is [String]) {
+        $targetob.$prop = $sourceob
+    }                             
+    else {
+        $targetob.$prop = (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+    }
 }
 
 Function Get-Property ($sourceob, $prop) {
-    (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+    (@($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+}
+
+Function Has-Property ($sourceob, $prop) {
+    return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
 
 <#
