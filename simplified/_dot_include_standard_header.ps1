@@ -917,8 +917,8 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
         $targetob | Add-Member -MemberType NoteProperty -Name $prop -Value ''
     }
     
-    if ($sourceob -is [String]) {
-        $targetob.$prop = $sourceob
+    if ($sourceob -is [String] -or $sourceob -is [Int32] -or $sourceob -is [datetime]) {
+        $targetob.$prop = $sourceob.ToString()
     }                             
     else {
         $targetob.$prop = (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
