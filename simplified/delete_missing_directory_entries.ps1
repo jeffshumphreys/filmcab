@@ -12,7 +12,7 @@ $listoffilesfound = @()
 if ($dbconnopen) {
     $DBCmd.CommandText = "
     SELECT f.txt path 
-    FROM stage_for_master.files f 
+    FROM directories f 
     WHERE (f.record_deleted IS NULL OR f.record_deleted is false)
         and (f.file_lost IS NULL OR f.file_lost is false)";
     $rtnrows = $DBCmd.ExecuteReader();
