@@ -25,8 +25,7 @@ param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
 
-#$inpath = "D:\OneDrive\Documents\user_excel_interface.xlsm"
-$inpath = "https://d.docs.live.net/89bc08e19187b035/Documents/user_excel_interface.xlsm" # Trying to get live file.
+$inpath = "D:\OneDrive\Documents\user_excel_interface.xlsm"
 $outpath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.UTF8.csv"
 $targettable = 'user_excel_interface'
 
@@ -89,6 +88,10 @@ if (1 -eq 1) {
         $ws.SaveAs($outpath, $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8)
         $wb.Close($true)
         $NewExcelCSVFileGenerated = $true
+    }
+    catch {
+        #  Microsoft Excel cannot access the file 'https://d.docs.live.net/89bc08e19187b035/Documents/user_excel_interface.xlsm'. There are several possible reasons:
+        Show-Error
     }
     finally {
         $Excel.Quit()
