@@ -324,10 +324,16 @@ Long description
 Parameter description
 
 .EXAMPLE
-$searchPaths = Out-SqlToList 'SELECT search_path FROM search_paths ORDER BY search_path_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
-foreach ($SearchPath in $searchPaths) {
-    if (-not(Test-Path $SearchPath)) {}
-}
+$sql = "
+SELECT 
+    directory_path                         /* Deleted or not, we want to validate it. Probably more efficient filter is possible. Skip ones I just added, for instance. Don't descend deleted trees. */
+FROM 
+    directories
+"
+$readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
+$reader = $readerHandle.Value # Now we can unbox!  Ta da!
+$olddirstillexists          = Get-SqlFieldValue $readerHandle directory_still_exists
+$val = $reader.GetValue(0)
 
 .NOTES
 I don't like the verb "Show".  But this function just to blow a select output on the screen is sorely lacking for the lazy developer.
