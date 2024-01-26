@@ -16,7 +16,6 @@ param()
 
 . .\simplified\_dot_include_standard_header.ps1
 
-
 $scheduled_task_definitions = @()
 $scheduled_task_action_definitions = @()
 $scheduled_task_trigger_definitions = @()
@@ -90,12 +89,14 @@ foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
     $scheduled_task_definitions+= $taskDef
     
     $taskActionsXML = $taskXML.Task.Actions
-
+    $actionIndex = 0
     foreach ($taskAction in $taskActionsXML) {
         $actionType = ($taskAction.PSObject.Properties|Where MemberType -eq 'Property'|Where TypeNameOfValue -eq 'System.Xml.XmlElement'|Select Name).Name
         $actionDef= [PSCustomObject]@{
             task_full_path = $taskXML.Task.RegistrationInfo.URI # For linking
         }
+
+        Fill-Property $actionDef $actionIndex 'ActionIndex'
 
         if ($actionType -eq 'Exec') {
             Fill-Property $actionDef $taskAction 'Context'
@@ -104,16 +105,22 @@ foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
             Fill-Property $actionDef $taskAction.Exec 'WorkingDirectory'
         }
         $scheduled_task_action_definitions+= $actionDef
+        $actionIndex++
     }                       
     
     $taskTriggersXML = $taskXML.Task.Triggers
-    
+                      
+    $triggerIndex = 0
     foreach ($taskTrigger in $taskTriggersXML) {
         $triggerType = ($taskTrigger.PSObject.Properties|Where Name -like '*Trigger'|Where TypeNameOfValue -eq 'System.Xml.XmlElement'|Select Name).Name
         $triggerDef        = [PSCustomObject]@{
             task_full_path = $taskXML.Task.RegistrationInfo.URI # For linking
             trigger_type = $triggerType
         }                                                 
+
+        Fill-Property $triggerDef $triggerIndex 'TriggerIndex'
+        
+        $triggerIndex++
 
         if ($triggerType -eq 'CalendarTrigger') {
             Fill-Property $triggerDef $taskTrigger.CalendarTrigger 'Enabled'
