@@ -1,0 +1,55 @@
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="task_full_path">\FilmCab\back_up_unbackedup_published_media</S>
+      <S N="Context">Author</S>
+      <S N="Command">"C:\Program Files\PowerShell\7\pwsh.exe"</S>
+      <S N="Arguments">-WindowStyle Hidden -ExecutionPolicy Bypass "D:\qt_projects\filmcab\simplified\scheduled_tasks\back_up_unbackedup_published_media.ps1"</S>
+      <S N="WorkingDirectory"></S>
+    </MS>
+  </Obj>
+  <Obj RefId="1">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\load_user_excel_interface</S>
+      <S N="Context">Author</S>
+      <S N="Command">"C:\Program Files\PowerShell\7\pwsh.exe"</S>
+      <S N="Arguments">-WindowStyle Hidden -ExecutionPolicy Bypass "D:\qt_projects\filmcab\simplified\scheduled_tasks\load_user_excel_interface.ps1"</S>
+      <S N="WorkingDirectory"></S>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\pull_scheduled_task_events</S>
+      <S N="Context">Author</S>
+      <S N="Command">"C:\Program Files\PowerShell\7\pwsh.exe"</S>
+      <S N="Arguments">-WindowStyle Hidden -ExecutionPolicy Bypass "D:\qt_projects\filmcab\simplified\scheduled_tasks\pull_scheduled_task_events.ps1"</S>
+      <S N="WorkingDirectory"></S>
+    </MS>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\scan_for_file_directories</S>
+      <S N="Context">Author</S>
+      <S N="Command">"C:\Program Files\PowerShell\7\pwsh.exe"</S>
+      <S N="Arguments">-WindowStyle Hidden -ExecutionPolicy Bypass "D:\qt_projects\filmcab\simplified\scheduled_tasks\scan_for_file_directories.ps1"</S>
+      <S N="WorkingDirectory"></S>
+    </MS>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\_set_new_batch_run_session_id</S>
+      <S N="Context">Author</S>
+      <S N="Command">"C:\Program Files\PowerShell\7\pwsh.exe"</S>
+      <S N="Arguments">-WindowStyle Hidden -ExecutionPolicy Bypass "D:\qt_projects\filmcab\simplified\scheduled_tasks\_set_new_batch_run_session_id.ps1"</S>
+      <S N="WorkingDirectory"></S>
+    </MS>
+  </Obj>
+</Objs>

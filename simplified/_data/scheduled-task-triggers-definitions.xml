@@ -1,0 +1,70 @@
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="task_full_path">\FilmCab\back_up_unbackedup_published_media</S>
+      <S N="trigger_type">CalendarTrigger</S>
+      <S N="Enabled"></S>
+      <S N="StartBoundary">2024-01-16T23:52:16</S>
+      <S N="EndBoundary"></S>
+      <S N="ExecutionTimeLimit">P3D</S>
+      <S N="RandomDelay"></S>
+      <S N="DaysInterval">1</S>
+    </MS>
+  </Obj>
+  <Obj RefId="1">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\load_user_excel_interface</S>
+      <S N="trigger_type">CalendarTrigger</S>
+      <S N="Enabled"></S>
+      <S N="StartBoundary">2024-01-16T23:54:16</S>
+      <S N="EndBoundary"></S>
+      <S N="ExecutionTimeLimit">P3D</S>
+      <S N="RandomDelay"></S>
+      <S N="DaysInterval">1</S>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\pull_scheduled_task_events</S>
+      <S N="trigger_type">CalendarTrigger</S>
+      <S N="Enabled"></S>
+      <S N="StartBoundary">2024-01-16T00:01:16</S>
+      <S N="EndBoundary"></S>
+      <S N="ExecutionTimeLimit">P3D</S>
+      <S N="RandomDelay"></S>
+      <S N="DaysInterval">1</S>
+    </MS>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\scan_for_file_directories</S>
+      <S N="trigger_type">CalendarTrigger</S>
+      <S N="Enabled"></S>
+      <S N="StartBoundary">2024-01-16T23:52:16</S>
+      <S N="EndBoundary"></S>
+      <S N="ExecutionTimeLimit">P3D</S>
+      <S N="RandomDelay"></S>
+      <S N="DaysInterval">1</S>
+    </MS>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="task_full_path">\FilmCab\_set_new_batch_run_session_id</S>
+      <S N="trigger_type">CalendarTrigger</S>
+      <S N="Enabled"></S>
+      <S N="StartBoundary">2024-01-16T23:50:00</S>
+      <S N="EndBoundary"></S>
+      <S N="ExecutionTimeLimit">P3D</S>
+      <S N="RandomDelay"></S>
+      <S N="DaysInterval">1</S>
+    </MS>
+  </Obj>
+</Objs>
