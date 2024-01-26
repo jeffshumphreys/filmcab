@@ -16,133 +16,169 @@ param()
 
 . .\simplified\_dot_include_standard_header.ps1
 
-# Unlike Get-WinEvents, where you can prefilter out stuff by dates and such, Get-ScheduledTask gets either all or single. A few thousand tasks might be problematic.
-$scheduledTaskDefPaths = (Get-ScheduledTask -TaskPath '\FilmCab\*')|Select TaskPath, TaskName
 
-$taskDefs = @()
-$actionDefs = @()
-$triggerDefs = @()
+$scheduled_task_definitions = @()
+$scheduled_task_action_definitions = @()
+$scheduled_task_trigger_definitions = @()
+
+$scheduledTaskDefPaths = (Get-ScheduledTask -TaskPath '\FilmCab\*')|Select TaskPath, TaskName
 
 foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
     $taskPath = $scheduledTaskDefPath.TaskPath
     $taskName = $scheduledTaskDefPath.TaskName              
     $taskXML = [XML](Export-ScheduledTask -TaskName "$taskName" -TaskPath "$taskPath")
 
-    $taskDef = [PSCustomObject]@{
-        task_full_path         = $taskXML.Task.RegistrationInfo.URI
-        task_name              = $taskName
-        task_path              = $taskPath
-        task_definition_version       = $taskXML.Task.Version
-        task_creation_date    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Date').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Date : '')
-        task_author    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Author').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Author : '')
-        task_description    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Description').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Description : '')
-        task_source    = (@($taskXML.Task.RegistrationInfo.PSObject.Properties.Name -eq 'Source').Count -eq 1 ? $taskXML.Task.RegistrationInfo.Source : '')
-        task_principal_id = (@($taskXML.Task.Principals.Principal.PSObject.Properties.Name -eq 'id').Count -eq 1 ? $taskXML.Task.Principals.Principal.Id : '')
-        task_principal_user_id = (@($taskXML.Task.Principals.Principal.PSObject.Properties.Name -eq 'UserId').Count -eq 1 ? $taskXML.Task.Principals.Principal.UserId : '')
-        task_principal_group_id = (@($taskXML.Task.Principals.Principal.PSObject.Properties.Name -eq 'GroupId').Count -eq 1 ? $taskXML.Task.Principals.Principal.GroupId : '')
-        task_principal_logon_type = (@($taskXML.Task.Principals.Principal.PSObject.Properties.Name -eq 'LogonType').Count -eq 1 ? $taskXML.Task.Principals.Principal.LogonType : '')
-        task_principal_run_level = (@($taskXML.Task.Principals.Principal.PSObject.Properties.Name -eq 'RunLevel').Count -eq 1 ? $taskXML.Task.Principals.Principal.RunLevel : '')
-        MultipleInstancesPolicy        = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'MultipleInstancesPolicy'        ).Count -eq 1 ? $taskXML.Task.Settings.MultipleInstancesPolicy             : '')
-        DisallowStartIfOnBatteries     = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'DisallowStartIfOnBatteries').Count -eq 1 ? $taskXML.Task.Settings.DisallowStartIfOnBatteries          : '')
-        StopIfGoingOnBatteries         = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'StopIfGoingOnBatteries').Count -eq 1 ? $taskXML.Task.Settings.StopIfGoingOnBatteries              : '')
-        AllowHardTerminate             = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'AllowHardTerminate').Count -eq 1 ? $taskXML.Task.Settings.AllowHardTerminate                  : '')
-        StartWhenAvailable             = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'StartWhenAvailable').Count -eq 1 ? $taskXML.Task.Settings.StartWhenAvailable                  : '')
-        RunOnlyIfNetworkAvailable      = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'RunOnlyIfNetworkAvailable').Count -eq 1 ? $taskXML.Task.Settings.RunOnlyIfNetworkAvailable           : '')
-        StopOnIdleEnd                   = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'IdleSettings').Count -eq 1 ? $taskXML.Task.Settings.IdleSettings.StopOnIdleEnd                        : '')
-        RestartOnIdle                   = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'IdleSettings').Count -eq 1 ? $taskXML.Task.Settings.IdleSettings.RestartOnIdle                        : '')
-        AllowStartOnDemand             = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'AllowStartOnDemand').Count -eq 1 ? $taskXML.Task.Settings.AllowStartOnDemand                  : '')
-        Enabled                        = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'Enabled').Count -eq 1 ? $taskXML.Task.Settings.Enabled                             : '')
-        Hidden                         = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'Hidden').Count -eq 1 ? $taskXML.Task.Settings.Hidden                              : '')
-        RunOnlyIfIdle                  = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'RunOnlyIfIdle').Count -eq 1 ? $taskXML.Task.Settings.RunOnlyIfIdle                       : '')
-        DisallowStartOnRemoteAppSession= (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'DisallowStartOnRemoteAppSession').Count -eq 1 ? $taskXML.Task.Settings.DisallowStartOnRemoteAppSession     : '')
-        UseUnifiedSchedulingEngine     = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'UseUnifiedSchedulingEngine').Count -eq 1 ? $taskXML.Task.Settings.UseUnifiedSchedulingEngine          : '')
-        WakeToRun                      = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'WakeToRun').Count -eq 1 ? $taskXML.Task.Settings.WakeToRun                           : '')
-        ExecutionTimeLimit             = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'ExecutionTimeLimit').Count -eq 1 ? $taskXML.Task.Settings.ExecutionTimeLimit                  : '')
-        Priority                       = (@($taskXML.Task.Settings.PSObject.Properties.Name -eq 'Priority').Count -eq 1 ? $taskXML.Task.Settings.Priority                            : '')
-        # DeleteExpiredTaskAfter
-        # ProcessTokenSidType
-        # DisplayName
-        # RequiredPrivileges
-        # NetworkProfileName
+    $taskDef = [PSCustomObject]@{}    
+    
+    Fill-Property $taskDef $taskPath 'TaskPath'
+    Fill-Property $taskDef $taskName 'TaskName'
+    Fill-Property $taskDef $taskXML.Task.RegistrationInfo 'Version'
+    Fill-Property $taskDef $taskXML.Task.RegistrationInfo 'Date'
+    Fill-Property $taskDef $taskXML.Task.RegistrationInfo  'Author'
+    Fill-Property $taskDef $taskXML.Task.RegistrationInfo  'Source'
+    Fill-Property $taskDef $taskXML.Task.RegistrationInfo  'Description'
+    Fill-Property $taskDef $taskXML.Task.RegistrationInfo  'Documentation'
+    Fill-Property $taskDef $taskXML.Task.RegistrationInfo  'SecurityDescriptor'
+    Fill-Property $taskDef $taskXML.Task.Principals.Principal 'id'
+    Fill-Property $taskDef $taskXML.Task.Principals.Principal 'UserId'
+    Fill-Property $taskDef $taskXML.Task.Principals.Principal 'LogonType'
+    Fill-Property $taskDef $taskXML.Task.Principals.Principal 'GroupId'
+    Fill-Property $taskDef $taskXML.Task.Principals.Principal 'DisplayName'
+    Fill-Property $taskDef $taskXML.Task.Principals.Principal 'ProcessTokenSidType'
+    Fill-Property $taskDef $taskXML.Task.Principals.Principal 'RunLevel'
+    Fill-Property $taskDef $taskXML.Task.Settings 'MultipleInstancesPolicy'
+    Fill-Property $taskDef $taskXML.Task.Settings 'DisallowStartIfOnBatteries'
+    Fill-Property $taskDef $taskXML.Task.Settings 'StopIfGoingOnBatteries'
+    Fill-Property $taskDef $taskXML.Task.Settings 'AllowHardTerminate'
+    Fill-Property $taskDef $taskXML.Task.Settings 'StartWhenAvailable'
+    Fill-Property $taskDef $taskXML.Task.Settings 'NetworkProfileName'
+    Fill-Property $taskDef $taskXML.Task.Settings 'RunOnlyIfNetworkAvailable'
+    Fill-Property $taskDef $taskXML.Task.Settings 'AllowStartOnDemand'
+    Fill-Property $taskDef $taskXML.Task.Settings 'Enabled'
+    Fill-Property $taskDef $taskXML.Task.Settings 'Hidden'
+    Fill-Property $taskDef $taskXML.Task.Settings 'RunOnlyIfIdle'
+    Fill-Property $taskDef $taskXML.Task.Settings 'DisallowStartOnRemoteAppSession'
+    Fill-Property $taskDef $taskXML.Task.Settings 'UseUnifiedSchedulingEngine'
+    Fill-Property $taskDef $taskXML.Task.Settings 'WakeToRun'
+    Fill-Property $taskDef $taskXML.Task.Settings 'ExecutionTimeLimit'
+    Fill-Property $taskDef $taskXML.Task.Settings 'Priority'
+    Fill-Property $taskDef $taskXML.Task.Settings 'DeleteExpiredTaskAfter'
 
-    }    
-    $taskDefs+= $taskDef
+    if (Has-Property $taskXML.Task.Settings 'IdleSettings') {
+        Fill-Property $taskDef $taskXML.Task.Settings.IdleSettings 'Duration'
+        Fill-Property $taskDef $taskXML.Task.Settings.IdleSettings 'WaitTimeout'
+        Fill-Property $taskDef $taskXML.Task.Settings.IdleSettings 'StopOnIdleEnd'  
+        Fill-Property $taskDef $taskXML.Task.Settings.IdleSettings 'Duration'
+        Fill-Property $taskDef $taskXML.Task.Settings.IdleSettings 'RestartOnIdle'
+    }
+
+    if (Has-Property $taskXML.Task.Settings 'RestartOnFailure') {
+        Fill-Property $taskDef $taskXML.Task.Settings.RestartOnFailure 'Interval'
+        Fill-Property $taskDef $taskXML.Task.Settings.RestartOnFailure 'Count'
+    }
+
+    if (Has-Property $taskXML.Task.Settings 'NetworkSettings') {
+        Fill-Property $taskDef $taskXML.Task.Settings.NetworkSettings 'Name'
+        Fill-Property $taskDef $taskXML.Task.Settings.NetworkSettings 'Id'
+    }
+
+    if (Has-Property $taskXML.Task.Principals.Principal 'RequiredPrivileges') {
+        # Loop! Travers sequence of Privilege where each is a "Se-"
+    }
+
+
+    $scheduled_task_definitions+= $taskDef
     
     $taskActionsXML = $taskXML.Task.Actions
 
     foreach ($taskAction in $taskActionsXML) {
-        $actionType = (@($taskAction.PSObject.Properties.Name -eq 'Exec').Count -eq 1 ? 'Exec': '?')
-        # Any value Yet? Used to be a user. $actionContext = (@($taskAction.PSObject.Properties.Name -eq 'Context').Count -eq 1 ? $taskAction.Context: '')
+        $actionType = ($taskAction.PSObject.Properties|Where MemberType -eq 'Property'|Where TypeNameOfValue -eq 'System.Xml.XmlElement'|Select Name).Name
         $actionDef= [PSCustomObject]@{
-            task_full_path = $taskXML.Task.RegistrationInfo.URI
-            Command   = ''
-            Arguments = ''
-            WorkingDirectory = ''
+            task_full_path = $taskXML.Task.RegistrationInfo.URI # For linking
         }
 
         if ($actionType -eq 'Exec') {
+            Fill-Property $actionDef $taskAction 'Context'
             Fill-Property $actionDef $taskAction.Exec 'Command'
             Fill-Property $actionDef $taskAction.Exec 'Arguments'
             Fill-Property $actionDef $taskAction.Exec 'WorkingDirectory'
         }
-        # ComHandler (ClassId, Data)
-        $actionDefs+= $actionDef
+        $scheduled_task_action_definitions+= $actionDef
     }                       
     
     $taskTriggersXML = $taskXML.Task.Triggers
     
     foreach ($taskTrigger in $taskTriggersXML) {
-        $triggerType = (@($taskTrigger.PSObject.Properties.Name -eq 'CalendarTrigger').Count -eq 1 ? 'Calendar': '?')  # Registration, Boot, Idle, Time, Event, Logon, SessionStateChange
+        $triggerType = ($taskTrigger.PSObject.Properties|Where Name -like '*Trigger'|Where TypeNameOfValue -eq 'System.Xml.XmlElement'|Select Name).Name
         $triggerDef        = [PSCustomObject]@{
-            task_full_path = $taskXML.Task.RegistrationInfo.URI
-            trigger_type = ''
-            Enabled        = ''
-            StartBoundary = [Datetime]0
-            EndBoundary = [Datetime]0
-            Repetition = ''
-            ExecutionTimeLimit = ''
-            Interval           = ''
-            Duration= ''
-            StopAtDurationEnd= ''
-            Delay= ''
-            RandomDelay= ''
-            Subscription= ''
-            PeriodOfOccurrence= ''
-            DaysInterval= ''
+            task_full_path = $taskXML.Task.RegistrationInfo.URI # For linking
+            trigger_type = $triggerType
         }                                                 
 
-        $triggerDef.trigger_type = $triggerType
-        
-        if ($triggerType -eq 'Calendar') {
+        if ($triggerType -eq 'CalendarTrigger') {
             Fill-Property $triggerDef $taskTrigger.CalendarTrigger 'Enabled'
             Fill-Property $triggerDef $taskTrigger.CalendarTrigger 'StartBoundary'
             Fill-Property $triggerDef $taskTrigger.CalendarTrigger 'EndBoundary'
             Fill-Property $triggerDef $taskTrigger.CalendarTrigger 'ExecutionTimeLimit'
-            # RandomDelay
-            if (@($taskTrigger.CalendarTrigger.PSObject.Properties.Name -eq 'Repetition').Count -eq 1) {
+            Fill-Property $triggerDef $taskTrigger.CalendarTrigger 'RandomDelay'
+            
+            if (Has-Property $taskTrigger.CalendarTrigger 'Repetition') {
                 Fill-Property $triggerDef $taskTrigger.CalendarTrigger.Repetition 'Duration'
                 Fill-Property $triggerDef $taskTrigger.CalendarTrigger.Repetition 'Interval'
                 Fill-Property $triggerDef $taskTrigger.CalendarTrigger.Repetition 'Duration'
                 Fill-Property $triggerDef $taskTrigger.CalendarTrigger.Repetition 'StopAtDurationEnd'
-            }                                                                                           
-            if (@($taskTrigger.CalendarTrigger.PSObject.Properties.Name -eq 'ScheduleByDay').Count -eq 1) {
+            }                                                                                        
+            
+            if (Has-Property $taskTrigger.CalendarTrigger 'ScheduleByDay') {
                 Fill-Property $triggerDef $taskTrigger.CalendarTrigger.ScheduleByDay 'DaysInterval'
-            }         
-            # WeeksInterval
-            # DaysOfWeek
-            # DaysOfMonth
-            # Months
-            # Weeks
-        # logonTrigger
-        # eventTrigger (MatchingElement, ValueQueries)
-        # RegistrationTrigger
-        # TimeTrigger
-        # bootTrigger
-        # Session State (ConsolConnect/Disconnect, RemoteConnect/SessionLock)
+            }                                  
+            if (Has-Property $taskTrigger.CalendarTrigger 'ScheduleByWeek') {
+                Fill-Property $triggerDef $taskTrigger.CalendarTrigger.ScheduleByWeek 'WeeksInterval'
+            }                                  
+            if (Has-Property $taskTrigger.CalendarTrigger 'ScheduleByMonth') {
+                Fill-Property $triggerDef $taskTrigger.CalendarTrigger.ScheduleByMonth 'DaysOfMonth'
+                Fill-Property $triggerDef $taskTrigger.CalendarTrigger.ScheduleByMonth 'Months'
+            }                                  
+            if (Has-Property $taskTrigger.CalendarTrigger 'ScheduleByMonthDayOfWeek') {
+                Fill-Property $triggerDef $taskTrigger.CalendarTrigger.ScheduleByMonthDayOfWeek 'Weeks'
+                Fill-Property $triggerDef $taskTrigger.CalendarTrigger.ScheduleByMonthDayOfWeek 'DaysOfWeek'
+                Fill-Property $triggerDef $taskTrigger.CalendarTrigger.ScheduleByMonthDayOfWeek 'Months'
+            }                                  
         }
-        $triggerDefs+= $triggerDef
+        elseif ($triggerType -eq 'RegistrationTrigger') {
+            Fill-Property $triggerDef $taskTrigger.RegistrationTrigger 'Delay'
+        }
+        elseif ($triggerType -eq 'EventTrigger') {
+            Fill-Property $triggerDef $taskTrigger.EventTrigger 'Subscription'
+            Fill-Property $triggerDef $taskTrigger.EventTrigger 'Delay'
+            Fill-Property $triggerDef $taskTrigger.EventTrigger 'NumberOfOccurrences'
+            Fill-Property $triggerDef $taskTrigger.EventTrigger 'MatchingElement'
+            Fill-Property $triggerDef $taskTrigger.EventTrigger 'ValueQueries'
+        }
+        elseif ($triggerType -eq 'LogonTrigger') {
+            Fill-Property $triggerDef $taskTrigger.LogonTrigger 'UserId'
+            Fill-Property $triggerDef $taskTrigger.LogonTrigger 'Delay'
+            
+        }
+        elseif ($triggerType -eq 'BootTrigger') {
+            Fill-Property $triggerDef $taskTrigger.BootTrigger 'RandomDelay'
+        }
+        elseif ($triggerType -eq 'SessionStateChangeTrigger') {
+            Fill-Property $triggerDef $taskTrigger.SessionStateChangeTrigger 'UserId'
+            Fill-Property $triggerDef $taskTrigger.SessionStateChangeTrigger 'Delay'
+            Fill-Property $triggerDef $taskTrigger.SessionStateChangeTrigger 'StateChange'
+        }
+        elseif ($triggerType -eq 'TimeTrigger') {
+            Fill-Property $triggerDef $taskTrigger.TimeTrigger 'RandomDelay'
+        }
     }
+
+    $scheduled_task_trigger_definitions+= $triggerDef
 }
+    
+$scheduled_task_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-definitions.xml'
+$scheduled_task_action_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-actions-definitions.xml'
+$scheduled_task_trigger_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-triggers-definitions.xml'
 
 
 . .\simplified\_dot_include_standard_footer.ps1
