@@ -441,9 +441,11 @@ Far from perfect. Only solution I can find is to do my own pg_types query and ge
 #>
 function Get-SqlFieldValue {
     param (
-        [Parameter(Position=0,Mandatory=$true)][System.Data.Common.DbDataReader] $reader, # Child types are DataTableReader, Odbc.OdbcDataReader, OleDb.OleDbDataReader, SqlClient.SqlDataReader
+        [Parameter(Position=0,Mandatory=$true)][Object] $readerOb, # Child types are DataTableReader, Odbc.OdbcDataReader, OleDb.OleDbDataReader, SqlClient.SqlDataReader
         [Parameter(Position=1,Mandatory=$true)][Object] $ordinalNoOrColumnName
     )
+                                                                 
+    $reader = $readerOb.Value # readers have to be wrapped or they go blank.
 
     [Int32]$ordinal = $null
     [object]$columnValue = $null
@@ -991,7 +993,7 @@ function main_for_dot_include_standard_header() {
     ";                    
     # The above, if any invalid syntax, will break when ConnectionString is set, not on Open, with:Exception setting "ConnectionString": "Format of the initialization string does not conform to specification starting at index 194."
     $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
-    $DatabaseConnection.ConnectionString = $DatabaseConnectionString               
+    $Script:DatabaseConnection.ConnectionString = $DatabaseConnectionString               
     
     # Rather than cloning this code everywhere, do it once.  The dot includer may not be using a database, but for now, (me) I'm only ever connecting to one database locally.
     # Granted, it assumes the dot includer wants any data connection
@@ -1008,6 +1010,9 @@ function main_for_dot_include_standard_header() {
 
     if ($DatabaseConnectionIsOpen) {                                                                   
         $Script:DatabaseCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        $Script:DBReaderCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        $Script:DBReaderCommand.CommandText = 'Select 1'
+        $Script:reader = [Data.Common.DbDataReader]$Script:DBReaderCommand.ExecuteReader()
         # PostgreSql specific settings, also specific to filmcab, and the simplified effort.
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
         Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
