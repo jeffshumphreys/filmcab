@@ -17,6 +17,10 @@
  #
  #   ###### Sat Jan 20 18:59:12 MST 2024
  #   We are no longer using transactions. They lock and block everything if debugging is going on.
+ #
+ #   ###### Fri Jan 26 15:37:19 MST 2024
+ #   Uh, looks like the excel.dll now has an immovable popup when called from Task Scheduler, though it will run manually.
+ #   Turns out Import-Module ImportExcel works easier. and is UTF8 (OpenXML). https://github.com/dfinke/ImportExcel
 #>
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
@@ -28,6 +32,12 @@ param()
 $inpath = "D:\OneDrive\Documents\user_excel_interface.xlsm"
 $outpath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.UTF8.csv"
 $targettable = 'user_excel_interface'
+
+$NewExcelCSVFileGenerated = $false
+$spreadsheet = Import-Excel $inpath
+
+$spreadsheet | Export-Csv $outpath
+$NewExcelCSVFileGenerated = $true 
 
 $columns_csv = "
     seen, 
@@ -63,41 +73,6 @@ foreach($columnname in $columns) {if ($columnname.Length -gt $widestcolumnname) 
 
 # TODO: load last timestamp from target table and compare to current excel file timestamp. Only reload if changed.
 
-$NewExcelCSVFileGenerated = $false
-
-if (1 -eq 1) {
-    # Install-module PSExcel
-    <#
-                Fastest way to convert an Excel (xlsx) document to a utf8 csv that I know.
-                I get stuck on doing it in Qt and C++, but this is fast.
-                Warning: this is dependent on Windows Excel being installed. So not cross-compatible.
-    #>
-    Import-Module PSExcel
-    $AssemblyFile = (Get-ChildItem $env:windir\assembly -Recurse Microsoft.Office.Interop.Excel.dll | Select-Object -first 1).FullName
-    Add-Type -Path $AssemblyFile
-    $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8 = 62
-    $Excel= New-Object -ComObject Excel.Application
-    $Excel.Visible  = $false
-    $Excel.DisplayAlerts = $false
-    
-    # Following returns "Excel cannot open the file 'user_excel_interface.xlsm' because the file format or file extension is not valid. Verify that the file has not been corrupted and that the file extension matches the format of the file." if file is open.
-    
-    try {
-        $wb = $Excel.Workbooks.Open($inpath)
-        $ws = $wb.Worksheets[1]
-        $ws.SaveAs($outpath, $MicrosoftOfficeInteropExcelXlFileFormatxlCSVUTF8)
-        $wb.Close($true)
-        $NewExcelCSVFileGenerated = $true
-    }
-    catch {
-        #  Microsoft Excel cannot access the file 'https://d.docs.live.net/89bc08e19187b035/Documents/user_excel_interface.xlsm'. There are several possible reasons:
-        Show-Error
-    }
-    finally {
-        $Excel.Quit()
-    }
-}
-
 <#
     Issues:
     - Locked files
@@ -125,7 +100,7 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
             foreach($columnname in $columns)
             {
                 # Postgresql automatically converts the string 'null' to a NULL value.
-                $sql+= " "*8 + "COALESCE(" + $columnname.PadRight($widestcolumnname) + " , 'null')" + ($columnname -eq $columns[-1] ? "" : "||") + [System.Environment]::NewLine;
+                $sql+= " "*8 + "COALESCE(" + $columnname.PadRight($widestcolumnname) + " , 'NULL')" + ($columnname -eq $columns[-1] ? "" : "||") + [System.Environment]::NewLine;
             }
 
             $sql+= " "*8 + ") ::bytea), 'hex')) STORED" + [System.Environment]::NewLine;
@@ -174,16 +149,7 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is null and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitlesMisformedYears = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have malformed years: $howManyTitlesMisformedYears"
     $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where trim(manually_corrected_title) <> manually_corrected_title"; $howManyTitlesAreUntrim = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles trailing or leading spaces: $howManyTitlesAreUntrim";
     $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is not null and (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] not between 1900 and 2026 and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitleYearsOutOfReasonableAge = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have unreal years: $howManyTitleYearsOutOfReasonableAge"
-
-    # List out some that I haven't seen, don't have, haven't reviewed yet. Ignore any we might have watched, should want to see (heehee), will never see based on it's topic, that are not available yet, or are just getting for completeness, and aren't downloading right now.
-    # These are ones that make me go hmmmmm. Need reviewing, classifying, downloading.
-        
-    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where right(manually_corrected_title, 1) <> ')' and type_of_media <> 'Movie about…'"; $howManyBadParens = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles not end in right parens: $howManyBadParens"
-    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where manually_corrected_title like '%  %'"; $howManyMultiSpacedTitles = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have multiple spaces: $howManyMultiSpacedTitles"
-    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is null and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitlesMisformedYears = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have malformed years: $howManyTitlesMisformedYears"
-    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where trim(manually_corrected_title) <> manually_corrected_title"; $howManyTitlesAreUntrim = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles trailing or leading spaces: $howManyTitlesAreUntrim";
-    # $DatabaseCommand.CommandText = "SELECT * FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is not null and (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] not between 1900 and 2026 and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitleYearsOutOfReasonableAge = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have unreal years: $howManyTitleYearsOutOfReasonableAge"
-
+    
     $DatabaseConnection.Close();
     $DatabaseConnection.Dispose();
 }
