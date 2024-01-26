@@ -140,11 +140,12 @@ foreach ($SearchPath in $searchPaths) {
     while($FIFOstack.Count -gt 0 -and ($item = $FIFOstack.Dequeue())) {
         if ($item.PSIsContainer) {
             $directory_path        = $item.FullName
-            $currentdriveletter    = [string]$item.FullName[0]
+            $currentdirectorydate  = TrimToMicroseconds($item.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since it's 7.
             $currentsymboliclink   = [bool]$null
             $currentjunctionlink   = [bool]$null
             $currentlinktarget     = NullIf($item.LinkTarget)   # Probably should verify, eventually
-            $currentdirectorydate  = TrimToMicroseconds($item.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since it's 7.
+            $currentdirstillexists= $true # Cuz it's there?
+            $currentdriveletter    = [string]$item.FullName[0]
             $isarealdirectory      = [bool]$null          # as in not a hard link or junction or symbolic link
 
             if ($item.LinkType -eq 'Junction') {
@@ -160,7 +161,7 @@ foreach ($SearchPath in $searchPaths) {
                 $isarealdirectory     = $false
             }                                    
             elseif (-not [String]::IsNullOrWhiteSpace($item.LinkType)) {
-                throw [Exception]"New link type for $directory_path, type is $($item.LinkType)"
+                throw [Exception]"New unrecognized link type for $directory_path, type is $($item.LinkType)"
             }
             # Note: HardLinks are for files only.
             else {       
@@ -173,87 +174,87 @@ foreach ($SearchPath in $searchPaths) {
             $directory_path_escaped = $directory_path.Replace("'", "''")
             $sql = "
                 SELECT 
-                     directory_hash /* PK */
-                   , directory_date
-                   , is_symbolic_link
-                   , is_junction_link
-                   , linked_path
-                   , directory_still_exists
-                   , directory_path
+                     directory_date                      /* Feeble attempt to detect downstream changes */
+                   , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
+                   , is_junction_link                    /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                   , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
+                   , directory_still_exists              /* This is mostly for downstream tasks                                                                               */
                 FROM 
                     directories
                 WHERE
                     directory_path = '$directory_path_escaped'
                 AND 
-                    volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')";
-            $reader = (Select-Sql $sql).Value # Cannot return reader value directly from a function
+                    volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')
+                AND
+                    (deleted IS NULL OR deleted = False) /* Exclude entries marked as deleted. Obviously they exist since I found them with Get-Item, so 
+            ";
+            $readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
+            $reader = $readerHandle.Value # Now we can unbox!  Ta da!
 
-            $foundANewDirectory                     =  [boolean]$null
-            $updatedirectoryrecord          =     [bool]$null
+            $foundANewDirectory             =  [boolean]$null
+            $UpdateDirectoryRecord          =     [bool]$null
+            $flagScanDirectory          =     [bool]$false
              
-            $olddirstillexists          =  [boolean]$null # Won't know till we query.
+            $olddirectorydate               = [datetime]0     # No $nulls for datetime type.
             $oldsymboliclink            =  [boolean]$null
             $oldjunctionlink            =  [boolean]$null
             $oldlinktarget              =   [string]$null
+            $olddirstillexists          =  [boolean]$null # Won't know till we query.
             $olddriveletter             =   [string]$null
-            $olddirectorydate               = [datetime]0     # No $nulls for datetime type.
             # For additional functionality later $olddirhash   [byte[]]$null
 
-            $newsymboliclink                = [bool]    $null
-            $newjunctionlink            = [bool]    $null
-            $newlinktarget              = [string]  $null
-            $newdirectorydate = [datetime]0
-            $flagscandirectory          = [bool]    $false
+            $newdirectorydate = [datetime]0                       
+            $newsymboliclink                =     [bool]$null
+            $newjunctionlink            =     [bool]$null
+            $newlinktarget              =   [string]$null
+            $newdirstillexists=     [bool]$null
+            $newdriveletter               =   [string]$null
 
             if ($reader.HasRows) {
-                $foundANewDirectory                     = $false
-                $updatedirectoryrecord      = $false
+                $foundANewDirectory         = $false
+                $UpdateDirectoryRecord      = $false
                                    
-                try {
-                $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists
-                } catch {                                                                     
-                    $olddirstillexists          = Get-SqlFieldValue $reader directory_still_exists
-                    Write-Host $_.Exception
-                }
-                #For additional functionality later, $olddirhash $olddirhash = Get-SqlFieldValue $reader directory_hash
-                $oldsymboliclink            = Get-SqlFieldValue $reader is_symbolic_link
-                $oldjunctionlink            = Get-SqlFieldValue $reader is_junction_link
-                $oldlinktarget              = Get-SqlFieldValue $reader linked_path
-                $oldlinktarget = NullIf $oldlinktarget
-                $olddriveletter= $directory_path.SubString(0,1)
-                $olddirectorydate           = TrimToMicroseconds(Get-SqlFieldValue $reader directory_date) # Just to document what's happening. PostgreSQL 15 only stores up to 6 decimal places.
+                $olddirectorydate           = TrimToMicroseconds(Get-SqlFieldValue $readerHandle directory_date) # Just to document what's happening. PostgreSQL 15 only stores up to 6 decimal places. .NET File stamps are to 7 places. Which breaks compare. Tested it.  Cases of .0000004 exist.
+                $oldsymboliclink            = Get-SqlFieldValue $readerHandle is_symbolic_link
+                $oldjunctionlink            = Get-SqlFieldValue $readerHandle is_junction_link
+                $oldlinktarget              = NullIf (Get-SqlFieldValue $readerHandle linked_path)
+                $olddirstillexists          = Get-SqlFieldValue $readerHandle directory_still_exists
+                $olddriveletter= Left $directory_path 1
 
+                $newdirectorydate           = $currentdirectorydate
                 $newsymboliclink            = $currentsymboliclink
                 $newjunctionlink            = $currentjunctionlink
                 $newlinktarget              = NullIf $currentlinktarget
-                $newdirectorydate           = $currentdirectorydate
-                
+                $newdirstillexists= $currentdirstillexists # Always true, duh
+                $newdriveletter     = $currentdriveletter # Could change?? Probably impossible.
+
                 if ($olddirstillexists    -ne $true                    -or # We know the directory exists
+                    $olddirectorydate     -ne $currentdirectorydate    -or
                     $oldsymboliclink      -ne $currentsymboliclink     -or
                     $oldjunctionlink      -ne $currentjunctionlink     -or
                     $oldlinktarget        -ne $currentlinktarget       -or
-                    $olddriveletter       -ne $currentdriveletter      -or
-                    $olddirectorydate     -ne $currentdirectorydate
+                    $olddirstillexists    -ne $currentdirstillexists   -or
+                    $olddriveletter       -ne $currentdriveletter      
                 ) { 
-                    $updatedirectoryrecord = $true
+                    $UpdateDirectoryRecord = $true
                 }
 
-                # WARNING: postgres can only store to 3 places of milliseconds. File info is stored to 7 places. So they'll never match.
+                # WARNING: postgres can only store to 6 places of milliseconds. File info is stored to 7 places. So they'll never match without trimming file date to 6. Is the 6 place a rounding, though? TEST
 
                 if ($olddirectorydate     -ne $newdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
-                    $flagscandirectory     = $true 
+                    $flagScanDirectory     = $true 
                 }
             } else {
                 $foundANewDirectory        = $true
-                $flagscandirectory = $true 
+                $flagScanDirectory = $true 
             }
             $reader.Close()
             
             if ($newjunctionlink -or $currentjunctionlink) { # Possible bug: junction converted to physical SearchPath: Not scanned.
-                $flagscandirectory = $false # Please do not traverse links. Even if the directory date changed.
+                $flagScanDirectory = $false # Please do not traverse links. Even if the directory date changed.
             }
     
-            if ($flagscandirectory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
+            if ($flagScanDirectory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
             if ($newsymboliclink -and -not $oldsymboliclink) {
                 $howManyNewSymbolicLinks++
             }
@@ -279,7 +280,9 @@ foreach ($SearchPath in $searchPaths) {
                                scan_directory, 
                                is_symbolic_link, 
                                is_junction_link, 
-                               linked_path
+                               linked_path,
+                               deleted,
+                               deleted_on
                         )
                     VALUES(
                         /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
@@ -288,10 +291,12 @@ foreach ($SearchPath in $searchPaths) {
                         /*     directory_date         */ '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
                         /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
                         /*     directory_still_exists */  True,
-                        /*     scan_directory         */ $flagscandirectory,
+                        /*     scan_directory         */ $flagScanDirectory,
                         /*     is_symbolic_link       */ $currentsymboliclink,
                         /*     is_junction_link       */ $currentjunctionlink,
-                        /*     linked_path            */ $preppednewlinktarget
+                        /*     linked_path            */ $preppednewlinktarget,
+                        /*     deleted                */  False,
+                        /*     deleted_on             */  NULL
                     )
                 "
 
@@ -299,24 +304,26 @@ foreach ($SearchPath in $searchPaths) {
                 Write-Host '⭐' -NoNewline
                 $hoWManyRowsInserted+= $rowsInserted
 
-            } elseif ($updatedirectoryrecord) {
+            } elseif ($UpdateDirectoryRecord) {
                 $howManyUpdatedDirectories++
                 $sql = "
                     UPDATE 
                         directories
                     SET
-                        scan_directory         = $flagscandirectory,
+                        scan_directory         = $flagScanDirectory,
                         directory_date         ='$formattedcurrentdirectorydate'::TIMESTAMPTZ,
                         is_symbolic_link       = $newsymboliclink,
                         is_junction_link       = $newjunctionlink,
                         linked_path  = $preppednewlinktarget,
                         directory_still_exists = True
+                        deleted                =  False,
+                        deleted_on             =  NULL
                     WHERE 
                         directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
 
                 $rowsUpdated = Invoke-Sql $sql
                 Write-Host '📝' -NoNewline
-                if ($flagscandirectory) { write-host '👓' -NoNewLine}
+                if ($flagScanDirectory) { write-host '👓' -NoNewLine}
                 $hoWManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
