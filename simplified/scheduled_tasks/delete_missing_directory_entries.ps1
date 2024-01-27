@@ -34,7 +34,7 @@ if ($DatabaseConnectionIsOpen) {
         $escapedDirectoryPath = $directoryPath.Replace("'", "''")
         $alreadyMarkedAsDeleted = $reader.GetBoolean(1)
 
-        if ([System.IO.File]::Exists($directoryPath)) {
+        if (Test-Path $directoryPath) {
             Write-Host -NoNewline '=.' # Found          
             $HowManyDirectoryEntriesMapToExistingDirectories++ 
             if ($alreadyMarkedAsDeleted) {                 
