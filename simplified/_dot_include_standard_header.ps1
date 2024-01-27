@@ -59,7 +59,6 @@
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')] # We don't need no stinkin' badges
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')] # Why?
-
 param()
 
 # Following code seems to close the popup console window almost immediately if you're calling from Windows Task Scheduler. At least very fast.  I like things that run in the background to run in the background.
@@ -77,6 +76,7 @@ param()
 
     Set-StrictMode -Version Latest
 
+    $amRunningAsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     # Always time everything.  Eventually you will always want to know how long the damn script ran.
 
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -150,8 +150,10 @@ Function Enable-PSScriptBlockLogging
         $null = New-Item $basePath -Force     
         New-ItemProperty $basePath -Name "EnableScriptBlockLogging" -PropertyType Dword 
     } 
-
-    Set-ItemProperty $basePath -Name "EnableScriptBlockLogging" -Value "1"
+    
+    if ($amRunningAsAdmin) {
+        Set-ItemProperty $basePath -Name "EnableScriptBlockLogging" -Value "1"
+    }
 }
 
 <#
