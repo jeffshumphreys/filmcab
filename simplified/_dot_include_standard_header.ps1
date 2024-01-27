@@ -231,7 +231,19 @@ function Show-Error {
         exit($exitcode); # These don't seem to get back to the Task Scheduler 
     }
 }
-                                                                                        
+
+Function PrepForSql {
+    param (
+        $val,
+        [Switch]$KeepEmpties
+    )
+    if ($null -eq$val) { return 'NULL'}      
+                 
+    if ($val.Trim() -eq '' -and -not $KeepEmpties) { return 'NULL'}
+    return "'" + $val.Replace("'", "''") + "'"
+}
+
+
 <#
 .SYNOPSIS
 Execute SQL commands.
@@ -265,17 +277,6 @@ function Invoke-Sql {
     } catch {   
         Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
     }
-}
-
-Function PrepForSql {
-    param (
-        $val,
-        [Switch]$KeepEmpties
-    )
-    if ($null -eq$val) { return 'NULL'}      
-                 
-    if ($val.Trim() -eq '' -and -not $KeepEmpties) { return 'NULL'}
-    return "'" + $val.Replace("'", "''") + "'"
 }
 
 <#
@@ -372,7 +373,33 @@ Function Out-SqlToList {
         Show-Error $sql -exitcode 3
     }   
 }
-                                                 
+                               
+#Insert-One
+#Delete-One
+#Update-One
+#Get-One
+
+Function Test-Sql {
+    [CmdletBinding()]
+    param(           
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
+        [Switch]$DontOutputToConsole,
+        [Switch]$DontWriteSqlToConsole
+    )
+    try {
+        $DatabaseCommand = $DatabaseConnection.CreateCommand()
+        $DatabaseCommand.CommandText = $sql
+        $reader = $DatabaseCommand.ExecuteReader()
+        if (-not $reader.HasRows) { return $false}
+        # Error if more than one row returned??
+        $reader.Read()|Out-Null
+        $val = $reader.GetBoolean(0)
+        return $val
+    } catch {
+        Show-Error $sql -exitcode 6
+    }   
+}
+
 <#
 .SYNOPSIS
 Returns a dataset that I can . reference properties from.
