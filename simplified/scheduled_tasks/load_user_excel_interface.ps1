@@ -1,7 +1,8 @@
 <#
  #   FilmCab Daily morning batch run process: Pull in an excel file we know to have our movie list in it.
  #   Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
- #   Status: Haven't scheduled, need to test a little more
+ #   Status: Scheduled with bugs
+ #   Admin mode: Not required
  #   ###### Wed Jan 24 16:21:20 MST 2024
  #   https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #
@@ -21,6 +22,12 @@
  #   ###### Fri Jan 26 15:37:19 MST 2024
  #   Uh, looks like the excel.dll now has an immovable popup when called from Task Scheduler, though it will run manually.
  #   Turns out Import-Module ImportExcel works easier. and is UTF8 (OpenXML). https://github.com/dfinke/ImportExcel
+ #
+ #   ###### Sat Jan 27 13:55:17 MST 2024
+ #   Not sure what's causing the locking so,
+ #    - Get rid of the empty VB macro.
+ #    - Go back to saving locally.  I don't reference the thing from my phone anymore. I use Keep.   
+ #    - Use the "copy a locked file" trick
 #>
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
@@ -28,15 +35,21 @@
 param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
-
-$inpath = "D:\OneDrive\Documents\user_excel_interface.xlsm"
+                                                                             
+$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.xlsx"
+$copytopath                                                                        = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.readablecopy.xlsx" # TODO: convert to temp
+$inpath = $copytopath
 $outpath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.UTF8.csv"
 $targettable = 'user_excel_interface'
+                                                                                                                                                           
+Remove-Item -Path $copytopath -Force -ErrorAction Ignore
+Copy-Item -Path $copyfrompath -Destination $copytopath -Force
 
 $NewExcelCSVFileGenerated = $false
 $spreadsheet = Import-Excel $inpath
 
 $spreadsheet | Export-Csv $outpath
+
 $NewExcelCSVFileGenerated = $true 
 
 $columns_csv = "
