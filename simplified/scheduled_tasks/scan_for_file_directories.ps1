@@ -186,8 +186,6 @@ foreach ($SearchPath in $searchPaths) {
                     directory_path = '$directory_path_escaped'
                 AND 
                     volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')
-                AND
-                    (deleted IS NULL OR deleted = False) /* Exclude entries marked as deleted. Obviously they exist since I found them with Get-Item, so */
             ";
             $readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
             $reader = $readerHandle.Value # Now we can unbox!  Ta da!
@@ -282,8 +280,7 @@ foreach ($SearchPath in $searchPaths) {
                                is_symbolic_link, 
                                is_junction_link, 
                                linked_path,
-                               deleted,
-                               deleted_on
+                               deleted
                         )
                     VALUES(
                         /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
@@ -296,8 +293,7 @@ foreach ($SearchPath in $searchPaths) {
                         /*     is_symbolic_link       */ $currentsymboliclink,
                         /*     is_junction_link       */ $currentjunctionlink,
                         /*     linked_path            */ $preppednewlinktarget,
-                        /*     deleted                */  False,
-                        /*     deleted_on             */  NULL
+                        /*     deleted                */  False
                     )
                 "
 
@@ -318,8 +314,7 @@ foreach ($SearchPath in $searchPaths) {
                         linked_path  = $preppednewlinktarget,
                         directory_still_exists = $newdirstillexists,
                         volume_id              = (SELECT volume_id FROM volumes WHERE drive_letter = '$newdriveletter'),
-                        deleted                =  False,
-                        deleted_on             =  NULL
+                        deleted                =  False
                     WHERE 
                         directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
 
