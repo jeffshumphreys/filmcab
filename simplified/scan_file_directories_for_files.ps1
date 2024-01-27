@@ -51,48 +51,49 @@ $reader = $readerHandle.Value # Now we can unbox!  Ta da!
 
 # Search down each search path for directories that are different or missing from our data store.
 
-Do {
+do {
     $directory_path = $reader.GetString(0)
 
     if ((Test-Path $directory_path)) {
         Get-ChildItem $directory_path -Force| ForEach-Object { 
             if (!$_.PSIsContainer) {      
-                $file_date = $_.LastWriteTime
-                $file_date_formatted = $file_date.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-                $file_size = $_.Length
+                $on_fs_file_date = TrimToMicroseconds $_.LastWriteTime
+                $file_date_formatted = $on_fs_file_date.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
+                $on_fs_file_size = $_.Length
                 $file_path = $_.FullName
                 $file_name_no_ext = $_.BaseName
                 $file_name_no_ext_escaped = $file_name_no_ext.Replace("'", "''")
                 $final_extension  = $_.Extension.Substring(1)
                 $final_extension_escaped  = $final_extension.Replace("'", "''")                                      
                 # TODO: [bool]($file.Attributes -band [IO.FileAttributes]::ReparsePoint) https://stackoverflow.com/questions/817794/find-out-whether-a-file-is-a-symbolic-link-in-powershell
-                $file_link_type = $_.LinkType
-                $file_link_target = NullIf $_.LinkTarget                    # Warning: multiple targets?? Split on `n
-                $file_link_target_escaped = PrepForSql $file_link_target
+                $on_fs_file_link_type = $_.LinkType
+                $on_fs_file_link_target = NullIf $_.LinkTarget                    # Warning: multiple targets?? Split on `n
+                $file_link_target_escaped = PrepForSql $on_fs_file_link_target
                 $directory_path   = $_.Directory.FullName                        
                 $directory_path_escaped = $directory_path.Replace("'", "''")
                 
-                $is_symbolic_link = $false
-                $is_hard_link = $false
+                $on_fs_is_symbolic_link = $false
+                $on_fs_is_hard_link = $false
                 
-                if ($file_link_type -eq 'SymbolicLink') {
-                    $is_symbolic_link = $true
+                if ($on_fs_file_link_type -eq 'SymbolicLink') {
+                    $on_fs_is_symbolic_link = $true
                 }
-                elseif ($file_link_type -eq 'HardLink') {
-                    $is_hard_link  = $true
+                elseif ($on_fs_file_link_type -eq 'HardLink') {
+                    $on_fs_is_hard_link  = $true
                 }                                    
-                elseif (-not [String]::IsNullOrWhiteSpace($file_link_type)) {
-                    throw [Exception]"New unrecognized link type for $file_path, type is $($file_link_type)"
+                elseif (-not [String]::IsNullOrWhiteSpace($on_fs_file_link_type)) {
+                    throw [Exception]"New unrecognized link type for $file_path, type is $($on_fs_file_link_type)"
                 }
     
                 $sql = "
-                SELECT 
-                     file_date                           /* If changed, we need a new hash */
+                SELECT                                                                       
+                     file_hash
+                   , directory_hash
+                   , file_date                           /* If changed, we need a new hash        */
                    , file_size                           /* Also if changed, in case date isn't enough */
                    , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
                    , is_hard_link                        /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                    , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
-                   , file_still_exists                   /* This is mostly for downstream tasks                                                                               */
                 FROM 
                     files
                 WHERE
@@ -103,28 +104,53 @@ Do {
                     final_extension = '$final_extension_escaped'
                 ";
 
-                if (Test-Sql $sql) {                    #TODO: Write the god damn Test-Sql function!
+                if (Test-Sql $sql) {                    
                     # date changed?
                     # Test small amount for hash?   
                     # link type change? no longer a link?
                     # target changed?
                     # length changed?
                     # Do we need a new file hash? date, length changed?
+                    $row = Out-SqlToDataset $sql -DontOutputToConsole -DontWriteSqlToConsole
+                    $in_db_file_hash = @($row.file_hash|Format-Hex|Select ascii).Ascii -Join ''
+                    $in_db_directory_hash = @($row.directory_hash|Format-Hex|Select ascii).Ascii -Join ''
+                    $in_db_file_date = $row.file_date
+                    $in_db_file_size = $row.file_size
+
+                    $new_file_hash = $null
+                    
+                    if ($in_db_file_date -ne $on_fs_file_date -or $in_db_file_size -ne $on_fs_file_size) {
+                        Write-Host '!!' -NoNewLine
+                        $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
+                        $new_file_hash = @($on_fs_file_hash|Format-Hex|Select ascii).Ascii -Join ''
+                    } else {
+                        $new_file_hash = $in_db_file_hash
+                    }                                                                               
 
                     $sql = "
                         UPDATE
                             files
                         SET
-                            ?????
+                            file_hash = '$new_file_hash'::bytea,
+                            file_date = '$file_date_formatted'::TIMESTAMPTZ,
+                            file_size = $on_fs_file_size,
+                            is_symbolic_link  = $on_fs_is_symbolic_link,
+                            is_hard_link= $on_fs_is_hard_link,
                             deleted = FALSE    
-                            file_still_exists = TRUE
                         WHERE
-                            file_hash = ....
+                            file_hash = '$in_db_file_hash'::bytea
                         AND
-                            ??? directory_hash?
-                    " #TODO:
+                            directory_hash = '$in_db_directory_hash'::bytea
+                    "
+                    $howManyRowsUpdated = Invoke-Sql $sql
+                    if ($howManyRowsUpdated -ne 1) {
+                        throw [Exception]"Update failed to update anything or too many"
+                    }                                                                  
+
+                    Write-Host '>' -NoNewline 
+                    $howManyUpdatedFiles++
                 } else {
-                    $file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
+                    $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
 
                     $sql = "
                         INSERT INTO files(
@@ -137,21 +163,19 @@ Do {
                             is_symbolic_link,
                             is_hard_link,
                             linked_path,
-                            deleted,
-                            file_still_exists
+                            deleted
                         )              
                         VALUES (
-                            /*     file_hash              */'$file_hash'::bytea,
+                            /*     file_hash              */'$on_fs_file_hash'::bytea,
                             /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
                             /*     file_name_no_ext       */'$file_name_no_ext_escaped',
                             /*     final_extension        */'$final_extension_escaped',   
-                            /*     file_size              */ $file_size,
+                            /*     file_size              */ $on_fs_file_size,
                             /*     file_date              */ '$file_date_formatted'::TIMESTAMPTZ,
-                            /*     is_symbolic_link       */ $is_symbolic_link,
-                            /*     is_hard_link           */ $is_hard_link,
+                            /*     is_symbolic_link       */ $on_fs_is_symbolic_link,
+                            /*     is_hard_link           */ $on_fs_is_hard_link,
                             /*     linked_path            */ $file_link_target_escaped,
-                            /*     deleted                */  False,
-                            /*     file_still_exists      */  True
+                            /*     deleted                */  False
                         )
                     "
                     Invoke-Sql $sql|Out-Null   
