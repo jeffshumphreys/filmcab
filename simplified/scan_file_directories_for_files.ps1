@@ -6,6 +6,7 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #
  # TODO: Pull both in as arrays and full outer join; update/insert/delete
+ # Question: Should I be filtering these by the filters in search_paths?  Especially since Downloads is fraught with junk.
  #>
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
@@ -62,13 +63,13 @@ Do {
                 $file_path = $_.FullName
                 $file_name_no_ext = $_.BaseName
                 $file_name_no_ext_escaped = $file_name_no_ext.Replace("'", "''")
-                $final_extension  = $_.Extension
+                $final_extension  = $_.Extension.Substring(1)
                 $final_extension_escaped  = $final_extension.Replace("'", "''")                                      
                 # TODO: [bool]($file.Attributes -band [IO.FileAttributes]::ReparsePoint) https://stackoverflow.com/questions/817794/find-out-whether-a-file-is-a-symbolic-link-in-powershell
                 $file_link_type = $_.LinkType
                 $file_link_target = NullIf $_.LinkTarget                    # Warning: multiple targets?? Split on `n
                 $file_link_target_escaped = PrepForSql $file_link_target
-                $directory_path   = $_.Directory                        
+                $directory_path   = $_.Directory.FullName                        
                 $directory_path_escaped = $directory_path.Replace("'", "''")
                 
                 $is_symbolic_link = $false
@@ -77,10 +78,10 @@ Do {
                 if ($file_link_type -eq 'SymbolicLink') {
                     $is_symbolic_link = $true
                 }
-                elseif ($item.LinkType -eq 'HardLink') {
+                elseif ($file_link_type -eq 'HardLink') {
                     $is_hard_link  = $true
                 }                                    
-                elseif (-not [String]::IsNullOrWhiteSpace($item.LinkType)) {
+                elseif (-not [String]::IsNullOrWhiteSpace($file_link_type)) {
                     throw [Exception]"New unrecognized link type for $file_path, type is $($file_link_type)"
                 }
     
@@ -88,9 +89,9 @@ Do {
                 SELECT 
                      file_date                           /* If changed, we need a new hash */
                    , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
-                   , is_junction_link                    /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                   , is_hard_link                        /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                    , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
-                   , directory_still_exists              /* This is mostly for downstream tasks                                                                               */
+                   , file_still_exists                   /* This is mostly for downstream tasks                                                                               */
                 FROM 
                     files
                 WHERE
@@ -101,11 +102,28 @@ Do {
                     final_extension = '$final_extension_escaped'
                 ";
 
-                if (Test-Sql $sql) {                    
+                if (Test-Sql $sql) {                    #TODO: Write the god damn Test-Sql function!
+                    # date changed?
+                    # Test small amount for hash?   
+                    # link type change? no longer a link?
+                    # target changed?
+                    # length changed?
                     # Do we need a new file hash? date, length changed?
-                    $sql = 'UPDATE'
+
+                    $sql = "
+                        UPDATE
+                            files
+                        SET
+                            ?????
+                            deleted = FALSE    
+                            file_still_exists = TRUE
+                        WHERE
+                            file_hash = ....
+                        AND
+                            ??? directory_hash?
+                    " #TODO:
                 } else {
-                    $file_hash = Get-FileHash $file_path -Algorithm MD5
+                    $file_hash = (Get-FileHash $file_path -Algorithm MD5).Hash
 
                     $sql = "
                         INSERT INTO files(
@@ -118,7 +136,8 @@ Do {
                             is_symbolic_link,
                             is_hard_link,
                             linked_path,
-                            deleted
+                            deleted,
+                            file_still_exists
                         )              
                         VALUES (
                             /*     file_hash              */'$file_hash'::bytea,
@@ -126,16 +145,21 @@ Do {
                             /*     file_name_no_ext       */'$file_name_no_ext_escaped',
                             /*     final_extension        */'$final_extension_escaped',   
                             /*     file_size              */ $file_size,
-                            /*     file_date              */ '$file_date_formatted'::TIMESTAMPTZ
+                            /*     file_date              */ '$file_date_formatted'::TIMESTAMPTZ,
                             /*     is_symbolic_link       */ $is_symbolic_link,
-                            /*     is_junction_link       */ $is_hard_link,
+                            /*     is_hard_link           */ $is_hard_link,
                             /*     linked_path            */ $file_link_target_escaped,
-                            /*     deleted                */  False
+                            /*     deleted                */  False,
+                            /*     file_still_exists      */  True
                         )
-                    "    
+                    "
+                    Invoke-Sql $sql|Out-Null   
+                    Write-Host '+' -NoNewline 
+                    $howManyNewFiles++
                 }
             }
-        }
+        } # Get-ChildItem
+        #TODO: Update as no-scan directory needed (last date scanned??)
     }
 } While ($reader.Read())
 
@@ -144,13 +168,13 @@ Do {
 # Display counts. If nothing is happening in certain areas, investigate.
 Write-Host # Get off the last nonewline
 Write-Host
-Write-Host "How many new files were found:                      $howManyNewFiles"           $(Format-Plural 'Directory' $howManyNewFiles) 
+Write-Host "How many new files were added:                      $howManyNewFiles"           $(Format-Plural 'Directory' $howManyNewFiles)  #TODO: Convert to the format that shows the number
 Write-Host "How many old files were updated:                    $howManyUpdatedFiles"       $(Format-Plural 'Directory' $howManyUpdatedFiles) 
-Write-Host "How many rows were updated:                               $howManyRowsUpdated"              $(Format-Plural 'Row'       $howManyRowsUpdated) 
-Write-Host "How many rows were inserted:                              $hoWManyRowsInserted"             $(Format-Plural 'Row'       $hoWManyRowsInserted) 
-Write-Host "How many rows were deleted:                               $hoWManyRowsDeleted"              $(Format-Plural 'Row'       $hoWManyRowsDeleted) 
-Write-Host "How many new junction linked directories were found:      $howManyNewHardLinks"         $(Format-Plural 'Link'      $howManyNewHardLinks) 
-Write-Host "How many new symbolically linked directories were found:  $howManyNewSymbolicLinks"         $(Format-Plural 'Link'      $howManyNewSymbolicLinks) 
+Write-Host "How many rows were updated:                         $howManyRowsUpdated"        $(Format-Plural 'Row'       $howManyRowsUpdated) 
+Write-Host "How many rows were inserted:                        $hoWManyRowsInserted"       $(Format-Plural 'Row'       $hoWManyRowsInserted) 
+Write-Host "How many rows were deleted:                         $hoWManyRowsDeleted"        $(Format-Plural 'Row'       $hoWManyRowsDeleted) 
+Write-Host "How many new hard linked files were found:          $howManyNewHardLinks"       $(Format-Plural 'Link'      $howManyNewHardLinks) 
+Write-Host "How many new symbolically linked files were found:  $howManyNewSymbolicLinks"   $(Format-Plural 'Link'      $howManyNewSymbolicLinks) 
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
