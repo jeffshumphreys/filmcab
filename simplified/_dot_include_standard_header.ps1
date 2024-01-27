@@ -392,9 +392,7 @@ Function Test-Sql {
         $reader = $DatabaseCommand.ExecuteReader()
         if (-not $reader.HasRows) { return $false}
         # Error if more than one row returned??
-        $reader.Read()|Out-Null
-        $val = $reader.GetBoolean(0)
-        return $val
+        return $true
     } catch {
         Show-Error $sql -exitcode 6
     }   
@@ -916,7 +914,7 @@ Function TrimToMillseconds([datetime]$date) # Format only for PowerShell! Not Po
 Function TrimToMicroseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
 {
     # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
-    [DateTime]::ParseExact($date.ToString("yyyy-MM-dd hh:mm:ss.ffffff"), "yyyy-MM-dd hh:mm:ss.ffffff", $null)
+    [DateTime]::ParseExact($date.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "yyyy-MM-dd HH:mm:ss.ffffff", $null)
 }                                
 
 <#
