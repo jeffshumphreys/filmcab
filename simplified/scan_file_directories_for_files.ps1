@@ -88,6 +88,7 @@ Do {
                 $sql = "
                 SELECT 
                      file_date                           /* If changed, we need a new hash */
+                   , file_size                           /* Also if changed, in case date isn't enough */
                    , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
                    , is_hard_link                        /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                    , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
@@ -123,7 +124,7 @@ Do {
                             ??? directory_hash?
                     " #TODO:
                 } else {
-                    $file_hash = (Get-FileHash $file_path -Algorithm MD5).Hash
+                    $file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
 
                     $sql = "
                         INSERT INTO files(
