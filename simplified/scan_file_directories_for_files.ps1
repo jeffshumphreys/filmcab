@@ -1,7 +1,7 @@
 <#
  #    FilmCab Daily morning batch run process: Scan our updated and clean list of directories for new files.
  #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
- #    Status: Beginning.
+ #    Status: Runs manually; prepping for lineup.
  #    ###### Tue Jan 23 18:23:11 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #
@@ -30,7 +30,7 @@ $hoWManyRowsUpdated = 0
 $hoWManyRowsInserted = 0
 $hoWManyRowsDeleted = 0
 
-$sql = "
+$loop_sql = "
 SELECT 
      directory_path                      /* What we are going to search for new files     */
    , directory_hash                      /* Links back to directories table               */
@@ -46,13 +46,14 @@ AND
     scan_directory IS TRUE
 ";
 
-$readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
+$readerHandle = (Select-Sql $loop_sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
 $reader = $readerHandle.Value # Now we can unbox!  Ta da!
 
 # Search down each search path for directories that are different or missing from our data store.
 
 do {
     $directory_path = $reader.GetString(0)
+    $directory_path_escaped = $directory_path.Replace("'", "''")
 
     if ((Test-Path $directory_path)) {
         Get-ChildItem $directory_path -Force| ForEach-Object { 
@@ -63,13 +64,19 @@ do {
                 $file_path = $_.FullName
                 $file_name_no_ext = $_.BaseName
                 $file_name_no_ext_escaped = $file_name_no_ext.Replace("'", "''")
-                $final_extension  = $_.Extension.Substring(1)
+                $final_extension = ''
+                try {
+                    $final_extension  = $_.Extension.Substring(1)
+                } catch { 
+                    # Example of EXTENSIONLESS file: G:\Video AllInOne Backup\_Comedy\MST3K\S13 - The Gizmoplex\original unprocessed audio\! original unprocessed audio tracks AAC-LC 253Kbps
+                    $final_extension = ''
+                }
                 $final_extension_escaped  = $final_extension.Replace("'", "''")                                      
                 # TODO: [bool]($file.Attributes -band [IO.FileAttributes]::ReparsePoint) https://stackoverflow.com/questions/817794/find-out-whether-a-file-is-a-symbolic-link-in-powershell
                 $on_fs_file_link_type = $_.LinkType
                 $on_fs_file_link_target = NullIf $_.LinkTarget                    # Warning: multiple targets?? Split on `n
                 $file_link_target_escaped = PrepForSql $on_fs_file_link_target
-                $directory_path   = $_.Directory.FullName                        
+                $directory_path   = $_.Directory.FullName                        # Same same?
                 $directory_path_escaped = $directory_path.Replace("'", "''")
                 
                 $on_fs_is_symbolic_link = $false
@@ -85,7 +92,7 @@ do {
                     throw [Exception]"New unrecognized link type for $file_path, type is $($on_fs_file_link_type)"
                 }
     
-                $sql = "
+                $test_sql = "
                 SELECT                                                                       
                      file_hash
                    , directory_hash
@@ -104,30 +111,35 @@ do {
                     final_extension = '$final_extension_escaped'
                 ";
 
-                if (Test-Sql $sql) {                    
+                if (Test-Sql $test_sql) {                    
                     # date changed?
                     # Test small amount for hash?   
                     # link type change? no longer a link?
                     # target changed?
                     # length changed?
                     # Do we need a new file hash? date, length changed?
-                    $row = Out-SqlToDataset $sql -DontOutputToConsole -DontWriteSqlToConsole
+                    $row = Out-SqlToDataset $test_sql -DontOutputToConsole -DontWriteSqlToConsole
                     $in_db_file_hash = @($row.file_hash|Format-Hex|Select ascii).Ascii -Join ''
                     $in_db_directory_hash = @($row.directory_hash|Format-Hex|Select ascii).Ascii -Join ''
                     $in_db_file_date = $row.file_date
                     $in_db_file_size = $row.file_size
-
+                    $on_fs_broken_link    = $false
                     $new_file_hash = $null
                     
                     if ($in_db_file_date -ne $on_fs_file_date -or $in_db_file_size -ne $on_fs_file_size) {
                         Write-Host '!!' -NoNewLine
-                        $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
+                        try {
+                            $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
+                        } catch [System.IO.IOException] {
+                            $on_fs_broken_link = $true
+                            $on_fs_file_hash = '0'
+                        }
                         $new_file_hash = @($on_fs_file_hash|Format-Hex|Select ascii).Ascii -Join ''
                     } else {
                         $new_file_hash = $in_db_file_hash
                     }                                                                               
 
-                    $sql = "
+                    $update_sql = "
                         UPDATE
                             files
                         SET
@@ -136,21 +148,33 @@ do {
                             file_size = $on_fs_file_size,
                             is_symbolic_link  = $on_fs_is_symbolic_link,
                             is_hard_link= $on_fs_is_hard_link,
-                            deleted = FALSE    
+                            deleted = False,
+                            broken_link     = $on_fs_broken_link
                         WHERE
-                            file_hash = '$in_db_file_hash'::bytea
+                            file_hash         = '$in_db_file_hash'::bytea
                         AND
-                            directory_hash = '$in_db_directory_hash'::bytea
+                            directory_hash    = '$in_db_directory_hash'::bytea
+                        AND
+                            file_name_no_ext  = '$file_name_no_ext_escaped' /* Found case where two files same directory had same hash different name */
+                        AND
+                            final_extension   = '$final_extension_escaped'  /* Many cases with video and subtitles, text, etc. Same name different extension */
                     "
-                    $howManyRowsUpdated = Invoke-Sql $sql
+                    $howManyRowsUpdated = Invoke-Sql $update_sql
                     if ($howManyRowsUpdated -ne 1) {
-                        throw [Exception]"Update failed to update anything or too many"
+                        throw [Exception]"Update failed to update anything or too many: $howManyRowsUpdated"
                     }                                                                  
 
                     Write-Host '>' -NoNewline 
                     $howManyUpdatedFiles++
-                } else {
-                    $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
+                } else {    
+                    $on_fs_broken_link    = $false
+                    
+                    try {
+                        $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
+                    } catch [System.IO.IOException] {
+                        $on_fs_broken_link    = $true
+                        $on_fs_file_hash = '0'
+                    }
 
                     $sql = "
                         INSERT INTO files(
@@ -163,19 +187,21 @@ do {
                             is_symbolic_link,
                             is_hard_link,
                             linked_path,
-                            deleted
+                            deleted,
+                            broken_link
                         )              
                         VALUES (
-                            /*     file_hash              */'$on_fs_file_hash'::bytea,
-                            /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
-                            /*     file_name_no_ext       */'$file_name_no_ext_escaped',
-                            /*     final_extension        */'$final_extension_escaped',   
-                            /*     file_size              */ $on_fs_file_size,
-                            /*     file_date              */ '$file_date_formatted'::TIMESTAMPTZ,
-                            /*     is_symbolic_link       */ $on_fs_is_symbolic_link,
-                            /*     is_hard_link           */ $on_fs_is_hard_link,
-                            /*     linked_path            */ $file_link_target_escaped,
-                            /*     deleted                */  False
+                        /*  file_hash              */'$on_fs_file_hash'::bytea,
+                        /*  directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
+                        /*  file_name_no_ext       */'$file_name_no_ext_escaped',
+                        /*  final_extension        */'$final_extension_escaped',   
+                        /*  file_size              */ $on_fs_file_size,
+                        /*  file_date              */'$file_date_formatted'::TIMESTAMPTZ,
+                        /*  is_symbolic_link       */ $on_fs_is_symbolic_link,
+                        /*  is_hard_link           */ $on_fs_is_hard_link,
+                        /*  linked_path            */ $file_link_target_escaped,
+                        /*  deleted                */  False,
+                        /*  broken_link            */ $on_fs_broken_link
                         )
                     "
                     Invoke-Sql $sql|Out-Null   
@@ -185,6 +211,15 @@ do {
             }
         } # Get-ChildItem
         #TODO: Update as no-scan directory needed (last date scanned??)
+        $clear_sql = "
+            UPDATE 
+                directories
+            SET
+                scan_directory = False
+            WHERE
+                directory_path    = '$directory_path_escaped'
+            "                                                
+        Invoke-Sql $clear_sql|Out-Null # Should be a performance boost not to scan folders no longer marked for scan.
     }
 } While ($reader.Read())
 
