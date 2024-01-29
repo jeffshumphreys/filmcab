@@ -42,7 +42,7 @@ $inpath = $copytopath
 $outpath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.UTF8.csv"
 $targettable = 'user_excel_interface'
 
-Stop-Process -Name 'excel'    -Force
+Stop-Process -Name 'excel'    -Force -ErrorAction Ignore
 
 Remove-Item -Path $copytopath -Force -ErrorAction Ignore
 Copy-Item -Path $copyfrompath -Destination $copytopath -Force
