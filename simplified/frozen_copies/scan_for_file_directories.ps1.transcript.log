@@ -1,0 +1,155 @@
+**********************
+PowerShell transcript start
+Start time: 20240128235231
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -WindowStyle Hidden -ExecutionPolicy Bypass D:\qt_projects\filmcab\simplified\scheduled_tasks\scan_for_file_directories.ps1
+Process ID: 22244
+PSVersion: 7.4.1
+PSEdition: Core
+GitCommitId: 7.4.1
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\filmcab\simplified\_log\scan_for_file_directories.ps1.transcript.log
+SELECT search_path FROM search_paths ORDER BY search_path_id
+
+search_path
+-----------
+D:\qBittorrent Downloads\Video
+O:\Video AllInOne
+G:\Video AllInOne Backup
+D:\qBittorrent Downloads\_torrent files
+D:\qBittorrent Downloads\_finished_download_torrent_files
+C:\Users\jeffs\Downloads
+D:\qBittorrent Downloads\temp
+
+📝
+👓
+New Directory found: D:\qBittorrent Downloads\Video\Movies\Das Leben der Anderen aka The Lives of Others (2006) - 1080p x265 HEVC - ITA_GER (ENG SUBS) [BRSHNKV] on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\Video\Movies\The Spy Who Came In From The Cold (1965) [1080p] [BluRay] [5.1] [YTS.MX] on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\Video\Movies\Tinker Tailor Soldier Spy (2011) on D drive
+⭐
+📝
+📝
+📝
+New Directory found: D:\qBittorrent Downloads\Video\Movies\Tinker Tailor Soldier Spy (2011)\Other on D drive
+⭐
+📝
+📝
+👓
+📝
+👓
+📝
+👓
+New Directory found: D:\qBittorrent Downloads\temp\Army.Of.Shadows.1969.Criterion.BluRay.10Bit.HEVC.EAC3-SARTRE on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\Casino.Royale.1967.720p.BluRay.999MB.HQ.x265.10bit-GalaxyRG[TGx] on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\Eye of the Needle (1981) Donald Sutherland Eng on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\Hopscotch.1980.BRRip.XviD.MP3-RARBG on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\Superintelligence.2020.HDRip.XviD.AC3-EVO[TGx] on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo) on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Madame Blanc Mysteries S01 on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The.Eagle.Has.Landed.1976.DVDRip.AC3.X264-BARC0DE [NO-RAR] - [ www.torrentday.com ] on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\Tinker Tailor Soldier Spy (1979) BBC Series 1080p H.264 (moviesbyrizzo) on D drive
+⭐
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+New Directory found: D:\qBittorrent Downloads\temp\Army.Of.Shadows.1969.Criterion.BluRay.10Bit.HEVC.EAC3-SARTRE\Extras on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo) on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\Tinker Tailor Soldier Spy (1979) BBC Series 1080p H.264 (moviesbyrizzo)\English Subtitles (moviesbyrizzo) on D drive
+⭐
+📝
+📝
+📝
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Czech on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Dutch on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\English on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Estonian on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Finnish on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\French on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\German on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Hebrew on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Hungarian on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Italian on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Polish on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Portuguese on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Romanian on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Serbian on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Slovenian on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Spanish on D drive
+⭐
+New Directory found: D:\qBittorrent Downloads\temp\The Black Book (Zwartboek) (2006) 1080p H.264 (moviesbyrizzo)\The Black Book (2006) Subtitles folder (moviesbyrizzo)\Swedish on D drive
+⭐
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+📝
+
+
+How many new directories were found:                      33 Directories
+How many old directories were updated:                    37 Directories
+How many rows were updated:                               37 Rows
+How many rows were inserted:                              33 Rows
+How many rows were deleted:                               0 Rows
+How many new junction linked directories were found:      0 Links
+How many new symbolically linked directories were found:  0 Links
+How many directories were flagged for scanning:           37 Directories
+
+11 Minutes
+**********************
+PowerShell transcript end
+End time: 20240129000411
+**********************
