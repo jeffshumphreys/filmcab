@@ -30,6 +30,8 @@ $hoWManyRowsUpdated = 0
 $hoWManyRowsInserted = 0
 $hoWManyRowsDeleted = 0
 
+# Let's traverse all the undeleted directories flagged for scan. scan_for_file_directories sets the flag before this daily.
+
 $loop_sql = "
 SELECT 
      directory_path                      /* What we are going to search for new files     */
@@ -39,11 +41,9 @@ SELECT
 FROM 
     directories
 WHERE
-    (deleted IS NULL OR deleted IS FALSE)   
-AND
-    (directory_still_exists IS NULL OR directory_still_exists IS TRUE)
+    deleted is distinct from true
 AND 
-    scan_directory IS TRUE
+    scan_directory is true
 ";
 
 $readerHandle = (Select-Sql $loop_sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
@@ -51,6 +51,7 @@ $reader = $readerHandle.Value # Now we can unbox!  Ta da!
 
 # Search down each search path for directories that are different or missing from our data store.
 
+if ($reader.HasRows) {
 do {
     $directory_path = $reader.GetString(0)
     $directory_path_escaped = $directory_path.Replace("'", "''")
@@ -97,7 +98,7 @@ do {
                      file_hash
                    , directory_hash
                    , file_date                           /* If changed, we need a new hash        */
-                   , file_size                           /* Also if changed, in case date isn't enough */
+                   , file_size                           /* Also if changed, in case date isn't enough to detect. The garuntead way is to generate the hash, which is very slow. */
                    , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
                    , is_hard_link                        /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                    , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
@@ -222,7 +223,7 @@ do {
         Invoke-Sql $clear_sql|Out-Null # Should be a performance boost not to scan folders no longer marked for scan.
     }
 } While ($reader.Read())
-
+}
 
 
 # Display counts. If nothing is happening in certain areas, investigate.
