@@ -1,0 +1,40 @@
+<#
+    FilmCab Daily morning process: Delete any files where directory is marked deleted.
+    Status: Undeveloped
+    Should/Must Run After: delete_missing_directory_entries.ps1
+    Should/Must Run Before       : delete_references_to_missing_files.ps1
+    ###### Mon Jan 29 18:12:26 MST 2024
+#>
+
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
+param()
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
+
+$HowManyFilesDeleted = 0    
+
+if ($DatabaseConnectionIsOpen) {
+    $sql = "
+    WITH x AS (
+    SELECT 
+        f.directory_hash
+    FROM               
+        files f JOIN directories d USING (directory_hash) 
+    WHERE
+        d.deleted is true
+    AND
+        f.deleted is distinct from true
+    )
+    UPDATE files SET deleted = true, deleted_on = ... WHERE directory_hash IN(SELECT directory_hash FROM x)
+    "
+
+    $HowManyFilesDeleted = Invoke-Sql $sql
+
+    Write-Host # Get off the last nonewline
+    Write-Host
+    Write-Host "How many file entries deleted:                      $howManyFilesDeleted"           $(Format-Plural 'File' $howManyFilesDeleted) 
+
+}
+
+. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
