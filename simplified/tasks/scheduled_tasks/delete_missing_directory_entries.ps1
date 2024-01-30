@@ -1,10 +1,10 @@
 <#
-    FilmCab Daily morning process: Verify the paths and files and volumes stored in the files table exist on some hard drive.
+    FilmCab Daily morning process: Verify the paths stored in the directories table exist on some hard drive.
     Status: Working in Test
     Should/Must Run After: scan_for_file_directories.ps1
     Should/Must Run Before       : scan_file_directories_for_files.ps1
-    ###### Fri Jan 26 13:38:09 MST 2024
-
+    ###### Tue Jan 30 13:14:00 MST 2024
+                                       
     This is done early in the batch so as to reduce labor later, trying to generate hashes on nonexistent files, listing files a dups when one doesn't exist.
 #>
 
