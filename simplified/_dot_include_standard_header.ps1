@@ -283,6 +283,34 @@ function Invoke-Sql {
 
 <#
 .SYNOPSIS
+Select a query but don't read the first row so the caller can use a While
+
+.DESCRIPTION
+Long description
+
+.EXAMPLE
+$readerHandle = Walk-Sql $sql
+$reader = $readerHandle.Value 
+While ($reader.Read()) {
+} 
+
+$reader.Close()
+
+
+.NOTES
+General notes
+#>
+Function Walk-Sql {
+    [CmdletBinding()]
+    param(           
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+    )
+    Select-Sql $sql -skipInitialRead
+}                                   
+
+
+<#
+.SYNOPSIS
 Execute a SELECT statement and return a traversable cursor.
 
 .DESCRIPTION
@@ -292,7 +320,12 @@ Tired of rekeying this code over and over. I usually (always) only need one read
 SQL script that I guess could execute a function (stored proc) that returned a result set, but I use it for selects. Not for batches, though.
 
 .EXAMPLE
-$reader = (Select-Sql 'SELECT * FROM t').Value          # Cannot return DatabaseColumnValue directly
+$readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
+$reader = $readerHandle.Value # Now we can unbox!  Ta da!                                                                                                    
+Do { # Buggy problem: My "Select-Sql" does an initial read.  If it came back with no rows, this would crash. Ugh. Maybe a "Walk-Sql" that does not do a read.
+} While ($reader.Read())
+
+$reader.Close()
 
 .NOTES
 There is no way to return a LOCALLY INSTANTIATED ODBCDataReader object as a DatabaseColumnValue. It will always ALWAYS resolve to null for the caller. I wish the example would be "$reader = Select-Sql 'select 1'" but I can't get it to work. hmmmmmmm
@@ -302,14 +335,15 @@ Better name for a command that runs a query and returns a cursor?  Invoke is mor
 Function Select-Sql {
     [CmdletBinding()]
     param(           
-        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
+        [Switch]$skipInitialRead
     )
     try { 
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
         $DatabaseCommand.CommandText = $sql
         $reader = [REF]$DatabaseCommand.ExecuteReader(); # Too many refs?
-        $reader = $reader.Value
-        $reader.Read() >> $null   
+        $reader = $reader.Value 
+        if (-not $skipInitialRead) {        $reader.Read() >> $null   }
         return [REF]$reader                      # Forces caller to deref!!!!! But only way to get it to work.
     } catch {
         Show-Error $sql -exitcode 2
