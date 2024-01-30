@@ -30,10 +30,10 @@
     🧹 => clean up after.
     📦 => A package that is to be delivered or made available for download.
     📃 => Document, not necessarily a text document.       
-    🧪 => Test. 🎓 Passed all tests. Deployable.
+    🧪 => Test. 🎓 Passed all tests. Deployable.                                                                                              
     ⏰=> Scheduled event or task, triggers an execution
     ⚡ => Execute, start a process. Probably should be different between blocking and async.
-    ⏳ => Some unwanted but perhaps unavoidable delay. Long running process.
+    ⏳ => Some unwanted but perhaps unavoidable delay. Long running process. OR, waiting for when more stuff has been written, then write this.
     🐌 => Running reallly slow!
     🌱 => Seed (as in, torrent?) Creation? 
     🦄 => Very unlikely
