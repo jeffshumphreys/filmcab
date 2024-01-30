@@ -24,9 +24,10 @@ if ($DatabaseConnectionIsOpen) {
     WHERE
         d.deleted is true
     AND
-        f.deleted is distinct from true
+        f.deleted is distinct from true /* We won't bother updatin' ones that are already deleted */
     )
-    UPDATE files SET deleted = true, deleted_on = ... WHERE directory_hash IN(SELECT directory_hash FROM x)
+    UPDATE files SET deleted = true, deleted_on = CURRENT_TIMESTAMP() 
+    FROM x WHERE directory_hash = x.directory_hash
     "
 
     $HowManyFilesDeleted = Invoke-Sql $sql
