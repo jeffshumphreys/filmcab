@@ -13,7 +13,7 @@ param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
 
-$DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
+#$DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
 # FYI: $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
 
 # Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
@@ -55,7 +55,7 @@ if ($DatabaseConnectionIsOpen) {
                         UPDATE
                             files
                         SET 
-                            file_hash         = '$in_db_file_hash'::bytea
+                            file_hash         = '$on_fs_file_hash'::bytea
                         WHERE
                             file_id = '$file_id'
                     "
