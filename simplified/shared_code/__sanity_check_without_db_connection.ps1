@@ -11,7 +11,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param($stage = 'before_session_starts')
 
-# DO NOT CONNECT TO DATABASE!!!!
+# DO NOT CONNECT TO DATABASE!!!!  This is to do the tests that should be done outside of structured persistence.
 
 $OS = '?'
 
