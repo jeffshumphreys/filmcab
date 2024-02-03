@@ -13,6 +13,6 @@
  
  . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
  
-Invoke-Sql 'VACUUM (FULL, VERBOSE);'
+Invoke-Sql 'VACUUM (FULL, VERBOSE);'                                           
 
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
