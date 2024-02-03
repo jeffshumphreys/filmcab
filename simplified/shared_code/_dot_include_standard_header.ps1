@@ -76,9 +76,14 @@ param()
 
     Set-StrictMode -Version Latest
 
+    # Considered somewhat standard to avoid failures importing, including, etc., due to Microtoff's every increasing security layers everytime they get hacked.
+    
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+    
+    # Can't do Scheduled Task work anymore (Win 10) without admin privs. Example of above Sec Fetish.
 
     $amRunningAsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    
     # Always time everything.  Eventually you will always want to know how long the damn script ran.
 
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -94,10 +99,11 @@ param()
     $OSUserName = $env:USERNAME   # jeffs
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $OSUserFiles       = $env:USERPROFILE    # C:\Users\jeffs
+
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
+    
     # FYI: $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
-
 
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
