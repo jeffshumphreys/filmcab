@@ -34,7 +34,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
                                                                              
 $copyfrompath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.xlsx"
 $copytopath                                                                        = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.readablecopy.xlsx" # TODO: convert to temp
@@ -169,4 +169,4 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     $DatabaseConnection.Dispose();
 }
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1

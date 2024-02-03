@@ -43,7 +43,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 # 
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1 # 
 
 $newtaskSchedulerEvents      = @()
 $oldtaskSchedulerEvents      = @()
@@ -580,4 +580,4 @@ Select  record_id,
 
 # Yes? Pull new tasks and add to our storage
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1

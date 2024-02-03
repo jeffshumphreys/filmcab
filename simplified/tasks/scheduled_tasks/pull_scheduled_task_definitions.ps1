@@ -14,7 +14,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. .\simplified\_dot_include_standard_header.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
 
 $scheduled_task_definitions = @()
 $scheduled_task_action_definitions = @()
@@ -188,4 +188,4 @@ $scheduled_task_action_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplif
 $scheduled_task_trigger_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-triggers-definitions.xml'
 
 
-. .\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1

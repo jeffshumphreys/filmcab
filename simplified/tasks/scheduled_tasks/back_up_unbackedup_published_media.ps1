@@ -11,7 +11,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1 
 
 # /E for copying empty subdirectories
 # /J for copy using unbuffered I/O (recommended for large files).
@@ -23,4 +23,4 @@ param()
 
 Robocopy.exe "O:\Video AllInOne" "G:\Video AllInOne Backup" /E /J /NOOFFLOAD /R:1 /V /UNILOG:D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1

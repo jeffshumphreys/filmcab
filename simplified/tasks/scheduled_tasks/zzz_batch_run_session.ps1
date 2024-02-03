@@ -10,7 +10,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
                                    
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
@@ -29,9 +29,9 @@ param()
 # Changed??  Shouldn't have.
 
 # Da Fuutar!!!
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
 
-. D:\qt_projects\filmcab\simplified\__sanity_check_without_db_connection.ps1 'after_session_ends'
+. D:\qt_projects\filmcab\simplified\shared_code\__sanity_check_without_db_connection.ps1 'after_session_ends'
                                                                                                                           
 # Copy and date days sanity checks to history
 

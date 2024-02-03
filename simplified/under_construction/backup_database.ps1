@@ -11,7 +11,8 @@
  [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
  param()
  
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
 
 'pg_dump.exe --verbose --host=localhost --port=5432 ****** --format=c --file C:\filmcab backups/dump-filmcab-202401301323.sql -n "simplified" filmcab'
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1

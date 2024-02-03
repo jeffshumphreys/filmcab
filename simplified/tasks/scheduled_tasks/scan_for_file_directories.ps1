@@ -86,7 +86,7 @@ It is not updated for these actions:
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
 
 # Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
 
@@ -356,4 +356,4 @@ Write-Host "How many directories were flagged for scanning:           $howManyDi
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1

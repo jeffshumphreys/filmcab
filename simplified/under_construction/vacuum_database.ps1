@@ -11,8 +11,8 @@
  [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
  param()
  
- . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
+ . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
  
 Invoke-Sql 'VACUUM (FULL, VERBOSE);'
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
