@@ -38,14 +38,14 @@ if ($DatabaseConnectionIsOpen) {
             Write-Host -NoNewline '=.' # Found          
             $HowManyDirectoryEntriesMapToExistingDirectories++ 
             if ($alreadyMarkedAsDeleted) {                 
-                Invoke-Sql "UPDATE directories SET deleted = False /* Leave any deleted_on value */ WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
+                Invoke-Sql "UPDATE directories SET deleted = False WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
                 $HowManyDirectoryEntriesUpdated++
             }                                    
         } else {             
             Write-Host -NoNewline '-.' # Missing
             $HowManyDirectoryEntriesNoLongerMapToExistingDirectories++
             if (-not $alreadyMarkedAsDeleted) {
-                Invoke-Sql "UPDATE directories SET deleted = True, deleted_on = clock_timestamp() WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
+                Invoke-Sql "UPDATE directories SET deleted = True WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
                 $HowManyDirectoryEntriesUpdated++
             }
         }

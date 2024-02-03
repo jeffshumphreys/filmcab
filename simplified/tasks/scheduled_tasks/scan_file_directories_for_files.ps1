@@ -183,8 +183,8 @@ do {
                             is_symbolic_link,
                             is_hard_link,
                             linked_path,
-                            deleted,
-                            broken_link
+                            broken_link,
+                            deleted
                         )              
                         VALUES (
                         /*  file_hash              */'$on_fs_file_hash'::bytea,
@@ -196,8 +196,8 @@ do {
                         /*  is_symbolic_link       */ $on_fs_is_symbolic_link,
                         /*  is_hard_link           */ $on_fs_is_hard_link,
                         /*  linked_path            */ $file_link_target_escaped,
-                        /*  deleted                */  False,
-                        /*  broken_link            */ $on_fs_broken_link
+                        /*  broken_link            */ $on_fs_broken_link,
+                        /*  deleted                */  False
                         )
                     "
                     Invoke-Sql $sql|Out-Null   

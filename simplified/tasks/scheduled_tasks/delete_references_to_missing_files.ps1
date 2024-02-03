@@ -45,7 +45,7 @@ if ($DatabaseConnectionIsOpen) {
             Write-Host -NoNewline '=.' # Found          
             $HowManyFileEntriesMapToExistingFiles++ 
             if ($alreadyMarkedAsDeleted) {                 
-                Invoke-Sql "UPDATE files SET deleted = False /* Leave any deleted_on value */ WHERE file_id = $fileId" | Out-Null
+                Invoke-Sql "UPDATE files SET deleted = False WHERE file_id = $fileId" | Out-Null
                 $HowManyFileEntriesUpdated++
                 $HowManyFileEntriesUndeleted++
             }                                    
@@ -53,7 +53,7 @@ if ($DatabaseConnectionIsOpen) {
             Write-Host -NoNewline '-.' # Missing
             $HowManyFileEntriesNoLongerMapToExistingFile++
             if (-not $alreadyMarkedAsDeleted) {
-                Invoke-Sql "UPDATE files SET deleted = True, deleted_on = clock_timestamp() WHERE file_id = $fileId" | Out-Null
+                Invoke-Sql "UPDATE files SET deleted = True WHERE file_id = $fileId" | Out-Null
                 $HowManyFileEntriesUpdated++                                                        
                 $HowManyFileEntriesDeleted++
             }

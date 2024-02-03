@@ -144,7 +144,6 @@ while ($searchPaths.Read()) {
             $currentsymboliclink   = [bool]$null
             $currentjunctionlink   = [bool]$null
             $currentlinktarget     = NullIf($item.LinkTarget)   # Probably should verify, eventually
-            $currentdirstillexists= $true # Cuz it's there?
             $currentdriveletter    = [string]$item.FullName[0]
             $IsARealDirectory      = [bool]$null          # as in not a hard link or junction or symbolic link
 
@@ -178,7 +177,7 @@ while ($searchPaths.Read()) {
                    , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
                    , is_junction_link                    /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                    , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
-                   , directory_still_exists              /* This is mostly for downstream tasks                                                                               */
+                   , deleted
                 FROM 
                     directories
                 WHERE
@@ -193,11 +192,11 @@ while ($searchPaths.Read()) {
             $UpdateDirectoryRecord          =     [bool]$null
             $flagScanDirectory          =     [bool]$false
              
+            $olddirectorydeleted=     [boo]$false
             $olddirectorydate               = [datetime]0     # No $nulls for datetime type.
             $oldsymboliclink            =  [boolean]$null
             $oldjunctionlink            =  [boolean]$null
             $oldlinktarget              =   [string]$null
-            $olddirstillexists          =  [boolean]$null # Won't know till we query.
             $olddriveletter             =   [string]$null
             # For additional functionality later $olddirhash   [byte[]]$null
 
@@ -205,7 +204,6 @@ while ($searchPaths.Read()) {
             $newsymboliclink                =     [bool]$null
             $newjunctionlink            =     [bool]$null
             $newlinktarget              =   [string]$null
-            $newdirstillexists=     [bool]$null
             $newdriveletter               =   [string]$null
 
             if ($reader.HasRows) {
@@ -216,23 +214,18 @@ while ($searchPaths.Read()) {
                 $oldsymboliclink            = Get-SqlFieldValue $readerHandle is_symbolic_link
                 $oldjunctionlink            = Get-SqlFieldValue $readerHandle is_junction_link
                 $oldlinktarget              = NullIf (Get-SqlFieldValue $readerHandle linked_path)
-                $olddirstillexists          = Get-SqlFieldValue $readerHandle directory_still_exists
-                $olddriveletter= Left $directory_path 1
+                $olddirectorydeleted        = Get-SqlFieldValue $readerHandle deleted
 
                 $newdirectorydate           = $currentdirectorydate
                 $newsymboliclink            = $currentsymboliclink
                 $newjunctionlink            = $currentjunctionlink
                 $newlinktarget              = NullIf $currentlinktarget
-                $newdirstillexists= $currentdirstillexists # Always true, duh
-                $newdriveletter     = $currentdriveletter # Could change?? Probably impossible.
 
-                if ($olddirstillexists    -ne $true                    -or # We know the directory exists
-                    $olddirectorydate     -ne $currentdirectorydate    -or
-                    $oldsymboliclink      -ne $currentsymboliclink     -or
-                    $oldjunctionlink      -ne $currentjunctionlink     -or
-                    $oldlinktarget        -ne $currentlinktarget       -or
-                    $olddirstillexists    -ne $currentdirstillexists   -or
-                    $olddriveletter       -ne $currentdriveletter      
+                if ($olddirectorydeleted    -eq $true                    -or # We know the directory exists
+                    $olddirectorydate       -ne $currentdirectorydate    -or
+                    $oldsymboliclink        -ne $currentsymboliclink     -or
+                    $oldjunctionlink        -ne $currentjunctionlink     -or
+                    $oldlinktarget          -ne $currentlinktarget       
                 ) { 
                     $UpdateDirectoryRecord = $true
                 }
@@ -274,13 +267,12 @@ while ($searchPaths.Read()) {
                                parent_directory_hash, 
                                directory_date, 
                                volume_id, 
-                               directory_still_exists, 
                                scan_directory, 
                                is_symbolic_link, 
                                is_junction_link, 
                                linked_path,
-                               deleted, 
-                               search_path_id
+                               search_path_id,
+                               deleted
                         )
                     VALUES(
                         /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
@@ -288,13 +280,12 @@ while ($searchPaths.Read()) {
                         /*     parent_directory_hash  */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
                         /*     directory_date         */ '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
                         /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
-                        /*     directory_still_exists */ $newdirstillexists,
                         /*     scan_directory         */ $flagScanDirectory,
                         /*     is_symbolic_link       */ $currentsymboliclink,
                         /*     is_junction_link       */ $currentjunctionlink,
                         /*     linked_path            */ $preppednewlinktarget,
-                        /*     deleted                */  False,
-                        /*     search_path_id         */ $SearchPathId
+                        /*     search_path_id         */ $SearchPathId,
+                        /*     deleted                */  False
                     )
                 "
 
@@ -313,7 +304,6 @@ while ($searchPaths.Read()) {
                         is_symbolic_link       = $newsymboliclink,
                         is_junction_link       = $newjunctionlink,
                         linked_path  = $preppednewlinktarget,
-                        directory_still_exists = $newdirstillexists,
                         volume_id              = (SELECT volume_id FROM volumes WHERE drive_letter = '$newdriveletter'),
                         deleted                =  False
                     WHERE 
