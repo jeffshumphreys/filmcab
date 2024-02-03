@@ -26,7 +26,7 @@ if ($DatabaseConnectionIsOpen) {
     AND
         f.deleted is distinct from true /* We won't bother updatin' ones that are already deleted */
     )
-    UPDATE files SET deleted = true, deleted_on = CURRENT_TIMESTAMP
+    UPDATE files SET deleted = true
     FROM x WHERE files.directory_hash = x.directory_hash
     "
 
