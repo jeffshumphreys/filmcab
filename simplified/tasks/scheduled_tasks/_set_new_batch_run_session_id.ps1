@@ -21,7 +21,7 @@ param()
 #      to  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_after_session_ends.json (yesterdays)
 
 # The header includes the database connection
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1 
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1 
                                                                             
 # . D:\qt_projects\filmcab\simplified\__sanity_check_with_db_connection.ps1
 #
@@ -36,12 +36,12 @@ if ($null -ne $state_of_session) {
 
     # Flush out the active marked record so we can start a new session.
     
-    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName' WHERE running" > $null
+    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName' WHERE running" | Out-Null
 }
     
 # "Starts"
-Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran) VALUES('$scriptName')" > $null
+Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran) VALUES('$scriptName')" | Out-Null
 
 # Get last id from batch_run_sessions table.                    
 
-. D:\qt_projects\filmcab\simplified\_dot_include_standard_footer.ps1 
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1 
