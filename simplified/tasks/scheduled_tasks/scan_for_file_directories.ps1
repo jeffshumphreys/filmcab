@@ -88,10 +88,6 @@ param()
 
 . D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1
 
-
-$DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
-# FYI: $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
-
 # Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
 
 $FIFOstack = New-Object System.Collections.Queue
@@ -109,12 +105,15 @@ $hoWManyRowsDeleted = 0
 
 # Fetch a string array of paths to search.
 
-$searchPaths = Out-SqlToList 'SELECT search_path FROM search_paths ORDER BY search_path_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
+$searchPathsHandle = Walk-Sql 'SELECT search_path, search_path_id FROM search_paths ORDER BY search_path_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
+$searchPaths = $searchPathsHandle.Value
 
 # Search down each search path for directories that are different or missing from our data store.
 
-foreach ($SearchPath in $searchPaths) {
-
+while ($searchPaths.Read()) {
+                          
+    $SearchPath = $searchPaths.GetString(0)
+    $SearchPathId = $searchPaths.GetInt32(1)
     #Load first level of hierarchy
 
     if (-not(Test-Path $SearchPath)) {
@@ -280,7 +279,8 @@ foreach ($SearchPath in $searchPaths) {
                                is_symbolic_link, 
                                is_junction_link, 
                                linked_path,
-                               deleted
+                               deleted, 
+                               search_path_id
                         )
                     VALUES(
                         /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
@@ -293,7 +293,8 @@ foreach ($SearchPath in $searchPaths) {
                         /*     is_symbolic_link       */ $currentsymboliclink,
                         /*     is_junction_link       */ $currentjunctionlink,
                         /*     linked_path            */ $preppednewlinktarget,
-                        /*     deleted                */  False
+                        /*     deleted                */  False,
+                        /*     search_path_id         */ $SearchPathId
                     )
                 "
 
