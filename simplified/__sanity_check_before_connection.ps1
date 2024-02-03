@@ -14,52 +14,31 @@ param()
 # DO NOT CONNECT TO DATABASE!!!!
 
 $OS = '?'
-$OSDefinition = '?'                                                
-$OSVersion = '?'  
-$OSBuildNo = '?'
-$ComputerName = '?'
-    
+
+$ScriptPath = $MyInvocation.ScriptName
+if ([String]::IsNullOrEmpty($ScriptPath)) {                                                                
+    # So instead of "ScriptName", we've got "Line", "Statement", "MyCommand" (which is actually the Script Name), and "PositionMessage" which is a bit messy, but could be used to get the caller.
+    $ScriptPath = $MyInvocation.Line.Trim("`'. ") # No ScriptName if running this file directly, just Line = . 'D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1'  This of course will devolve over PS versions. Why? Because developer constantly finesse stuff and break code.
+}                                          
+
 if ($IsWindows) { 
     $OS = 'Windows'
-    $Script:OSPropertiesOfInterest = $(Get-CimInstance Win32_OperatingSystem) | Select `
-        Description,                                           # Jeff's Home Dev Client
-        CSName,                                                # DSKTP-HOME-JEFF
-        RegisteredUser,                                        # jeffshumphreys@outlook.com  
-        SerialNumber,                                          # 00330-50141-73696-AAOEM
-        Caption,                                               # Microsoft Windows 10 Pro
-        Version,                                               # 10.0.19045
-        BuildNumber,                                           # 19045
-        CurrentTimeZone,                                       # -420
-        LocalDateTime,                                         # 1/31/2024 3:33:45 PM
-        LastBootUpTime,                                        # 1/25/2024 3:12:48 PM
-        InstallDate,
-        MaxProcessMemorySize,                                  # 137438953344
-        OSArchitecture,                                        # 64-bit
-        Manufacturer,                                          # Microsoft Corporation
-        SystemDevice,                                          # \Device\HarddiskVolume6
-        SystemDrive,                                           # C:\
-        BootDevice,                                            # \Device\HarddiskVolume2
-        Status,                                                # OK
-        CreationClassName                                      # Win32_OperatingSystem
-    $ComputerName = $OSPropertiesOfInterest.CSName
-    $UserProfile       = $env:USERPROFILE    # C:\Users\jeffs
-    $OSUserName = $env:USERNAME   # jeffs    
+    $Script:OSPropertiesOfInterest = $(Get-CimInstance Win32_OperatingSystem) | Select *
 }
 elseif ($IsLinux) { $OS = 'Linux'}
 elseif ($IsMacOS) { $OS = 'MacOS'}
 
 $ConnectedToTheDNSServer = Test-Connection 'google.com' -Count 1 -Quiet
-$ICMPEnabled = (Get-CIMInstance Win32_PingStatus -Filter "address='google.com'").StatusCode
-#$PSVersionTable.PSEdition # Core
+$ICMPEnabled = ((Get-CIMInstance Win32_PingStatus -Filter "address='google.com'").StatusCode -eq 0)
 #$PSVersionTable.Platform # Win32NT
 #$PSVersionTable.PSVersion # 7.4.1
 $netstat = Get-NetAdapter|Where Name -eq 'Ethernet'|Where Virtual -eq $false|Select * # Ethernet, Status, MacAddress, LinkSpeed
                        
 $WakeOnLinkStatus = Get-NetAdapterAdvancedProperty|Where Name -eq 'Ethernet'|Where DisplayName -eq 'Wake on Link Settings'|Select DisplayValue
-$WakeOnLinkStatus = Get-NetAdapterAdvancedProperty|Where Name -eq 'Ethernet'|Where DisplayName -eq 'Ultra Low Power Mode'|Select DisplayValue
 $WakeOnLinkStatus = Get-NetAdapterAdvancedProperty|Where Name -eq 'Ethernet'|Where DisplayName -eq 'Wake on Magic Packet'|Select DisplayValue
 $WakeOnLinkStatus = Get-NetAdapterAdvancedProperty|Where Name -eq 'Ethernet'|Where DisplayName -eq 'Wake on Pattern Match'|Select DisplayValue
 $WakeOnLinkStatus = Get-NetAdapterAdvancedProperty|Where Name -eq 'Ethernet'|Where DisplayName -eq 'Jumbo Packet'|Select DisplayValue
+$NicUltraLowPowerMode = Get-NetAdapterAdvancedProperty|Where Name -eq 'Ethernet'|Where DisplayName -eq 'Ultra Low Power Mode'|Select DisplayValue
 
 $IPState = Get-NetIPAddress|Where InterfaceAlias -eq 'Ethernet'
 $IPCameFromDHCP = ($IPState.PrefixOrigin -eq 'Dhcp')
@@ -70,57 +49,55 @@ $AreWeInADomain = (Get-NetConnectionProfile|Select DomainAuthenticationKind) # N
 
 # Put it all together
 
-$SanityCheckStatus = @{
-    AsOf = (Get-Date)
-    ComputerName = $Script:OSPropertiesOfInterest.CSName
-    ComputerDescription = $Script:OSPropertiesOfInterest.Description
+$SanityCheckStatus = [PSCustomObject]@{
+    ComputerName          = $Script:OSPropertiesOfInterest.CSName           # DSKTP-HOME-JEFF
+    ComputerDescription = $Script:OSPropertiesOfInterest.Description      # Jeff's Home Dev Client
     Platform= [Environment]::OSVersion.Platform                     # Win32NT
-    OS       = $OS                                                   # Windows, Linux, or MacOS
-    OSVersion           = $OSVersion                                            # 10.0.19045 (Really should be 1904.5)
-    OSMajorVersionNo    = [Environment]::OSVersion.Version.Major
-    OSMinorVersionNo    = [Environment]::OSVersion.Version.Minor
-    OSBuildNo= [Environment]::OSVersion.Version.Build
-    OSArchitecture= $Script:OSPropertiesOfInterest.OSArchitecture
-    CurrentUserName    = $env:USERNAME
-    OSInstallDate     = $Script:OSPropertiesOfInterest.InstallDate
-    ComputerLastBooted = $Script:OSPropertiesOfInterest.LastBootUpTime
-    OSSoftwareSerialNo  = $Script:OSPropertiesOfInterest.SerialNumber
-    AreWeConnectedToDNS  = $ConnectedToTheDNSServer
-    AreWeAbleToPing= $ICMPEnabled
-    NicName = $netstat.ifName # ethernet_32769
-    NicDescription = $netstat.ifDesc      # Intel(R) Ethernet Connection (2) I219-LM
-    NicStatus = $netstat.ifOperStatus # Up    
-    NicConnectionStatus = $netstat.MediaConnectionState # Connected                                      
-    NicSpeed= $netstat.LinkSpeed                # 1 Gbps
-    NicMacAddress= $netstat.MacAddress    # D8-9E-F3-31-AE-3B
-    NicLUID= $netstat.NetLuid       # 1689399632855040
-    NicInterfaceGUID= $netstat.InterfaceGuid # {1521566F-0077-4522-97D6-40A70FCDD329}
-    NicDriverLevel= $netstat.MediaType # 802.3
-    IPAddress = $IPState.IPAddress
-    IPAddressFamily= $IPState.AddressFamily # IPv4 (2?)
-    IPAddressCameFromDHCP = $IPCameFromDHCP
-    GatewayState= $GatewayStat.State # Alive
-    GatewayIsStatic= $GatewayStat.IsStatic
+    OS                    = $OS                                                   # Windows, Linux, or MacOS
+    OSVersion           = [Environment]::OSVersion.Version.ToString()                      # 10.0.19045 (Really should be 1904.5)
+    OSMajorVersionNo    = [Environment]::OSVersion.Version.Major                # 10
+    OSMinorVersionNo    = [Environment]::OSVersion.Version.Minor                # 0
+    OSBuildNo= [Environment]::OSVersion.Version.Build                # 19045
+    OSArchitecture= $Script:OSPropertiesOfInterest.OSArchitecture   # 64-bit
+    CurrentUserName    = $env:USERNAME                                # jeffs
+    OSInstallDate     = $Script:OSPropertiesOfInterest.InstallDate      # 2023-09-22T21:04:52-06:00
+    ComputerLastBooted = $Script:OSPropertiesOfInterest.LastBootUpTime   # 2024-01-25T15:12:49.417615-07:00
+    OSSoftwareSerialNo  = $Script:OSPropertiesOfInterest.SerialNumber     # 00330-50141-73696-AAOEM
+    AreWeConnectedToDNS  = $ConnectedToTheDNSServer                              # true
+    AreWeAbleToPing= $ICMPEnabled                                          # true
+    NicName = $netstat.ifName                                       # ethernet_32769
+    NicDescription = $netstat.ifDesc                                       # Intel(R) Ethernet Connection (2) I219-LM
+    NicStatus = $netstat.ifOperStatus.ToSTring()                      # Up    
+    NicConnectionStatus = $netstat.MediaConnectionState.ToString()              # Connected                                      
+    NicSpeed= $netstat.LinkSpeed                                    # 1 Gbps
+    NicMacAddress= $netstat.MacAddress                                   # 
+    NicLUID= $netstat.NetLuid                                      # 1689399632855040
+    NicInterfaceGUID= $netstat.InterfaceGuid                                # 
+    NicDriverLevel= $netstat.MediaType                                    # 802.3
+    IPAddress = $IPState.IPAddress                                    # 
+    DNSAddress            = $DNSAddress[0]                                           #
+    IPAddressFamily= $IPState.AddressFamily.ToSTring()                     # IPv4
+    IPAddressCameFromDHCP = $IPCameFromDHCP                                       # true
+    GatewayState= $GatewayStat.State.ToString()                         # Alive
+    GatewayIsStatic= $GatewayStat.IsStatic                                 # null
+    ScriptPath    = $ScriptPath                                           # D:\\qt_projects\\filmcab\\simplified\\__sanity_check_before_connection.ps1
+    CurrentDirectory= [System.Environment]::CurrentDirectory
+    NicUltraLowPowerMode = $NicUltraLowPowerMode.DisplayValue                    # Enabled
+    AreWeInADomain = $AreWeInADomain.DomainAuthenticationKind.ToString()   # None
+    NetworkCategory = $NetworkCategory.NetworkCategory.ToSTring()           # Private
+    PowerShellEdition = $PSVersionTable.PSEdition
+    PowerShellPlatform =$PSVersionTable.Platform # Win32NT
+    UserIsRunningInteractively = [Environment]::UserInteractive
+    IsPrivilegedProcess = [Environment]::IsPrivilegedProcess
     # TypeOfRoute
     # Lease Expires
     # NetBIOS over Tcpip enabled?
+    # Firewall, VPN, 
 }
 
-$SanityCheckStatus|ConvertTo-Json|Out-File 'D:\qt_projects\filmcab\simplified\_data\__sanity_check_before_connection_before_session_starts.json'
-
-# Windows classifies the networks into three different types: public, private and domain
-
-#Get-NetConnectionProfile # NetworkCategory=Private, DomainAuthenticaonKind None, IPv4, IPv6
-
-$ScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
-
-# Has the path changed? drive?
-
-#$PSVersionTable|Select 
+$SanityCheckStatus|ConvertTo-Json|Out-File 'D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_before_session_starts.json'
 
 # Open config.json in this directory, not some fucked up sub directory like Boise did.  What the f for?? One fucking file.
-
-# Is this Windows, Linux, or Mac?
 
 # Is Task Scheduler History enabled?
 
