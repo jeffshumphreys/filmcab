@@ -9,7 +9,7 @@
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
+param($stage = 'before_session_starts')
 
 # DO NOT CONNECT TO DATABASE!!!!
 
@@ -95,7 +95,7 @@ $SanityCheckStatus = [PSCustomObject]@{
     # Firewall, VPN, 
 }
 
-$SanityCheckStatus|ConvertTo-Json|Out-File 'D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_before_session_starts.json'
+$SanityCheckStatus|ConvertTo-Json|Out-File "D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_$stage.json"
 
 # Open config.json in this directory, not some fucked up sub directory like Boise did.  What the f for?? One fucking file.
 
