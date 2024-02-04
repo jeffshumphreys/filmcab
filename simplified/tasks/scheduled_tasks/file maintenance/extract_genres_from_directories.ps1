@@ -64,7 +64,7 @@ While ($reader.Read()) {
         $grandsubgenre_candidate = $directory_folders[2]
         if ((Left $grandsubgenre_candidate 1) -eq '_' -and (Left $grandsubgenre_candidate 2) -ne '__' )
         {
-            $grandsubgenre = $subgenre_candidate
+            $grandsubgenre = $grandsubgenre_candidate
         }
     }                                      
               
@@ -76,6 +76,7 @@ While ($reader.Read()) {
         $howManyGenreFolders++                             
         $genre = $genre.Substring(1)
         Invoke-Sql "UPDATE directories set root_genre = '$genre' where directory_path = '$escaped_directory_path'"|Out-Null
+        Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$genre', 'published folders', 1, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
     }                             
 
     if ($null -ne $subgenre) {
@@ -84,12 +85,15 @@ While ($reader.Read()) {
         $howManySubGenreFolders++
         $subgenre = $subgenre.Substring(1)
         Invoke-Sql "UPDATE directories set sub_genre = '$subgenre' where directory_path = '$escaped_directory_path'"|Out-Null
+        Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$subgenre', 'published folders', 2, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
     }
 
     if ($null -ne $grandsubgenre) {
         Write-Host "    Grand-sub-genre: $grandsubgenre" -NoNewline
         $wrote = $true
         $howManyGrandSubGenreFolders++
+        $grandsubgenre = $grandsubgenre.Substring(1)
+        Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$grandsubgenre', 'published folders', 3, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
     }   
 
     if ($wrote) {
