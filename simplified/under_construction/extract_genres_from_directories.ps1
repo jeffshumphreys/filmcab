@@ -15,33 +15,98 @@ param()
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
 $howManyGenreFolders = 0
+$howManySubGenreFolders = 0
+$howManyGrandSubGenreFolders = 0
 
 # Fetch a string array of paths to search.
 
 $loop_sql = "
 SELECT 
      directory_path                      /* What we are going to search for new files     */
-   , directory_hash                      /* Links back to directories table               */
-   , is_symbolic_link                    /* Don't go into these?                          */
-   , is_junction_link                    /* We'll still want to log things added to these */
-   , root_genre
-   , sub_genre
+  ,  useful_part
 FROM 
-    directories
+    directories_ext_v
 ";
 
 $readerHandle = Walk-Sql $loop_sql
 $reader = $readerHandle.Value # Now we can unbox!  Ta da!
               
 While ($reader.Read()) {
-    # 
+    $directory_path = Get-SqlFieldValue $readerHandle directory_path
+    $useful_part = Get-SqlFieldValue $readerHandle useful_part
+
+    # split it into parts
+
+    $directory_folders = $useful_part -split '\\'
+    $genre = $null
+    $subgenre = $null
+    $grandsubgenre = $null
+
+    if ($directory_folders.Length -ge 1) {
+        $genre_candidate = $directory_folders[0] # _Sci Fi, _Comedy, __Julie might want to watch
+        if ((Left $genre_candidate 1) -eq '_' -and (Left $genre_candidate 2) -ne '__') {
+            $genre = $genre_candidate
+        }
+    } else {
+        $genre = $null
+        $subgenre = $null
+    }
+        
+    if ($directory_folders.Length -ge 2) {
+        $subgenre_candidate = $directory_folders[1]
+        if ((Left $subgenre_candidate 1) -eq '_' -and (Left $subgenre_candidate 2) -ne '__' )
+        {
+            $subgenre = $subgenre_candidate
+        }
+    }                                      
+
+    if ($directory_folders.Length -ge 3) {
+        $grandsubgenre_candidate = $directory_folders[2]
+        if ((Left $grandsubgenre_candidate 1) -eq '_' -and (Left $grandsubgenre_candidate 2) -ne '__' )
+        {
+            $grandsubgenre = $subgenre_candidate
+        }
+    }                                      
+              
+    $wrote = $false
+    $escaped_directory_path = $directory_path.Replace("'", "''")
+    if ($null -ne $genre) {
+        Write-Host "Genre: $genre" -NoNewline
+        $wrote = $true
+        $howManyGenreFolders++                             
+        $genre = $genre.Substring(1)
+        Invoke-Sql "UPDATE directories set root_genre = '$genre' where directory_path = '$escaped_directory_path'"|Out-Null
+    }                             
+
+    if ($null -ne $subgenre) {
+        Write-Host "  Sub-genre: $subgenre"  -NoNewline
+        $wrote = $true
+        $howManySubGenreFolders++
+        $subgenre = $subgenre.Substring(1)
+        Invoke-Sql "UPDATE directories set sub_genre = '$subgenre' where directory_path = '$escaped_directory_path'"|Out-Null
+    }
+
+    if ($null -ne $grandsubgenre) {
+        Write-Host "    Grand-sub-genre: $grandsubgenre" -NoNewline
+        $wrote = $true
+        $howManyGrandSubGenreFolders++
+    }   
+
+    if ($wrote) {
+        Write-Host
+        
+    }
+    
+    
 }
 
 
 # Display counts. If nothing is happening in certain areas, investigate.
 Write-Host # Get off the last nonewline
 Write-Host
-Write-Host "How many genres directories were found:                      $howManyGenreFolders"           $(Format-Plural 'Directory' $howManyGenreFolders) 
+Write-Host "How many genre directories were found:                      $howManyGenreFolders"           $(Format-Plural 'Directory' $howManyGenreFolders) 
+Write-Host "How many sub genre directories were found:                      $howManySubGenreFolders"           $(Format-Plural 'Directory' $howManySubGenreFolders) 
+Write-Host "How many grand sub genre directories were found:                      $howManyGrandSubGenreFolders"           $(Format-Plural 'Directory' $howManyGrandSubGenreFolders) 
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
