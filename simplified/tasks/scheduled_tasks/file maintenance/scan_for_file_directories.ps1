@@ -271,6 +271,9 @@ while ($searchPaths.Read()) {
                                is_junction_link, 
                                linked_path,
                                search_path_id,
+                               folder,
+                               parent_folder,
+                               grandparent_folder
                                deleted
                         )
                     VALUES(
@@ -284,6 +287,9 @@ while ($searchPaths.Read()) {
                         /*     is_junction_link       */ $currentjunctionlink,
                         /*     linked_path            */ $preppednewlinktarget,
                         /*     search_path_id         */ $SearchPathId,
+                        /*     folder                 */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[1]),
+                        /*     parent_folder          */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[2]),
+                        /*     grantparent_folder     */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[3]),
                         /*     deleted                */  False
                     )
                 "
