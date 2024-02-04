@@ -1,5 +1,7 @@
 # FilmCab
-This repository is the code base for a Powershell desktop application that manages my movie and television collection, and also collects as much metadata as is available. I chose the name FilmCab as an abbreviation of Film Cabinet.  The cabinet itself is just physical drives, though, and this does more than that.  It's a film collector management program.  Perhaps FilmColl would be better.  But I've gotten attached to the name now.
+This repository is the code base for a set of Powershell scripts that manages my movie and television collection, and also collects as much metadata as is available. These are run by a generated set of Windows Scheduled Tasks daily.
+
+I chose the name FilmCab as an abbreviation of Film Cabinet.  The cabinet itself is just physical drives, though, and this does more than that.  It's a film collector management program.  Perhaps FilmColl would be better.  But I've gotten attached to the name now.
 
 The code is now all being rewritten using PowerShell 7 Core, ODBC, and PostgreSQL 15. I use the Visual Studio Code editor to write code, using the PowerShell Extension (Pre-Release Edition).  C++ and Qt are off the table for now.
 
