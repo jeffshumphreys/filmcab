@@ -13,10 +13,6 @@ param()
 
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
 
-# Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
-
-$FIFOstack = New-Object System.Collections.Queue
-
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
 $howManyNewDirectories = 0
