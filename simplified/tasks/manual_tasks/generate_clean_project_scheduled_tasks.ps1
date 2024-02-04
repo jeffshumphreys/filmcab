@@ -26,7 +26,7 @@ $ScheduledTaskDefsInSetOrderHandle = Walk-Sql '
         previous_uri,
         script_path_to_run,
         order_in_set
-    FROM simplified.scheduled_tasks_ext_v 
+    FROM scheduled_tasks_ext_v 
     ORDER BY 
         scheduled_task_run_set_id, 
         order_in_set
@@ -51,7 +51,7 @@ While ($ScheduledTaskDefsInSetOrder.Read()) {
           $triggerScript = "
           <CalendarTrigger>
           <StartBoundary>$RunStartTimestamp</StartBoundary>
-          <ExecutionTimeLimit>P3D</ExecutionTimeLimit>
+          <ExecutionTimeLimit>P3H</ExecutionTimeLimit>
           <Enabled>true</Enabled>
           <ScheduleByDay>
             <DaysInterval>1</DaysInterval>
