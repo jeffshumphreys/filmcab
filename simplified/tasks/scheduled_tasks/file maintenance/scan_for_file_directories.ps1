@@ -197,14 +197,13 @@ while ($searchPaths.Read()) {
             $oldsymboliclink            =  [boolean]$null
             $oldjunctionlink            =  [boolean]$null
             $oldlinktarget              =   [string]$null
-            $olddriveletter             =   [string]$null
+
             # For additional functionality later $olddirhash   [byte[]]$null
 
             $newdirectorydate = [datetime]0                       
             $newsymboliclink                =     [bool]$null
             $newjunctionlink            =     [bool]$null
             $newlinktarget              =   [string]$null
-            $newdriveletter               =   [string]$null
 
             if ($reader.HasRows) {
                 $foundANewDirectory         = $false
@@ -304,7 +303,7 @@ while ($searchPaths.Read()) {
                         is_symbolic_link       = $newsymboliclink,
                         is_junction_link       = $newjunctionlink,
                         linked_path  = $preppednewlinktarget,
-                        volume_id              = (SELECT volume_id FROM volumes WHERE drive_letter = '$newdriveletter'),
+                        volume_id              = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
                         deleted                =  False
                     WHERE 
                         directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
