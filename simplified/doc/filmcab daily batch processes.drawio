@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e" pages="5">
     <diagram id="uhVenVMci_FB2ow91k_3" name="Constant">
-        <mxGraphModel dx="2322" dy="-441" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1343" dy="-441" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -243,7 +243,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="vQOAEvg_pV3OeTKu6UQo" name="Early Morning">
-        <mxGraphModel dx="2908" dy="1198" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1343" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -996,16 +996,10 @@
         </mxGraphModel>
     </diagram>
     <diagram id="vJnDbLzX6k1mXkq5ZAXQ" name="Streams">
-        <mxGraphModel dx="1472" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="493" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="-XBaYcLAxqrIft2NRZOa-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="-XBaYcLAxqrIft2NRZOa-1" target="-XBaYcLAxqrIft2NRZOa-2" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="-XBaYcLAxqrIft2NRZOa-1" value="sanity_check_before_connection" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="330" y="40" width="190" height="30" as="geometry"/>
-                </mxCell>
                 <mxCell id="-XBaYcLAxqrIft2NRZOa-19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="-XBaYcLAxqrIft2NRZOa-2" target="-XBaYcLAxqrIft2NRZOa-6" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
@@ -1017,7 +1011,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="-XBaYcLAxqrIft2NRZOa-2" value="_set_new_batch_run_session_id" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="-XBaYcLAxqrIft2NRZOa-2" value="_start_new_batch_run_session" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="331" y="106" width="190" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="-XBaYcLAxqrIft2NRZOa-3" value="back_up_unbackedup_published_media" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
