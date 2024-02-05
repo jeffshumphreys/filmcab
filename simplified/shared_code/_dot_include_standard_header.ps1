@@ -26,6 +26,8 @@
     🙁 => Failed, opposite of success, but not a crash. Maybe the network wasn't available - and we caught it. Uncaught errors are probably crashes
 
     🤨 => Warning, concerned. Why'd we get that value?  
+
+    🤔 => placeholder: is this a good idea? I don't want to forget it, but not sure.
     
     💡  => I have an idea, a concept, it's barely conceived.
 
@@ -66,13 +68,21 @@
     🧙 => Wizard, no sure what exactly to apply to
     
     🔒 => Is locked, or does lock
+    
     💀 => This code or path or branch is dead, not being worked on
+    
     💩 => This code or program or module is crap.
+    
     🎭 => media files or streamed media, movies, films, tv shows, audio, print, pdfs. Could use 📕📚 for print.
+    
     📺 => for specifically TV stuff, maybe streaming
+    
     🐛 => bug!     
+    
     👓 => scan or flag for scanning
-    👴 => Code is showing its age
+
+    👴 => Code is showing its age                              
+
     💤, 😴 => Process is sleeping, or development has stagnated
 
     🏋️‍♂️ => Portion of code doing the majority of the work  
