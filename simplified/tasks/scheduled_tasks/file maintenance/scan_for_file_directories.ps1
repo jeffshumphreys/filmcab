@@ -192,7 +192,7 @@ while ($searchPaths.Read()) {
             $UpdateDirectoryRecord          =     [bool]$null
             $flagScanDirectory          =     [bool]$false
              
-            $olddirectorydeleted=     [boo]$false
+            $olddirectorydeleted=     [bool]$false
             $olddirectorydate               = [datetime]0     # No $nulls for datetime type.
             $oldsymboliclink            =  [boolean]$null
             $oldjunctionlink            =  [boolean]$null
@@ -273,7 +273,7 @@ while ($searchPaths.Read()) {
                                search_path_id,
                                folder,
                                parent_folder,
-                               grandparent_folder
+                               grandparent_folder,
                                deleted
                         )
                     VALUES(
