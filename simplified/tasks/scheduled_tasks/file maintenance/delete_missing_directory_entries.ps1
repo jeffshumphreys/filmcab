@@ -35,14 +35,14 @@ if ($DatabaseConnectionIsOpen) {
         $alreadyMarkedAsDeleted = $reader.GetBoolean(1)
 
         if (Test-Path -LiteralPath $directoryPath) {
-            Write-Host -NoNewline '=.' # Found          
+            Write-Host -NoNewline '=' # Found          
             $HowManyDirectoryEntriesMapToExistingDirectories++ 
             if ($alreadyMarkedAsDeleted) {                 
                 Invoke-Sql "UPDATE directories SET deleted = False WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
                 $HowManyDirectoryEntriesUpdated++
             }                                    
         } else {             
-            Write-Host -NoNewline '-.' # Missing
+            Write-Host -NoNewline '-' # Missing
             $HowManyDirectoryEntriesNoLongerMapToExistingDirectories++
             if (-not $alreadyMarkedAsDeleted) {
                 Invoke-Sql "UPDATE directories SET deleted = True WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
