@@ -64,11 +64,11 @@ if ($DatabaseConnectionIsOpen) {
                                                                     
     Write-Host # Get off the last nonewline
     Write-Host
-    Write-Host "How many file entries point to existing files:             $HowManyFileEntriesMapToExistingFiles"       $(Format-Plural 'FIle' $HowManyFileEntriesMapToExistingFiles) 
-    Write-Host "How many file entries no longer point to existing files:   $HowManyFileEntriesNoLongerMapToExistingFile"$(Format-Plural 'FIle' $HowManyFileEntriesNoLongerMapToExistingFile) 
-    Write-Host "How many file entries updated:                             $HowManyFileEntriesUpdated"                  $(Format-Plural 'FIle' $HowManyFileEntriesUpdated) 
-    Write-Host "How many file entries deleted:                             $HowManyFileEntriesDeleted"                  $(Format-Plural 'FIle' $HowManyFileEntriesDeleted) 
-    Write-Host "How many file entries undeleted:                           $HowManyFileEntriesUndeleted"                $(Format-Plural 'FIle' $HowManyFileEntriesUndeleted) 
+    Write-Host "How many file entries point to existing files:             $HowManyFileEntriesMapToExistingFiles"       $(Format-Plural 'File' $HowManyFileEntriesMapToExistingFiles) 
+    Write-Host "How many file entries no longer point to existing files:   $HowManyFileEntriesNoLongerMapToExistingFile"$(Format-Plural 'File' $HowManyFileEntriesNoLongerMapToExistingFile) 
+    Write-Host "How many file entries updated:                             $HowManyFileEntriesUpdated"                  $(Format-Plural 'File' $HowManyFileEntriesUpdated) 
+    Write-Host "How many file entries deleted:                             $HowManyFileEntriesDeleted"                  $(Format-Plural 'File' $HowManyFileEntriesDeleted) 
+    Write-Host "How many file entries undeleted:                           $HowManyFileEntriesUndeleted"                $(Format-Plural 'File' $HowManyFileEntriesUndeleted) 
 
 }
 
