@@ -1,4 +1,17 @@
 ﻿<#
+###### Mon Feb 5 16:34:35 MST 2024 The ONLY way to return an exit code:
+<Command>"C:\Program Files\PowerShell\7\pwsh.exe"</Command>   
+      <Command>"C:\Program Files\PowerShell\7\pwsh.exe"</Command>   
+      <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\test idea\test_tasks\test_bad_syntax_w_trap_and_set_exitcode_env.ps1'; exit $LASTEXITCODE"</Arguments>
+
+      KEY POINT IS THAT THERE MUST START WITH A "." (dot) in the Command string, or $LASTEXITCODE is null or zero.
+
+      Code must:
+      exit 5 # Populates $LASTEXITCODE
+
+      The value "5" is displayed in last run result of the Task Scheduler GUI screen:
+      formed as "(0x9)" Will test with > 9, should get "A"
+      
 property_id property_value                                                  
 ----------- --------------                                                  
           1 \GoogleUpdateTaskMachineUA{AFF76B46-DA4A-40B7-A0A6-9A0E506CD5DB}
