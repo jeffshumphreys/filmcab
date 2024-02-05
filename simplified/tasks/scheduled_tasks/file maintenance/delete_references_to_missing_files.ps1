@@ -23,7 +23,7 @@ $HowManyFileEntriesUndeleted = 0
 if ($DatabaseConnectionIsOpen) {
     $sql = "
     SELECT 
-        d.directory_path || '\' || f.file_name_no_ext || CASE WHEN final_extension <> '' THEN '.' || final_extension ELSE '' END AS file_path,
+        d.directory_path || '\' || f.file_name_no_ext || CASE WHEN f.final_extension <> '' THEN '.' || f.final_extension ELSE '' END AS file_path,
         COALESCE(f.deleted, False)                                                                                               AS file_deleted,
         f.file_id                                                                                                                AS file_id
     FROM 
@@ -42,7 +42,7 @@ if ($DatabaseConnectionIsOpen) {
         $fileId = $reader.GetInt32(2)
 
         if (Test-Path -LiteralPath $filePath) {
-            Write-Host -NoNewline '=.' # Found          
+            Write-Host -NoNewline '=' # Found          
             $HowManyFileEntriesMapToExistingFiles++ 
             if ($alreadyMarkedAsDeleted) {                 
                 Invoke-Sql "UPDATE files SET deleted = False WHERE file_id = $fileId" | Out-Null
@@ -50,7 +50,7 @@ if ($DatabaseConnectionIsOpen) {
                 $HowManyFileEntriesUndeleted++
             }                                    
         } else {             
-            Write-Host -NoNewline '-.' # Missing
+            Write-Host -NoNewline '-' # Missing
             $HowManyFileEntriesNoLongerMapToExistingFile++
             if (-not $alreadyMarkedAsDeleted) {
                 Invoke-Sql "UPDATE files SET deleted = True WHERE file_id = $fileId" | Out-Null
