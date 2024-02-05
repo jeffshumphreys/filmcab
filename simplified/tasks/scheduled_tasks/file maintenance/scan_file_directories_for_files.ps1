@@ -224,8 +224,8 @@ do {
 # Display counts. If nothing is happening in certain areas, investigate.
 Write-Host # Get off the last nonewline
 Write-Host
-Write-Host "How many new files were added:                      $howManyNewFiles"           $(Format-Plural 'Directory' $howManyNewFiles)  #TODO: Convert to the format that shows the number
-Write-Host "How many old files were updated:                    $howManyUpdatedFiles"       $(Format-Plural 'Directory' $howManyUpdatedFiles) 
+Write-Host "How many new files were added:                      $howManyNewFiles"           $(Format-Plural 'File' $howManyNewFiles)  #TODO: Convert to the format that shows the number
+Write-Host "How many old files were updated:                    $howManyUpdatedFiles"       $(Format-Plural 'File' $howManyUpdatedFiles) 
 Write-Host "How many rows were updated:                         $howManyRowsUpdated"        $(Format-Plural 'Row'       $howManyRowsUpdated) 
 Write-Host "How many rows were inserted:                        $hoWManyRowsInserted"       $(Format-Plural 'Row'       $hoWManyRowsInserted) 
 Write-Host "How many rows were deleted:                         $hoWManyRowsDeleted"        $(Format-Plural 'Row'       $hoWManyRowsDeleted) 
