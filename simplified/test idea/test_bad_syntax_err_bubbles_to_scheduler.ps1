@@ -13,3 +13,11 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 Write-Host $fh # Undefined variable referenced
+
+<#
+InvalidOperation: D:\qt_projects\filmcab\simplified\test idea\test_bad_syntax_err_bubbles_to_scheduler.ps1:15:12
+Line |
+  15 |  Write-Host $fh # Undefined variable referenced
+     |             ~~~
+     | The variable '$fh' cannot be retrieved because it has not been set.
+#>
