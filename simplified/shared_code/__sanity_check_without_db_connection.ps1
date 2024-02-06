@@ -100,8 +100,14 @@ $SanityCheckStatus = [PSCustomObject]@{
     # NetBIOS over Tcpip enabled?
     # Firewall, VPN, 
 }
+                                                                                          
+$LogDate = (Get-Date).Date.ToString('yyyy-MM-dd')
+$OutFilePath = "D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_$when`_$stage.json"
+$HistoryFilePath = "D:\qt_projects\filmcab\simplified\_log\__sanity_checks\history\$LogDate`__sanity_check_$when`_$stage.json"
 
-$SanityCheckStatus|ConvertTo-Json|Out-File "D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_$when`_$stage.json"
+$SanityCheckStatus|ConvertTo-Json|Out-File $OutFilePath
+
+Copy-Item $OutFilePath -Destination $HistoryFilePath
 
 # Open config.json in this directory, not some fucked up sub directory like Boise did.  What the f for?? One fucking file.
 
