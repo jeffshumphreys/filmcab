@@ -9,12 +9,16 @@
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param($stage = 'before_session_starts')
+param(
+    $when = 'without_db_connection',
+    $stage = 'before_session_starts')
 
 # DO NOT CONNECT TO DATABASE!!!!  This is to do the tests that should be done outside of structured persistence.
 
 $OS = '?'
-
+$ThisScriptPath = ($MyInvocation.Line.TrimStart('. ').Trim("'") -split ' ')[0]
+#$MyCommand = $MyInvocation.MyCommand
+#$MyInvocation|Select *
 $ScriptPath = $MyInvocation.ScriptName
 if ([String]::IsNullOrEmpty($ScriptPath)) {                                                                
     # So instead of "ScriptName", we've got "Line", "Statement", "MyCommand" (which is actually the Script Name), and "PositionMessage" which is a bit messy, but could be used to get the caller.
@@ -75,18 +79,20 @@ $SanityCheckStatus = [PSCustomObject]@{
     NicInterfaceGUID= $netstat.InterfaceGuid                                # 
     NicDriverLevel= $netstat.MediaType                                    # 802.3
     IPAddress = $IPState.IPAddress                                    # 
-    DNSAddress            = $DNSAddress[0]                                           #
+    DNSAddress            = $DNSAddress[0]                                        #
     IPAddressFamily= $IPState.AddressFamily.ToSTring()                     # IPv4
     IPAddressCameFromDHCP = $IPCameFromDHCP                                       # true
     GatewayState= $GatewayStat.State.ToString()                         # Alive
     GatewayIsStatic= $GatewayStat.IsStatic                                 # null
-    ScriptPath    = $ScriptPath                                           # D:\\qt_projects\\filmcab\\simplified\\__sanity_check_before_connection.ps1
+    ScriptPath    = $ThisScriptPath                                       # D:\qt_projects\filmcab\simplified\shared_code\__sanity_check_without_db_connection.ps1
+
     CurrentDirectory= [System.Environment]::CurrentDirectory
     NicUltraLowPowerMode = $NicUltraLowPowerMode.DisplayValue                    # Enabled
     AreWeInADomain = $AreWeInADomain.DomainAuthenticationKind.ToString()   # None
     NetworkCategory = $NetworkCategory.NetworkCategory.ToSTring()           # Private
     PowerShellEdition = $PSVersionTable.PSEdition
-    PowerShellPlatform =$PSVersionTable.Platform # Win32NT
+    PowerShellPlatform =$PSVersionTable.Platform # Win32NT                                                                                                        
+
     UserIsRunningInteractively = [Environment]::UserInteractive
     IsPrivilegedProcess = [Environment]::IsPrivilegedProcess
     # TypeOfRoute
@@ -95,7 +101,7 @@ $SanityCheckStatus = [PSCustomObject]@{
     # Firewall, VPN, 
 }
 
-$SanityCheckStatus|ConvertTo-Json|Out-File "D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_$stage.json"
+$SanityCheckStatus|ConvertTo-Json|Out-File "D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_$when`_$stage.json"
 
 # Open config.json in this directory, not some fucked up sub directory like Boise did.  What the f for?? One fucking file.
 
