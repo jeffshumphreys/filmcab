@@ -113,14 +113,14 @@ else {
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7\pwsh.exe"</Command>
-          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command "$scriptPathToRun; exit `$LASTEXITCODE"</Arguments>
+          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". '$scriptPathToRun'; exit `$LASTEXITCODE"</Arguments>
         </Exec>
       </Actions>
     </Task>    
 "@
            
 Register-ScheduledTask -Xml $taskXMLTemplate -TaskPath $scheduledTaskPath -TaskName $scheduledTaskName -User 'DSKTP-HOME-JEFF\jeffs' -Password 'Dill11ie!' -Force
-
+# TODO: push to github folders
 
 }
 
