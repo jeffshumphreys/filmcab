@@ -15,7 +15,7 @@ try {
   Write-Host $fh # Undefined variable referenced
 }
 catch {
-  SET LASTEXITCODE = 2
+  Set-Variable LASTEXITCODE = 2
 }
 <#
 
