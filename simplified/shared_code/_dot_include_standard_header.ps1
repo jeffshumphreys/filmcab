@@ -10,93 +10,6 @@
         Install-Module -Name 'PSRule' -Repository PSGallery -Scope CurrentUser           # https://microsoft.github.io/PSRule/stable/install-instructions/
 
         Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
-       
-    A pile of possible helpful icons for output.
-    🚨🛑🚚🏗⚓🧨🎉🎯🦺👑💡📼📀📒🔖💰💳📧📬✏📅📉📊📌📏⛏🛠🔧🔗⛓️‍💥⛓🧰💊🚪🚫🆕🆗🔴🔘🚩🏁🎌🏴‍☠️🏓❄🌪🚜🚑🐣🏃‍♂️👷🕵️‍♂️🙋‍♂️👈⚠🗯♻✂☢↩♾✳🌡☁🕹🎟🖥🎞🏷🗃🗄🗑🗝⚙⚰
-    ⛔, ❌, ❎  => Delete.                                   
-
-    ⭐, 🌟 => Added, inserted. Not great. 
-
-    📝, ✍ => Update or edit. No good update I can find. Suggested 🔄, but more like a Refresh. 🔨?
-
-    🥂, 👏 => Success, in terms of a feature completed.
-
-    💣 => Crashed. Not a captured fail. Also, 💥 which is collision, maybe a deadlock? Race condition?
-
-    🙁 => Failed, opposite of success, but not a crash. Maybe the network wasn't available - and we caught it. Uncaught errors are probably crashes
-
-    🤨 => Warning, concerned. Why'd we get that value?  
-
-    🤔 => placeholder: is this a good idea? I don't want to forget it, but not sure.
-    
-    💡  => I have an idea, a concept, it's barely conceived.
-
-    🚧 => Working on. Still good after 30 years.
-
-    👀 => Detected an event or error.                                                            
-
-    🔍 => Search for or a field allowing a user to enter search values.
-
-    📈, ✅, 👌, 👍, ✔.  => Verified correct.
-
-    🏭 => Factory
-
-    🌙 => "This process runs at night"
-
-    🧹 => clean up after.
-
-    📦 => A package that is to be delivered or made available for download.
-
-    📃 => Document, not necessarily a text document.       
-
-    🧪 => Test. 🎓 Passed all tests. Deployable.                                                                                              
-
-    ⏰=> Scheduled event or task, triggers an execution
-
-    ⚡ => Execute, start a process. Probably should be different between blocking and async.
-
-    ⏳ => Some unwanted but perhaps unavoidable delay. Long running process. OR, waiting for when more stuff has been written, then write this.
-
-    🐌 => Running reallly slow!
-
-    🌱 => Seed (as in, torrent?) Creation? 
-
-    🦄 => Very unlikely to happen
-
-    🐷 => Resource hog           
-
-    🧙 => Wizard, no sure what exactly to apply to
-    
-    🔒 => Is locked, or does lock
-    
-    💀 => This code or path or branch is dead, not being worked on
-    
-    💩 => This code or program or module is crap.
-    
-    🎭 => media files or streamed media, movies, films, tv shows, audio, print, pdfs. Could use 📕📚 for print.
-    
-    📺 => for specifically TV stuff, maybe streaming
-    
-    🐛 => bug!     
-    
-    👓 => scan or flag for scanning
-
-    👴 => Code is showing its age                              
-
-    💤, 😴 => Process is sleeping, or development has stagnated
-
-    🏋️‍♂️ => Portion of code doing the majority of the work  
-
-    🎲 => Random output, or quasi-random, or intermittent failure
-
-    🧮 => Counts? Database? Collection?
-
-    🌊 => Flood of data, tsunami of input or output. Flood of work.
-
-    🪓=> This needs refactoring
-    
-    🔁 => Try op again
-    
 #>                                                                                                
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')] # We don't need no stinkin' badges
@@ -144,8 +57,8 @@ param()
 
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
-    
-    # FYI: $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
 
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
@@ -196,6 +109,48 @@ param()
         }                                  
     }
 
+Function Format-Humanize($ob) {
+    if ($ob -is [Diagnostics.Stopwatch]) {
+        $ob = $ob.Elapsed
+    }                    
+    
+    if ($ob -is [timespan]) {
+        if ($elapsed.Days -gt 0) {
+            Format-Plural 'Day' $($elapsed.Days) -includeCount
+        }
+        elseif ($elapsed.Hours -gt 0) {
+            Format-Plural 'Hour' $($elapsed.Hours) -includeCount
+        }
+        elseif ($elapsed.Minutes -gt 0) {
+            Format-Plural 'Minute' $($elapsed.Minutes) -includeCount
+        }
+        elseif ($elapsed.Seconds -gt 0) {
+            Format-Plural 'Second' $($elapsed.Seconds) -includeCount
+        }
+        elseif ($elapsed.Milliseconds -gt 0) {
+            Format-Plural 'Millisecond' $($elapsed.Milliseconds) -includeCount
+        }
+        elseif ($elapsed.Microseconds -gt 0) {
+            Format-Plural 'Microsecond' $($elapsed.Microseconds) -includeCount
+        }
+        elseif ($elapsed.Ticks -gt 0) {
+            Format-Plural 'Tick' $($elapsed.Ticks) -includeCount
+        }
+    }
+}
+<#
+.SYNOPSIS
+More details on script activity.
+
+.DESCRIPTION
+Needs testing.
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
 Function Enable-PSScriptBlockLogging
 {
     $basePath = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' 
