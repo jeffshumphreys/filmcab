@@ -109,32 +109,48 @@ param()
         }                                  
     }
 
+    <#
+    .SYNOPSIS
+    Converts a time duration to a more readable form
+    
+    .DESCRIPTION
+    I always like to do this.  I want to see "1 Day" vs. "300000 Seconds"
+    
+    .PARAMETER ob
+    Parameter description
+    
+    .EXAMPLE
+    An example
+    
+    .NOTES
+    General notes
+    #>
 Function Format-Humanize($ob) {
     if ($ob -is [Diagnostics.Stopwatch]) {
         $ob = $ob.Elapsed
     }                    
     
     if ($ob -is [timespan]) {
-        if ($elapsed.Days -gt 0) {
-            Format-Plural 'Day' $($elapsed.Days) -includeCount
+        if ($ob.Days -gt 0) {
+            Format-Plural 'Day' $($ob.Days) -includeCount
         }
-        elseif ($elapsed.Hours -gt 0) {
-            Format-Plural 'Hour' $($elapsed.Hours) -includeCount
+        elseif ($ob.Hours -gt 0) {
+            Format-Plural 'Hour' $($ob.Hours) -includeCount
         }
-        elseif ($elapsed.Minutes -gt 0) {
-            Format-Plural 'Minute' $($elapsed.Minutes) -includeCount
+        elseif ($ob.Minutes -gt 0) {
+            Format-Plural 'Minute' $($ob.Minutes) -includeCount
         }
-        elseif ($elapsed.Seconds -gt 0) {
-            Format-Plural 'Second' $($elapsed.Seconds) -includeCount
+        elseif ($ob.Seconds -gt 0) {
+            Format-Plural 'Second' $($ob.Seconds) -includeCount
         }
-        elseif ($elapsed.Milliseconds -gt 0) {
-            Format-Plural 'Millisecond' $($elapsed.Milliseconds) -includeCount
+        elseif ($ob.Milliseconds -gt 0) {
+            Format-Plural 'Millisecond' $($ob.Milliseconds) -includeCount
         }
-        elseif ($elapsed.Microseconds -gt 0) {
-            Format-Plural 'Microsecond' $($elapsed.Microseconds) -includeCount
+        elseif ($ob.Microseconds -gt 0) {
+            Format-Plural 'Microsecond' $($ob.Microseconds) -includeCount
         }
-        elseif ($elapsed.Ticks -gt 0) {
-            Format-Plural 'Tick' $($elapsed.Ticks) -includeCount
+        elseif ($ob.Ticks -gt 0) {
+            Format-Plural 'Tick' $($ob.Ticks) -includeCount
         }
     }
 }
@@ -158,10 +174,14 @@ Function Enable-PSScriptBlockLogging
     if(-not (Test-Path $basePath)) {     
         $null = New-Item $basePath -Force     
         New-ItemProperty $basePath -Name "EnableScriptBlockLogging" -PropertyType Dword 
+        New-ItemProperty $basePath -Name "EnableInvocationHeader" -PropertyType Dword
+        New-ItemProperty $basePath -Name "OutputDirectory" -PropertyType String
     } 
     
     if ($amRunningAsAdmin) {
         Set-ItemProperty $basePath -Name "EnableScriptBlockLogging" -Value "1"
+        Set-ItemProperty $basePath -Name "EnableInvocationHeader" -Value "1"
+        # TODO: Set-ItemProperty $basePath -Name "OutputDirectory" -Value $OutputDirectory
     }
 }
 
@@ -232,6 +252,20 @@ function Show-Error {
     Write-Host "Message: $($_.Exception.Message)"
     Write-Host "StackTrace: $($_.Exception.StackTrace)"             
     Write-Host "Failed on $($_.InvocationInfo.ScriptLineNumber)"
+
+    $HResult = 0
+
+    if ($Exception) {
+    if ($Exception.InnerException) {
+        $HResult = $Exception.InnerException.HResult # 
+    } else {
+        $HResult = $Exception.HResult
+    }                              
+    if ($Exception.ErrorRecord) { Write-Host "Error Record= $($Exception.ErrorRecord)"}
+    # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
+    # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
+    }
+
     Get-PSCallStack
     
     try {
@@ -239,8 +273,9 @@ function Show-Error {
     } catch {}
     
     if (-not $DontExit) {                                                              # Double-negative. Meh.
-        exit($exitcode); # These don't seem to get back to the Task Scheduler 
+        exit $HResult # These SEEM to be getting back to Task Scheduler 
     }
+    return $HResult
 }
 
 Function PrepForSql {
@@ -601,6 +636,121 @@ function Get-SqlFieldValue {
     return $columnValue
 }
 
+function Log-Line {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=1, Mandatory=$false)][string] $Text,
+        [switch]$Restart
+    )
+    #$mtx = New-Object System.Threading.Mutex($false, 'FileMtx')
+    #[void] $mtx.WaitOne()
+    
+    if ($null -eq $Text) {
+        Write-LogLineToFile "*** null string" 
+    }
+    elseif ( '' -eq $Text) {
+        Write-LogLineToFile "*** empty string" 
+    } 
+    else {
+        
+        try{
+            $HashArguments = @{}
+            if ($Restart) {
+                $HashArguments = @{Force = $true}
+            } else {
+                $HashArguments = @{Append = $true}
+
+            }
+            Write-LogLineToFile $Text $HashArguments
+            #Write-LogLineToFile "Wrote line"
+        }catch{
+            $HashArguments = @{}
+            $err = $_.Exception.Message
+            Write-LogLineToFile "Catching"
+            Write-LogLineToFile "$err" 
+        }finally{
+            #[void] $mtx.ReleaseMutex()
+            #$mtx.Dispose()
+            #$HashArguments = @{}
+           
+        }
+    }
+}
+<#            
+.SYNOPSIS
+Yet another layer, but keeping the file name path, encoding, even that it's out to a file, that helps reduce code.
+
+.DESCRIPTION
+Long description
+
+.PARAMETER text
+Parameter description
+
+.PARAMETER arguments
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
+function Write-LogLineToFile {
+    param([string]$text, [hashtable]$arguments)
+    #"HERE"| Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
+    if ($null -eq $text) {
+        "NULL"|  Out-File "$Script:LogFilePath" -Encoding utf8 -Append
+    } 
+
+    if ($null -eq $arguments) {
+        $text | Out-File "$Script:LogFilePath" -Encoding utf8 -Append
+    } else {
+        $text | Out-File "$Script:LogFilePath" -Encoding utf8 @arguments
+    }
+    Write-VolumeCache D # So that log stuff gets written out in case of fatal crash
+}
+function Log-SqlConnection {
+    # Database, driver, etc. Even user!!!!!!!!!!!
+}
+
+function Log-Sql {
+
+}
+
+function Log-SqlError {
+
+}
+
+function Log-SqlChangedObject {
+    # New columns, indexes, constraints, updated function, new postgres version, new extensions
+}
+
+function Log-HttpRequest {
+
+}
+
+function Log-Wait {
+
+}
+function Log-SkipSection {
+
+}
+
+function Log-EmptyElseClause {
+
+}
+
+function Log-Unimplemented {
+
+}
+function Log-Branch {
+
+}
+
+function Log-OutOfBandValue {
+
+}
+
 <#
 .SYNOPSIS
 Get better data typing on a query's columns.
@@ -658,6 +808,16 @@ Start-Log
 Over complicated and adds risk and delay.  aka - Features.
 #>
 
+function Log-Stop {
+    $elapsedTime = $scriptTimer.Elapsed
+    $secondsRan = $elapsedTime.TotalSeconds
+    Log-Line "Stopping Normally after $secondsRan Second(s)"
+    # Timestamp
+    # Elapsed time in human form
+    # CPU used? etc.
+    # Rows written? Deleted? Updated? Found but no change?
+}
+
 function Start-Log {
     [CmdletBinding()]
     param(
@@ -667,6 +827,13 @@ function Start-Log {
     New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
     $DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up ordering.
     
+    $Script:LogDirectory = "$ScriptRoot\_log"
+    
+    New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
+                                                        
+    $Script:LogFileName = $ScriptName + '.log.txt' 
+    $Script:LogFilePath = $Script:LogDirectory + '\' + $Script:LogFileName
+
     # Header Line 1
     Log-Line "Starting Log $(Get-Date) on $((Get-Date).DayOfWeek) $DSTTag in $((Get-Date).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
     
@@ -696,18 +863,6 @@ function Start-Log {
         $determinorOfCaller = $processtree[1]
         $partofcmdline = $determinorOfCaller.CommandLine.SubString(0,100)
      
-        $allregisteredtasks = Import-Clixml -Path 'D:\qt_projects\filmcab\simplified\data\scheduled_tasks.xml' # Written periodically, sloooooow, especially if lots of tasks
-
-        if ($null -eq $allregisteredtasks) {
-            Log-Line "Error: cannot Get-ScheduledTask listing"
-        }
-        # Filter out disabled tasks as not eligible to have started this run
-
-        #$allregisteredtasks = $allregisteredtasks | Where-Object State -ne Disabled
-        $taskcount = $allregisteredtasks.Count
-        $msg = ("Have $taskcount registered tasks")
-        Log-Line $msg
-
         # Called from Windows Task Scheduler?
 
         if ($determinorOfCaller.Name -eq 'svchost.exe' -and $determinorOfCaller.CommandLine -ilike "*schedule*") {
@@ -1010,6 +1165,7 @@ Function Get-Property ($sourceob, $prop) {
 Function Has-Property ($sourceob, $prop) {
     return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
+ 
 
 <#
 .SYNOPSIS
@@ -1024,10 +1180,12 @@ An example
 .NOTES
 General notes
 #>
-function main_for_dot_include_standard_header() {
+Function main_for_dot_include_standard_header() {
     [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingCmdletAliases', '')]
     param()
-                                                                 
+                            
+    # Make sure the log folder is there
+
     $null = New-Item -Path D:\qt_projects\filmcab\simplified\_log -ItemType Directory -ErrorAction Ignore
     # https://adamtheautomator.com/powershell-logging-2/
 
@@ -1098,30 +1256,3 @@ function main_for_dot_include_standard_header() {
     }
 }
 main_for_dot_include_standard_header # So as not to collide with dot includer
-
-function Enable-PSTranscriptionLogging {
-	param(
-		[Parameter(Mandatory)]
-		[string]$OutputDirectory
-	)
-
-     # Registry path
-     $basePath = 'HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\Transcription'
-
-     # Create the key if it does not exist
-     if(-not (Test-Path $basePath))
-     {
-         $null = New-Item $basePath -Force
-
-         # Create the correct properties
-         New-ItemProperty $basePath -Name "EnableInvocationHeader" -PropertyType Dword
-         New-ItemProperty $basePath -Name "EnableTranscripting" -PropertyType Dword
-         New-ItemProperty $basePath -Name "OutputDirectory" -PropertyType String
-     }
-
-     # These can be enabled (1) or disabled (0) by changing the value
-     Set-ItemProperty $basePath -Name "EnableInvocationHeader" -Value "1"
-     Set-ItemProperty $basePath -Name "EnableTranscripting" -Value "1"
-     Set-ItemProperty $basePath -Name "OutputDirectory" -Value $OutputDirectory
- 
-}
