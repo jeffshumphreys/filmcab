@@ -32,6 +32,10 @@ function Start-Log {
     New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
     $DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"}
     
+    $LogFolder = "$ScriptRoot\_log"
+    New-Item -ItemType Directory -Force -Path $LogFolder
+                                                        
+    $LogFileName = '' 
     # Header 1
     Log-Line "Starting Log $(Get-Date) on $((Get-Date).DayOfWeek) $DSTTag in $((Get-Date).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
     
@@ -248,13 +252,13 @@ function Write-LogLineToFile {
     param([string]$text, [hashtable]$arguments)
     #"HERE"| Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
     if ($null -eq $text) {
-        "NULL"|  Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
+        "NULL"|  Out-File "$Script:LogFilePath" -Encoding utf8 -Append
     } 
 
     if ($null -eq $arguments) {
-        $text | Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
+        $text | Out-File "$Script:LogFilePath" -Encoding utf8 -Append
     } else {
-        $text | Out-File "$ScriptRoot\text.txt" -Encoding utf8 @arguments
+        $text | Out-File "$Script:LogFilePath" -Encoding utf8 @arguments
     }
     Write-VolumeCache D # So that log stuff gets written out in case of fatal crash
 }
