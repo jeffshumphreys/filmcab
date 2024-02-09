@@ -24,6 +24,14 @@ param()
 
 ############## Environment things FORCED on the user of this dot file.
 
+    # Flush all variables because new code above their definitions will RUN fine until to restart anything.
+
+    # WARNING: Error on line Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
+    ## You cannot call a method on a null-valued expression.
+    ###  $Result += $Global:__VSCodeOriginalPrompt.Invoke()
+    #### SOOOOOOOOOOOOOOO, I just need to shut down powershell EVERY FUCKING TIME I RUN?????????????
+    #  CANNOT DO: Get-Variable -Exclude PWD,*Preference | Remove-Variable -EA 0
+    
     # Stop on an error, please.  Lazy shits at City of Boise prefer scripts that NEVER error in production - even if there's an issue.
     $ErrorActionPreference = 'Stop'            
 
@@ -252,10 +260,10 @@ function Show-Error {
     Write-Host "Message: $($_.Exception.Message)"
     Write-Host "StackTrace: $($_.Exception.StackTrace)"             
     Write-Host "Failed on $($_.InvocationInfo.ScriptLineNumber)"
-
+    $Exception = $_.Exception
     $HResult = 0
 
-    if ($Exception) {
+    if (Test-Path variable:Exception) {
     if ($Exception.InnerException) {
         $HResult = $Exception.InnerException.HResult # 
     } else {
@@ -808,7 +816,7 @@ Start-Log
 Over complicated and adds risk and delay.  aka - Features.
 #>
 
-function Log-Stop {
+function Log-ScriptCompleted {
     $elapsedTime = $scriptTimer.Elapsed
     $secondsRan = $elapsedTime.TotalSeconds
     Log-Line "Stopping Normally after $secondsRan Second(s)"
@@ -823,6 +831,10 @@ function Start-Log {
     param(
         # i.e., Override filename
     )
+
+    # https://stackoverflow.com/questions/56551241/difference-between-a-runspace-and-external-request-in-powershell#56558837
+        # Internal = The command was dispatched by the msh engine as a result of a dispatch request from an already running command.
+        # Runspace = The command was submitted via a runspace.
 
     New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
     $DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up ordering.
@@ -1254,5 +1266,8 @@ Function main_for_dot_include_standard_header() {
         #Test $searchPathCursor = Out-SqlToArray 'SELECT search_path FROM search_paths ORDER BY search_path_id'
 
     }
+
+    Start-Log
 }
+
 main_for_dot_include_standard_header # So as not to collide with dot includer
