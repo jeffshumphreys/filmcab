@@ -31,9 +31,32 @@ param()
 # Da Fuutar!!!
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
 
+
 . D:\qt_projects\filmcab\simplified\shared_code\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
-                                                                                                                          
+
 # Copy and date days sanity checks to history
 
 # Compare  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_before_session_starts.json
 #      to  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_after_session_ends.json
+
+$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running"
+
+# Check if old session still marked as active
+
+if ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -eq 1) {
+
+    # STATE: batch run session flagged as still running. Probably means the zzz_end_batch_run_session never updated it? Crashed? Was debugging?
+
+    # Flush out the active marked record so we can start a new session.
+    
+    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', stopped = CURRENT_TIMESTAMP WHERE running" | Out-Null
+}                                                                          
+elseif ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -gt 1) {                         
+    # Broken table constraint, only possibility, so note it and crash.
+    throw [System.Exception]"ERROR: More than one session marked active: Query was 'SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running', STOPPING!"
+}                                                                                                                                                                         
+elseif ($null -eq $state_of_session) {
+    # No session active??
+    throw [Exception]"ERROR!: I'm running zzz_end_batch_run_session.ps1 AND NO SESSION IS ACTIVE!!!!"
+}
+
