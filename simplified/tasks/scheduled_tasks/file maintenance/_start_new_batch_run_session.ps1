@@ -29,18 +29,25 @@ $state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM 
 
 # Check if old session still marked as active
 
-if ($null -ne $state_of_session) {
-    # TODO: Check what's running??
-    # Check what time: Is it like midnight??
-    # Should child tasks lock the row?
+if ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -eq 1) {
+
+    # STATE: batch run session flagged as still running. Probably means the zzz_end_batch_run_session never updated it? Crashed? Was debugging?
 
     # Flush out the active marked record so we can start a new session.
     
-    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName' WHERE running" | Out-Null
+    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', stopped = CURRENT_TIMESTAMP WHERE running" | Out-Null
+}                                                                          
+elseif ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -gt 1) {                         
+    # Broken table constraint, only possibility, so note it and crash.
+    throw [System.Exception]"ERROR: More than one session marked active: Query was 'SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running', STOPPING!"
+}                                                                                                                                                                         
+elseif ($null -eq $state_of_session) {
+    # No session active?? Hopefully???
+    
 }
     
 # "Starts"
-Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran) VALUES('$scriptName')" | Out-Null
+Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_script) VALUES('$scriptName', '$scriptName')" | Out-Null
 
 # Get last id from batch_run_sessions table.                    
 
