@@ -12,7 +12,9 @@ Write-Host
 Format-Humanize $scriptTimer
 
 # Log-ScriptCompleted
-          
+
+Log-ScriptCompleted
+
 try {Stop-Transcript}catch{}
 
 exit 0
