@@ -826,6 +826,8 @@ function Log-ScriptCompleted {
     # Rows written? Deleted? Updated? Found but no change?
 }
 
+$Script:Caller = 'TBD'
+
 function Start-Log {
     [CmdletBinding()]
     param(
@@ -879,6 +881,8 @@ function Start-Log {
 
         if ($determinorOfCaller.Name -eq 'svchost.exe' -and $determinorOfCaller.CommandLine -ilike "*schedule*") {
             Log-Line "Called from Windows Task Scheduler"
+            $Script:Caller = 'Windows Task Scheduler'
+
             # Get a list of all defined tasks on this machine. We want to match our execute and arguments to 1 or more tasks' actions.
             # Hopefully we can guess at which one called us.
 
@@ -920,8 +924,10 @@ function Start-Log {
             
         } elseif ($determinorOfCaller.Name -eq 'Code.exe') {
             Log-Line "Called whilest in Visual Code Editor"
+            $Script:Caller = 'Visual Code Editor'
         } else {
             Log-Line "Caller not detected"
+            $Script:Caller = ($determinorOfCaller.CommandLine)
             Log-Line ($determinorOfCaller.CommandLine)
             # Other callers could be the command line, JAMS, a bat file, another powershell script, that one at Simplot, the other one at Ivinci, the one at BofA
         }
@@ -930,6 +936,7 @@ function Start-Log {
     }
     else {
         Log-Line "gfgfasgadgads"
+        $Script:Caller = 'ProcessTree Count less than 2'
     }
     if (1 -eq 0) {
         $ordinal = 0
