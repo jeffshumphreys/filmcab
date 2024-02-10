@@ -21,11 +21,12 @@ param()
 #      to  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_after_session_ends.json (yesterdays)
 
 # The header includes the database connection
+
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1 
                                                                             
 # . D:\qt_projects\filmcab\simplified\__sanity_check_with_db_connection.ps1
 #
-$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running"
+$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running" -DontWriteSqlToConsole
 
 # Check if old session still marked as active
 
