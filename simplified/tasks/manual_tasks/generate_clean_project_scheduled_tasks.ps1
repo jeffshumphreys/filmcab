@@ -51,7 +51,7 @@ While ($ScheduledTaskDefsInSetOrder.Read()) {
           $triggerScript = "
           <CalendarTrigger>
           <StartBoundary>$RunStartTimestamp</StartBoundary>
-          <ExecutionTimeLimit>P3H</ExecutionTimeLimit>
+          <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
           <Enabled>true</Enabled>
           <ScheduleByDay>
             <DaysInterval>1</DaysInterval>
@@ -107,7 +107,7 @@ else {
         <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
         <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
         <WakeToRun>true</WakeToRun>
-        <ExecutionTimeLimit>PT03H</ExecutionTimeLimit>
+        <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
         <Priority>7</Priority>
       </Settings>
       <Actions Context="Author">
