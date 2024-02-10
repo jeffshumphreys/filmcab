@@ -56,3 +56,8 @@ x.xsd
 
 # I want one copy of these, but not sure how to accomplish as more of these get added. every day, a new one.
 simplified/shared_code/private_functions.ps1
+simplified/_log/__sanity_checks/history/*__sanity_check_without_db_connection_after_session_ends.json
+simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
+simplified/shared_code/_log/zzz_end_batch_run_session.ps1.log.txt
+simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
+simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
