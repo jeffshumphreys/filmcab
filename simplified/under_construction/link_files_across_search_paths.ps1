@@ -4,6 +4,7 @@
  #    Status: Conception
  #    ###### Sat Feb 3 22:20:01 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ # TODO: ignore deleted files???
  #>
  
 
