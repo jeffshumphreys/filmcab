@@ -49,7 +49,7 @@ if ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -eq 1) {
 
     # Flush out the active marked record so we can start a new session.
     
-    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', stopped = CURRENT_TIMESTAMP WHERE running" | Out-Null
+    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', stopped = CURRENT_TIMESTAMP, caller_stopping = '$Script:Caller' WHERE running" | Out-Null
 }                                                                          
 elseif ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -gt 1) {                         
     # Broken table constraint, only possibility, so note it and crash.
