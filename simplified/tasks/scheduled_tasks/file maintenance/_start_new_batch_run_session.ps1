@@ -35,7 +35,7 @@ if ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -eq 1) {
 
     # Flush out the active marked record so we can start a new session.
     
-    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', stopped = CURRENT_TIMESTAMP WHERE running" | Out-Null
+    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', marking_stopped_after_overrun = CURRENT_TIMESTAMP WHERE running" | Out-Null
 }                                                                          
 elseif ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -gt 1) {                         
     # Broken table constraint, only possibility, so note it and crash.
@@ -47,7 +47,7 @@ elseif ($null -eq $state_of_session) {
 }
     
 # "Starts"
-Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_script) VALUES('$scriptName', '$scriptName')" | Out-Null
+Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_script, caller, caller_starting) VALUES('$scriptName', '$scriptName', '$Script:Caller', '$Script:Caller')" | Out-Null
 
 # Get last id from batch_run_sessions table.                    
 
