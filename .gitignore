@@ -64,3 +64,5 @@ simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
 simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
 simplified/shared_code/_log/generate_clean_project_scheduled_tasks.ps1.log.txt
 simplified/_data/.~lock.user_excel_interface.xlsx#
+simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
+simplified/shared_code/_log/vacuum_database.ps1.log.txt
