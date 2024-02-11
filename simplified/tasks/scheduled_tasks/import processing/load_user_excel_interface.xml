@@ -3,14 +3,20 @@
       <RegistrationInfo>
         <Date>2024-02-10T20:47:34.0003171</Date>
         <Author>DSKTP-HOME-JEFF\jeffs</Author>
-        <Description>Part of FilmCab, a scan through directories marked to scan. The hashing takes a looooong time. MUST run after scan_for_file_directories.. # 12</Description>
-        <URI>\FilmCab\file maintenance\scan_file_directories_for_files</URI>
+        <Description>Part of FilmCab, loads a specific user-facing spreadsheet into a table for matching to what we have and are downloading. Eventually a GUI will probably do this.. # 8</Description>
+        <URI>\FilmCab\user processing\load_user_excel_interface</URI>
       </RegistrationInfo>
       <Triggers>
-                    <EventTrigger>
-            <Enabled>true</Enabled>
-            <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='\FilmCab\file maintenance\delete_references_to_missing_files']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
-          </EventTrigger>
+        
+          <CalendarTrigger>
+          <StartBoundary>2024-02-10T00:21:00.0000000</StartBoundary>
+          <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
+          <Enabled>true</Enabled>
+          <ScheduleByDay>
+            <DaysInterval>1</DaysInterval>
+          </ScheduleByDay>
+        </CalendarTrigger>
+          
       </Triggers>
       <Principals>
         <Principal id="Author">
@@ -43,7 +49,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7\pwsh.exe"</Command>
-          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\scan_file_directories_for_files.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\import processing\load_user_excel_interface.ps1'; exit $LASTEXITCODE"</Arguments>
         </Exec>
       </Actions>
     </Task>    
