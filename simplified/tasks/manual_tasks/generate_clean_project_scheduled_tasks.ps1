@@ -1,7 +1,7 @@
 <#
- #    FilmCab Generations scripts
+ #    FilmCab Generations scripts for Windows Task Scheduler.
  #    Called manually for now
- #    Status: Writing, conception not finalized
+ #    Status: In production, adding functionality
  #    ###### Sat Feb 3 15:13:56 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
@@ -13,6 +13,7 @@ param()
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
 
 $SharedTimestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fffffff' # All tasks will have same timestamp.
+# TODO: Check warning column for misaligned names
 
 $ScheduledTaskDefsInSetOrderHandle = Walk-Sql '
     SELECT 
@@ -20,12 +21,14 @@ $ScheduledTaskDefsInSetOrderHandle = Walk-Sql '
         run_start_time,
         scheduled_task_directory,
         scheduled_task_name,
+        scheduled_task_run_set_name,
         uri,
         scheduled_task_short_description,
         previous_task_name,
         previous_uri,
         script_path_to_run,
-        order_in_set
+        order_in_set,
+        execution_time_limit
     FROM scheduled_tasks_ext_v 
     ORDER BY 
         scheduled_task_run_set_id, 
@@ -44,6 +47,8 @@ While ($ScheduledTaskDefsInSetOrder.Read()) {
     $scheduledTaskShortDescription = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_short_description
     $PreviousTaskName= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle previous_task_name
     $scriptPathToRun= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle script_path_to_run
+    $execution_time_limit= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle execution_time_limit
+    $scheduled_task_run_set_name= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_run_set_name
       
     $triggerScript = ""
 
@@ -107,7 +112,7 @@ else {
         <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
         <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
         <WakeToRun>true</WakeToRun>
-        <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
+        <ExecutionTimeLimit>$execution_time_limit</ExecutionTimeLimit>
         <Priority>7</Priority>
       </Settings>
       <Actions Context="Author">
@@ -123,8 +128,9 @@ if (-not (Test-Path $scriptPathToRun)) {
   throw [Exception]"Path <$scriptPathToRun> Does not exist! Fix!"
 }
 Register-ScheduledTask -Xml $taskXMLTemplate -TaskPath $scheduledTaskPath -TaskName $scheduledTaskName -User 'DSKTP-HOME-JEFF\jeffs' -Password 'Dill11ie!' -Force
-# TODO: push to github folders
-
+# TODO: Get file if there. compare: if no different, do not push. Ignore the datestamp.
+$path_to_XML = $scriptPathToRun.Replace('.ps1', '.xml').Replace($scheduled_task_run_set_name, $scheduled_task_run_set_name + '\_task_defs')
+$taskXMLTemplate | Out-File $path_to_XML -Force
 }
 
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
