@@ -876,7 +876,15 @@ function Start-Log {
 
     if ($processtree.Count -ge 2) {
         $determinorOfCaller = $processtree[1]
-        $partofcmdline = $determinorOfCaller.CommandLine.SubString(0,100)
+        if ($null -eq $determinorOfCaller.CommandLine) { 
+            Log-Line "processtree 1 CommandLine is null"
+        } else {
+            Log-Line "processtree 1 CommandLine is not null: $($determinorOfCaller.CommandLine)" # C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
+        }
+                                                        
+        $partofcmdline = $determinorOfCaller.CommandLine
+
+        if ($partofcmdline.Length -gt 100) {$partofcmdline = $determinorOfCaller.CommandLine.SubString(0,100)}
      
         # Called from Windows Task Scheduler?
 
