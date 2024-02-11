@@ -1,4 +1,7 @@
-﻿############### Test a Time (calendar) trigger
+﻿[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
+param()
+############### Test a Time (calendar) trigger
 $taskName = '_start_new_batch_run_session'
 ############### Test an Event trigger
 $taskName = 'back_up_unbackedup_published_media'
