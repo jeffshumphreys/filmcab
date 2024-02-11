@@ -15,21 +15,21 @@ $xmlfilter = @"
 $recentTaskEvents = Get-WinEvent -LogName 'Microsoft-Windows-TaskScheduler/Operational' -FilterXPath $xmlfilter -MaxEvents 20|
 Select `
     @{Name = 'event_id'              ; Expression = {$_.RecordId}},     # A rollover record id, but it gives us something to reference singular events. Sort of.
-    @{Name = 'correlation_id'        ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string. aka correlation_id
+    @{Name = 'correlation_id'        ; Expression = {$_.ActivityId.Guid}},     # Somehow, this is storing nulls instead of empty string. aka correlation_id
     @{Name = 'event_type_id'         ; Expression = {$_.Id}}            ,
     @{Name = 'event_type_name'       ; Expression={$_.TaskDisplayName}},   # is it taskdisplay? event code? event id?
     @{Name = 'event_created'         ; Expression= {$_.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss:ffffff')}},
     @{Name = 'task_version'          ; Expression= {$_.Version}},          # I think this is the task version?
     @{Name='TaskFullPath'            ; Expression = {$_.Properties[0].Value}},
+    @{Name='process_id'              ; Expression = {$_.Properties[2].Value}},
     @{Name='TriggerType'             ; Expression = {
         if ($_.Message -match 'time trigger'){'Time'} <# Essentially, Scheduler #>
         elseif ($_Id -eq 108) {'Event'}
         elseif ($_Id -eq 119) {'Logon'}
-        elseif ($_Id -eq 109) {'Registration'}           <# Uh, ImmediateTrigger?? #>
+        elseif ($_Id -eq 109) {'Registration'}           <# Uh, aka ImmediateTrigger?? #>
         elseif ($_Id -eq 110) {'User'}
-        elseif ($_Id -eq 108) {'Event'}
         elseif ($_Id -eq 117) {'Idle'}
-        elseif ($_Id -eq 118) {'Startup'} <# No shutdown trigger #>
+        elseif ($_Id -eq 118) {'Startup'}                      <# No shutdown trigger #>
         elseif ($_Id -eq 120) {'Local Console Connect'}
         elseif ($_Id -eq 121) {'Local Console Disconnect'}
         elseif ($_Id -eq 122) {'Remote Console Connect'}       <# Uhhhhhh, Huh? #>
@@ -38,6 +38,33 @@ Select `
         elseif ($_Id -eq 125) {'Unlock'}
         elseif ($_Id -eq 145) {'Unsuspended'} # 145 Task triggered by coming out of suspend mod
     }}
+
+$mostRecentEvent = @($recentTaskEvents|Group event_created)[0]|Select -ExpandProperty Group|Select event_id, correlation_id, event_type_id, event_created
+$mostRecentCorrelationId = $mostRecentEvent.correlation_id
+
+$lastSetOfCorrelatedEvents = $recentTaskEvents|Where correlation_id -eq $mostRecentCorrelationId
+
+##$lastSetOfCorrelatedEvents|Sort event_id|Format-Table
+
+$firstEventIdInSet = @($lastSetOfCorrelatedEvents|Sort event_id)[0].event_id
+$lastEventIdInSet = @($lastSetOfCorrelatedEvents|Sort event_id -Descending)[0].event_id
+
+$lastEventCode = $lastSetOfCorrelatedEvents|Where event_id -eq $lastEventIdInSet
+$triggeredBy = $lastSetOfCorrelatedEvents|Where event_type_id -in @(108, 119, 109, 110, 117 ,118, 120, 121, 122, 123, 124, 125, 145)
+
+$recentTaskEvents|Where correlation_id -eq $null|Where event_id -gt $firstEventIdInSet|Where event_id -lt $lastEventIdInSet|Where event_type_name -eq 'Created Task Process'|
+Select event_id,
+@{Name='correlation_id'              ; Expression = {$mostRecentCorrelationId}},
+@{Name='last_event_type_id'          ; Expression = {$lastEventCode.event_type_id}},
+@{Name='last_event_type'             ; Expression = {$lastEventCode.event_type_name}},
+@{Name='triggered_by_event_type_id'  ; Expression = {$triggeredBy.event_type_id}},
+@{Name='triggered_by_event_type'     ; Expression = {$triggeredBy.event_type_name}},
+process_id,
+event_created,
+task_version
+
+#TODO: Grab task def and identity what events and tasks could trigger this.
+#Question: Does an event trigger on task B for task A generate a task registraion updated event on task A? Hmmmmmmmmm.
 
     #### Failure to launch
         # 130 Launch condition not met, service busy
