@@ -44,6 +44,7 @@ Scripts/
 General/
 # https://git-scm.com/docs/gitignore#_pattern_format
 */_log/*.log
+*/_log/*.log.txt
 */_data/*.xml
 */_data/*.xlsx
 */_data/*.csv
@@ -58,11 +59,3 @@ x.xsd
 simplified/shared_code/private_functions.ps1
 simplified/_log/__sanity_checks/history/*__sanity_check_without_db_connection_after_session_ends.json
 simplified/_log/__sanity_checks/history/*__sanity_check_without_db_connection_before_session_starts.json
-simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
-simplified/shared_code/_log/zzz_end_batch_run_session.ps1.log.txt
-simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
-simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
-simplified/shared_code/_log/generate_clean_project_scheduled_tasks.ps1.log.txt
-simplified/_data/.~lock.user_excel_interface.xlsx#
-simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
-simplified/shared_code/_log/vacuum_database.ps1.log.txt
