@@ -59,3 +59,4 @@ x.xsd
 simplified/shared_code/private_functions.ps1
 simplified/_log/__sanity_checks/history/*__sanity_check_without_db_connection_after_session_ends.json
 simplified/_log/__sanity_checks/history/*__sanity_check_without_db_connection_before_session_starts.json
+simplified/_data/.~lock.*.xlsx#
