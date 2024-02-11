@@ -119,6 +119,9 @@ else {
     </Task>    
 "@
            
+if (-not (Test-Path $scriptPathToRun)) {
+  throw [Exception]"Path <$scriptPathToRun> Does not exist! Fix!"
+}
 Register-ScheduledTask -Xml $taskXMLTemplate -TaskPath $scheduledTaskPath -TaskName $scheduledTaskName -User 'DSKTP-HOME-JEFF\jeffs' -Password 'Dill11ie!' -Force
 # TODO: push to github folders
 
