@@ -108,7 +108,7 @@ Select @{Name = 'event_type_id'      ; Expression = {$_.Id}}            ,
     @{Name = 'event_message'         ; Expression= {$_.Message}}    ,
     @{Name = 'event_message_template'; Expression= {[string]$null}}  ,       # Filled in later
     @{Name = 'user_id'               ; Expression = {$_.UserId.Value}},     # UserId is a PSCustomObject, so take the string value
-    @{Name = 'activity_id'           ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string. aka correllation_id
+    @{Name = 'activity_id'           ; Expression = {$_.ActivityId}},     # Somehow, this is storing nulls instead of empty string. aka correlation_id
     @{Name = 'record_id'             ; Expression = {$_.RecordId}},     # A rollover record id, but it gives us something to reference singular events. Sort of.
     @{Name='Account'; Expression = {
         if ($_.Id -in @(711)) {
@@ -561,7 +561,7 @@ Select  record_id,
         event_type_name, 
         event_created,                                   
         @{Name='task_full_path'                       ; Expression={$_.TaskName}}, 
-        @{Name='event_created_as_sortable_str_with_ms'; Expression={$_.event_created.ToString('yyyy-MM-dd HH:mm:ss:fffff')}},  # The default output of datetime is only to seconds, and many of these related events are within milliseconds of each other, so ordering and understanding is improved when we can see which came first, and not depend on record_id
+        @{Name='event_created_as_sortable_str_with_ms'; Expression={$_.event_created.ToString('yyyy-MM-dd HH:mm:ss:ffffff')}},  # The default output of datetime is only to seconds, and many of these related events are within milliseconds of each other, so ordering and understanding is improved when we can see which came first, and not depend on record_id
         @{Name='UserName'                             ; Expression={$_.UserName -eq '' ? $null : $_.UserName.Replace($computer + '\', '')}}, 
         @{Name='UserContext'                          ; Expression={$_.UserContext -eq '' ? $null : $_.UserContext.Replace($computer + '\', '')}}|
         Select *,
