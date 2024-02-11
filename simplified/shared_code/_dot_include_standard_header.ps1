@@ -323,6 +323,7 @@ function Invoke-Sql {
     )
     try {
         $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set?
+        $DatabaseCommand.CommandTimeout = 0
 
         # Hypothetically, you could determine if the sql was a select or an update/insert, and run the right function?
 
