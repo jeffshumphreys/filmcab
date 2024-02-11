@@ -1,7 +1,7 @@
 {
     "project" : "filmcab",  
     "project_pretty_title": "FilmCab",     
-    "local_path": 
+    "local_path": "D:\\qt_projects\\filmcab", 
     "developer": "Jeffrey Scott Humphreys",
     "github_paths": {
         "source": "https://github.com/jeffshumphreys/filmcab",
