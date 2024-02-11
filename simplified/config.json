@@ -1,0 +1,16 @@
+{
+    "project" : "filmcab",  
+    "project_pretty_title": "FilmCab",     
+    "local_path": 
+    "developer": "Jeffrey Scott Humphreys",
+    "github_paths": {
+        "source": "https://github.com/jeffshumphreys/filmcab",
+        "project_issues": "https://github.com/users/jeffshumphreys/projects/2"
+    },
+    "subfolder": "simplified",
+    "database": "filmcab",        
+    "database_implementation": "PostgreSQL",
+    "code_language": "PowerShell",
+    "workflow_scheduling": "Windows Task Scheduler",
+    "documentation_app": "GitBook"
+}
