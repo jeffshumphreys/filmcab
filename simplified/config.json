@@ -10,7 +10,11 @@
     "subfolder": "simplified",
     "database": "filmcab",        
     "database_implementation": "PostgreSQL",
+    "database_driver": "??",
     "code_language": "PowerShell",
     "workflow_scheduling": "Windows Task Scheduler",
-    "documentation_app": "GitBook"
+    "documentation_app": "GitBook",
+    "subtitle_language": "English",
+    "code_written_language": "English",
+    "log_methods" : { "PS Transcripts":"", "Out-File":""}
 }
