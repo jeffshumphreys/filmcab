@@ -14,6 +14,7 @@
     "database_implementation": "PostgreSQL",   
     "database_main_version_no": 15,
     "database_driver": "PostgreSQL Unicode(x64)",
+    "min_database_interface_requirement": "ODBC",
     "code_language": "PowerShell",
     "workflow_scheduling": "Windows Task Scheduler",
     "documentation_app": "GitBook",
