@@ -13,9 +13,9 @@
  
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
 Log-Line "Starting Vacuum"                                                      
+###### Sun Feb 11 17:17:35 MST 2024 "VACUUM (FULL, VERBOSE)" takes 31+ minutes
 ####### Sun Feb 11 17:17:19 MST 2024 "VACUUM" takes < 3 minutes
 ###### Sun Feb 11 18:17:39 MST 2024 VACUUM VERBOSE took a second after above.  Where does the output go?
-###### Sun Feb 11 17:17:35 MST 2024 "VACUUM (FULL, VERBOSE)" takes 31+ minutes
 
 Invoke-Sql 'VACUUM (FULL, VERBOSE);' # Where does the output go?
 Log-Line "Done Vacuuming"
