@@ -347,7 +347,7 @@ $reader = $readerHandle.Value
 While ($reader.Read()) {
 } 
 
-$reader.Close()
+$reader.Close() # Optional
 
 
 .NOTES
@@ -873,7 +873,7 @@ function Start-Log {
 
     # If being run inside Visual Code editor: Explorer.exe -> Code.exe -> Code.exe ->powershell.exe
     # If being run from Scheduler: wininit.exe -> services.exe -> svchost.exe -> powershell.exe
-
+    # cmd  /K "chcp 1252"
     if ($processtree.Count -ge 2) {
         $determinorOfCaller = $processtree[1]
         if ($null -eq $determinorOfCaller.CommandLine) { 
@@ -896,44 +896,47 @@ function Start-Log {
             # Hopefully we can guess at which one called us.
 
     
-            $cmdlineofstartargs = $processtree[0].CommandLinewhi
+            $cmdlineofstartargs = $processtree[0].CommandLine
             Log-Line "Scanning Get-ScheduledTasks"
             Log-Line $cmdlineofstartargs
 
-            $possibleTaskCallingMe = $allregisteredtasks|Where-Object CommandLine -eq $cmdlineofstartargs
-            if ($null -eq $possibleTaskCallingMe) {
-                Log-Line "Null count"
-            } else {
-                Log-Line "Found some tasks"
-            }
-            $howmanyfound = $possibleTaskCallingMe.Count
+            # $possibleTaskCallingMe = $allregisteredtasks|Where-Object CommandLine -eq $cmdlineofstartargs
+            # if ($null -eq $possibleTaskCallingMe) {
+            #     Log-Line "Null count"
+            # } else {
+            #     Log-Line "Found some tasks"
+            # }
+            # $howmanyfound = $possibleTaskCallingMe.Count
            
-            Log-Line "Finished Scanning"
-            if ($null -eq $howmanyfound -or $howmanyfound -eq 0) {  #THIS LINE FAILS TO DO ANYTHING
-                Log-Line "None found"
-            } else {
-                Log-Line "Some found"
-            }
+            # Log-Line "Finished Scanning"
+            # if ($null -eq $howmanyfound -or $howmanyfound -eq 0) {  #THIS LINE FAILS TO DO ANYTHING
+            #     Log-Line "None found"
+            # } else {
+            #     Log-Line "Some found"
+            # }
         
             Log-Line "Finished Scanning (2)"
             exit
 
-            if ($howmanyfound -eq 1) {
-                $TaskThatProbablyCalledUs = $possibleTaskCallingMe.Uri
-                Log-Line "Task that probably called us is <$TaskThatProbablyCalledUs>"
-            }
-            elseif ($howmanyfound -ge 2) {
-                Log-Line "Found $howmanyfound Tasks with same command line + arguments"
-            }
-            else {
-                Log-Line "Unable to find any existing non-disabled tasks with this command line and arguments"
-            }
+            # if ($howmanyfound -eq 1) {
+            #     $TaskThatProbablyCalledUs = $possibleTaskCallingMe.Uri
+            #     Log-Line "Task that probably called us is <$TaskThatProbablyCalledUs>"
+            # }
+            # elseif ($howmanyfound -ge 2) {
+            #     Log-Line "Found $howmanyfound Tasks with same command line + arguments"
+            # }
+            # else {
+            #     Log-Line "Unable to find any existing non-disabled tasks with this command line and arguments"
+            # }
 
             # TODO: Check history to see if that task just ran
             
         } elseif ($determinorOfCaller.Name -eq 'Code.exe') {
             Log-Line "Called whilest in Visual Code Editor"
             $Script:Caller = 'Visual Code Editor'
+        } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {  
+            Log-Line "Called whilest in Command Line"
+            $Script:Caller = 'Command Line'
         } else {
             Log-Line "Caller not detected"
             $Script:Caller = ($determinorOfCaller.CommandLine)
@@ -1031,6 +1034,14 @@ Function Left([string]$val, [int32]$howManyChars = 1) {
     $actualLengthWeWillGet = Least $howManyChars  $val.Length
     return $val.Substring(0,$actualLengthWeWillGet)
 }
+
+Function Starts-With($str, $startswith) {
+    throw [System.NotImplementedException]
+}   
+
+Function Ends-With($str, $startswith) {
+    throw [System.NotImplementedException]
+}   
 
 Function Right([string]$val, [int32]$howManyChars = 1) {
     if ([String]::IsNullOrEmpty($val)) { 
@@ -1287,3 +1298,6 @@ Function main_for_dot_include_standard_header() {
 }
 
 main_for_dot_include_standard_header # So as not to collide with dot includer
+                                  
+# If we don't see this in log, then it broke.
+Log-Line "Exiting standard_header"
