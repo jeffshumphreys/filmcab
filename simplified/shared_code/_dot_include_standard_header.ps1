@@ -12,8 +12,8 @@
         Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
 #>                                                                                                
 
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope='Function', Target='Log-*')] # We don't need no stinkin' badges
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Scope='Function', Target='*')] # Why?
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')] # We don't need no stinkin' badges
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')] # Why?
 param()
 
 # Following code seems to close the popup console window almost immediately if you're calling from Windows Task Scheduler. At least very fast.  I like things that run in the background to run in the background.
@@ -322,8 +322,7 @@ function Invoke-Sql {
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
     )
     try {
-        $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set?
-        $DatabaseCommand.CommandTimeout = 0
+        $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set? Set in main. Below.
 
         # Hypothetically, you could determine if the sql was a select or an update/insert, and run the right function?
 
@@ -1283,7 +1282,9 @@ Function main_for_dot_include_standard_header() {
 
     if ($DatabaseConnectionIsOpen) {                                                                   
         $Script:DatabaseCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        $Script:DatabaseCommand.CommandTimeout = 0
         $Script:DBReaderCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        $Script:DBReaderCommand.CommandTimeout = 0
         $Script:DBReaderCommand.CommandText = 'Select 1'
         $Script:reader = [Data.Common.DbDataReader]$Script:DBReaderCommand.ExecuteReader()
         # PostgreSql specific settings, also specific to filmcab, and the simplified effort.
