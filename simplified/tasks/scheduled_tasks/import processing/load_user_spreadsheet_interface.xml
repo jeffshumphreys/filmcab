@@ -4,7 +4,7 @@
         <Date>2024-02-10T20:47:34.0003171</Date>
         <Author>DSKTP-HOME-JEFF\jeffs</Author>
         <Description>Part of FilmCab, loads a specific user-facing spreadsheet into a table for matching to what we have and are downloading. Eventually a GUI will probably do this.. # 8</Description>
-        <URI>\FilmCab\user processing\load_user_excel_interface</URI>
+        <URI>\FilmCab\user processing\load_user_spreadsheet_interface</URI>
       </RegistrationInfo>
       <Triggers>
         
@@ -49,7 +49,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7\pwsh.exe"</Command>
-          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\import processing\load_user_excel_interface.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\import processing\load_user_spreadsheet_interface.ps1'; exit $LASTEXITCODE"</Arguments>
         </Exec>
       </Actions>
     </Task>    
