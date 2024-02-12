@@ -1203,7 +1203,6 @@ Function Get-Property ($sourceob, $prop) {
 Function Has-Property ($sourceob, $prop) {
     return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
- 
 
 <#
 .SYNOPSIS
@@ -1266,7 +1265,21 @@ Function main_for_dot_include_standard_header() {
     # The above, if any invalid syntax, will break when ConnectionString is set, not on Open, with:Exception setting "ConnectionString": "Format of the initialization string does not conform to specification starting at index 194."
     $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
     $Script:DatabaseConnection.ConnectionString = $DatabaseConnectionString               
+    $Script:DatabaseConnection.ConnectionTimeout = 10
     
+    # https://www.sqlskills.com/blogs/jonathan/capturing-infomessage-output-print-raiserror-from-sql-server-using-powershell/
+    $informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-Host $event.Message }; 
+    $Script:DatabaseConnection.add_InfoMessage($informationalmessagehandler) # WARNING: add_InfoMessage will not show up anywere in autocomplete.
+    <#
+        StateChange event
+        Disposed Event
+        ChangeDatabase
+        CreateBatch
+        CanCreateBatch                              
+        Site
+        Container
+        Database, DataSource, Driver, State, ServerVersion
+    #>
     # Rather than cloning this code everywhere, do it once.  The dot includer may not be using a database, but for now, (me) I'm only ever connecting to one database locally.
     # Granted, it assumes the dot includer wants any data connection
     $Script:AttemptedToConnectToDatabase = $false
@@ -1281,12 +1294,12 @@ Function main_for_dot_include_standard_header() {
     $Script:AttemptedToConnectToDatabase = $true
 
     if ($DatabaseConnectionIsOpen) {                                                                   
-        $Script:DatabaseCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        $Script:DatabaseCommand = [System.Data.Odbc.OdbcCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
         $Script:DatabaseCommand.CommandTimeout = 0
-        $Script:DBReaderCommand = [Data.Common.DbCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        $Script:DBReaderCommand = [System.Data.Odbc.OdbcCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
         $Script:DBReaderCommand.CommandTimeout = 0
-        $Script:DBReaderCommand.CommandText = 'Select 1'
-        $Script:reader = [Data.Common.DbDataReader]$Script:DBReaderCommand.ExecuteReader()
+        $Script:DBReaderCommand.CommandText = 'Select 1' # Can't instantiate a reader without a query.
+        $Script:reader = [System.Data.Odbc.OdbcDataReader]$Script:DBReaderCommand.ExecuteReader()
         # PostgreSql specific settings, also specific to filmcab, and the simplified effort.
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
         Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
