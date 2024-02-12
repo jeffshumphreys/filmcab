@@ -2,8 +2,11 @@
  #    FilmCab Daily morning batch run process: Extract all the "_" folders and determine what genre to assign the directory.
  #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
  #    Status: Prepping for addition to schedule.
- #    ###### Tue Jan 23 18:23:11 MST 2024
+ 
+ #    ###### Tue Jan 23 18:23:11 MST 2024                
+
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #    https://github.com/jeffshumphreys/filmcab/issues/41
  #>
  
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
@@ -17,13 +20,14 @@ param()
 $howManyGenreFolders = 0
 $howManySubGenreFolders = 0
 $howManyGrandSubGenreFolders = 0
+$howManyNewGenreFolders= 0
 
 # Fetch a string array of paths to search.
 
 $loop_sql = "
 SELECT 
      directory_path                      /* What we are going to search for new files     */
-  ,  useful_part
+  ,  useful_part_of_directory_path       /* Start without the base search_directory to confuse us */
 FROM 
     directories_ext_v
 ";
@@ -33,11 +37,11 @@ $reader = $readerHandle.Value # Now we can unbox!  Ta da!
               
 While ($reader.Read()) {
     $directory_path = Get-SqlFieldValue $readerHandle directory_path
-    $useful_part = Get-SqlFieldValue $readerHandle useful_part
+    $useful_part_of_directory_path = Get-SqlFieldValue $readerHandle useful_part_of_directory_path
 
     # split it into parts
 
-    $directory_folders = $useful_part -split '\\'
+    $directory_folders = $useful_part_of_directory_path -split '\\'
     $genre = $null
     $subgenre = $null
     $grandsubgenre = $null
@@ -70,13 +74,16 @@ While ($reader.Read()) {
               
     $wrote = $false
     $escaped_directory_path = $directory_path.Replace("'", "''")
-    if ($null -ne $genre) {
+    if ($null -ne $genre -and 
+        $genre -notin('_Mystery', '_Comedy', '_Sci Fi'))  # To reduce the dump out to Host, exclude things that are ubiquitous and never going to change.
+    {
         Write-Host "Genre: $genre" -NoNewline
         $wrote = $true
         $howManyGenreFolders++                             
         $genre = $genre.Substring(1)
         Invoke-Sql "UPDATE directories set root_genre = '$genre' where directory_path = '$escaped_directory_path'"|Out-Null
-        Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$genre', 'published folders', 1, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$genre', 'published folders', 1, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyNewGenreFolders+= $howManyAdded
     }                             
 
     if ($null -ne $subgenre) {
@@ -85,7 +92,8 @@ While ($reader.Read()) {
         $howManySubGenreFolders++
         $subgenre = $subgenre.Substring(1)
         Invoke-Sql "UPDATE directories set sub_genre = '$subgenre' where directory_path = '$escaped_directory_path'"|Out-Null
-        Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$subgenre', 'published folders', 2, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$subgenre', 'published folders', 2, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyNewGenreFolders+= $howManyAdded
     }
 
     if ($null -ne $grandsubgenre) {
@@ -93,7 +101,8 @@ While ($reader.Read()) {
         $wrote = $true
         $howManyGrandSubGenreFolders++
         $grandsubgenre = $grandsubgenre.Substring(1)
-        Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$grandsubgenre', 'published folders', 3, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$grandsubgenre', 'published folders', 3, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyNewGenreFolders+= $howManyAdded
     }   
 
     if ($wrote) {
@@ -108,9 +117,10 @@ While ($reader.Read()) {
 # Display counts. If nothing is happening in certain areas, investigate.
 Write-Host # Get off the last nonewline
 Write-Host
-Write-Host "How many genre directories were found:                      $howManyGenreFolders"           $(Format-Plural 'Directory' $howManyGenreFolders) 
-Write-Host "How many sub genre directories were found:                      $howManySubGenreFolders"           $(Format-Plural 'Directory' $howManySubGenreFolders) 
-Write-Host "How many grand sub genre directories were found:                      $howManyGrandSubGenreFolders"           $(Format-Plural 'Directory' $howManyGrandSubGenreFolders) 
+Write-Host "How many genre directories were found:          " $(Format-Plural 'Folder' $howManyGenreFolders -includeCount) 
+Write-Host "How many sub genre directories were found:      " $(Format-Plural 'Folder' $howManySubGenreFolders -includeCount) 
+Write-Host "How many grand sub genre directories were found:" $(Format-Plural 'Folder' $howManyGrandSubGenreFolders -includeCount) 
+Write-Host "How many new genres found:                      " $(Format-Plural 'Genre' $howManyNewGenreFolders -includeCount) 
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
