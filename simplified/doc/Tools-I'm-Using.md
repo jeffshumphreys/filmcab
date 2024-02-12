@@ -63,6 +63,9 @@ description: >-
 * Visio, LucidChart
 * ChatGPT, AI
 * Azure, AWT
+* GitHub Copilot
+* Hey Code voice command
+* Amazon voice commands
 
 ## Tools Tried Using but Failed
 
