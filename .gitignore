@@ -45,6 +45,7 @@ General/
 # https://git-scm.com/docs/gitignore#_pattern_format
 */_log/*.log
 */_log/*.log.txt
+*/_log/*.log.txt
 */_data/*.xml
 */_data/*.xlsx
 */_data/*.csv
@@ -61,3 +62,5 @@ simplified/_log/__sanity_checks/history/*__sanity_check_without_db_connection_af
 simplified/_log/__sanity_checks/history/*__sanity_check_without_db_connection_before_session_starts.json
 simplified/_data/.~lock.*.xlsx#
 simplified/shared_code/_log/*.ps1.log.txt
+simplified/shared_code/_log/_dot_include_standard_header.ps1.log.txt
+simplified/shared_code/_log/_dot_include_standard_header.ps1.log.txt
