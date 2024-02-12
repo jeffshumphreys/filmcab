@@ -15,6 +15,8 @@ param(
 
 # DO NOT CONNECT TO DATABASE!!!!  This is to do the tests that should be done outside of structured persistence.
 
+# This is also pre-Start-Log so I can't write to the log.
+
 $OS = '?'
 $ThisScriptPath = ($MyInvocation.Line.TrimStart('. ').Trim("'") -split ' ')[0]
 #$MyCommand = $MyInvocation.MyCommand
@@ -110,11 +112,12 @@ $SanityCheckStatus = [PSCustomObject]@{
     AreWeInAWorkgroup  = $ComputerInfo.CsWorkgroup                             # WORKGROUP
     NetworkCategory = $NetworkCategory.NetworkCategory.ToSTring()           # Private
     
-    ScriptPath    = $ThisScriptPath                                          # D:\qt_projects\filmcab\simplified\shared_code\__sanity_check_without_db_connection.ps1
-    CurrentDirectory= [System.Environment]::CurrentDirectory                # D:\qt_projects\filmcab
-    PowerShellVersion = $PSVersionTable.PSVersion                                # 7.4.1
-    PowerShellEdition = $PSVersionTable.PSEdition                   # Core
-    PowerShellPlatform =$PSVersionTable.Platform                     # Win32NT                                                                                                        
+    ScriptPath            = $ThisScriptPath                                          # D:\qt_projects\filmcab\simplified\shared_code\__sanity_check_without_db_connection.ps1
+
+    CurrentDirectory      = [System.Environment]::CurrentDirectory                # D:\qt_projects\filmcab
+    PowerShellVersion = $PSVersionTable.PSVersion                             # 7.4.1
+    PowerShellEdition = $PSVersionTable.PSEdition                             # Core
+    PowerShellPlatform =$PSVersionTable.Platform                               # Win32NT                                                                                                        
 
     UserIsRunningInteractively = [Environment]::UserInteractive
     IsPrivilegedProcess = [Environment]::IsPrivilegedProcess
