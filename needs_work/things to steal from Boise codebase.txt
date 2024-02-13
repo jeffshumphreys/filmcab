@@ -1,0 +1,441 @@
+$ScriptPath = (Split-Path $MyInvocation.MyCommand.Path)
+$ConfigPath = $ScriptPath + '\config\appsettings.json'
+$Config = Get-Content -path $ConfigPath | ConvertFrom-Json 
+
+
+#local path does not seem to work with $Config Hardcode
+
+$BaseFolder = "\\ch-dbbatch\D$\Batch\DFA_SuezWater\Files"
+$DownloadFolder = $BaseFolder + '\Download\'
+$DownloadProcessedFolder = $BaseFolder + '\Download\Processed\'
+$DateStamp = Get-Date -Format "MMddyyyy"
+
+# Load NLog Module
+$NLogModulePath = $ScriptPath + '\Nlog'
+Import-Module -Name $NLogModulePath -Verbose
+
+
+
+# Load FTP Module
+$FTPdllPath = $ScriptPath + '\FTP\WinSCPnet.dll'
+
+# CONFIGS FOR THIS FILE #
+$FTPHostName = $Config.FTP.FTPHostName
+$FTPUsername = $Config.FTP.FTPUsername
+$FTPPassword = $Config.FTP.FTPPassword
+$FTPKey = $Config.FTP.SshHostKeyFingerprint
+$Remotepath = $Config.FTP.FTPRemotePath
+
+
+    $logger = New-Logger -LoggerName "Powershell" 
+    $logger.Info("Start")
+    $logger.Info("Location: {0}", $ScriptPath) 
+
+    # Load WinSCP .NET assembly
+    Add-Type -path $FTPdllPath
+
+    # $sessionOptions = $Config.sessionOptions
+    $sessionOptions = New-Object WinSCP.SessionOptions -Property @{
+        Protocol = [WinSCP.Protocol]::Ftp
+        HostName = $FTPHostName
+        UserName = $FTPUsername
+        Password = $FTPPassword
+        # SshHostKeyFingerprint = $FTPKey
+		        Protocol              = [WinSCP.Protocol]::Ftp
+        HostName              = $FTPHostName
+        PortNumber            = $FTPPort
+        UserName              = $FTPUsername
+        Password              = $FTPPassword
+        FtpSecure = [WinSCP.FtpSecure]::Implicit
+        TlsHostCertificateFingerprint = $FTPKey
+    }
+    
+    #  $sessionOptions.AddRawSettings("FSProtocol", "2")
+
+    $session = New-Object WinSCP.Session
+   
+    try {
+        # Connect
+        $session.Open($sessionOptions)
+
+        # Transfer Options
+        $transferOptions = New-Object WinSCP.TransferOptions
+        $transferOptions.TransferMode = [WinSCP.TransferMode]::Binary
+       
+            # Download files, collect results
+            $transferResult = $session.PutFiles(($localPath),($Remotepath),  $False, $transferOptions)
+         
+            # Iterate over every transfer
+            foreach ($transfer in $transferResult.Transfers) {
+                # Success or error?
+                if ($Null -eq $transfer.Error) {
+                    $logger.Info("Upload of $($transfer.FileName) succeeded")
+
+                    # Upload succeeded, move source file to processed 
+                    Move-Item $transfer.FileName $UploadProcessedFolder
+                }
+                else {
+                    $logger.Error("Upload of $($transfer.FileName) failed: $($transfer.Error.Message)")
+                }
+            }
+
+            $session.Dispose()
+
+            $logger.Info("Finish")
+        }
+        catch {
+            $logger.Info("Error: $($_.Exception.Message)")
+        }
+        
+    }
+  
+
+
+function LoadDLL {
+    param (
+            [parameter(Mandatory=$true)] [string] $FileName           
+        )
+        $dllBytes = [System.IO.File]::ReadAllBytes( $FileName)
+        [System.Reflection.Assembly]::Load($dllBytes)
+    }
+ 
+ 
+function Out-DataTable { 
+    [CmdletBinding()] 
+    param([Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)] [PSObject[]]$InputObject) 
+  
+    Begin { 
+        $dt = new-object Data.datatable   
+        $First = $true  
+    } 
+    Process { 
+        foreach ($object in $InputObject) { 
+            $DR = $DT.NewRow()   
+            foreach ($property in $object.PsObject.get_properties()) {   
+                if ($first) {   
+                    $Col = new-object Data.DataColumn   
+                    $Col.ColumnName = $property.Name.ToString()   
+                    if ($property.value) { 
+                        if ($property.value -isnot [System.DBNull]) { 
+                            $Col.DataType = [System.Type]::GetType("$(Get-Type $property.TypeNameOfValue)") 
+                        } 
+                    } 
+                    $DT.Columns.Add($Col) 
+                }   
+                if ($property.Gettype().IsArray) { 
+                    $DR.Item($property.Name) = $property.value | ConvertTo-XML -AS String -NoTypeInformation -Depth 1 
+                }   
+                else { 
+                    $DR.Item($property.Name) = $property.value 
+                } 
+            }   
+            $DT.Rows.Add($DR)   
+            $First = $false 
+        } 
+    }  
+       
+    End { 
+        Write-Output @(, ($dt)) 
+    } 
+}
+
+    ## Set this to the directory that contains the curl executable.
+    Set-Location $CurlPath
+	
+function Get-AvailableScooters([Object] $Provider, $startdatetime, $enddatetime) { 
+    $file = $CurlPath + "\result_" + $Provider.provider + ".dat"
+    if ($Provider.provider -eq "SPIN") {
+        $Provider.token = (Login $Provider.username $Providerr.password $Provider.authEndPoint)
+    }
+    $url = $Provider.availableScootersBaseUrl 
+   
+    Get-Next $Provider $url $file
+    $data = Read-Data $file $Provider
+    if ($null -ne $data ) {
+        Save-Data $Provider $data
+    }
+    $insert= "EXEC insert_AvailableScooters"
+    dbQuery $insert
+}
+
+Function Read-Data([string] $file, [object] $Provider) {
+    $data = ParseObject $file | ConvertFrom-Json
+    $result = MapData $data $Provider
+    $result
+}
+Function MapData([object] $data, [object] $Provider) {
+    $now = (Get-Date).ToUniversalTime()
+    $d = @()
+    $data = if ($Provider.provider -eq "BIRD") { $data.availability } else { $data.data.bikes }
+    $data | ForEach-Object { 
+        if ($Provider.provider -eq "BIRD") {
+            $d += @(
+                @{
+                    VehicleID    = $_.device_id
+                    Lat          = $_.location.coordinates[1]
+                    Lon          = $_.location.coordinates[0]
+                    Reserved     = If ($_.is_reserved) { 1 } Else { 0 } 
+                    Disabled     = If ($_.disabled) { 1 } Else { 0 }
+                    DateTimeUTC  = $now.ToString("yyyy-MM-dd HH:mm:ss")
+                    ProviderName = $Provider.provider
+                }
+            ) 
+        }
+        else {
+            $d += @(
+                @{
+                    VehicleID    = $_.bike_id
+                    Lat          = $_.lat
+                    Lon          = $_.lon
+                    Reserved     = $_.is_reserved
+                    Disabled     = $_.is_disabled
+                    DateTimeUTC  = $now.ToString("yyyy-MM-dd HH:mm:ss")
+                    ProviderName = $Provider.provider
+                }
+            )
+        }
+    }
+    $d
+}
+Function Save-Data([object] $Provider, [object] $data) {
+    $dataFile = $DownloadFolder+ $Provider.provider + "_FreeBike.json" 
+    $dataFile
+    if (Test-Path $dataFile) {
+        Remove-Item $dataFile
+    }
+    $data | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $dataFile -Encoding utf8
+   
+    $query = "[dbo].[Load_JsonFile_FreeVehicle] '$dataFile', 0"
+    dbQuery $query
+
+}
+Function Get-Next([object] $Provider, [string] $url, [string] $file) {
+    $token = $Provider.token
+    if (Test-Path $file) {
+        Remove-Item $file
+    }
+    &$curl -K  "$CurlPath/curl_standard.config" -X GET  -H "APP-Version: 3.0.0" -H "Connection: Keep-Alive"  -H "Authorization: $token"  -o $file $url
+}
+
+Function Login([string]$user, [string]$pass, [string]$url) {
+    &$curl -K $CurlPath"/curl_standard.config" -X POST -o login.dat  -d "grant_type=api&email=$user&password=$pass" $url 
+    $token = GetToken login.dat | ConvertFrom-Json
+    $t = $token.jwt
+    "Bearer $t"
+}
+Function dbQuery([string] $query) {
+    $db = $Config.SQLConnection
+    Invoke-Sqlcmd -ErrorAction Stop -ServerInstance $db.SQLServer -Database $db.Database -username $db.Username -password $db.Password -query $query    
+}
+Function GetToken ([string] $file) {
+    $regex = "(?<token>{.*})"
+    $content = Get-Content $file
+    $value = $content | ? { $_ -match $regex } | % { $matches['token'] } | Select -First 1
+    $value
+}
+Function ParseObject([string] $file) {
+    $regex = "(?<token>\{.*\})"
+    $content = Get-Content $file
+    $value = $content | ? { $_ -match $regex } | % { $matches['token'] } | Select -First 1
+    $value
+}
+
+Function Convert-DateTime-to-Seconds-from-Epoch([DateTime] $time) {
+    $start = Get-Date -Date "01/01/1970"
+    (New-TimeSpan -Start $start -End $time).TotalSeconds
+}
+
+#Load HtmlAgilityPack Module
+$HtmlAgilityPackModulePath = $ScriptPath + "\HtmlAgilityPack"
+Import-Module –Name $HtmlAgilityPackModulePath -Verbose
+
+    &$curl  -K curl_standard.Config -o viewstate.dat $LoginUrl
+    #get token from viewstate
+    $regex = "name=`"authenticity_token`" value=`"(?<token>[^`"]+)`"" #?<token>: named group
+    $content = Get-Content "viewstate.dat"
+    $token = $content | ? { $_ -match $regex } | % { $matches['token'] }
+    $token = $token.Replace("+", "%2b")
+    #login
+    &$curl -K curl_standard.Config -o login1.dat -X POST -d "utf8=%E2%9C%93&authenticity_token=$token&fingerprint=$FingerPrint&user%5Bemail%5D=$Username&user%5Bpassword%5D=$Password&commit=Log+In" "https://cityofboise.appfolio.com/users/sign_in" -H "Host: cityofboise.appfolio.com" -H "Connection: keep-alive" -H "Cache-Control: max-age=0" -H "Origin: https://cityofboise.appfolio.com" -H "Upgrade-Insecure-Requests: 1" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8" -H "Referer: https://cityofboise.appfolio.com/users/sign_in" -H "Accept-Encoding: gzip, deflate, br" -H "Accept-Language: en-US,en;q=0.8"
+    $FingerPrint = GetFingerPrint("cookie.dat")
+    #sendToken
+    &$curl -K curl_standard.Config  -o tokenSuccess.dat -X POST -d "number=%2B12082683070&two_factor_method=sms&email_2fa=false&enhanced_two_factor_code=true&dummy_value=not_used" "https://cityofboise.appfolio.com/users/two_factor/create_token" -H "Host: cityofboise.appfolio.com" -H "Connection: keep-alive" -H "Cache-Control: max-age=0" -H "Origin: https://cityofboise.appfolio.com" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: application/json, text/javascript, */*; q=0.01" -H "Referer: https://cityofboise.appfolio.com/users/two_factor/new" -H "Accept-Encoding: gzip, deflate, br" -H "Accept-Language: en-US, en; q=0.8"
+    #getToken
+    $mfaCode = GETMFACode
+    IF ($null -eq $mfaCode) {
+        #stop processing and log error
+        $logger.Error("Unable to get code for 2FA")
+    }
+    #getMFACookie
+    &$curl -K curl_standard.Config -o mfa.dat -X POST -d "utf8=%E2%9C%93&authenticity_token=$token&fingerprint=$FingerPrint&user%5Bphone_number%5D=$PhoneNumber&user%5Bemail_2fa%5D=false&user%5Btwo_factor_field%5D=&user%5Btwo_factor_field%5D=sms&user%5Bemail%5D=$Username&nfo=&user%5Bverification_code%5D=$mfaCode&user%5Bremember_my_device%5D=0&commit=Sign+In" "https://cityofboise.appfolio.com/users/two_factor" -H "Host: cityofboise.appfolio.com" -H "Connection: keep-alive" -H "Cache-Control: max-age=0" -H "Origin: https://cityofboise.appfolio.com" -H "Upgrade-Insecure-Requests: 1" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8" -H "Referer: https://cityofboise.appfolio.com/users/two_factor/new" -H "Accept-Encoding: gzip, deflate, br" -H "Accept-Language: en-US,en;q=0.8"
+    $location = Get302Location("mfa.dat")
+    IF ($null -eq $location) {
+        #stop processing and log error
+        $logger.Error("Unable to get mfa cookie")
+    }
+    &$curl  -K curl_standard.Config -o loggedIn.dat "$location"
+
+
+#GET additional Tokens for Header
+        ##sample##name="csrf-token" content="vHPe/hGV2uFZl....BrC+zfkjIWkTX"
+        $regex = "name=`"csrf-token`" content=`"(?<token>[^`"]+)`"" #?<token>: named group
+        $content = Get-Content "reportHome.dat"
+        $xCSRFToken = $content | ? { $_ -match $regex } | % { $matches['token'] }
+
+        ##sample##{xpid:"XA8DQldaCQsIXQ=="}
+        # $regex = "{xpid:`"(?<token>[^`"]+)`"}" #?<token>: named group
+        # $content = Get-Content "reportHome.dat"
+        # $relicID = $content | ? { $_ -match $regex } | % { $matches['token'] }
+
+
+        if ($_.reportType -eq "exportResultJSON") {
+            &$curl -k -b "Cookie.dat" -c "Cookie.dat" -o reportJson.dat -d $columnSettings -X POST "$exportResultUrl" -H "X-CSRF-Token: $xCSRFToken" -H "Authorization: Bearer $accessToken"
+            $currExportFileName = $($_.fileName)
+            $currJson = (Get-Content "reportJson.dat" -Raw | ConvertFrom-Json)
+            $currJson.results.records | where { $_.rowType -ne "empty" } | select-object -Property * -ExcludeProperty id, rowType | Export-CSV -NoTypeInformation -Path $currExportFileName
+            $reportCounter ++
+
+        }
+        elseif ($_.reportType -eq "exportResultJSON-CopyHeaderRowToRow") {
+            $PropertyValueHash = @{ }
+            $newList = [System.Collections.ArrayList]@()
+
+            &$curl -k -b "Cookie.dat" -c "Cookie.dat" -o reportJson.dat -d $columnSettings -X POST "$exportResultUrl" -H "X-CSRF-Token: $xCSRFToken" -H "Authorization: Bearer $accessToken"
+            $currExportFileName = $($_.fileName)
+            $currJson = (Get-Content "reportJson.dat" -Raw | ConvertFrom-Json)
+            $currList = $currJson.results.records | where { $_.rowType -ne "empty" }
+            $currList | ForEach-Object {
+                #Use the HeaderRow Values for Row Values,  Assumes these are ordered.
+                foreach ($property in  $_.PSObject.Properties) {
+                    if ($PropertyValueHash.ContainsKey($property.Name)) {
+                        if ($_.$($property.Name) -ne "") {
+                            $PropertyValueHash.Set_Item($property.Name, $_.$($property.Name))
+                        }
+                    }
+                    else {
+                        $PropertyValueHash.Add($property.Name, $_.$($property.Name))
+                    }
+
+                }
+                $itemCopy = $PropertyValueHash | ConvertTo-Json -depth 100 | ConvertFrom-Json  # perform a deep copy
+                $newList.Add($itemCopy) | Out-Null
+
+            }
+            $newList | where { $_.rowType -eq "row" } | select-object -Property *  -ExcludeProperty id, rowType | Export-CSV -NoTypeInformation -Path $currExportFileName
+            $reportCounter ++
+
+        }
+        else {
+
+            &$curl  -K curl_standardDownload.Config -o reportJobInfo.dat -d $columnSettings -X POST "$exportCsvUrl" -H "X-CSRF-Token: $xCSRFToken" -H "X-NewRelic-ID: $relicID"
+
+            $jobInfo = Get-Content "reportJobInfo.dat" | ConvertFrom-Json
+            $jobProgressPath = "$rootURL/jobs/$($jobInfo.id)"
+
+            $jobProgressPath
+
+            #Check Progress, for upto 20 times with 2 sec delay each time:
+            $loop = 0
+            $status = "pending"
+            while ($status -eq "pending" -and $loop -lt 20) {
+                Start-Sleep -s 2
+                &$curl  -K curl_standardDownload.Config -o reportProgress.dat "$jobProgressPath" -H "X-CSRF-Token: $xCSRFToken" -H "X-NewRelic-ID: $relicID"
+                $progress = Get-Content "reportProgress.dat" | ConvertFrom-Json
+                $status = $progress.status
+                $status
+                $loop ++
+            }
+
+
+
+            if ($status -eq "finished") {
+                $reportURL = $rootURL + $($progress.result.download_path)
+                &$curl -K curl_standardDownload.Config  -o $($_.fileName) "$reportURL"
+                $reportCounter ++
+            }
+            else {
+                $logger.Error("Error downloading Report")
+            }
+        }
+
+    }
+
+    $numReports = (Get-ChildItem *.xlsx, *.xls, *.csv | Measure-Object).Count
+    if ($numReports -eq $reportCounter) {
+        $logger.Info("Report: Attempted:{0} Downloaded:{1}", $reportCounter, $numReports)
+    }
+    else {
+        $logger.Error("Report: Attempted:{0} Downloaded:{1}", $reportCounter, $numReports)
+    }
+
+    ##Move Report to downloadfolder
+    Move-Item *.csv, *.xls, *.xlsx $DownloadFolder -force
+
+    ##Cleanup temp files
+       Remove-Item *.dat, *.csv, *.xls, *.xlsx
+
+    $logger.Info("Finish")
+}
+
+Function GetFingerPrint([string]$file) {
+    ##Get location from the header.  Location is on separate line,  location:
+    $regex = "af_fingerprint\s+(?<token>.*)" #?<token>: named group
+    $content = Get-Content $file
+    $fp = $content | ? { $_ -match $regex } | % { $matches['token'] }
+    $fp
+}
+
+Function Get302Location ([string] $file) {
+    ##Get location from the header.  Location is on separate line,  location:
+    $regex = "location: (?<token>[^`"]+)" #?<token>: named group
+    $content = Get-Content $file
+    $location = $content | ? { $_ -match $regex } | % { $matches['token'] }
+    if (-not $location.StartsWith("http")) { $location = $rootURL + $location }
+    $location
+
+}
+Function GETReportUrl ([string] $file, [string] $urlParam) {
+    ##Get Url from text in the file
+    $regex1 = "${urlParam}: '(?<token>[^`']+)" #?<token>: named group
+    $content = Get-Content $file
+
+    $Url = $rootURL + ( $content | ? { $_ -match $regex1 } | % { $matches['token'] })
+    $Url
+}
+
+Function GETMFACode() {
+    If (Test-Path Alias:curl) { Remove-Item Alias:curl }
+    Set-Location $CurlPath
+    $curl = ".\curl.exe"  #Define $curl as executable.
+    ## call Twilio every 5 seconds up to 2 minutes to get code
+    $gotCode = $false
+    $processed = 0
+    $mcode = $null
+    $dateSent = (get-date).AddMinutes(-10).ToString("o")
+    $messagesUrl = "https://api.twilio.com/2010-04-01/Accounts/AC09ea045a918e3a52e63dc979f6195402/Messages.json?DateSent=$dateSent&To=$TwilioToPhone"
+    While (-not $gotCode -and $processed -lt 24) {
+        Start-Sleep -s 5
+        &$curl  -k --raw -o twilio.dat -X GET $messagesUrl -u AC09ea045a918e3a52e63dc979f6195402:$TwilioAuthToken
+        [string]$mtoken = GETAppfolioCode("twilio.dat")
+        IF (-not ([string]::IsNullOrEmpty($mtoken))) {
+            $gotCode = $true
+            $mcode = $mtoken.Trim()
+        }
+        $processed++;
+    }
+
+    return $mcode
+}
+
+Function GETAppfolioCode([string] $file) {
+    $aptoken = $null
+    $content = Get-Content $file | ConvertFrom-Json
+    $messages = $content.messages
+    IF ($messages.Count -gt 0 -and $messages[0].body) {
+        [string]$body = $messages[0].body
+        $aptoken = $body.Split(" ")[0] | ? { $_ -match '^\d+$' }
+    }
+
+    return $aptoken
+}
+
