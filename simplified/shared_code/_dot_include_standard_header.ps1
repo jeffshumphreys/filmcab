@@ -1320,7 +1320,7 @@ Function main_for_dot_include_standard_header() {
     BoolsAsChar               =False;
     ";                    
     # The above, if any invalid syntax, will break when ConnectionString is set, not on Open, with:Exception setting "ConnectionString": "Format of the initialization string does not conform to specification starting at index 194."
-    $Script:DatabaseConnection = New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
+    $Script:DatabaseConnection= New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
     $Script:DatabaseConnection.ConnectionString = $DatabaseConnectionString               
     $Script:DatabaseConnection.ConnectionTimeout = 10
     
