@@ -36,11 +36,11 @@ param()
 
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
                                                                              
-$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.xlsx"
-$copytopath                                                                        = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.readablecopy.xlsx" # TODO: convert to temp
+$targettable = 'user_spreadsheet_interface'                                                                                                             
+$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.xlsx"
+$copytopath                                                                        = "D:\qt_projects\filmcab\simplified\_data\$targettable.readablecopy.xlsx" # TODO: convert to temp
 $inpath = $copytopath
-$outpath = "D:\qt_projects\filmcab\simplified\_data\user_excel_interface.UTF8.csv"
-$targettable = 'user_excel_interface'
+$outpath = "D:\qt_projects\filmcab\simplified\_data\$targettable.UTF8.csv"
 
 Stop-Process -Name 'excel'    -Force -ErrorAction Ignore
 
@@ -144,7 +144,7 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
         }
     }
 
-    $DatabaseCommand.CommandText = "SELECT manually_corrected_title FROM user_excel_interface where (seen not in('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
+    $DatabaseCommand.CommandText = "SELECT manually_corrected_title FROM $targettable where (seen not in('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
 
     $Reader = $DatabaseCommand.ExecuteReader();
     $matchcount = 0;
