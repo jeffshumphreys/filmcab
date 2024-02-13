@@ -2,11 +2,15 @@
 
 ## Open Office Door
 
-1. Did the computer reboot into a locked state and so didn't restart qBitTorrent? Login and restart.
-2. Turn on light.
-3. Look at computer screens.
+1. Turn on light.
+2. Did the computer reboot into a locked state and so didn't restart qBitTorrent? Login and restart.
+3. Look at computer screens.&#x20;
+   1. Probably should leave Task Scheduler Open on screen #1 (last night I mean)
+   2. qBitTorrent on Screen 2 on Status = All,
+   3. Visual Code on Screen 3 on a piece of code or output that will trigger me.
+   4. Or shouldn't GitHub Issues be there??
 4. Sit.
-5. Look. This warms the cockles.
+5. Look. This warms the cockles. Probably touching the keyboard helps too.
 
 ## Check Download Status
 
