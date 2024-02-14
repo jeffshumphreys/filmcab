@@ -85,9 +85,14 @@ param()
     # We're going to call "scriptName" the Name WITHOUT the bloody directory it's in. I'm torn on name with or without extension - BUT since two files can have same base name with different extensions, and soon there'll be a "ps2" (kidding?), we might as well be careful.
      
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $ScriptName = (Get-Item -Path $masterScriptPath).Name # Unlike "BaseName" this includes the extension
+    $ScriptName                 = (Get-Item -Path $masterScriptPath).Name # Unlike "BaseName" this includes the extension
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Base name is nice for labelling
+
+    $ProjectRoot  = (Get-Location).Path  # in debug, D:\qt_projects\filmcab
+    
+    $PathToConfig = $ProjectRoot + '\config.json'
+    $Config       = Get-Content -Path $PathToConfig | ConvertTo-Json
 
     # Maybe grab HistoryId for how many runs in this session. Debug meta? Note that it resets if the powershell terminal is killt.
                                                                                           
@@ -96,7 +101,7 @@ param()
                                                
     $tryToStartTranscriptAttempts = 0
     
-    # Transcript logging is weak, but something
+    # Transcript logging is weak, but it's something, as long as you can deal with the locking issues, and not starting and not stopping.
     # It locks up in debugging if you restart too soon, and don't hit the Stop-Transcript in the footer.  One try is probably enough
     while ($tryToStartTranscriptAttempts -lt 3) {
         try {
@@ -466,7 +471,28 @@ Function Out-SqlToList {
 #Delete-One
 #Update-One
 #Get-One
+<#
+.SYNOPSIS
+Return true/false from a sql based on row count
 
+.DESCRIPTION
+Long description
+
+.PARAMETER sql
+Parameter description
+
+.PARAMETER DontOutputToConsole
+Parameter description
+
+.PARAMETER DontWriteSqlToConsole
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>#
 Function Test-Sql {
     [CmdletBinding()]
     param(           
@@ -488,7 +514,7 @@ Function Test-Sql {
 
 <#
 .SYNOPSIS
-Returns a dataset that I can . reference properties from.
+Returns a dataset that I can "." reference properties from.
 
 .DESCRIPTION
 Long description
@@ -644,6 +670,25 @@ function Get-SqlFieldValue {
     return $columnValue
 }
 
+<#
+.SYNOPSIS
+Write a string line to file defined in Start-Log
+
+.DESCRIPTION
+Long description
+
+.PARAMETER Text
+Parameter description
+
+.PARAMETER Restart
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
 function Log-Line {
     [CmdletBinding()]
     param(
@@ -1249,12 +1294,12 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
         $targetob.$prop = $sourceob.ToString()
     }                             
     else {
-        $targetob.$prop = (@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+        $targetob.$prop = (if(@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1) {$sourceob.$prop } else { ''})
     }
 }
 
 Function Get-Property ($sourceob, $prop) {
-    (@($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1 ? $sourceob.$prop : '')
+    (If(@($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1) { $sourceob.$prop } else {''})
 }
 
 Function Has-Property ($sourceob, $prop) {
