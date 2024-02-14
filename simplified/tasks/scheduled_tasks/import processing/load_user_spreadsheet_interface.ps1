@@ -1,36 +1,3 @@
-<#
- #   FilmCab Daily morning batch run process: Pull in an excel file we know to have our movie list in it.
- #   Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
- #   Status: Scheduled with bugs
- #   Admin mode: Not required
- #   ###### Wed Jan 24 16:21:20 MST 2024
- #   https://github.com/jeffshumphreys/filmcab/tree/master/simplified
- #   https://github.com/dfinke/ImportExcel
- #   https://jamesone111.wordpress.com/2017/12/05/using-the-import-excel-part-1-importing/
- #   https://jamesone111.wordpress.com/2017/12/11/using-the-import-excel-module-part-2-putting-data-into-xlsx-files/
- #   ###### Tue Jan 16 19:10:55 MST 2024 - Moved to Yet Another Subfolder. Updated actual task. Exported.
- #
- #   Stuff it into receiving one-to-one table, no cleanup
- #   Validate the data as counts.
- #   If any non-zero counts, look deeper, and fix IN EXCEL
- #   run filmcab to detect new torrent downloads, new published files, and new backup entries.
- #   check which published videos are in our excel list; update table and excel (?)
- #   check folders in backups that are not in published. Delete.
- #   check hashes from published to torrent downloads. What's missing?
- #
- #   ###### Sat Jan 20 18:59:12 MST 2024
- #   We are no longer using transactions. They lock and block everything if debugging is going on.
- #
- #   ###### Fri Jan 26 15:37:19 MST 2024
- #   Uh, looks like the excel.dll now has an immovable popup when called from Task Scheduler, though it will run manually.
- #   Turns out Import-Module ImportExcel works easier. and is UTF8 (OpenXML). https://github.com/dfinke/ImportExcel
- #
- #   ###### Sat Jan 27 13:55:17 MST 2024
- #   Not sure what's causing the locking so,
- #    - Get rid of the empty VB macro.
- #    - Go back to saving locally.  I don't reference the thing from my phone anymore. I use Keep.   
- #    - Use the "copy a locked file" trick
-#>
 
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
@@ -39,23 +6,14 @@ param()
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
                                                                              
 $targettable  = 'user_spreadsheet_interface'
-$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.xlsx" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
-$copytopath   = "D:\qt_projects\filmcab\simplified\_data\$targettable.readablecopy.xlsx" # Helps with locks if the main file is open # TODO: convert to temp
-$inpath       = $copytopath
-$outpath      = "D:\qt_projects\filmcab\simplified\_data\$targettable.UTF8.csv"
+$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.ods" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
+$copytopath = "D:\qt_projects\filmcab\simplified\_data\$targettable.csv" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
 
-Stop-Process -Name 'excel'    -Force -ErrorAction Ignore
+Stop-Process -Name 'excel' -Force -ErrorAction Ignore
 
-Remove-Item -Path $copytopath -Force -ErrorAction Ignore
-Copy-Item -Path $copyfrompath -Destination $copytopath -Force
-
-$NewExcelCSVFileGenerated = $false
-$spreadsheet = Import-Excel $inpath  # For ODS: Exception calling "Load" with "1" argument(s): "The file is not an valid Package file. If the file is encrypted, please supply the password in the constructor."
-
-$spreadsheet | Export-Csv $outpath 
-
-$NewExcelCSVFileGenerated = $true 
-
+soffice --headless --convert-to csv  $copyfrompath
+$NewExcelCSVFileGenerated = $true
+                     
 $columns_csv = "
     seen, 
     have, 
@@ -84,18 +42,9 @@ $columns_csv = "
     last_save_time, 
     creation_date"
     
-$columns = (($columns_csv.Replace("`r`n", ' ')) -replace '\s+', ' ').Split(", ")
+$columns = ($columns_csv.Replace("`r`n", ' ') -replace '\s+', ' ').Split(",")
 $widestcolumnname = 0;
 foreach($columnname in $columns) {if ($columnname.Length -gt $widestcolumnname) { $widestcolumnname = $columnname.Length}}
-
-# TODO: load last timestamp from target table and compare to current excel file timestamp. Only reload if changed.
-
-<#
-    Issues:
-    - Locked files
-    - Blocking after creating and trying to replace
-    https://learn.microsoft.com/en-us/dotnet/api/system.data.odbc.odbcconnection?view=dotnet-plat-ext-7.0
-#>
 
 if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     $DatabaseCommand = $DatabaseConnection.CreateCommand();
@@ -117,7 +66,10 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
             foreach($columnname in $columns)
             {
                 # Postgresql automatically converts the string 'null' to a NULL value.
-                $sql+= " "*8 + "COALESCE(" + $columnname.PadRight($widestcolumnname) + " , 'NULL')" + ($columnname -eq $columns[-1] ? "" : "||") + [System.Environment]::NewLine;
+                $sql+= " "*8 + 
+                    "COALESCE(" + $columnname.PadRight($widestcolumnname) + " , 'NULL')" + 
+                    (If($columnname -eq $columns[-1]) {""} else {"||"}) + 
+                    [System.Environment]::NewLine;
             }
 
             $sql+= " "*8 + ") ::bytea), 'hex')) STORED" + [System.Environment]::NewLine;
@@ -136,10 +88,10 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
             $sql = "COPY $targettable("
             foreach($columnname in $columns)
             {
-                $sql+= " "*4 + $columnname.PadRight($widestcolumnname)  + ($columnname -eq $columns[-1] ? ")" : ",") + [System.Environment]::NewLine;
+                $sql+= " "*4 + $columnname.PadRight($widestcolumnname)  + (If($columnname -eq $columns[-1]) {")"} else {","}) + [System.Environment]::NewLine;
             }
 
-            $sql+= "FROM '$outpath' CSV HEADER;" + [System.Environment]::NewLine;
+            $sql+= "FROM '$copytopath' CSV HEADER;" + [System.Environment]::NewLine;
             Invoke-Sql $sql > $null
         } catch {
             Show-Error $sql -exitcode 2
