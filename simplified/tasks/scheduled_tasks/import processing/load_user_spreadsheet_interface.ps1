@@ -5,7 +5,9 @@
  #   Admin mode: Not required
  #   ###### Wed Jan 24 16:21:20 MST 2024
  #   https://github.com/jeffshumphreys/filmcab/tree/master/simplified
- #
+ #   https://github.com/dfinke/ImportExcel
+ #   https://jamesone111.wordpress.com/2017/12/05/using-the-import-excel-part-1-importing/
+ #   https://jamesone111.wordpress.com/2017/12/11/using-the-import-excel-module-part-2-putting-data-into-xlsx-files/
  #   ###### Tue Jan 16 19:10:55 MST 2024 - Moved to Yet Another Subfolder. Updated actual task. Exported.
  #
  #   Stuff it into receiving one-to-one table, no cleanup
@@ -36,11 +38,11 @@ param()
 
 . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
                                                                              
-$targettable = 'user_spreadsheet_interface'                                                                                                             
-$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.xlsx"
-$copytopath                                                                        = "D:\qt_projects\filmcab\simplified\_data\$targettable.readablecopy.xlsx" # TODO: convert to temp
-$inpath = $copytopath
-$outpath = "D:\qt_projects\filmcab\simplified\_data\$targettable.UTF8.csv"
+$targettable  = 'user_spreadsheet_interface'
+$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.xlsx" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
+$copytopath   = "D:\qt_projects\filmcab\simplified\_data\$targettable.readablecopy.xlsx" # Helps with locks if the main file is open # TODO: convert to temp
+$inpath       = $copytopath
+$outpath      = "D:\qt_projects\filmcab\simplified\_data\$targettable.UTF8.csv"
 
 Stop-Process -Name 'excel'    -Force -ErrorAction Ignore
 
@@ -48,9 +50,9 @@ Remove-Item -Path $copytopath -Force -ErrorAction Ignore
 Copy-Item -Path $copyfrompath -Destination $copytopath -Force
 
 $NewExcelCSVFileGenerated = $false
-$spreadsheet = Import-Excel $inpath
+$spreadsheet = Import-Excel $inpath  # For ODS: Exception calling "Load" with "1" argument(s): "The file is not an valid Package file. If the file is encrypted, please supply the password in the constructor."
 
-$spreadsheet | Export-Csv $outpath
+$spreadsheet | Export-Csv $outpath 
 
 $NewExcelCSVFileGenerated = $true 
 
