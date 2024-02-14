@@ -1,0 +1,294 @@
+' ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+' ║ Select spreadsheet lines                                                                                 ║█
+' ║                                                                                                          ║█
+' ║ Procedures written by S.M.C.J. Licence : WTFPL.                                                          ║█
+' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝█
+'  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Option Explicit
+
+Global myKeyHandler As Object
+
+Const myCSVFile = "/here/you/have/to/set/the/path/of/the/file/named/myTempoCSV.csv"
+
+
+' ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+' ║ Open and transform a CSV file for select items.                                                          ║█
+' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝█
+'  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Sub main
+ Dim       myCSVdocument As Object, mySheet As Object
+ Dim myConditionalFormat As Object, myStyle As Object, myCells As Object
+ Dim        myFormula(1) As String
+ Dim          myLastLine As Long
+
+ Dim        myOptions(2) As New com.sun.star.beans.PropertyValue
+ Dim            myShadow As New com.sun.star.table.ShadowFormat
+ Dim            myBorder As New com.sun.star.table.BorderLine
+
+ If Not fileExists(myCSVFile) then
+  msgBox "The file" & chr(13)  & chr(13) & myCSVFile & chr(13) & chr(13) & "do not exists on your system."  & chr(13) & chr(13) & _
+         "Please set the ""myCSVFile"" Constant to the begining of the code," & chr(13) & "and try again.", 16, "File do not exists"
+  exit Sub
+ End If
+
+ ' Open the CSV file.
+ myOptions(0).Name = "FilterName"    : myOptions(0).value = "Text - txt - csv (StarCalc)"
+ myOptions(1).Name = "FilterOptions" : myOptions(1).value = "44,34,76,1,1/2/2/4/3/2"
+ '  44 =          Field separator : comma.
+ '  34 =     Text field delimiter : quote character ".
+ '  76 =                 Encoding : Unicode (UTF-8).
+ '   1 = First line to be treated : line 1.
+ ' 1/2 =            Column format : column 1 is formating in TEXT (2).
+ ' 2/4 =            Column format : column 2 is formating in DATE (4) JJ/MM/AA (french disposition) ; the import of TIME what is spewed by PHP is still...
+ ' 3/2 =            Column format : column 3 is formating in TEXT (2).
+
+ myCSVdocument = starDesktop.loadComponentFromURL(convertToURL(myCSVFile), "_blank", 0, myOptions())
+       mySheet = myCSVdocument.sheets(0)
+  myFormula(0) = "=HYPERLINK(""vnd.sun.star.script:selectSpreadSheetLines." ' Left part of the formula's spreadsheet.
+  myFormula(1) = "?language=Basic&location=application"                     ' Right part of the formula's spreadsheet.
+
+ With mySheet
+     .rows.insertByIndex (0, 1)
+     .rows(0).horiJustify                = com.sun.star.table.CellHoriJustify.CENTER
+     .rows(0).charWeight                 = 150
+     .rows(0).cellBackColor              = RGB(255, 200, 200)                ' With pink flesh.
+  
+  .columns.insertByIndex(0, 1)
+  .columns(0).horiJustify                = com.sun.star.table.CellHoriJustify.CENTER
+  .columns(0).width                      = 1600
+  .columns(1).width                      = 3600
+  .columns(1).horiJustify                = com.sun.star.table.CellHoriJustify.CENTER
+  .columns(2).horiJustify                = com.sun.star.table.CellHoriJustify.CENTER
+  .columns(3).width                      = 8000                              ' Title column.
+  .columns(5).width                      = 600                               ' Not very iumportant...
+
+  .getCellByPosition(1, 0).string        = "References"
+  .getCellByPosition(2, 0).formula       = myFormula(0) & "selectionLines.callSort" & myFormula(1) & "&mySort=inputDates"" ; ""Input dates"")"
+  .getCellByPosition(2, 0).charColor     = RGB(0  , 0  , 255)                ' Blue hyperlink.
+  .getCellByPosition(2, 0).charUnderline = 1
+  .getCellByPosition(3, 0).formula       = myFormula(0) & "selectionLines.callSort" & myFormula(1) & "&mySort=titles"" ; ""Titles"")"
+  .getCellByPosition(3, 0).charColor     = RGB(0  , 0  , 255)                ' Blue hyperlink.
+  .getCellByPosition(3, 0).charUnderline = 1
+  .getCellByPosition(4, 0).string        = "Files of:"
+  .getCellByPosition(4, 0).horiJustify   = com.sun.star.table.CellHoriJustify.RIGHT
+  .getCellByPosition(5, 0).value         = 12                                ' Need in a specific case (not important in this demonstration).
+  .getCellByPosition(5, 0).charColor     = RGB(255,   0,   0)                ' Red.
+  .getCellByPosition(6, 0).string        = "Ex Libris."                      ' Yes, latin word; but no matter in this demonstration.
+  .getCellByPosition(6, 0).horiJustify   = com.sun.star.table.CellHoriJustify.LEFT
+  .getCellByPosition(6, 0).charPosture   = com.sun.star.awt.FontSlant.ITALIC
+
+   ' At start, ☐ or ☒ (myType = 0) or ☑ (myType = 1) ; to choice...
+  .getCellByPosition(0, 1).formula      = myFormula(0) & "common.checkBox" & myFormula(1) & "&myCell="" & ADDRESS(ROW(A2);COLUMN(A2);1) & ""&myType=0""; ""☐"")"
+  .getCellByPosition(0, 1).charHeight   = 14
+
+  myLastLine = knowLastCell(.name, 1, 0)
+  .getCellRangeByPosition(0, 1, 0, myLastLine).fillAuto(com.sun.star.sheet.FillDirection.TO_BOTTOM, 1)
+ End With
+
+ With myShadow
+  .location      = com.sun.star.table.ShadowLocation.BOTTOM_RIGHT
+  .shadowWidth   = 50
+  .color         = RGB(128, 128, 128)
+ End With
+
+ myBorder.outerLineWidth = 50
+ 
+ With mySheet.getCellByPosition(0, 0)                                       ' Cell call of the counting macro.
+  .formula       = myFormula(0) & "selectionLines.countCkecks" & myFormula(1) & """ ; ""Count"")"
+  .charColor     = RGB(0  , 0  , 255)                                       ' Blue hyperlink.
+  .cellBackColor = RGB(220, 220, 220)                                       ' Grey button.
+  .shadowFormat  = myShadow
+
+   .bottomBorder = myBorder
+    .rightBorder = myBorder
+     .leftBorder = myBorder
+      .topBorder = myBorder
+ End With
+
+ thisComponent.currentController.freezeAtPosition(1, 1)
+ moveToCell(0, 1)
+
+ ' Call of sorting.
+ myCells = mySheet.getCellRangeByPosition(0, 1, 3, myLastLine)
+ sortingCSVlines(myCells, 2)
+ 
+ ' Creating a custom style ...
+ myStyle = thisComponent.createInstance("com.sun.star.style.CellStyle")
+ thisComponent.getStyleFamilies().getByName("CellStyles").insertByName("Selected line", myStyle)
+ With myStyle
+  .charColor     = RGB(255, 255, 255)                                        ' White.
+  .cellBackColor = RGB(255,  80,  80)                                        ' Soft red.
+  .charWeight    = 150                                                       ' Bold.
+ End With
+
+ ' ... and applying it as CONDITIONAL FORMAT.
+             myCells = mySheet.getCellRangeByPosition(0, 1, 25, myLastLine)
+ myConditionalFormat = myCells.conditionalFormat
+   
+ myOptions(0).Name = "Operator"  : myOptions(0).value = com.sun.star.sheet.ConditionOperator.FORMULA
+ myOptions(1).Name = "Formula1"  : myOptions(1).Value = "IF($A1 <> ""☐"")"
+ myOptions(2).Name = "StyleName" : myOptions(2).Value = "Selected line"
+
+ myConditionalFormat.clear()
+ myConditionalFormat.addNew(myOptions())
+ myCells.conditionalFormat = myConditionalFormat
+ 
+ addKeyHandler                                                              ' Call the listener that handles the checkbox with the spacebar.
+
+ myCSVdocument.setModified(False)                                           ' No saving request when closing the file.
+End Sub
+
+
+' ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+' ║ Sort the lines of the imported CSV.                                                                      ║█
+' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝█
+'  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Sub sortingCSVlines(myCells As Object, myColumn As Integer)
+ Dim mySortDescriptor As Variant
+ Dim    sortConfig(0) As New com.sun.star.table.TableSortField
+
+ With sortConfig(0)
+ .Field = myColumn
+
+  Select Case myColumn
+   case 2 : .isAscending = False                                            ' Sorting did on the "Titles".
+   case 3 : .isAscending = True                                             ' Sorting did on the "Input dates".
+  End Select
+ End With
+
+ mySortDescriptor = myCells.createSortDescriptor
+
+ setPropVal(mySortDescriptor, "SortFields"          , sortConfig())
+ setPropVal(mySortDescriptor, "IsSortColumns"       , False       )
+ setPropVal(mySortDescriptor, "CopyOutputData"      , False       )
+ setPropVal(mySortDescriptor, "IsUserListEnabled"   , False       )
+ setPropVal(mySortDescriptor, "BindFormatsToContent", False       )
+ setPropVal(mySortDescriptor, "ContainsHeader"      , False       )
+
+ myCells.sort(mySortDescriptor())
+End Sub
+
+' ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+' ║ Call sorting from the HYPERTEXT() function of the spreadsheet.                                           ║█
+' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝█
+'  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Sub callSort(myURL As String)
+ Dim myCells As Object
+
+ With thisComponent.currentController.activeSheet
+  myCells = .getCellRangeByPosition(0, 1, 3, knowLastCell(.name, 1, 0))
+ End With
+
+ Select Case getArgumentFromURL(myURL, "mySort")
+  Case "inputDates" : sortingCSVlines(myCells, 2)
+  Case "titles"     : sortingCSVlines(myCells, 3)
+ End Select
+End Sub
+
+
+' ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+' ║ keyHandler management.                                                                                   ║█
+' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝█
+'  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+Sub addKeyHandler
+ myKeyHandler = createUnoListener("callKeyHandler_","com.sun.star.awt.XKeyHandler")
+ thisComponent.currentController.addKeyHandler(myKeyHandler)
+End Sub
+
+Sub removeKeyHandler
+ On Error Resume Next
+ thisComponent.currentController.removeKeyHandler(myKeyHandler)
+End Sub
+
+Sub callKeyHandler_disposing : End Sub
+
+Function callKeyHandler_keyPressed(myEvent) As Boolean
+ Dim mySelection As Object
+ Dim    myColumn As Long, myLine As Long
+ Dim           i As Integer,   j As Integer
+
+ callKeyHandler_keyPressed = False
+               mySelection = thisComponent.currentSelection
+
+ If mySelection.supportsService("com.sun.star.table.CellProperties") And _
+            myEvent.keyCode = 1284 Then                                    ' 1284 = spacebar.
+  callKeyHandler_keyPressed = True
+
+  If mySelection.supportsService("com.sun.star.table.Cell"         ) Then  ' Only one cell is selected.
+   myLine = mySelection.cellAddress.row
+   checkUnCheck(myLine)
+   myColumn = mySelection.cellAddress.column
+  End If
+
+  If Not mySelection.supportsService("com.sun.star.table.Cell"     ) And _
+         mySelection.supportsService("com.sun.star.table.CellRange") Then  ' A block of cells is selected.
+
+   With mySelection.rangeAddress
+    For i = .startRow to .endRow : checkUnCheck(i) : Next i
+    myColumn = .startColumn : myLine = .endRow
+   End With
+  End If
+
+  If Not mySelection.supportsService("com.sun.star.table.CellRange") Then  ' Multiple blocks of non-contiguous cells are selected.
+   For j = 0 to uBound(mySelection.rangeAddresses)
+    With mySelection.rangeAddresses(j)
+     For i = .startRow to .endRow : checkUnCheck(i) : Next i
+    End With
+   Next j
+
+   With mySelection.rangeAddresses(uBound(mySelection.rangeAddresses))
+    myColumn = .startColumn : myLine = .endRow
+   End With
+  End If
+
+  moveToCell(myColumn, myLine + 1)
+ End If
+End Function
+
+Sub checkUnCheck(myLine As Long)
+ Dim   myDocument As Object, mySheet As Object
+ Dim    myFormula As String, myCheck As String
+ Dim myCheckPlace As Integer
+
+ myDocument = thisComponent.currentController
+    mySheet = myDocument.activeSheet
+
+ ' Obviously does not touch the first line of title and after the last not empty line.
+ If ((myLine > 0) And (myLine <= knowLastCell(mySheet.name, 1, 0))) Then
+     myFormula = mySheet.getCellByPosition(0, myLine).formula
+       myCheck = mid(myFormula, len(myFormula) - 2, 1)
+  myCheckPlace = len(myFormula) - 2
+
+  Select Case myCheck
+   Case "☒" : mid(myFormula, myCheckPlace, 1) = "☐"
+   Case "☐" : mid(myFormula, myCheckPlace, 1) = "☒"
+  End Select
+
+  mySheet.getCellByPosition(0, myLine).formula = myFormula
+ End If
+End Sub
+
+Function callKeyHandler_keyReleased(myEvent) As Boolean
+ callKeyHandler_KeyReleased = True
+End Function
+
+
+' ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+' ║ Count how much lines are checked.                                                                        ║█
+' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝█
+'  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+Sub countCkecks
+ Dim        mySheet As Object, myFunction As Object
+ Dim myArguments(1) As Variant
+
+        mySheet = thisComponent.sheets(0)
+     myFunction = createUnoService("com.sun.star.sheet.FunctionAccess")
+ myArguments(0) = mySheet.getCellRangeByName( "$A2:$A" & (knowLastCell(mySheet.name, 1, 0) + 1) )
+ myArguments(1) = "☒"
+ 
+ msgbox myFunction.callFunction("COUNTIF", myArguments) & " lines are checked.", 64, "Checked lines."
+End Sub
