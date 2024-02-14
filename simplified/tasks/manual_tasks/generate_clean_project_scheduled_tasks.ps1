@@ -37,18 +37,18 @@ $ScheduledTaskDefsInSetOrderHandle = Walk-Sql '
 $ScheduledTaskDefsInSetOrder = $ScheduledTaskDefsInSetOrderHandle.Value
 
 While ($ScheduledTaskDefsInSetOrder.Read()) {
-    $scheduledTaskId = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_id
-    $RunStartTime = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle run_start_time
-    $RunStartTimestamp = (Get-Date).ToString('yyyy-MM-dd').ToDateTime($null).AddTicks($RunStartTime.Ticks).ToString('yyyy-MM-ddTHH:mm:ss.fffffff')
-    $scheduledTaskPath = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_directory
-    $scheduledTaskName = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_name
-    $uri= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle uri
-    $previous_uri= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle previous_uri
+    $scheduledTaskId               = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_id
+    $RunStartTime                  = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle run_start_time
+    $RunStartTimestamp             = (Get-Date).ToString('yyyy-MM-dd').ToDateTime($null).AddTicks($RunStartTime.Ticks).ToString('yyyy-MM-ddTHH:mm:ss.fffffff')
+    $scheduledTaskPath             = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_directory
+    $scheduledTaskName             = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_name
+    $uri                           = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle uri
+    $previous_uri                  = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle previous_uri
     $scheduledTaskShortDescription = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_short_description
-    $PreviousTaskName= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle previous_task_name
-    $scriptPathToRun= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle script_path_to_run
-    $execution_time_limit= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle execution_time_limit
-    $scheduled_task_run_set_name= Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_run_set_name
+    $PreviousTaskName              = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle previous_task_name
+    $scriptPathToRun               = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle script_path_to_run
+    $execution_time_limit          = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle execution_time_limit
+    $scheduled_task_run_set_name   = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_run_set_name
       
     $triggerScript = ""
 
@@ -80,7 +80,7 @@ else {
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
         <Date>$SharedTimestamp</Date>
-        <Author>DSKTP-HOME-JEFF\jeffs</Author>
+        <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, $scheduledTaskShortDescription. # $scheduledTaskId</Description>
         <URI>$uri</URI>
       </RegistrationInfo>
@@ -119,6 +119,7 @@ else {
         <Exec>
           <Command>"C:\Program Files\PowerShell\7\pwsh.exe"</Command>
           <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". '$scriptPathToRun'; exit `$LASTEXITCODE"</Arguments>
+          <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>
     </Task>    
