@@ -7,11 +7,12 @@ param()
                                                                              
 $targettable  = 'user_spreadsheet_interface'
 $copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.ods" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
-$copytopath = "D:\qt_projects\filmcab\simplified\_data\$targettable.csv" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
+$copytodirectory = "D:\qt_projects\filmcab\simplified\_data" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
+$copytopath = "$copytodirectory\$targettable.csv" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
 
 Stop-Process -Name 'excel' -Force -ErrorAction Ignore
 
-soffice --headless --convert-to csv  $copyfrompath
+soffice --headless --convert-to csv  $copyfrompath --outdir $copytodirectory
 $NewExcelCSVFileGenerated = $true
                      
 $columns_csv = "
@@ -64,12 +65,10 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
 
             $sql+= " "*4 + "hash_of_all_columns text GENERATED ALWAYS AS(encode(sha256(("+ [System.Environment]::NewLine;
             foreach($columnname in $columns)
-            {
+            {                                                                                                                                            
+                $sep = if($columnname -eq $columns[-1]) {""} else {"||"}
                 # Postgresql automatically converts the string 'null' to a NULL value.
-                $sql+= " "*8 + 
-                    "COALESCE(" + $columnname.PadRight($widestcolumnname) + " , 'NULL')" + 
-                    (If($columnname -eq $columns[-1]) {""} else {"||"}) + 
-                    [System.Environment]::NewLine;
+                $sql+= " "*8 + "COALESCE(" + $columnname.PadRight($widestcolumnname) + " , 'NULL')" + $(if($columnname -eq $columns[-1]) {""} else {"||"}) + [System.Environment]::NewLine;
             }
 
             $sql+= " "*8 + ") ::bytea), 'hex')) STORED" + [System.Environment]::NewLine;
@@ -88,7 +87,7 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
             $sql = "COPY $targettable("
             foreach($columnname in $columns)
             {
-                $sql+= " "*4 + $columnname.PadRight($widestcolumnname)  + (If($columnname -eq $columns[-1]) {")"} else {","}) + [System.Environment]::NewLine;
+                $sql+= " "*4 + $columnname.PadRight($widestcolumnname)  + $(If($columnname -eq $columns[-1]) {")"} else {","}) + [System.Environment]::NewLine;
             }
 
             $sql+= "FROM '$copytopath' CSV HEADER;" + [System.Environment]::NewLine;
