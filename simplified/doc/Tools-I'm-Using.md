@@ -32,8 +32,8 @@ description: >-
 
 * ~~Humanizer (trying to install. May fail. Over 20 minutes.)~~
 
-\##### PowerShell Modules
-
+**PowerShell Modules**
+* PowerShellHumanizer 3.2
 
 
 #### Database Development
