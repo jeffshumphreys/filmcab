@@ -15,6 +15,7 @@ Stop-Process -Name 'excel' -Force -ErrorAction Ignore
 soffice --headless --convert-to csv  $copyfrompath --outdir $copytodirectory
 $NewExcelCSVFileGenerated = $true
                      
+#TODO: Pull these from the spreadsheet?
 $columns_csv = "
     seen, 
     have, 
