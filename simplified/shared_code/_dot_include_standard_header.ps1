@@ -138,7 +138,7 @@ param()
     An example
     
     .NOTES
-    General notes
+    #TODO: Switch to humanizer?
     #>
 Function Format-Humanize($ob) {
     if ($ob -is [Diagnostics.Stopwatch]) {
@@ -255,7 +255,7 @@ Show-Error -exitcode 23920  #(Int32 I think is Windows limit)
 .NOTES
 Could be enhanced. Log to file. Detect new errors, which are more important in debugging. Often lazy developers ignore errors in a priority basis.
 #>
-function Show-Error {
+Function Show-Error {
     param(
         [Parameter(Position=0,mandatory=$false)]        [string]$scriptWhichProducedError,    
         [Parameter(Position=1,mandatory=$false)]        [int32] $exitcode = 1, # non-zero generally means failure in executable world
@@ -1129,11 +1129,19 @@ Write-Host "How many genre directories were found:          " $(Format-Plural 'F
 .NOTES
 General notes
 #>
-Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null, [switch]$includeCount) {
+Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null, [switch]$includeCount, [string]$variableName = $null) {
     $ct = ""
 
+    if ($null -ne $variableName -and -not [string]::IsNullOrWhiteSpace($variableName)) {
+        
+        $ct+= $variableName.Humanize() + ": "
+        $number = Get-Variable -Name $variableName -Scope Global -Value
+        $includeCount = $true
+    }
+
+
     if ($includeCount) {
-        $ct = $number.ToString() + " "
+        $ct+= $number.ToString() + " "
     }   
 
     if ($number -eq 1) {return ($ct + $singularLabel)}
@@ -1185,12 +1193,42 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
     if ($number -ge 2 -or $number -eq 0) { return ($ct + $pluralLabel)}
     return ($ct + $singularLabel)
 }   
+                                                                                                         
+<#
+.SYNOPSIS
+Writes a named variable in humanized form.
 
-Function Format-Plural2 ([string]$variablename, [string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null) {
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
+Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [string]$pluralLabel = $null) {
     $ct = ""
 
+    if ($null -ne $variableName -and -not [string]::IsNullOrWhiteSpace($variableName)) {
+        
+        $ct+= $variableName.Humanize() + ": "
+        $number = Get-Variable -Name $variableName -Scope Global -Value
+        $includeCount = $true
+    }
+
+
     if ($includeCount) {
-        $ct = $number.ToString() + " "
+        $ct+= $number.ToString() + " "
     }   
 
     if ($number -eq 1) {return ($ct + $singularLabel)}
@@ -1340,11 +1378,11 @@ Function main_for_dot_include_standard_header() {
 
     # Hide these variables inside here. Why? So that callers can update this script instead of adding hacks to their scripts, like "if driver -eq then do this." Centralize my hacks.
 
-    $MyOdbcDatabaseDriver = "PostgreSQL Unicode(x64)"
-    $MyDatabaseServer = "localhost";
-    $MyDatabaseServerPort = "5432";
-    $MyDatabaseName = "filmcab";
-    $MyDatabaseUserName = "filmcab_superuser";
+    $MyOdbcDatabaseDriver    = "PostgreSQL Unicode(x64)"
+    $MyDatabaseServer        = "localhost";
+    $MyDatabaseServerPort    = "5432";
+    $MyDatabaseName          = "filmcab";
+    $MyDatabaseUserName      = "filmcab_superuser";
     $MyDatabaseUsersPassword = "filmcab_superuser"  # Hmmmm. Will I ever lock down a database securely?  Is my ass white?
 
     # Options from https://odbc.postgresql.org/docs/config-opt.html
@@ -1355,17 +1393,19 @@ Function main_for_dot_include_standard_header() {
     The driver checks this option first. If disabled then it checks the Server Side Prepare option.
     If this option is enabled, the driver will parse an SQL query statement to identify the columns and tables and gather statistics about them such as precision, nullability, aliases, etc. It then reports this information in SQLDescribeCol, SQLColAttributes, and SQLNumResultCols.
     When this option is disabled (the default), the query is sent to the server to be parsed and described. If the parser can not deal with a column (because it is a function or expression, etc.), it will fall back to describing the statement in the server. The parser is fairly sophisticated and can handle many things such as column and table aliases, quoted identifiers, literals, joins, cross-products, etc. It can correctly identify a function or expression column, regardless of the complexity, but it does not attempt to determine the data type or precision of these columns.
-    #>    
+    #>     
+    ############# WARNING: DO NOT INCLUDE SPACES AROUND "DRIVER={"  WILL THROW Error Record= Exception calling "Open" with "0" argument(s): "ERROR [IM002] [Microsoft][ODBC Driver Manager] Data source name not found and no default driver specified"
+    ############# WARMOMG" NO SPACES ANYWHERE!!!!!!!!!!!!!!!!!!! "0" argument(s): "ERROR [08001] connection to server at "localhost" (::1), port 5432 failed: FATAL:  database " filmcab" does not exist
     $DatabaseConnectionString = "
-    Driver         = {$MyOdbcDatabaseDriver};
-    Servername     = $MyDatabaseServer;
-    Port           = $MyDatabaseServerPort;
-    Database       = $MyDatabaseName;
-    Username       = $MyDatabaseUserName;
-    Password       = $MyDatabaseUsersPassword;
-    Parse          = True;
-    OptionalErrors = True;
-    BoolsAsChar    = False;
+    Driver={$MyOdbcDatabaseDriver};
+    Servername=$MyDatabaseServer;
+    Port=$MyDatabaseServerPort;
+    Database=$MyDatabaseName;
+    Username=$MyDatabaseUserName;
+    Password=$MyDatabaseUsersPassword;
+    Parse=True;
+    OptionalErrors=True;
+    BoolsAsChar=False;
     ";                    
     # The above, if any invalid syntax, will break when ConnectionString is set, not on Open, with:Exception setting "ConnectionString": "Format of the initialization string does not conform to specification starting at index 194."
     $Script:DatabaseConnection= New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
@@ -1393,7 +1433,7 @@ Function main_for_dot_include_standard_header() {
         $Script:DatabaseConnection.Open();
         $Script:DatabaseConnectionIsOpen = $true;
     } catch {
-        Show-Error -exitcode = 3 -DontExit # dot includer can decide if no db connection is bad or not.
+        Show-Error -exitcode 3 -DontExit # dot includer can decide if having no db connection is bad or not.
         $Script:DatabaseConnectionIsOpen = $false;
     }               
     $Script:AttemptedToConnectToDatabase = $true
