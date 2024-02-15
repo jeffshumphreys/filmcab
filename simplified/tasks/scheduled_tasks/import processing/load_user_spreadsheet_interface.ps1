@@ -97,7 +97,7 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
         }
     }
 
-    $DatabaseCommand.CommandText = "SELECT manually_corrected_title FROM $targettable where (seen not in('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
+    $DatabaseCommand.CommandText = "SELECT manually_corrected_title FROM $targettable WHERE (seen NOT IN('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
 
     $Reader = $DatabaseCommand.ExecuteReader();
     $matchcount = 0;
