@@ -12,18 +12,28 @@ description: >-
 
 #### PowerShell Development
 
-* Visual Code 1.85.2 (for PowerShell Development)
-* PowerShell 7.4.1 Core for running simple SQL and file loops, especially if I need excel.
-  * ImportExcel 7.8.6 (Import-Excel) https://github.com/dfinke/ImportExcel (Excel.dll now has blocking unremovable popups if used from automation)
+* Visual Code 1.86.1 (for PowerShell Development)
+* ~~PowerShell 7.4.1 Core for running simple SQL and file loops, especially if I need excel.~~
+  * ~~ImportExcel 7.8.6 (Import-Excel) https://github.com/dfinke/ImportExcel (Excel.dll now has blocking unremovable popups if used from automation)~~
+* PowerShell 5.1 (*Core will not allow me to load UNO, which is a great tool for editing excel files without excel*)
+* soffice (*executable part of LibreOffice*)
 * psqlodbc\_x64.msi (for PowerShell only) https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc\_15\_00\_0000-x64.zip
+
+##### PowerShell Extensions
+* Better Align 1.4.2
+* GitHub 0.0.1
+* Inline Values support for PowerShell 0.0.7
+* Insert Time Stamp 1.1.3 Preview
+* PowerShell 2024.3.0
+* TODO Highlight 1.0.5
 
 #### Database Development
 
-* postgreSQL 15.4 not 16 (local)
+* postgreSQL 15.4 not 16 (local) (*No need for 16*)
   * unaccent extension (works!)
-* pgAdmin 4.7.8 (latest always) (2023) (for not table work, just types, enums, ddl creation)
-* pg\_dump for DDL (only tool that works)
-* DBeaver 23.3.3 community (latest always) (Oct 2023) for browsing data, DDL extract, adding columns, scripting.
+* pgAdmin 4.7.8 (latest always) (2023) (for not table work, just types, enums, ddl creation, most can be done in DBeaver)
+* pg\_dump for DDL (*only tool that works*)
+* DBeaver 23.3.4 Community (latest always) (Oct 2023) for browsing data, DDL extract, adding columns, scripting.
 
 #### File Gathering
 
@@ -36,11 +46,11 @@ description: >-
 
 #### Scheduling
 
-* Windows Task Scheduler
+* Windows Task Scheduler on Windows 10
 
 #### User Interface
 
-* Excel
+* ~~Excel~~
 * Google Keep
 
 #### Source Control
@@ -66,11 +76,14 @@ description: >-
 * GitHub Copilot
 * Hey Code voice command
 * Amazon voice commands
+* FileBot ($6) Bought. Fakes you out that you can use it for free, but it won't fix a name til you buy. And the output is COMPLETELY UNCONFIGURABLE.
+* gcc, mingw, Qt. Too hard for me. Too many errors were slipping by because I couldn't wrap my head around the complexity.
 
 ## Tools Tried Using but Failed
 
-* MindManager, ERwin
-* boost 1.83.0 (stacktrace)
+* ~~MindManager~~ (*Fun, but no longer bouncing ideas around*)
+* ~~ERwin~~ (*No roundtrip support for Postgres*)
+* boost 1.83.0 (stacktrace) (*No longer using C++*)
 * cygwin (breaks Qt minGW build if anywhere in path, though probably a partial install might work)
 * MSYS2
 * PGXN - extensions to postgres not installing on Windows.
@@ -84,14 +97,7 @@ description: >-
 * Pester
 * Kubuntu (another machine)
 * Mac (have the other machine)
-
-## Tools I Stopped Using
-
-* MindManager 21.0.261 (ERDs work better for me for structural design)
-* FileBot ($6) Bought. Fakes you out that you can use it for free, but it won't fix a name til you buy. And the output is COMPLETELY UNCONFIGURABLE.
-* gcc, mingw, Qt. Too hard for me. Too many errors were slipping by because I couldn't wrap my head around the complexity.
-* Moving towards stopping ERwin use since it doesn't have PostgreSQL support, and it's very buggy in round-trip engineering.
-* ERwin
+* Google Keep API
 
 ## Tools I may Need Someday
 
