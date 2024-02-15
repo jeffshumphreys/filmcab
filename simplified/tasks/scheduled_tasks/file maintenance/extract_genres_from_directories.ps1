@@ -17,19 +17,19 @@ param()
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
-$howManyGenreFolders = 0
-$howManySubGenreFolders = 0
-$howManyGrandSubGenreFolders = 0
-$howManyNewGenreFolders= 0
+$howManyGenreFoldersWereFound = 0
+$howManySubGenreFoldersWereFound       = 0
+$howManyGrandSubGenreFoldersWereFound  = 0
+$howManyNewGenreWereFound     = 0
 
 # Fetch a string array of paths to search.
 
 $loop_sql = "
-SELECT 
-     directory_path                      /* What we are going to search for new files     */
-  ,  useful_part_of_directory_path       /* Start without the base search_directory to confuse us */
-FROM 
-    directories_ext_v
+                        SELECT 
+                            directory_path                      /* What we are going to search for new files     */
+                        ,   useful_part_of_directory_path       /* Start without the base search_directory to confuse us */
+                        FROM 
+                            directories_ext_v
 ";
 
 $readerHandle = Walk-Sql $loop_sql
@@ -79,30 +79,30 @@ While ($reader.Read()) {
     {
         Write-Host "Genre: $genre" -NoNewline
         $wrote = $true
-        $howManyGenreFolders++                             
+        $howManyGenreFoldersWereFound++                             
         $genre = $genre.Substring(1)
         Invoke-Sql "UPDATE directories set root_genre = '$genre' where directory_path = '$escaped_directory_path'"|Out-Null
         $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$genre', 'published folders', 1, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
-        $howManyNewGenreFolders+= $howManyAdded
+        $howManyNewGenreWereFound+= $howManyAdded
     }                             
 
     if ($null -ne $subgenre) {
         Write-Host "  Sub-genre: $subgenre"  -NoNewline
         $wrote = $true
-        $howManySubGenreFolders++
+        $howManySubGenreFoldersWereFound++
         $subgenre = $subgenre.Substring(1)
         Invoke-Sql "UPDATE directories set sub_genre = '$subgenre' where directory_path = '$escaped_directory_path'"|Out-Null
         $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$subgenre', 'published folders', 2, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
-        $howManyNewGenreFolders+= $howManyAdded
+        $howManyNewGenreWereFound+= $howManyAdded
     }
 
     if ($null -ne $grandsubgenre) {
         Write-Host "    Grand-sub-genre: $grandsubgenre" -NoNewline
         $wrote = $true
-        $howManyGrandSubGenreFolders++
+        $howManyGrandSubGenreFoldersWereFound++
         $grandsubgenre = $grandsubgenre.Substring(1)
         $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$grandsubgenre', 'published folders', 3, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
-        $howManyNewGenreFolders+= $howManyAdded
+        $howManyNewGenreWereFound+= $howManyAdded
     }   
 
     if ($wrote) {
@@ -110,17 +110,17 @@ While ($reader.Read()) {
         
     }
     
-    
+    break
 }
 
 
 # Display counts. If nothing is happening in certain areas, investigate.
 Write-Host # Get off the last nonewline
 Write-Host
-Write-Host "How many genre directories were found:          " $(Format-Plural 'Folder' $howManyGenreFolders -includeCount) 
-Write-Host "How many sub genre directories were found:      " $(Format-Plural 'Folder' $howManySubGenreFolders -includeCount) 
-Write-Host "How many grand sub genre directories were found:" $(Format-Plural 'Folder' $howManyGrandSubGenreFolders -includeCount) 
-Write-Host "How many new genres found:                      " $(Format-Plural 'Genre' $howManyNewGenreFolders -includeCount) 
+Write-Count howManyGenreFoldersWereFound           Folder
+Write-Count howManySubGenreFoldersWereFound        Folder
+Write-Count howManyGrandSubGenreFoldersWereFound   Folder
+Write-Count howManyNewGenreWereFound               Genre  
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
