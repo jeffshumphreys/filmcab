@@ -22,6 +22,8 @@ param()
     $consoleHandle = (get-process -id $pid).mainWindowHandle
     [void][win32.user32]::showWindow($consoleHandle, 0)
 
+    Import-Module PowerShellHumanizer
+
 ############## Environment things FORCED on the user of this dot file.
 
     # Flush all variables because new code above their definitions will RUN fine until to restart anything.
@@ -285,7 +287,8 @@ function Show-Error {
         Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
     } catch {}
     
-    if (-not $DontExit) {                                                              # Double-negative. Meh.
+    if (-not $DontExit) {    
+        Write-VolumeCache D # So that log stuff gets written out in case of fatal crash                                                          # Double-negative. Meh.
         exit $HResult # These SEEM to be getting back to Task Scheduler 
     }
     return $HResult
@@ -760,7 +763,7 @@ function Write-LogLineToFile {
     } else {
         $text | Out-File "$Script:LogFilePath" -Encoding utf8 @arguments
     }
-    Write-VolumeCache D # So that log stuff gets written out in case of fatal crash
+    # TOO SLOW!!! Write-VolumeCache D # So that log stuff gets written out in case of fatal crash
 }
 function Log-SqlConnection {
     # Database, driver, etc. Even user!!!!!!!!!!!
@@ -1183,7 +1186,7 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
     return ($ct + $singularLabel)
 }   
 
-Function Format-Plural2 ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null) {
+Function Format-Plural2 ([string]$variablename, [string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null) {
     $ct = ""
 
     if ($includeCount) {
@@ -1354,15 +1357,15 @@ Function main_for_dot_include_standard_header() {
     When this option is disabled (the default), the query is sent to the server to be parsed and described. If the parser can not deal with a column (because it is a function or expression, etc.), it will fall back to describing the statement in the server. The parser is fairly sophisticated and can handle many things such as column and table aliases, quoted identifiers, literals, joins, cross-products, etc. It can correctly identify a function or expression column, regardless of the complexity, but it does not attempt to determine the data type or precision of these columns.
     #>    
     $DatabaseConnectionString = "
-    Driver={$MyOdbcDatabaseDriver};
-    Servername=$MyDatabaseServer;
-    Port=$MyDatabaseServerPort;
-    Database=$MyDatabaseName;
-    Username=$MyDatabaseUserName;
-    Password=$MyDatabaseUsersPassword;
-    Parse=True;
-    OptionalErrors            =True;
-    BoolsAsChar               =False;
+    Driver         = {$MyOdbcDatabaseDriver};
+    Servername     = $MyDatabaseServer;
+    Port           = $MyDatabaseServerPort;
+    Database       = $MyDatabaseName;
+    Username       = $MyDatabaseUserName;
+    Password       = $MyDatabaseUsersPassword;
+    Parse          = True;
+    OptionalErrors = True;
+    BoolsAsChar    = False;
     ";                    
     # The above, if any invalid syntax, will break when ConnectionString is set, not on Open, with:Exception setting "ConnectionString": "Format of the initialization string does not conform to specification starting at index 194."
     $Script:DatabaseConnection= New-Object System.Data.Odbc.OdbcConnection; # Probably useful to expose to caller.
