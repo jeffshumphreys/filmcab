@@ -324,7 +324,7 @@ Invoke-Sql 'SET search_path = simplified, "$user", public'
 .NOTES
 Also good way to enforce some sort of error response. Damn! Even displays the sql executed!!!!!!! Hell has broken out on the face of the Earth!
 #>
-function Invoke-Sql {
+Function Invoke-Sql {
     [CmdletBinding()]
     param(           
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
@@ -341,6 +341,82 @@ function Invoke-Sql {
     }
 }
 
+# https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56
+#https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56#file-you-need-to-implement-non-generic-md
+class __WhileSqlGenerator : System.Collections.IEnumerator {
+    [string]$sql
+    [int]$Actual = 0
+    
+    __WhileSqlGenerator() {
+        throw [Exception] "Please provide a sql"
+    }
+
+    __WhileSqlGenerator([string]$sql) {
+        $this.sql = $sql
+    }
+
+    [object]get_Current() {
+        return $this.Actual
+    }
+
+    [bool] MoveNext() {
+        $this.Actual = Get-Random
+        return $true
+    }
+
+    [void] Reset() {
+        $this.Actual = 0
+    }
+
+    [void] Dispose() {
+        # Close reader
+    }
+}
+
+class WhileSqlGenerator : __WhileSqlGenerator, System.Collections.Generic.IEnumerator[int] {
+    WhileSqlGenerator([string]$sql) : base($sql) {
+        
+    }
+    [int]get_Current() {
+        return $this.Actual
+    }
+}
+
+<#
+.SYNOPSIS
+Simple while loop through sql
+
+.DESCRIPTION
+Long description
+
+.PARAMETER sql
+Parameter description
+
+.EXAMPLE
+While (While-Sql "SELECT y from x") { Write-Host $y }
+
+.NOTES
+Collections.Generic.IEnumerable[string]
+Enumerable.ToList()
+#>
+Function While-Sql {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+    )
+    $DatabaseCommand             = $DatabaseConnection.CreateCommand()
+    $DatabaseCommand.CommandText = $sql
+    $reader                      = $DatabaseCommand.ExecuteReader();
+    $ResultSetColumnDefinitions  = $reader.GetSchemaTable()
+
+    foreach ($ResultSetColumnDefinition in $ResultSetColumnDefinitions) {             
+        $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
+        $DatabaseColumnType = $ResultSetColumnDefinition.DataType
+        $DatabaseDriverTypeNo = $ResultSetColumnDefinition.ProviderType
+        $DatabaseColumnValue  = Get-SqlFieldValue $reader $DatabaseColumnName
+    }
+
+}
 <#
 .SYNOPSIS
 Select a query but don't read the first row so the caller can use a While
@@ -355,7 +431,6 @@ While ($reader.Read()) {
 } 
 
 $reader.Close() # Optional
-
 
 .NOTES
 General notes
