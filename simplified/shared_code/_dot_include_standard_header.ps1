@@ -345,14 +345,31 @@ Function Invoke-Sql {
 #https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56#file-you-need-to-implement-non-generic-md
 class __WhileSqlGenerator : System.Collections.IEnumerator {
     [string]$sql
+    [System.Data.Odbc.OdbcCommand]$DatabaseCommand
+    [System.Data.Odbc.OdbcDataReader]$reader
     [int]$Actual = 0
+    $ResultSetColumnDefinitions
     
     __WhileSqlGenerator() {
         throw [Exception] "Please provide a sql"
     }
 
     __WhileSqlGenerator([string]$sql) {
-        $this.sql = $sql
+        $this.sql                         = $sql
+        $this.DatabaseCommand             = $Script:DatabaseConnection.CreateCommand()
+        $this.DatabaseCommand.CommandText = $sql
+        $this.reader                      = $this.DatabaseCommand.ExecuteReader();
+        $this.reader.Read()
+        
+        $this.ResultSetColumnDefinitions       = $this.reader.GetSchemaTable()
+        foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
+            $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
+            $DatabaseColumnValue  = Get-SqlFieldValue $this.reader $DatabaseColumnName
+            $DatabaseColumnType = $ResultSetColumnDefinition.DataType                                                                             
+            New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $DatabaseColumnValue -Force -ItemType $DatabaseColumnType
+            #$DatabaseDriverTypeNo = $ResultSetColumnDefinition.ProviderType
+        }
+                
     }
 
     [object]get_Current() {
@@ -374,9 +391,7 @@ class __WhileSqlGenerator : System.Collections.IEnumerator {
 }
 
 class WhileSqlGenerator : __WhileSqlGenerator, System.Collections.Generic.IEnumerator[int] {
-    WhileSqlGenerator([string]$sql) : base($sql) {
-        
-    }
+    WhileSqlGenerator([string]$sql) : base($sql) {}
     [int]get_Current() {
         return $this.Actual
     }
@@ -667,9 +682,17 @@ function Get-SqlFieldValue {
         [Parameter(Position=0,Mandatory=$true)][Object] $readerOb, # Child types are DataTableReader, Odbc.OdbcDataReader, OleDb.OleDbDataReader, SqlClient.SqlDataReader
         [Parameter(Position=1,Mandatory=$true)][Object] $ordinalNoOrColumnName
     )
-                                                                 
-    $reader = $readerOb.Value # readers have to be wrapped or they go blank.
+             
+    $reader = $null
 
+    if ($readerOb -is [System.Data.Common.DbDataReader])
+    {
+        $reader = $readerOb
+    }                      
+    else {
+        $reader = $readerOb.Value # readers have to be wrapped or they go blank.
+    }
+    
     [Int32]$ordinal = $null
     [object]$columnValue = $null
 
