@@ -15,6 +15,9 @@ param()
 $SharedTimestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fffffff' # All tasks will have same timestamp.
 # TODO: Check warning column for misaligned names
 
+$powershellInstance = "C:\Program Files\PowerShell\7\pwsh.exe"
+$powershellInstance = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"  # Switched back to 5.1
+
 $ScheduledTaskDefsInSetOrderHandle = Walk-Sql '
     SELECT 
         scheduled_task_id,
@@ -117,7 +120,7 @@ else {
       </Settings>
       <Actions Context="Author">
         <Exec>
-          <Command>"C:\Program Files\PowerShell\7\pwsh.exe"</Command>
+          <Command>"$powershellInstance"</Command>
           <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". '$scriptPathToRun'; exit `$LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
