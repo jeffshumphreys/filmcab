@@ -9,21 +9,16 @@
  [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
  param()
   
- . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
  
- Start-Log
+Start-Log
 
- Foreach ($x in [__WhileSqlGenerator]::new('select 1::text AS T')){
-   $t.GetType()
-    Write-Host $t
-    
- }
+$reader = WhileReadSql "SELECT 1 AS t" 
 
- Foreach ($x in [__WhileSqlGenerator]::new('select 2::bigint AS x')){
-   $x.GetType()                                             
-   Write-Host $x
-   
+While ($reader.Read()) {
+    $t
 }
- Log-ScriptCompleted
+
+Log-ScriptCompleted
  
- . D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
+. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
