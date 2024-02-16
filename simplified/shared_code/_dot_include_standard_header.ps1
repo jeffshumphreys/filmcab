@@ -340,78 +340,14 @@ Function Invoke-Sql {
         Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
     }
 }
+                                                                                                          
 
 # https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56
-#https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56#file-you-need-to-implement-non-generic-md
-class __WhileSqlGenerator : System.Collections.IEnumerator {
-    [string]$sql
-    [System.Data.Odbc.OdbcCommand]$DatabaseCommand
-    $readerObject
-    [int]$Actual = 0
-    $ResultSetColumnDefinitions
-    
-    __WhileSqlGenerator() {
-        throw [Exception] "Please provide a sql"
-    }
-
-    __WhileSqlGenerator([string]$sql) {
-        $this.sql                         = $sql
-        $this.DatabaseCommand             = $Script:DatabaseConnection.CreateCommand()
-        $this.DatabaseCommand.CommandText = $sql
-        $this.readerObject                      = [REF]$this.DatabaseCommand.ExecuteReader();
-        $local_reader = $this.readerObject.Value                             
-    #    $local_reader.Read()
-
-        $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
-        foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
-            $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
-            #$DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
-                                                         
-            New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $null -Force -Visibility Public
-            
-            #$DatabaseDriverTypeNo = $ResultSetColumnDefinition.ProviderType
-        }
-                
-    }
-
-    [object]get_Current() {
-        return $this.Actual
-    }
-
-    [bool] MoveNext() {
-       # if ($anyMoreRecordsToRead) {
-        $local_reader = $this.readerObject.Value                             
-        $anyMoreRecordsToRead = $local_reader.Read()
-        if ($anyMoreRecordsToRead) {
-        $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
-        foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
-            $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
-            $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
-            Set-Variable -Name $DatabaseColumnName -Value $DatabaseColumnValue
-        }                           
-    }
-        return $anyMoreRecordsToRead
-    }
-
-    [void] Reset() {
-        $this.Actual = 0
-    }
-
-    [void] Dispose() {
-        # Close reader
-    }
-}
-
-# class WhileSqlGenerator : __WhileSqlGenerator, System.Collections.Generic.IEnumerator[int] {
-#     WhileSqlGenerator([string]$sql) : base($sql) {}
-#     [int]get_Current() {
-#         return $this.Actual
-#     }
-# }
+# https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56#file-you-need-to-implement-non-generic-md
 
 <#
 .SYNOPSIS
-Simple while loop through sql
+Simple read
 
 .DESCRIPTION
 Long description
@@ -420,30 +356,78 @@ Long description
 Parameter description
 
 .EXAMPLE
-While (While-Sql "SELECT y from x") { Write-Host $y }
+Foreach ($null in [ForEachRowInQuery]::new('select 2 AS x')){
+   Write-Host $x
+   
+}
 
 .NOTES
-Collections.Generic.IEnumerable[string]
-Enumerable.ToList()
+General notes
 #>
-Function While-Sql {
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
-    )
-    $DatabaseCommand             = $DatabaseConnection.CreateCommand()
-    $DatabaseCommand.CommandText = $sql
-    $reader                      = $DatabaseCommand.ExecuteReader();
-    $ResultSetColumnDefinitions  = $reader.GetSchemaTable()
-
-    foreach ($ResultSetColumnDefinition in $ResultSetColumnDefinitions) {             
-        $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
-        $DatabaseColumnType = $ResultSetColumnDefinition.DataType
-        $DatabaseDriverTypeNo = $ResultSetColumnDefinition.ProviderType
-        $DatabaseColumnValue  = Get-SqlFieldValue $reader $DatabaseColumnName
+Function WhileReadSql($sql) {
+    return ([ForEachRowInQuery]::new($sql))
+}
+  
+class ForEachRowInQuery {
+    [string]$sql
+    [System.Data.Odbc.OdbcCommand]$DatabaseCommand
+    $readerObject
+    [int]$Actual = 0
+    $ResultSetColumnDefinitions
+    
+    ForEachRowInQuery() {
+        throw [Exception] "Please provide a sql"
     }
 
+    ForEachRowInQuery([string]$sql) {
+        $this.sql                         = $sql
+        $this.DatabaseCommand             = $Script:DatabaseConnection.CreateCommand()
+        $this.DatabaseCommand.CommandText = $sql
+        $this.readerObject                      = [REF]$this.DatabaseCommand.ExecuteReader();
+    }
+
+    # [object]get_Current() {
+    #     return $this
+    # }
+
+    # [bool] MoveNext() {
+    #     $local_reader = $this.readerObject.Value                             
+    #     $anyMoreRecordsToRead = $local_reader.Read()
+    #     if ($anyMoreRecordsToRead) {
+    #         $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
+    #         foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
+    #             $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
+    #             $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
+    #             New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $DatabaseColumnValue -Force -Visibility Public
+    #         }                           
+    #     }
+    #     return $anyMoreRecordsToRead
+    # }
+
+    [bool] Read() {
+        $local_reader = $this.readerObject.Value                             
+        $anyMoreRecordsToRead = $local_reader.Read()
+        if ($anyMoreRecordsToRead) {
+            $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
+            foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
+                $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
+                $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
+                New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $DatabaseColumnValue -Force -Visibility Public
+            }                           
+        }
+        return $anyMoreRecordsToRead
+    }
+
+    # [void] Reset() {
+    #     $this.Actual = 0
+    # }
+
+    # [void] Dispose() {
+    #     # Close reader
+    # }
 }
+
+
 <#
 .SYNOPSIS
 Select a query but don't read the first row so the caller can use a While
@@ -1503,6 +1487,12 @@ Function main_for_dot_include_standard_header() {
     The driver checks this option first. If disabled then it checks the Server Side Prepare option.
     If this option is enabled, the driver will parse an SQL query statement to identify the columns and tables and gather statistics about them such as precision, nullability, aliases, etc. It then reports this information in SQLDescribeCol, SQLColAttributes, and SQLNumResultCols.
     When this option is disabled (the default), the query is sent to the server to be parsed and described. If the parser can not deal with a column (because it is a function or expression, etc.), it will fall back to describing the statement in the server. The parser is fairly sophisticated and can handle many things such as column and table aliases, quoted identifiers, literals, joins, cross-products, etc. It can correctly identify a function or expression column, regardless of the complexity, but it does not attempt to determine the data type or precision of these columns.
+    BI=1  : BIGINT comes back as Int32
+    BI=5  : BIGINT comes back as Int16
+    BI=6  : BIGINT comes back as DOUBLE
+    BI=2  : BIGINT comes back as Decimal
+    BI=7  : BIGINT comes back as Single
+    ODBC Enum list doesn't check out: https://learn.microsoft.com/en-us/dotnet/api/system.data.odbc.odbctype?view=dotnet-plat-ext-8.0
     #>     
     ############# WARNING: DO NOT INCLUDE SPACES AROUND "DRIVER={"  WILL THROW Error Record= Exception calling "Open" with "0" argument(s): "ERROR [IM002] [Microsoft][ODBC Driver Manager] Data source name not found and no default driver specified"
     ############# WARMOMG" NO SPACES ANYWHERE!!!!!!!!!!!!!!!!!!! "0" argument(s): "ERROR [08001] connection to server at "localhost" (::1), port 5432 failed: FATAL:  database " filmcab" does not exist
