@@ -346,7 +346,7 @@ Function Invoke-Sql {
 class __WhileSqlGenerator : System.Collections.IEnumerator {
     [string]$sql
     [System.Data.Odbc.OdbcCommand]$DatabaseCommand
-    [System.Data.Odbc.OdbcDataReader]$reader
+    $readerObject
     [int]$Actual = 0
     $ResultSetColumnDefinitions
     
@@ -358,15 +358,17 @@ class __WhileSqlGenerator : System.Collections.IEnumerator {
         $this.sql                         = $sql
         $this.DatabaseCommand             = $Script:DatabaseConnection.CreateCommand()
         $this.DatabaseCommand.CommandText = $sql
-        $this.reader                      = $this.DatabaseCommand.ExecuteReader();
-        $this.reader.Read()
-        
-        $this.ResultSetColumnDefinitions       = $this.reader.GetSchemaTable()
+        $this.readerObject                      = [REF]$this.DatabaseCommand.ExecuteReader();
+        $local_reader = $this.readerObject.Value                             
+    #    $local_reader.Read()
+
+        $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
         foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
             $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
-            $DatabaseColumnValue  = Get-SqlFieldValue $this.reader $DatabaseColumnName
-            $DatabaseColumnType = $ResultSetColumnDefinition.DataType                                                                             
-            New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $DatabaseColumnValue -Force -ItemType $DatabaseColumnType
+            #$DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
+                                                         
+            New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $null -Force -Visibility Public
+            
             #$DatabaseDriverTypeNo = $ResultSetColumnDefinition.ProviderType
         }
                 
@@ -377,8 +379,18 @@ class __WhileSqlGenerator : System.Collections.IEnumerator {
     }
 
     [bool] MoveNext() {
-        $this.Actual = Get-Random
-        return $true
+       # if ($anyMoreRecordsToRead) {
+        $local_reader = $this.readerObject.Value                             
+        $anyMoreRecordsToRead = $local_reader.Read()
+        if ($anyMoreRecordsToRead) {
+        $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
+        foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
+            $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
+            $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
+            Set-Variable -Name $DatabaseColumnName -Value $DatabaseColumnValue
+        }                           
+    }
+        return $anyMoreRecordsToRead
     }
 
     [void] Reset() {
@@ -390,12 +402,12 @@ class __WhileSqlGenerator : System.Collections.IEnumerator {
     }
 }
 
-class WhileSqlGenerator : __WhileSqlGenerator, System.Collections.Generic.IEnumerator[int] {
-    WhileSqlGenerator([string]$sql) : base($sql) {}
-    [int]get_Current() {
-        return $this.Actual
-    }
-}
+# class WhileSqlGenerator : __WhileSqlGenerator, System.Collections.Generic.IEnumerator[int] {
+#     WhileSqlGenerator([string]$sql) : base($sql) {}
+#     [int]get_Current() {
+#         return $this.Actual
+#     }
+# }
 
 <#
 .SYNOPSIS
