@@ -18,7 +18,10 @@ Log-Line "Starting Vacuum"
 ###### Sun Feb 11 18:17:39 MST 2024 VACUUM VERBOSE took a second after above.  Where does the output go?
 
 #Invoke-Sql 'VACUUM (FULL, VERBOSE);' # Where does the output go?
-#Invoke-Sql 'VACUUM (VERBOSE);' # Where does the output go?
+#Invoke-Sql 'VACUUM (VERBOSE);' # Where does the output go?    
+
+# While (While-Sql("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'simplified' ORDER BY tablename") {
+#     Invoke-Sql "VACUME $tablename"
 Invoke-Sql 'VACUUM (VERBOSE) files;' 
 Invoke-Sql 'VACUUM (VERBOSE) directories;' 
 Invoke-Sql 'VACUUM (VERBOSE) batch_run_sessions;' 
