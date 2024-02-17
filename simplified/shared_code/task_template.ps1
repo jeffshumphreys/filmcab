@@ -5,13 +5,9 @@
  #    ###### Sat Feb 3 22:20:01 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
- 
 
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
+. .\_dot_include_standard_header.ps1
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
@@ -52,4 +48,4 @@ Write-Host "How many directories were flagged for scanning:           $howManyDi
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
+. .\_dot_include_standard_footer.ps1
