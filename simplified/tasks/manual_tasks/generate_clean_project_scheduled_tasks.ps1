@@ -6,56 +6,25 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
 
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
-
 . .\_dot_include_standard_header.ps1
 
-$SharedTimestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fffffff' # All tasks will have same timestamp.
+$SharedTimestamp = Get-Date -Format $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML # All tasks will have same timestamp.
+
 # TODO: Check warning column for misaligned names
+
+# TODO: check which is installed and use that.
 
 $powershellInstance = "C:\Program Files\PowerShell\7\pwsh.exe"
 $powershellInstance = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"  # Switched back to 5.1
 
-$ScheduledTaskDefsInSetOrderHandle = Walk-Sql '
-    SELECT 
-        scheduled_task_id,
-        run_start_time,
-        scheduled_task_directory,
-        scheduled_task_name,
-        scheduled_task_run_set_name,
-        uri,
-        scheduled_task_short_description,
-        previous_task_name,
-        previous_uri,
-        script_path_to_run,
-        order_in_set,
-        execution_time_limit
-    FROM scheduled_tasks_ext_v 
-    ORDER BY 
-        scheduled_task_run_set_id, 
-        order_in_set
-    ' 
-$ScheduledTaskDefsInSetOrder = $ScheduledTaskDefsInSetOrderHandle.Value
+$ScheduledTaskDefsInSetOrder = WhileReadSql 'SELECT * FROM scheduled_tasks_ext_v ORDER BY scheduled_task_run_set_id, order_in_set' 
 
-While ($ScheduledTaskDefsInSetOrder.Read()) {
-    $scheduledTaskId               = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_id
-    $RunStartTime                  = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle run_start_time
-    $RunStartTimestamp             = (Get-Date).ToString('yyyy-MM-dd').ToDateTime($null).AddTicks($RunStartTime.Ticks).ToString('yyyy-MM-ddTHH:mm:ss.fffffff')
-    $scheduledTaskPath             = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_directory
-    $scheduledTaskName             = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_name
-    $uri                           = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle uri
-    $previous_uri                  = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle previous_uri
-    $scheduledTaskShortDescription = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_short_description
-    $PreviousTaskName              = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle previous_task_name
-    $scriptPathToRun               = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle script_path_to_run
-    $execution_time_limit          = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle execution_time_limit
-    $scheduled_task_run_set_name   = Get-SqlFieldValue $ScheduledTaskDefsInSetOrderHandle scheduled_task_run_set_name
+  While ($ScheduledTaskDefsInSetOrder.Read()) {
+    $RunStartTimestamp = (Get-Date).ToString('yyyy-MM-dd').ToDateTime($null).AddTicks($run_start_time.Ticks).ToString($DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML)
       
     $triggerScript = ""
 
-    if ($PreviousTaskName -eq '') {
+    if ($previous_task_name -eq '') {
           $triggerScript = "
           <CalendarTrigger>
           <StartBoundary>$RunStartTimestamp</StartBoundary>
@@ -84,7 +53,7 @@ else {
       <RegistrationInfo>
         <Date>$SharedTimestamp</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
-        <Description>Part of FilmCab, $scheduledTaskShortDescription. # $scheduledTaskId</Description>
+        <Description>Part of FilmCab, $scheduled_task_short_description . # $scheduled_task_id</Description>
         <URI>$uri</URI>
       </RegistrationInfo>
       <Triggers>
@@ -121,19 +90,21 @@ else {
       <Actions Context="Author">
         <Exec>
           <Command>"$powershellInstance"</Command>
-          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". '$scriptPathToRun'; exit `$LASTEXITCODE"</Arguments>
+          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". '$script_path_to_run'; exit `$LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>
     </Task>    
 "@
            
-if (-not (Test-Path $scriptPathToRun)) {
-  throw [Exception]"Path <$scriptPathToRun> Does not exist! Fix!"
+if (-not (Test-Path $script_path_to_run)) {
+  throw [Exception]"Path <$script_path_to_run> Does not exist! Fix!"
 }
-Register-ScheduledTask -Xml $taskXMLTemplate -TaskPath $scheduledTaskPath -TaskName $scheduledTaskName -User 'DSKTP-HOME-JEFF\jeffs' -Password 'Dill11ie!' -Force
+Register-ScheduledTask -Xml $taskXMLTemplate -TaskPath $scheduled_task_directory -TaskName $scheduled_task_name -User 'DSKTP-HOME-JEFF\jeffs' -Password 'Dill11ie!' -Force
+
 # TODO: Get file if there. compare: if no different, do not push. Ignore the datestamp.
-$path_to_XML = $scriptPathToRun.Replace('.ps1', '.xml').Replace($scheduled_task_run_set_name, $scheduled_task_run_set_name + '\_task_defs')
+
+$path_to_XML = $script_path_to_run.Replace('.ps1', '.xml').Replace($scheduled_task_run_set_name, $scheduled_task_run_set_name + '\_task_defs')
 $taskXMLTemplate | Out-File $path_to_XML -Force
 }
 
