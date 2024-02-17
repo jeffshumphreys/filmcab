@@ -12,7 +12,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
+. .\_dot_include_standard_header.ps1
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
@@ -27,7 +27,7 @@ $hoWManyRowsDeleted = 0
 
 # Fetch a string array of paths to search.
 
-$searchPathsHandle = Walk-Sql 'SELECT * from files_linked_across_search_paths_v' # All the directories across my volumes that I think have some sort of movie stuff in them.
+$searchPathsHandle = Walk-Sql 'SELECT * from files_linked_across_search_directories_v' # All the directories across my volumes that I think have some sort of movie stuff in them.
 $searchPaths = $searchPathsHandle.Value
 
 # Search down each search path for directories that are different or missing from our data store.
@@ -53,4 +53,4 @@ Write-Host "How many directories were flagged for scanning:           $howManyDi
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
+. .\_dot_include_standard_footer.ps1
