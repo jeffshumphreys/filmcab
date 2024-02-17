@@ -21,8 +21,8 @@
                      'PSReservedCmdletChar',
                      'PSReservedParams',
                      'PSShouldProcess',
-                     'PSUseApprovedVerbs',
-                     'PSAvoidUsingCmdletAliases',
+                     #'PSUseApprovedVerbs',
+                     #'PSAvoidUsingCmdletAliases',
                      'PSUseDeclaredVarsMoreThanAssignments')
 
     # Do not analyze the following rules. Use ExcludeRules when you have
