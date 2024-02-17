@@ -22,7 +22,7 @@ param()
     $consoleHandle = (get-process -id $pid).mainWindowHandle
     [void][win32.user32]::showWindow($consoleHandle, 0)
 
-    Import-Module PowerShellHumanizer
+    Import-Module PowerShellHumanizer # See Write-Count for usage.
 
 ############## Environment things FORCED on the user of this dot file.
 
@@ -69,7 +69,8 @@ param()
     $DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
-
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
     $MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
@@ -367,7 +368,7 @@ General notes
 Function WhileReadSql($sql) {
     return ([ForEachRowInQuery]::new($sql))
 }
-  
+
 class ForEachRowInQuery {
     [string]$sql
     [System.Data.Odbc.OdbcCommand]$DatabaseCommand
