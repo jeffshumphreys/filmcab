@@ -10,22 +10,19 @@
     - Measure-Command {[void](Get-ScheduledTask)}                     520 ms
     - Measure-Command {(Get-ScheduledTask -TaskPath '\')}             501 ms
  #>
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
 
 . .\_dot_include_standard_header.ps1
 
-$scheduled_task_definitions = @()
-$scheduled_task_action_definitions = @()
+$scheduled_task_definitions         = @()
+$scheduled_task_action_definitions  = @()
 $scheduled_task_trigger_definitions = @()
 
 $scheduledTaskDefPaths = (Get-ScheduledTask -TaskPath '\FilmCab\*')|Select TaskPath, TaskName
 
 foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
     $taskPath = $scheduledTaskDefPath.TaskPath
-    $taskName = $scheduledTaskDefPath.TaskName              
-    $taskXML = [XML](Export-ScheduledTask -TaskName "$taskName" -TaskPath "$taskPath")
+    $taskName = $scheduledTaskDefPath.TaskName
+    $taskXML  = [XML](Export-ScheduledTask -TaskName "$taskName" -TaskPath "$taskPath")
 
     $taskDef = [PSCustomObject]@{}    
     
@@ -186,6 +183,5 @@ foreach ($scheduledTaskDefPath in $scheduledTaskDefPaths) {
 $scheduled_task_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-definitions.xml'
 $scheduled_task_action_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-actions-definitions.xml'
 $scheduled_task_trigger_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-triggers-definitions.xml'
-
 
 . .\_dot_include_standard_footer.ps1

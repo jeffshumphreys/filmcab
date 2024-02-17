@@ -6,7 +6,6 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
 
-
 . .\_dot_include_standard_header.ps1
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.

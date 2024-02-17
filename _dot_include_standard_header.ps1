@@ -12,10 +12,6 @@
         Will try to remember if I'm using any other modules. Obviously I'm using win32. Sowwy. ☹
 #>                                                                                                
 
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')] # We don't need no stinkin' badges
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')] # Why?
-param()
-
 # Following code seems to close the popup console window almost immediately if you're calling from Windows Task Scheduler. At least very fast.  I like things that run in the background to run in the background.
 
     Add-Type -name user32 -namespace win32 -memberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
@@ -24,6 +20,12 @@ param()
 
     Import-Module PowerShellHumanizer # See Write-Count for usage.
 
+    Import-Module DellBIOSProvider                                      
+                                                                               
+    # Just an example.
+    
+    $TpmStatus = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
+    
 ############## Environment things FORCED on the user of this dot file.
 
     # Flush all variables because new code above their definitions will RUN fine until to restart anything.

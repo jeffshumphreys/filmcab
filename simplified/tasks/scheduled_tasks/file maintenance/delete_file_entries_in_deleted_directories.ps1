@@ -6,10 +6,6 @@
     ###### Mon Jan 29 18:12:26 MST 2024
 #>
 
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
-
 . .\_dot_include_standard_header.ps1 # 
 
 $HowManyFilesDeleted = 0    
@@ -32,9 +28,7 @@ if ($DatabaseConnectionIsOpen) {
 
     $HowManyFilesDeleted = Invoke-Sql $sql
 
-    Write-Host # Get off the last nonewline
-    Write-Host
-    Write-Host "How many file entries deleted:                      $howManyFilesDeleted"           $(Format-Plural 'File' $howManyFilesDeleted) 
+    Write-Count HowManyFilesDeleted File
 
 }
 

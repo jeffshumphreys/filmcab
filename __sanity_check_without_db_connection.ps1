@@ -7,8 +7,6 @@
  #
  #>
 
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param(
     $when  = 'without_db_connection',
     $stage = 'before_session_starts')

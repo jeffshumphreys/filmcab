@@ -7,9 +7,6 @@
  #   Notes: I don't just love the verbose log output, but I'm only keeping the one copy.
  #   ###### Tue Jan 16 19:10:55 MST 2024 - Moved to Yet Another Subfolder. Updated actual task. Exported.
  #>
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
 
 . .\_dot_include_standard_header.ps1 
 

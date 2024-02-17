@@ -47,12 +47,6 @@
 
     Example of output where a file is edited and flagged for scan: 🥱 📝👓🥱 🥱 🥱
 
-#>
-
-<#
-
-+50
-
 Disclaimer: I tested all of these myself on Windows 10. I could not find an authoritative source documenting all of these behaviours. It is entirely possible that I made a mistake somewhere.
 
 The folder's last modified time is updated for these actions:
@@ -78,13 +72,7 @@ It is not updated for these actions:
     if the folder is a directory junction, changing the target
     adding/deleting alt data streams to a direct child file
 #>
-#TODO: Don't scan directories below a directory that hasn't changed (Performance)
 #TODO: Figger out what better prefixes than old and new would be. on_fs_ and in_table_?
-#FIXME: It's still detecting need to scan. Not updating?? Should perhaps pull old flag and block if already set.
-
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
 
 . .\_dot_include_standard_header.ps1
 
@@ -92,46 +80,43 @@ param()
 
 $FIFOstack = New-Object System.Collections.Queue
 
-# Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
-
-$howManyNewDirectories = 0
-$howManyUpdatedDirectories = 0
+$howManyNewDirectories           = 0
+$howManyUpdatedDirectories       = 0
 $howManyDirectoriesFlaggedToScan = 0
-$howManyNewSymbolicLinks = 0
-$howManyNewJunctionLinks= 0
-$hoWManyRowsUpdated = 0
-$hoWManyRowsInserted = 0
-$hoWManyRowsDeleted = 0
+$howManyNewSymbolicLinks         = 0
+$howManyNewJunctionLinks         = 0
+$howManyRowsUpdated              = 0
+$howManyRowsInserted             = 0
+$howManyRowsDeleted              = 0
 
 # Fetch a string array of paths to search.
 
-$searchPathsHandle = Walk-Sql 'SELECT search_path, search_path_id FROM search_paths ORDER BY search_path_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
-$searchPaths = $searchPathsHandle.Value
+$searchDirectories = WhileReadSql 'SELECT search_directory, search_directory_id FROM search_directory ORDER BY search_directory_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
 
 # Search down each search path for directories that are different or missing from our data store.
 
-while ($searchPaths.Read()) {
+While ($searchDirectories.Read()) {
                           
-    $SearchPath = $searchPaths.GetString(0)
-    $SearchPathId = $searchPaths.GetInt32(1)
+    $search_directory    = $searchDirectories.GetString(0)
+    $search_directory_id = $searchDirectories.GetInt32(1)
     #Load first level of hierarchy
 
-    if (-not(Test-Path $SearchPath)) {
-        Write-Host "SearchPath $SearchPath not found; skipping scan."
+    if (-not(Test-Path $search_directory)) {
+        Write-Host "search_directory $search_directory not found; skipping scan."
         #TODO: Update search path.
         return # the PS way to continue, whereas PS continue is break
     }
 
-    # Stuff the search root SearchPath in the FIFOstack so that we can completely shortcut search SearchPath if nothing's changed. Has to be a DirectoryInfo object.
-    $BaseDirectoryInfoForSearchPath = Get-Item $SearchPath
+    # Stuff the search root search_directory in the FIFOstack so that we can completely shortcut search search_directory if nothing's changed. Has to be a DirectoryInfo object.
+    $BaseDirectoryInfoForSearchPath = Get-Item $search_directory
                       
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
-        Write-Host "SearchPath $SearchPath is not a container; skipping scan."
+        Write-Host "search_directory $search_directory is not a container; skipping scan."
     }
 
     $FIFOstack.Enqueue($BaseDirectoryInfoForSearchPath)
     
-    Get-ChildItem -Path $SearchPath -Directory | ForEach-Object { 
+    Get-ChildItem -Path $search_directory -Directory | ForEach-Object { 
         $FIFOstack.Enqueue($_) 
     }
     
@@ -173,82 +158,75 @@ while ($searchPaths.Read()) {
             $directory_path_escaped = $directory_path.Replace("'", "''")
             $sql = "
                 SELECT 
-                     directory_date                      /* Feeble attempt to detect downstream changes */
-                   , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
-                   , is_junction_link                    /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
-                   , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
+                     directory_date    /* Feeble attempt to detect downstream changes                                                                       */
+                   , is_symbolic_link  /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
+                   , is_junction_link  /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                   , linked_path       /* Verify this exists. Haven't tested.                                                                               */
                    , deleted
                 FROM 
                     directories
                 WHERE
                     directory_path = '$directory_path_escaped'
                 AND 
-                    volume_id = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')
+                    volume_id      = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')
             ";
-            $readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
-            $reader = $readerHandle.Value # Now we can unbox!  Ta da!
+            $reader = WhileReadSql $sql
 
-            $foundANewDirectory             =  [boolean]$null
-            $UpdateDirectoryRecord          =     [bool]$null
-            $flagScanDirectory          =     [bool]$false
+            $foundANewDirectory    = [boolean]$null
+            $UpdateDirectoryRecord = [bool]$null
+            $flagScanDirectory     = [bool]$false
              
-            $olddirectorydeleted=     [bool]$false
-            $olddirectorydate               = [datetime]0     # No $nulls for datetime type.
-            $oldsymboliclink            =  [boolean]$null
-            $oldjunctionlink            =  [boolean]$null
-            $oldlinktarget              =   [string]$null
+            $deleted          = [bool]$false
+            $directory_date   = [datetime]0     # No $nulls for datetime type.
+            $is_symbolic_link = [boolean]$null
+            $is_junction_link = [boolean]$null
+            $linked_path      = [string]$null
 
             # For additional functionality later $olddirhash   [byte[]]$null
 
-            $newdirectorydate = [datetime]0                       
-            $newsymboliclink                =     [bool]$null
-            $newjunctionlink            =     [bool]$null
-            $newlinktarget              =   [string]$null
+            $newdirectorydate = [datetime]0
+            $newsymboliclink  = [bool]$null
+            $newjunctionlink  = [bool]$null
+            $newlinktarget    = [string]$null
 
             if ($reader.HasRows) {
                 $foundANewDirectory         = $false
                 $UpdateDirectoryRecord      = $false
                                    
-                $olddirectorydate           = TrimToMicroseconds(Get-SqlFieldValue $readerHandle directory_date) # Just to document what's happening. PostgreSQL 15 only stores up to 6 decimal places. .NET File stamps are to 7 places. Which breaks compare. Tested it.  Cases of .0000004 exist.
-                $oldsymboliclink            = Get-SqlFieldValue $readerHandle is_symbolic_link
-                $oldjunctionlink            = Get-SqlFieldValue $readerHandle is_junction_link
-                $oldlinktarget              = NullIf (Get-SqlFieldValue $readerHandle linked_path)
-                $olddirectorydeleted        = Get-SqlFieldValue $readerHandle deleted
-
                 $newdirectorydate           = $currentdirectorydate
                 $newsymboliclink            = $currentsymboliclink
                 $newjunctionlink            = $currentjunctionlink
                 $newlinktarget              = NullIf $currentlinktarget
 
-                if ($olddirectorydeleted    -eq $true                    -or # We know the directory exists
-                    $olddirectorydate       -ne $currentdirectorydate    -or
-                    $oldsymboliclink        -ne $currentsymboliclink     -or
-                    $oldjunctionlink        -ne $currentjunctionlink     -or
-                    $oldlinktarget          -ne $currentlinktarget       
+                if ($deleted    -eq $true -or # We know the directory exists
+                    $directory_date       -ne $currentdirectorydate    -or
+                    $is_symbolic_link     -ne $currentsymboliclink     -or
+                    $is_junction_link     -ne $currentjunctionlink     -or
+                    $linked_path          -ne $currentlinktarget       
                 ) { 
                     $UpdateDirectoryRecord = $true
                 }
 
                 # WARNING: postgres can only store to 6 places of milliseconds. File info is stored to 7 places. So they'll never match without trimming file date to 6. Is the 6 place a rounding, though? TEST
 
-                if ($olddirectorydate     -ne $newdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
+                if ($directory_date     -ne $newdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
                     $flagScanDirectory     = $true 
                 }
             } else {
-                $foundANewDirectory        = $true
-                $flagScanDirectory = $true 
+                $foundANewDirectory = $true
+                $flagScanDirectory  = $true
             }
             $reader.Close()
             
-            if ($newjunctionlink -or $currentjunctionlink) { # Possible bug: junction converted to physical SearchPath: Not scanned.
+            if ($newjunctionlink -or $currentjunctionlink) { # Possible bug: junction converted to physical search_directory: Not scanned.
                 $flagScanDirectory = $false # Please do not traverse links. Even if the directory date changed.
             }
     
             if ($flagScanDirectory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
-            if ($newsymboliclink -and -not $oldsymboliclink) {
+            if ($newsymboliclink -and -not $is_symbolic_link) {
                 $howManyNewSymbolicLinks++
             }
-            if ($newjunctionlink -and -not $oldjunctionlink)  {
+            if ($newjunctionlink -and -not $is_junction_link)  {
                 $howManyNewJunctionLinks++
             }
                 
@@ -286,7 +264,7 @@ while ($searchPaths.Read()) {
                         /*     is_symbolic_link       */ $currentsymboliclink,
                         /*     is_junction_link       */ $currentjunctionlink,
                         /*     linked_path            */ $preppednewlinktarget,
-                        /*     search_path_id         */ $SearchPathId,
+                        /*     search_path_id         */ $search_directory_id,
                         /*     folder                 */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[1]),
                         /*     parent_folder          */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[2]),
                         /*     grantparent_folder     */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[3]),
@@ -296,7 +274,7 @@ while ($searchPaths.Read()) {
 
                 $rowsInserted = Invoke-Sql $sql
                 Write-Host '⭐' -NoNewline
-                $hoWManyRowsInserted+= $rowsInserted
+                $howManyRowsInserted+= $rowsInserted
 
             } elseif ($UpdateDirectoryRecord) {
                 $howManyUpdatedDirectories++
@@ -304,20 +282,20 @@ while ($searchPaths.Read()) {
                     UPDATE 
                         directories
                     SET
-                        scan_directory         = $flagScanDirectory,
-                        directory_date         ='$formattedcurrentdirectorydate'::TIMESTAMPTZ,
-                        is_symbolic_link       = $newsymboliclink,
-                        is_junction_link       = $newjunctionlink,
-                        linked_path  = $preppednewlinktarget,
-                        volume_id              = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
-                        deleted                =  False
+                        scan_directory   = $flagScanDirectory,
+                        directory_date   = '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
+                        is_symbolic_link = $newsymboliclink,
+                        is_junction_link = $newjunctionlink,
+                        linked_path      = $preppednewlinktarget,
+                        volume_id        = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
+                        deleted          = False
                     WHERE 
-                        directory_hash         = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
+                        directory_hash   = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
 
                 $rowsUpdated = Invoke-Sql $sql
                 Write-Host '📝' -NoNewline
                 if ($flagScanDirectory) { write-host '👓' -NoNewLine}
-                $hoWManyRowsUpdated+= $rowsUpdated
+                $howManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
                 
@@ -336,19 +314,14 @@ while ($searchPaths.Read()) {
     }
 }
 
-
-# Display counts. If nothing is happening in certain areas, investigate.
-Write-Host # Get off the last nonewline
-Write-Host
-Write-Host "How many new directories were found:                      $howManyNewDirectories"           $(Format-Plural 'Directory' $howManyNewDirectories) 
-Write-Host "How many old directories were updated:                    $howManyUpdatedDirectories"       $(Format-Plural 'Directory' $howManyUpdatedDirectories) 
-Write-Host "How many rows were updated:                               $howManyRowsUpdated"              $(Format-Plural 'Row'       $howManyRowsUpdated) 
-Write-Host "How many rows were inserted:                              $hoWManyRowsInserted"             $(Format-Plural 'Row'       $hoWManyRowsInserted) 
-Write-Host "How many rows were deleted:                               $hoWManyRowsDeleted"              $(Format-Plural 'Row'       $hoWManyRowsDeleted) 
-Write-Host "How many new junction linked directories were found:      $howManyNewJunctionLinks"         $(Format-Plural 'Link'      $howManyNewJunctionLinks) 
-Write-Host "How many new symbolically linked directories were found:  $howManyNewSymbolicLinks"         $(Format-Plural 'Link'      $howManyNewSymbolicLinks) 
-Write-Host "How many directories were flagged for scanning:           $howManyDirectoriesFlaggedToScan" $(Format-Plural 'Directory' $howManyDirectoriesFlaggedToScan) 
+Write-Count howManyNewDirectories           Directory
+Write-Count howManyUpdatedDirectories       Directory
+Write-Count howManyRowsUpdated              Row
+Write-Count howManyRowsInserted             Row
+Write-Count howManyRowsDeleted              Row
+Write-Count howManyNewJunctionLinks         Link
+Write-Count howManyNewSymbolicLinks         Link
+Write-Count howManyDirectoriesFlaggedToScan Directory
 #TODO: Update counts to session table
 
-# Da Fuutar!!!
 . .\_dot_include_standard_footer.ps1

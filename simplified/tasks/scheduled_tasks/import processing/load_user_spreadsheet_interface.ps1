@@ -1,14 +1,18 @@
-
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
+<#
+ #    FilmCab Daily morning batch run process: Import user's spreadsheet of movies they've seen or want to see.
+ #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
+ #    Status: Complete
+ #    ###### Tue Jan 23 18:23:11 MST 2024
+ #    Reviewed and refactored: ###### Sat Feb 17 12:02:04 MST 2024
+ #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #>
 
 . .\_dot_include_standard_header.ps1
                                                                              
-$targettable  = 'user_spreadsheet_interface'
-$copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.ods" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
+$targettable     = 'user_spreadsheet_interface'
+$copyfrompath    = "D:\qt_projects\filmcab\simplified\_data\$targettable.ods" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
 $copytodirectory = "D:\qt_projects\filmcab\simplified\_data" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
-$copytopath = "$copytodirectory\$targettable.csv" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
+$copytopath      = "$copytodirectory\$targettable.csv" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
 
 Stop-Process -Name 'excel' -Force -ErrorAction Ignore
 
@@ -98,29 +102,18 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
         }
     }
 
-    $DatabaseCommand.CommandText = "SELECT manually_corrected_title FROM $targettable WHERE (seen NOT IN('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
+    $sql = "SELECT manually_corrected_title FROM $targettable WHERE (seen NOT IN('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
 
-    $Reader = $DatabaseCommand.ExecuteReader();
-    $matchcount = 0;
+    $reader = WhileReadSql $sql
+    $HowManyMoviesAreUnmarked = 0;
 
     while ($Reader.Read()) {
-        $title = $Reader["manually_corrected_title"]
-        Write-Host "$title"                         
+        Write-Host "$manually_corrected_title"                         
         # TODO: SEARCH database for a match first!!!!!!! Duh!
-        $matchcount++;
-    }
-    $Reader.Close() 
-    $matchcount
+        $HowManyMoviesAreUnmarked++;
+    }                               
 
-    $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable"; $howManyRows = $DatabaseCommand.ExecuteScalar(); Write-Output "How many rows: $howManyRows"
-    $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where right(manually_corrected_title, 1) <> ')' and type_of_media <> 'Movie about…'"; $howManyBadParens = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles not end in right parens: $howManyBadParens"
-    $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where manually_corrected_title like '%  %'"; $howManyMultiSpacedTitles = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have multiple spaces: $howManyMultiSpacedTitles"
-    $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is null and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitlesMisformedYears = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have malformed years: $howManyTitlesMisformedYears"
-    $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where trim(manually_corrected_title) <> manually_corrected_title"; $howManyTitlesAreUntrim = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles trailing or leading spaces: $howManyTitlesAreUntrim";
-    $DatabaseCommand.CommandText = "SELECT COUNT(*) FROM $targettable where regexp_match(manually_corrected_title, '\((\d\d\d\d)\)') is not null and (regexp_match(manually_corrected_title, '\((\d\d\d\d)\)')::numeric[])[1] not between 1900 and 2026 and type_of_media <> 'Movie about…' and not regexp_like(manually_corrected_title, '\(pending\)')"; $howManyTitleYearsOutOfReasonableAge = $DatabaseCommand.ExecuteScalar(); Write-Output "How many titles have unreal years: $howManyTitleYearsOutOfReasonableAge"
-    
-    $DatabaseConnection.Close();
-    $DatabaseConnection.Dispose();
+    Write-Count HowManyMoviesAreUnmarked Movie
 }
 
 . .\_dot_include_standard_footer.ps1

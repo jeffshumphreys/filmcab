@@ -7,15 +7,11 @@
  #    Set a number and UUID for this session so we can track upstream activity to downstream consequences.  Bet the lovely Meridian School District IT team (bless them) never considered that. Gary, the fat worm.
  #>
                                             
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
-    
 # This is the first task in the batch run session. So do a BEFORE sanity check.
 # Granted, technically this IS the session, so semantics is important.  What is before session and first of session?  Will this ALWAYS be the first task, that is "_set_new_batch_run_session_id.ps1"?
 # A better name would be "_start_new_batch_run_session" paired to "zzz_end_batch_run_session"
 
-. D:\qt_projects\filmcab\simplified\shared_code\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
+. .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
 
 # Compare  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_before_session_starts.json 
 #      to  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_after_session_ends.json (yesterdays)

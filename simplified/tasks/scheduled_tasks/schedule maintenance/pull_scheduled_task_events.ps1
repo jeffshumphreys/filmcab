@@ -39,9 +39,6 @@
     Idea:
         Flush log for speed after we get it to file and/or database
 #>
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
 
 . .\_dot_include_standard_header.ps1 # 
 
@@ -562,10 +559,10 @@ Select  record_id,
         event_created,                                   
         @{Name='task_full_path'                       ; Expression={$_.TaskName}}, 
         @{Name='event_created_as_sortable_str_with_ms'; Expression={$_.event_created.ToString('yyyy-MM-dd HH:mm:ss:ffffff')}},  # The default output of datetime is only to seconds, and many of these related events are within milliseconds of each other, so ordering and understanding is improved when we can see which came first, and not depend on record_id
-        @{Name='UserName'                             ; Expression={$_.UserName -eq '' ? $null : $_.UserName.Replace($computer + '\', '')}}, 
-        @{Name='UserContext'                          ; Expression={$_.UserContext -eq '' ? $null : $_.UserContext.Replace($computer + '\', '')}}|
+        @{Name='UserName'                             ; Expression={if($_.UserName -eq '') { $null } else { $_.UserName.Replace($computer + '\', '')}}}, 
+        @{Name='UserContext'                          ; Expression={if($_.UserContext -eq '') { $null } else { $_.UserContext.Replace($computer + '\', '')}}}|
         Select *,
-        @{Name='merged_user_id'                       ; Expression={$_.UserName ?? $_.UserContext}} -ExcludeProperty user_id |
+        @{Name='merged_user_id'                       ; Expression={if($_.UserName -ne $null) {$_.UserName} else {$_.UserContext}}} -ExcludeProperty user_id |
         Select *,
         @{Name='user_id'                              ; Expression={Convert-SidToUser($_.merged_user_id)}} |
         Select * -ExcludeProperty merged_user_id, UserName, UserContext|
