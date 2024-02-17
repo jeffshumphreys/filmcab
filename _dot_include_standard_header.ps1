@@ -1311,69 +1311,78 @@ An example
 .NOTES
 General notes
 #>
+
+$Script:WriteCounts = @([PSCustomObject]@{
+    CountLabel = '';
+    Count      = 0;
+    Tag        = 'x';
+})             
+
 Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [string]$pluralLabel = $null) {
-    $ct = ""
+    $countLabel = ""
 
-    if ($null -ne $variableName -and -not [string]::IsNullOrWhiteSpace($variableName)) {
-        
-        $ct+= $variableName.Humanize() + ": "
-        $number = Get-Variable -Name $variableName -Scope Global -Value
-        $includeCount = $true
-    }
+    $countLabel = $variableName.Humanize()
+    $number = Get-Variable -Name $variableName -Scope Global -Value
 
+    if ($number -eq 1) {
+        $Script:WriteCounts+= [PSCustomObject]@{
+            CountLabel = $countLabel;
+            Count      = $number;
+            Tag        = $singularLabel;
+        }
+        return 
+    } else {
+        If ([String]::IsNullOrEmpty($pluralLabel)) {
+            $LastCharacter = Right $singularLabel
+            $Last2Characters = Right $singularLabel 2
+            $SecondLastCharacter = Left $Last2Characters # Concise. Dont repit yourself.
 
-    if ($includeCount) {
-        $ct+= $number.ToString() + " "
+            $Irregulars     = @{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
+            $NonCount= @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
+            $OnlyS = @('photo', 'halo', 'piano')                                                                                                                
+            $ExceptionsToFE = @('chef', 'roof')      
+            
+            if ($singularLabel -in $NonCount) {
+                $plurallabel = $singularLabel 
+            }                                                                        
+            elseif ($singularLabel -in $Irregulars.Keys) {
+                $plurallabel = $Irregulars[$singularLabel]
+            }
+            elseif ($singularLabel -in $OnlyS -or $singularLabel -in $ExceptionsToFE) {
+                $plurallabel = $singularLabel + 's'
+            }
+            elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) { 
+                $pluralLabel = $singularLabel + 'es'
+            }  
+            elseif ($Last2Characters -in @('f', 'fe')) { 
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'ves' # Wife => Wives
+            }  
+            elseif ($LastCharacter -in @('f', 'fe')) { 
+                $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ves'   # Calf => Calves
+            }  
+            elseif ($Last2Characters -in @('us')) {  
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'i'   # Cactus => Cacti
+            }  
+            elseif ($Last2Characters -in @('is')) {  
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'es'   # Analysis => analyses
+            }  
+            elseif ($Last2Characters -in @('on')) {  
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'a'   # Phenomenon => Phenomena
+            }  
+            elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) { 
+                $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ies' # City => Cities
+            }  
+            else {
+                $pluralLabel = $singularLabel + 's'                             # Cat => Cats
+            }
+        }
+
+        $Script:WriteCounts+= [PSCustomObject]@{
+            CountLabel = $countLabel;
+            Count      = $number;
+            Tag        = $pluralLabel;
+        }
     }   
-
-    if ($number -eq 1) {return ($ct + $singularLabel)}
-    If ([String]::IsNullOrEmpty($pluralLabel)) {
-        $LastCharacter = Right $singularLabel
-        $Last2Characters = Right $singularLabel 2
-        $SecondLastCharacter = Left $Last2Characters # Concise. Dont repit yourself.
-
-        $Irregulars     = @{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
-        $NonCount= @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
-        $OnlyS = @('photo', 'halo', 'piano')                                                                                                                
-        $ExceptionsToFE = @('chef', 'roof')      
-           
-        if ($singularLabel -in $NonCount) {
-            $plurallabel = $singularLabel 
-        }                                                                        
-        elseif ($singularLabel -in $Irregulars.Keys) {
-            $plurallabel = $Irregulars[$singularLabel]
-        }
-        elseif ($singularLabel -in $OnlyS -or $singularLabel -in $ExceptionsToFE) {
-            $plurallabel = $singularLabel + 's'
-        }
-        elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) { 
-            $pluralLabel = $singularLabel + 'es'
-        }  
-        elseif ($Last2Characters -in @('f', 'fe')) { 
-            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'ves' # Wife => Wives
-        }  
-        elseif ($LastCharacter -in @('f', 'fe')) { 
-            $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ves'   # Calf => Calves
-        }  
-        elseif ($Last2Characters -in @('us')) {  
-            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'i'   # Cactus => Cacti
-        }  
-        elseif ($Last2Characters -in @('is')) {  
-            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'es'   # Analysis => analyses
-        }  
-        elseif ($Last2Characters -in @('on')) {  
-            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'a'   # Phenomenon => Phenomena
-        }  
-        elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) { 
-            $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ies' # City => Cities
-        }  
-        else {
-            $pluralLabel = $singularLabel + 's'                             # Cat => Cats
-        }
-    }   
-
-    if ($number -ge 2 -or $number -eq 0) { return ($ct + $pluralLabel)}
-    return ($ct + $singularLabel)
 }   
 
 Function NullIf([string]$val, [string]$ifthis = '') {
