@@ -10,7 +10,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
+. .\_dot_include_standard_header.ps1
 
 $SharedTimestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fffffff' # All tasks will have same timestamp.
 # TODO: Check warning column for misaligned names
@@ -137,4 +137,4 @@ $path_to_XML = $scriptPathToRun.Replace('.ps1', '.xml').Replace($scheduled_task_
 $taskXMLTemplate | Out-File $path_to_XML -Force
 }
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
+. .\_dot_include_standard_footer.ps1

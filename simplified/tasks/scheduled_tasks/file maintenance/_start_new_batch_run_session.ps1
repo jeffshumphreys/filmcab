@@ -22,7 +22,7 @@ param()
 
 # The header includes the database connection
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1 
+. .\_dot_include_standard_header.ps1 
                                                                             
 # . D:\qt_projects\filmcab\simplified\__sanity_check_with_db_connection.ps1
 #
@@ -52,4 +52,4 @@ Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_scr
 
 # Get last id from batch_run_sessions table.                    
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1 
+. .\_dot_include_standard_footer.ps1 

@@ -11,7 +11,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
+. .\_dot_include_standard_header.ps1
 
 #$DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
 # FYI: $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
@@ -78,4 +78,4 @@ Write-Host "How many files were updated:                    $howManyUpdatedFiles
 #TODO: Update counts to session table
 
 # Da Fuutar!!!
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
+. .\_dot_include_standard_footer.ps1

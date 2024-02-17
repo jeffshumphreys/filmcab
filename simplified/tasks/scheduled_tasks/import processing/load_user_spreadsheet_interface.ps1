@@ -3,7 +3,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
 param()
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_header.ps1
+. .\_dot_include_standard_header.ps1
                                                                              
 $targettable  = 'user_spreadsheet_interface'
 $copyfrompath = "D:\qt_projects\filmcab\simplified\_data\$targettable.ods" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
@@ -123,4 +123,4 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     $DatabaseConnection.Dispose();
 }
 
-. D:\qt_projects\filmcab\simplified\shared_code\_dot_include_standard_footer.ps1
+. .\_dot_include_standard_footer.ps1
