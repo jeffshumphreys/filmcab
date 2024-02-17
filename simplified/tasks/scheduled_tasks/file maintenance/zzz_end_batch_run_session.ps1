@@ -32,7 +32,7 @@ param()
 . .\_dot_include_standard_footer.ps1
 
 
-. D:\qt_projects\filmcab\simplified\shared_code\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
+. .\shared_code\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
 
 # Copy and date days sanity checks to history
 
