@@ -6,10 +6,6 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #
  #>
-
- [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
- [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
- param()
  
 . .\_dot_include_standard_header.ps1
 
