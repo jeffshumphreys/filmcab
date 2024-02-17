@@ -54,6 +54,7 @@ $GatewayStat             = Get-NetIPConfiguration|Select -expand IPv4DefaultGate
 $NetworkCategory         = (Get-NetConnectionProfile|Select NetworkCategory) # Private, Public, Domain
 $AreWeInADomain          = (Get-NetConnectionProfile|Select DomainAuthenticationKind) # None
 $ComputerInfo            = Get-ComputerInfo |Select *
+$RunningAsAdmin          = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 # Put it all together
 
@@ -117,10 +118,10 @@ $SanityCheckStatus = [PSCustomObject]@{
     CurrentDirectory           = [System.Environment]::CurrentDirectory                # D:\qt_projects\filmcab
     PowerShellVersion          = $PSVersionTable.PSVersion                             # 7.4.1
     PowerShellEdition          = $PSVersionTable.PSEdition                             # Core
-    PowerShellPlatform         = $[System.Environment]::OSVersion.Platform             # Win32NT
+    PowerShellPlatform         = ([System.Environment]::OSVersion.Platform)             # Win32NT
 
     UserIsRunningInteractively = [Environment]::UserInteractive
-    IsPrivilegedProcess        = [Environment]::IsPrivilegedProcess
+    IsPrivilegedProcess        = $RunningAsAdmin
     # TypeOfRoute
     # Lease Expires
     # NetBIOS over Tcpip enabled?
