@@ -6,23 +6,18 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
  
-
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '')]
-param()
-
 . .\_dot_include_standard_header.ps1
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
-$howManyPossibleCrapFiles = 0
+$howManyPossibleCrapFiles         = 0
 $howManyFilesWouldHaveBeenDeleted = 0
-$howManyDirectoriesFlaggedToScan = 0
-$howManyNewSymbolicLinks = 0
-$howManyNewJunctionLinks= 0
-$hoWManyRowsUpdated = 0
-$hoWManyRowsInserted = 0
-$hoWManyRowsDeleted = 0
+$howManyDirectoriesFlaggedToScan  = 0
+$howManyNewSymbolicLinks          = 0
+$howManyNewJunctionLinks          = 0
+$howManyRowsUpdated               = 0
+$howManyRowsInserted              = 0
+$howManyRowsDeleted               = 0
 
 $rename_on_publish_to_parent = @(
     '3_english.srt'
@@ -148,25 +143,18 @@ while ($possibleCrapFiles.Read()) {
     #Load first level of hierarchy
 }
 
-Write-Host # Get off the last nonewline
-Write-Host # Get off the last nonewline
-Write-Host # Get off the last nonewline
-Write-Host # Get off the last nonewline
-
 $unique_file_names_with_ext|Select -Unique
 
-# Display counts. If nothing is happening in certain areas, investigate.
-Write-Host # Get off the last nonewline
-Write-Host
-Write-Host "How many possible crap files were found:                  " $(Format-Plural 'File'      $howManyPossibleCrapFiles -includeCount) 
-Write-Host "How many files would have been deleted:                   " $(Format-Plural 'File'      $howManyFilesWouldHaveBeenDeleted -includeCount) 
-Write-Host "How many rows were updated:                               " $(Format-Plural 'Row'       $howManyRowsUpdated -includeCount) 
-Write-Host "How many rows were inserted:                              " $(Format-Plural 'Row'       $hoWManyRowsInserted -includeCount) 
-Write-Host "How many rows were deleted:                               " $(Format-Plural 'Row'       $hoWManyRowsDeleted -includeCount) 
-Write-Host "How many new junction linked directories were found:      " $(Format-Plural 'Link'      $howManyNewJunctionLinks -includeCount) 
-Write-Host "How many new symbolically linked directories were found:  " $(Format-Plural 'Link'      $howManyNewSymbolicLinks -includeCount) 
-Write-Host "How many directories were flagged for scanning:           " $(Format-Plural 'Directory' $howManyDirectoriesFlaggedToScan -includeCount) 
+# These don't write out until footer aligns and flushes
+
+Write-Count howManyPossibleCrapFiles File
+Write-Count howManyFilesWouldHaveBeenDeleted File
+Write-Count howManyRowsUpdated File
+Write-Count howManyRowsInserted File
+Write-Count howManyRowsDeleted File
+Write-Count howManyNewJunctionLinks Link
+Write-Count howManyNewSymbolicLinks Link 
+Write-Count howManyDirectoriesFlaggedToScan Directory
 #TODO: Update counts to session table
 
-# Da Fuutar!!!
 . .\_dot_include_standard_footer.ps1
