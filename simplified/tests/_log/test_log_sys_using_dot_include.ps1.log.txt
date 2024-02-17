@@ -1,4 +1,6 @@
-Starting Log 02/06/2024 19:24:50 on Tuesday No DST in February, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\simplified\tests\test_log_sys_using_dot_include.ps1, $PSVersion = 7.4.1, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+﻿Starting Log 02/16/2024 17:01:00 on Friday No DST in February, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\simplified\tests\test_log_sys_using_dot_include.ps1, $PSVersion = 5.1.19041.4046, $PEdition = Desktop, $CommandOrigin = Internal, Current Function = Start-Log
+processtree 1 CommandLine is not null: "C:\Program Files\Microsoft VS Code\Code.exe" --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --user-data-dir="C:\Users\jeffs\AppData\Roaming\Code" --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --mojo-platform-channel-handle=3584 --field-trial-handle=1696,i,9084060087073957113,13658372053901995768,262144 --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess,WinDelaySpellcheckServiceInit,WinRetrieveSuggestionsOnlyOnDemand /prefetch:8
 Called whilest in Visual Code Editor
-Stopping Normally after 10.5854964 Second(s)
+Stopping Normally after 0.5660052 Second(s)
+Stopping Normally after 0.5701232 Second(s)
