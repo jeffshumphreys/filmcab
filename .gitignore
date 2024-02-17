@@ -72,3 +72,14 @@ simplified/packages/Humanizer.2.14.1.nupkg
 simplified/doc/nuget packages installed.md
 simplified/shared_code/_log/_dot_include_standard_header.ps1.log.txt
 simplified/shared_code/_log/_dot_include_standard_header.ps1.log.txt
+_log/test_dot_include_from_path.ps1.log.txt
+_log/test_log_sys_using_dot_include.ps1.log.txt
+_log/test_while_sql_function.ps1.log.txt
+simplified/shared_code/_log/_dot_include_standard_header.ps1.log.txt
+simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
+simplified/tests/_log/test_dot_include_from_path.ps1.log.txt
+simplified/tests/_log/test_log_sys_using_dot_include.ps1.log.txt
+simplified/tests/_log/test_while_sql_function.ps1.log.txt
+simplified/shared_code/_log/_dot_include_standard_header.ps1.log.txt
+simplified/shared_code/_log/_start_new_batch_run_session.ps1.log.txt
+simplified/tests/_log/test_log_sys_using_dot_include.ps1.log.txt
