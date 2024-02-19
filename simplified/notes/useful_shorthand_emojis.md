@@ -60,7 +60,7 @@
 
     🔍 => Search for or a field allowing a user to enter search values.
 
-    📈, ✅, 👌, 👍, ✔, ✔️  => Verified correct.
+    📈, ✅, 👌, 👍, ✔, ✔️  => Verified correct. Also, found.
 
     🏭 => Factory
 
