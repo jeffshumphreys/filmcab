@@ -13,10 +13,12 @@
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
 
-$howManyGenreFoldersWereFound = 0
-$howManySubGenreFoldersWereFound       = 0
-$howManyGrandSubGenreFoldersWereFound  = 0
-$howManyNewGenreWereFound     = 0
+$howManyGenreFoldersWereFound         = 0
+$howManySubGenreFoldersWereFound      = 0
+$howManyGrandSubGenreFoldersWereFound = 0
+$howManyNewGenreWereFound             = 0
+     
+$genreFileCounts = @{}
 
 # Fetch a string array of paths to search.
 
@@ -48,7 +50,28 @@ While ($reader.Read()) {
         $genre    = $null
         $subgenre = $null
     }
+         
+    if (-not [string]::IsNullOrWhiteSpace($genre)) {
+        # count all non genre movies below.
+        $ct = 0
+    
+        $searchpathlen = $useful_part_of_directory_path.Length
         
+        Get-ChildItem $directory_path -Recurse  |
+            Foreach { 
+                $dirpathlen = $directory_path.Length
+                $relpath = $_.FullName.Substring($dirpathlen)
+                if ($relpath -notmatch "\\_") {
+                    if (!($_.PSIsContainer)) { $ct++}
+                }
+            }
+        $currentCount = $genreFileCounts[$genre]
+        if ($null -eq $currentCount) { $currentCount = 0}
+        $currentCount++
+        $genreFileCounts.Set_Item($genre, $currentCount)
+
+    }                                      
+
     if ($directory_folders.Length -ge 2) {
         $subgenre_candidate = $directory_folders[1]
         if ((Left $subgenre_candidate 1) -eq '_' -and (Left $subgenre_candidate 2) -ne '__' )
@@ -86,6 +109,7 @@ While ($reader.Read()) {
         $howManySubGenreFoldersWereFound++
         $subgenre = $subgenre.Substring(1)
         Invoke-Sql "UPDATE directories set sub_genre = '$subgenre' where directory_path = '$escaped_directory_path'"|Out-Null
+        #TODO: add parent genre id in.
         $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$subgenre', 'published folders', 2, '$escaped_directory_path') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
         $howManyNewGenreWereFound+= $howManyAdded
     }
@@ -102,8 +126,6 @@ While ($reader.Read()) {
     if ($wrote) {
         Write-Host
     }
-    
-    break
 }
 
 Write-Count howManyGenreFoldersWereFound           Folder
@@ -111,5 +133,6 @@ Write-Count howManySubGenreFoldersWereFound        Folder
 Write-Count howManyGrandSubGenreFoldersWereFound   Folder
 Write-Count howManyNewGenreWereFound               Genre  
 #TODO: Update counts to session table
+$genreFileCounts.GetEnumerator()|Select Key, Value|Sort Key
 
 . .\_dot_include_standard_footer.ps1
