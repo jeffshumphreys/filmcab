@@ -12,12 +12,12 @@
 
 $HowManyDirectoryEntriesMapToExistingDirectories         = 0
 $HowManyDirectoryEntriesNoLongerMapToExistingDirectories = 0
-$HowManyDirectoryEntriesUpdated                          = 0
+$HowManyDirectoryEntriesCorrected                        = 0
 
 if ($DatabaseConnectionIsOpen) {
     $sql = "
                         SELECT 
-                            directory_path, /* Deleted or not, we want to validate it. Probably more efficient filter is possible. Skip ones I just added, for instance. Don't descend deleted trees. */
+                            directory_path           AS directory_path        , /* Deleted or not, we want to validate it. Probably more efficient filter is possible. Skip ones I just added, for instance. Don't descend deleted trees. */
                             COALESCE(deleted, False) AS directory_deleted
                         FROM 
                             directories
@@ -26,27 +26,27 @@ if ($DatabaseConnectionIsOpen) {
 
     While ($reader.Read()) {
         $escapedDirectoryPath = $directory_path.Replace("'", "''")
-        
+        Write-Host -NoNewline '.'
         if (Test-Path -LiteralPath $directory_path) {
-            Write-Host -NoNewline '=' # Found          
             $HowManyDirectoryEntriesMapToExistingDirectories++ 
             if ($directory_deleted) {                 
+                Write-Host -NoNewline '✔️' # Found          (only shows up in Core, 6+)
                 Invoke-Sql "UPDATE directories SET deleted = False WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
-                $HowManyDirectoryEntriesUpdated++
+                $HowManyDirectoryEntriesCorrected++
             }                                    
         } else {             
-            Write-Host -NoNewline '-' # Missing
             $HowManyDirectoryEntriesNoLongerMapToExistingDirectories++
             if (-not $directory_deleted) {
+                Write-Host -NoNewline '❌' # Missing                                 
                 Invoke-Sql "UPDATE directories SET deleted = True WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
-                $HowManyDirectoryEntriesUpdated++
+                $HowManyDirectoryEntriesCorrected++
             }
         }
     }
 
     Write-Count HowManyDirectoryEntriesMapToExistingDirectories         Directory
     Write-Count HowManyDirectoryEntriesNoLongerMapToExistingDirectories Directory
-    Write-Count HowManyDirectoryEntriesUpdated                          Directory
+    Write-Count HowManyDirectoryEntriesCorrected                        Directory
 
 }
 
