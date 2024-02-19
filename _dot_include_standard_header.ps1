@@ -126,6 +126,17 @@
             }
         }                                  
     }
+                    
+    $OutputEncoding = [ System.Text.Encoding]::UTF8 
+    # https://www.compart.com/en/unicode/category/So
+    $UNICODE_SMILEY_FACE                  = 0x1F600            # 😀
+    $UNICODE_BALLOT_X                     = 0x2717             # ✗
+    $UNICODE_CROSS_MARK                   = 0x274C             # ❌
+    $UNICODE_SPARKLES                     = 0x2728             # ✨
+    $UNICODE_HEAVY_EXCLAMATION_MARK       = 0x2757             # ❗
+    $UNICODE_BLACK_QUESTION_MARK_ORNAMENT = 0x2753             # ❓
+    #$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
+
 
     <#
     .SYNOPSIS
@@ -730,6 +741,10 @@ function Get-SqlFieldValue {
         11 {$columnPostgresType = [type][datetime]}                                               # timestamp in database
         23 {$columnPostgresType = [type][datetime]}                                               # date in database
         24 {$columnPostgresType = [type][timespan]}                                               # time in database
+         3 {
+            $columnPostgresType = [type][bool]
+            $columnValue = [bool]$columnValue
+        }
         22 {
             $columnPostgresType = [type][bool]
             $columnValue = [Int32]$columnValue # The string "0" -as System.Boolean = $True !!! So unfortunate
