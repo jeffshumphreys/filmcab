@@ -158,7 +158,7 @@ if ($true) {
             $registeredtaskobject.task_xml               = [XML](Export-ScheduledTask -TaskPath $registeredtaskobject.task_path -TaskName $registeredtaskobject.task_name)
         }
         catch {
-            Write-Host "Error on #$task_index"
+            Write-AllPlaces "Error on #$task_index"
         }
         $taskobjects+= $registeredtaskobject
     }
@@ -246,9 +246,9 @@ Class TaskFlatDef {
     TaskFlatDef([PSCustomObject]$ob) {
         $ob.psobject.properties | Foreach { 
             $type = $_.TypeNameOfValue
-            #Write-Host "input type = $type"
+            #Write-AllPlaces "input type = $type"
             $targettype = ($this.($_.Name)).GetType().Name
-            #Write-Host "target type = $targettype"
+            #Write-AllPlaces "target type = $targettype"
             if ($targettype -eq 'datetime' -and $null -eq $_.Value) {
                 $this.($_.Name) = 0
             } else {
@@ -291,9 +291,9 @@ Class TaskActionExecDef {
     TaskActionExecDef([PSCustomObject]$ob) {
         $ob.psobject.properties | Foreach { 
             $type = $_.TypeNameOfValue
-            #Write-Host "input type = $type"
+            #Write-AllPlaces "input type = $type"
             $targettype = ($this.($_.Name)).GetType().Name
-            #Write-Host "target type = $targettype"
+            #Write-AllPlaces "target type = $targettype"
             if ($targettype -eq 'datetime' -and $null -eq $_.Value) {
                 $this.($_.Name) = 0
             } else {
@@ -316,9 +316,9 @@ Class TaskTriggerCalFlatDef {
     TaskTriggerCalFlatDef([PSCustomObject]$ob) {
         $ob.psobject.properties | Foreach { 
             $type = $_.TypeNameOfValue
-            #Write-Host "input type = $type"
+            #Write-AllPlaces "input type = $type"
             $targettype = ($this.($_.Name)).GetType().Name
-            #Write-Host "target type = $targettype"
+            #Write-AllPlaces "target type = $targettype"
             if ($targettype -eq 'datetime' -and $null -eq $_.Value) {
                 $this.($_.Name) = 0
             } else {

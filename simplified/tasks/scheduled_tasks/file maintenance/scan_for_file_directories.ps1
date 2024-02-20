@@ -102,7 +102,7 @@ While ($searchDirectories.Read()) {
     #Load first level of hierarchy
 
     if (-not(Test-Path $search_directory)) {
-        Write-Host "search_directory $search_directory not found; skipping scan."
+        Write-AllPlaces "search_directory $search_directory not found; skipping scan."
         #TODO: Update search path.
         return # the PS way to continue, whereas PS continue is break
     }
@@ -111,7 +111,7 @@ While ($searchDirectories.Read()) {
     $BaseDirectoryInfoForSearchPath = Get-Item $search_directory
                       
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
-        Write-Host "search_directory $search_directory is not a container; skipping scan."
+        Write-AllPlaces "search_directory $search_directory is not a container; skipping scan."
     }
 
     $FIFOstack.Enqueue($BaseDirectoryInfoForSearchPath)
@@ -235,7 +235,7 @@ While ($searchDirectories.Read()) {
 
             if ($foundANewDirectory) { #even if it's a link, we store it
                 $howManyNewDirectories++
-                Write-Host "New Directory found: $directory_path on $currentdriveletter drive" 
+                Write-AllPlaces "New Directory found: $directory_path on $currentdriveletter drive" 
                 $sql = "
                     INSERT INTO 
                         directories(
@@ -273,7 +273,7 @@ While ($searchDirectories.Read()) {
                 "
 
                 $rowsInserted = Invoke-Sql $sql
-                Write-Host '⭐' -NoNewline
+                Write-AllPlaces '⭐' -NoNewline
                 $howManyRowsInserted+= $rowsInserted
 
             } elseif ($UpdateDirectoryRecord) {
@@ -293,13 +293,13 @@ While ($searchDirectories.Read()) {
                         directory_hash   = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
 
                 $rowsUpdated = Invoke-Sql $sql
-                Write-Host '📝' -NoNewline
+                Write-AllPlaces '📝' -NoNewline
                 if ($flagScanDirectory) { write-host '👓' -NoNewLine}
                 $howManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
                 
-                #Write-Host "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
+                #Write-AllPlaces "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
                 #$walkdownthefilehierarchy = $false (Didn't work on detection of grandparents of changed files)
             }
 

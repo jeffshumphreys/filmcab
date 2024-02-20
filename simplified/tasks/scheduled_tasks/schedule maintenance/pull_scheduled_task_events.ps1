@@ -35,7 +35,7 @@
         Strip out the conversion of '' to null. It doesn't take until extraction.
         Faster???
         Use Quartz.Net?
-        Convert Write-Host to Write-Debug?
+        Convert Write-AllPlaces to Write-Debug?
     Idea:
         Flush log for speed after we get it to file and/or database
 #>
@@ -520,7 +520,7 @@ Select @{Name = 'event_type_id'      ; Expression = {$_.Id}}            ,
     Where TaskName -NotLike 'NT Task*'|
     Where TaskName -NotLike '\Git for Windows*'
 
-Write-Host "Completed pull from API"
+Write-AllPlaces "Completed pull from API"
 $scriptTimer.Elapsed.TotalSeconds
  
 $taskSchedulerEvents = @()
@@ -540,7 +540,7 @@ if ($howManyNewEvents -ne 0) {
         $taskSchedulerEvents = $newtaskSchedulerEvents
     }
     $taskSchedulerEvents|Export-Clixml -Path $TaskSchedulerEventsFileName
-    Write-Host "Wrote to xml file, $howManyNewEvents new events"                                      
+    Write-AllPlaces "Wrote to xml file, $howManyNewEvents new events"                                      
     
     # Set the file date to the event date, thereby having an easy metadata value without creating other stores.
     

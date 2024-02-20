@@ -183,7 +183,7 @@ if ($dbconnopen) {
             if ($status_code -eq '404') {
                 Write-Output "Updating that id not found"
                 $sql = "UPDATE $target_table_enhancing SET tmdb_id_not_found_in_api = clock_timestamp() WHERE $sourceid = $sourcerefid::TEXT"
-                #Write-Host @sql
+                #Write-AllPlaces @sql
                 Invoke-Sql $sql
                 # Add a pause because it's so fast, I'll get 50 in a second if 50 don't come back found, which is the per second limit.
                 Start-Sleep -Milliseconds 250

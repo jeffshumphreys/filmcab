@@ -12,7 +12,7 @@ $ErrorActionPreference = 'Stop'
 
 Set-StrictMode -Version Latest
 try {
-  Write-Host $fh # Undefined variable referenced
+  Write-AllPlaces $fh # Undefined variable referenced
 }
 catch {
   exit 1

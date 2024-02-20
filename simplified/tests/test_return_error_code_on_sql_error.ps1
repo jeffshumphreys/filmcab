@@ -20,16 +20,16 @@ Function main() {
         $DBCmd.CommandText = $TestSql;
         $Reader = $DBCmd.ExecuteReader();
         while ($Reader.Read()) {
-            Write-Host $Reader["TheNumberOne"] 
+            Write-AllPlaces $Reader["TheNumberOne"] 
         }
         $Reader.Close();
         $DBConn.Close();
-        Write-Host "Exit Fine"
+        Write-AllPlaces "Exit Fine"
         exit 0 # Bubbles up to (0x0)
     }
     catch [System.Data.Odbc.OdbcException] {
         # NOTE: No ErrorDetails property
-        Write-Host "Exit Error"
+        Write-AllPlaces "Exit Error"
         @($_.ScriptStackTrace.Split("`n"))[0]
         # Exactly where the error occurred: at main, D:\qt_projects\filmcab\simplified\tests\test_return_error_code_on_sql_error.ps1: line 21
         # Where called in file: at <ScriptBlock>, D:\qt_projects\filmcab\simplified\tests\test_return_error_code_on_sql_error.ps1: line 50  This is inside the VS Editor, debugger.
@@ -49,7 +49,7 @@ Function main() {
             # ScriptName
             # InvocationInfo
             #     PositionMessage, InvocationName, Pipeline, ExpectingInput, CommandOrigin, PSCommandPath
-            Write-Host $line
+            Write-AllPlaces $line
         }
         #exit 1      # Bubbles up to (0x1), Action return code 2147942401    "{0:X}" -f 2147942401     2147942401 -band 65535 -> 1
         #exit 2      # Bubbles up to (0x2), Action return code 2147942402
@@ -67,7 +67,7 @@ Function main() {
             $realcodeexited = $realcodeexited -band $transform
         }
                                                               
-        Write-Host "Action return code $returncode is really $realcodeexited"
+        Write-AllPlaces "Action return code $returncode is really $realcodeexited"
 
         # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
         # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
@@ -81,13 +81,13 @@ Function main() {
         # CommandText property has not been initialized
         $HResult = $invop.Exception.HResult # -2146233079
         
-        Write-Host
+        Write-AllPlaces
     }
     catch {
-        Write-Host $_.Exception
+        Write-AllPlaces $_.Exception
     }
 }
 
-Write-Host "Starting Main"
+Write-AllPlaces "Starting Main"
 main
-Write-Host "Post Main"
+Write-AllPlaces "Post Main"

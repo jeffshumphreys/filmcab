@@ -49,7 +49,7 @@ if ($DatabaseConnectionIsOpen) {
                         throw [Exception]"Update failed to update anything or too many: $howManyRowsUpdated"
                     }                                                                  
 
-                    Write-Host '>' -NoNewline 
+                    Write-AllPlaces '>' -NoNewline 
                     $howManyUpdatedFiles++
         }
     } 

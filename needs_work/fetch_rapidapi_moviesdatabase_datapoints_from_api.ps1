@@ -83,7 +83,7 @@ if ($dbconnopen) {
             # 504 Gateway Time-out  504 Gateway Time-out   
             $Error
             $PSItem
-            Write-Host $_.ScriptStackTrace
+            Write-AllPlaces $_.ScriptStackTrace
             $status_code = $_.Exception.Response.StatusCode.value__ # Not the 32 you see in the error, hmmm. rather, 404
             $status_message = $_.Exception.Response.StatusDescription # Empty!
             $request_message = $_.Exception.Response.RequestMessage.RequestUri.OriginalString

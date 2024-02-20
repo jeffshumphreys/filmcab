@@ -28,19 +28,6 @@ try {
 
 $DBCmd = $DBConn.CreateCommand();
 
-function Invoke-Sql ($sql) {
-    $DBCmd.CommandText = $sql
-    try {
-        $rtn = $DBCmd.ExecuteNonQuery();
-    } catch {
-        Write-Error $sql
-        Write-Error "Message: $($_.Exception.Message)"
-        Write-Error "StackTrace: $($_.Exception.StackTrace)"
-        Write-Error "LoaderExceptions: $($_.Exception.LoaderExceptions)"
-        exit(1);
-    }
-}
-
 $load_json = $true
 $dropandrecreate_json = $false
 $expand_json = $false
@@ -75,8 +62,8 @@ if ($dbconnopen) {
             else {
                 if ($linct % 100 -eq 0) {
                     if ($c -eq '.') {$c = '!'} else {$c = '.'}
-#                    Write-Host " $linct " -NoNewline
-                    Write-Host -NoNewline  $c
+#                    Write-AllPlaces " $linct " -NoNewline
+                    Write-AllPlaces -NoNewline  $c
                 }
                 $cleanfilepath = $cleanfilepath.Replace('''', '''''')
                 Invoke-Sql "

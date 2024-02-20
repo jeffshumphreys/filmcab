@@ -36,7 +36,7 @@ $howmanyfilehashesupdated = 0
             $job_id = $job.Id
             $jobs+= $job
             $onstack = $jobs.Count
-            Write-Host "Added job # $job_id for file_id $file_id at stack element #$onstack, for $file_size_readable bytes"
+            Write-AllPlaces "Added job # $job_id for file_id $file_id at stack element #$onstack, for $file_size_readable bytes"
             continue readNextFileId
         } else {
             # Bug: The current job on the result set is skipped.
@@ -55,7 +55,7 @@ $howmanyfilehashesupdated = 0
 
                 $remove_job_id = $rmjb.Id
                 $remove_file_id = $rmjb.Name
-                Write-Host "$howmanyfilehashesupdated runs so far, Dropping ended job # $remove_job_id for file_id $remove_file_id"
+                Write-AllPlaces "$howmanyfilehashesupdated runs so far, Dropping ended job # $remove_job_id for file_id $remove_file_id"
                 if ($file_id -eq $remove_file_id) {
                     continue readNextFileId  # Did we already process this one? Then get a new one
                 } else {
@@ -63,7 +63,7 @@ $howmanyfilehashesupdated = 0
                 }
             } else {
                 # Still running  (not hitting)
-                Write-Host "still running"
+                Write-AllPlaces "still running"
                 Start-Sleep -Milliseconds 250 # Wait and not hit again.
                 continue forceRetryOfAFileIdWhenStackWasFull
             }
@@ -73,14 +73,14 @@ $howmanyfilehashesupdated = 0
 $jobs | Wait-Job
 Receive-Job $jobs -Wait
 Get-Job
-Write-Host "How many file_ids corrected: $howmanyfilehashesupdated"
+Write-AllPlaces "How many file_ids corrected: $howmanyfilehashesupdated"
 
 $DBReader = $DBConn.CreateCommand()
 $DBReader.CommandText = "SELECT COUNT(*) FROM stage_for_master.files WHERE (file_lost IS NULL OR file_lost IS FALSE) AND (updated_file_hash IS NULL OR updated_file_hash IS FALSE)";
 $rowsleft = $DBReader.ExecuteScalar()
 if ($rowsleft) {
-    Write-Host "Still rows!!!! $rowsleft"
+    Write-AllPlaces "Still rows!!!! $rowsleft"
     continue doitallllllover
 }
 }
-Write-Host "Fine!"
+Write-AllPlaces "Fine!"

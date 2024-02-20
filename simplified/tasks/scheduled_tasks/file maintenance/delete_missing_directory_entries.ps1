@@ -26,18 +26,18 @@ if ($DatabaseConnectionIsOpen) {
 
     While ($reader.Read()) {
         $escapedDirectoryPath = $directory_path.Replace("'", "''")
-        Write-Host -NoNewline '.'
+        Write-AllPlaces -NoNewline '.'
         if (Test-Path -LiteralPath $directory_path) {
             $HowManyDirectoryEntriesMapToExistingDirectories++ 
             if ($directory_deleted) {                 
-                Write-Host -NoNewline '✔️' # Found          (only shows up in Core, 6+)
+                Write-AllPlaces -NoNewline '✔️' # Found          (only shows up in Core, 6+)
                 Invoke-Sql "UPDATE directories SET deleted = False WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
                 $HowManyDirectoryEntriesCorrected++
             }                                    
         } else {             
             $HowManyDirectoryEntriesNoLongerMapToExistingDirectories++
             if (-not $directory_deleted) {
-                Write-Host -NoNewline '❌' # Missing                                 
+                Write-AllPlaces -NoNewline '❌' # Missing                                 
                 Invoke-Sql "UPDATE directories SET deleted = True WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
                 $HowManyDirectoryEntriesCorrected++
             }

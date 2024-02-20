@@ -143,7 +143,7 @@ if (Test-Path "$json_file_path") {
         #    continue
         #}
 
-        Write-Host -NoNewline "."
+        Write-AllPlaces -NoNewline "."
         $DBReader.Parameters[0].Value = $id
         $rtnct = $DBReader.ExecuteScalar()
         

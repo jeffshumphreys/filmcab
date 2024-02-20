@@ -28,19 +28,6 @@ try {
 
 $DBCmd = $DBConn.CreateCommand();
 
-function Invoke-Sql ($sql) {
-    $DBCmd.CommandText = $sql
-    try {
-        $rtn = $DBCmd.ExecuteNonQuery();
-    } catch {
-        Write-Error $sql
-        Write-Error "Message: $($_.Exception.Message)"
-        Write-Error "StackTrace: $($_.Exception.StackTrace)"
-        Write-Error "LoaderExceptions: $($_.Exception.LoaderExceptions)"
-        exit(1);
-    }
-}
-
 if ($dbconnopen) {
     Invoke-Sql "DROP TABLE IF EXISTS receiving_dock.tmdb_tsv_data;";
     # "id","title","vote_average","vote_count","status","release_date","revenue","runtime","adult","backdrop_path","budget","homepage","imdb_id","original_language","original_title","overview","popularity","poster_path","tagline","genres","production_companies","production_countries","spoken_languages"

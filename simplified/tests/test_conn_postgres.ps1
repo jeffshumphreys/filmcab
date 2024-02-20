@@ -15,7 +15,7 @@ $DBConn.Open();
     $DBCmd.CommandText = "SELECT * FROM receiving_dock.all_my_keep_and_imdb_lists;";
     $Reader = $DBCmd.ExecuteReader();
     while ($Reader.Read()) {
-        Write-Host $Reader["manually_corrected_title"] 
+        Write-AllPlaces $Reader["manually_corrected_title"] 
     }
     $Reader.Close();
     $DBConn.Close();

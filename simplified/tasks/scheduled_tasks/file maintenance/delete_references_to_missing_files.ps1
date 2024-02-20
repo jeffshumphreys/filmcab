@@ -33,7 +33,7 @@ if ($DatabaseConnectionIsOpen) {
 
     While ($reader.Read()) {
         if (Test-Path -LiteralPath $file_path) {
-            Write-Host -NoNewline '=' # Found          
+            Write-AllPlaces -NoNewline '=' # Found          
             $HowManyFileEntriesMapToExistingFiles++ 
             if ($file_deleted) {                 
                 Invoke-Sql "UPDATE files SET deleted = False WHERE file_id = $file_id" | Out-Null
@@ -41,7 +41,7 @@ if ($DatabaseConnectionIsOpen) {
                 $HowManyFileEntriesUndeleted++
             }                                    
         } else {             
-            Write-Host -NoNewline '-' # Missing
+            Write-AllPlaces -NoNewline '-' # Missing
             $HowManyFileEntriesNoLongerMapToExistingFile++
             if (-not $file_deleted) {
                 Invoke-Sql "UPDATE files SET deleted = True WHERE file_id = $file_id" | Out-Null

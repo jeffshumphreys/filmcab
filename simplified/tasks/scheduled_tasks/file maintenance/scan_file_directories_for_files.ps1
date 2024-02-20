@@ -114,7 +114,7 @@ While ($reader.Read()) {
                     $new_file_hash        = $null
                     
                     if ($in_db_file_date -ne $on_fs_file_date -or $in_db_file_size -ne $on_fs_file_size) {
-                        Write-Host '!!' -NoNewLine
+                        Write-AllPlaces '!!' -NoNewLine
                         try {
                             $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
                         } catch [System.IO.IOException] {
@@ -151,7 +151,7 @@ While ($reader.Read()) {
                         throw [Exception]"Update failed to update anything or too many: $howManyRowsUpdated"
                     }                                                                  
 
-                    Write-Host '>' -NoNewline 
+                    Write-AllPlaces '>' -NoNewline 
                     $howManyUpdatedFiles++
                 } else {    
                     $on_fs_broken_link    = $false
@@ -192,7 +192,7 @@ While ($reader.Read()) {
                         )
                     "
                     Invoke-Sql $sql|Out-Null   
-                    Write-Host '+' -NoNewline 
+                    Write-AllPlaces '+' -NoNewline 
                     $howManyNewFiles++
                 }
             }

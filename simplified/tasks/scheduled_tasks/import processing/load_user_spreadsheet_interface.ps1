@@ -18,7 +18,8 @@ Stop-Process -Name 'excel' -Force -ErrorAction Ignore
 
 soffice --headless --convert-to csv  $copyfrompath --outdir $copytodirectory
 $NewExcelCSVFileGenerated = $true
-                     
+
+Invoke-Sql "TRUNCATE TABLE $targettable RESTART IDENTITY"
 #TODO: Pull these from the spreadsheet?
 $columns_csv = "
     seen, 
@@ -53,67 +54,18 @@ $widestcolumnname = 0;
 foreach($columnname in $columns) {if ($columnname.Length -gt $widestcolumnname) { $widestcolumnname = $columnname.Length}}
 
 if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
-    $DatabaseCommand = $DatabaseConnection.CreateCommand();
-    if (1 -eq 1) {                   
-        try {
-            Invoke-Sql "DROP TABLE IF EXISTS $targettable;" > $null
-        } catch {
-            Show-Error $sql -exitcode 0
+    try {
+        $sql = "COPY $targettable("
+        foreach($columnname in $columns)
+        {
+            $sql+= " "*4 + $columnname.PadRight($widestcolumnname)  + $(If($columnname -eq $columns[-1]) {")"} else {","}) + [System.Environment]::NewLine;
         }
 
-        try {
-            $sql = "CREATE TABLE $targettable (LIKE public.template_for_docking_tables INCLUDING ALL," + [System.Environment]::NewLine;
-            foreach($columnname in $columns)
-            {
-                $sql+= " "*4 + $columnname.PadRight($widestcolumnname) + " TEXT," + [System.Environment]::NewLine;
-            }
-
-            $sql+= " "*4 + "hash_of_all_columns text GENERATED ALWAYS AS(encode(sha256(("+ [System.Environment]::NewLine;
-            foreach($columnname in $columns)
-            {                                                                                                                                            
-                $sep = if($columnname -eq $columns[-1]) {""} else {"||"}
-                # Postgresql automatically converts the string 'null' to a NULL value.
-                $sql+= " "*8 + "COALESCE(" + $columnname.PadRight($widestcolumnname) + " , 'NULL')" + $(if($columnname -eq $columns[-1]) {""} else {"||"}) + [System.Environment]::NewLine;
-            }
-
-            $sql+= " "*8 + ") ::bytea), 'hex')) STORED" + [System.Environment]::NewLine;
-            $sql+= " "*8 + ", dictionary_sortable_title TEXT" + [System.Environment]::NewLine;
-            $sql+= " "*8 + ", record_added_on  timestamptz default clock_timestamp()" + [System.Environment]::NewLine;
-            $sql+= " "*8 + ", CONSTRAINT ak_hash_of_all_columns UNIQUE(hash_of_all_columns)" + [System.Environment]::NewLine;        # Enforce unique rows.
-            $sql+= " "*8 + ", CONSTRAINT ak_title_release_year UNIQUE(manually_corrected_title)" + [System.Environment]::NewLine;
-            $sql+= " "*4 + ");" + [System.Environment]::NewLine;
-
-            Invoke-Sql $sql > $null
-        } catch {
-            Show-Error $sql -exitcode 1
-        }
-        
-        try {
-            $sql = "COPY $targettable("
-            foreach($columnname in $columns)
-            {
-                $sql+= " "*4 + $columnname.PadRight($widestcolumnname)  + $(If($columnname -eq $columns[-1]) {")"} else {","}) + [System.Environment]::NewLine;
-            }
-
-            $sql+= "FROM '$copytopath' CSV HEADER;" + [System.Environment]::NewLine;
-            Invoke-Sql $sql > $null
-        } catch {
-            Show-Error $sql -exitcode 2
-        }
+        $sql+= "FROM '$copytopath' CSV HEADER;" + [System.Environment]::NewLine;
+        Invoke-Sql $sql > $null
+    } catch {
+        Show-Error $sql -exitcode 2
     }
-
-    $sql = "SELECT manually_corrected_title FROM $targettable WHERE (seen NOT IN('y', 's', '?') or seen is null) and (have not in('n', 'x', 'd', 'na', 'c', 'h', 'y') or have is null)"; 
-
-    $reader = WhileReadSql $sql
-    $HowManyMoviesAreUnmarked = 0;
-
-    while ($Reader.Read()) {
-        Write-Host "$manually_corrected_title"                         
-        # TODO: SEARCH database for a match first!!!!!!! Duh!
-        $HowManyMoviesAreUnmarked++;
-    }                               
-
-    Write-Count HowManyMoviesAreUnmarked Movie
 }
 
 . .\_dot_include_standard_footer.ps1

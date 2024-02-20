@@ -7,6 +7,16 @@
 
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #    https://github.com/jeffshumphreys/filmcab/issues/41
+
+ #    Needs refactoring:
+      - Traverse EVERY "_" folder, then track back parentage?
+      - Add entire tree of genres to directory entry as "genres" array.
+      - Capture genres hidden under uh non-genre folders. Hmmmm. Time to have a "hidden" property? 🤨
+      Question:Do we count all movies below a genre or just until a subgenre?
+      For instance:
+      - Does _Dsytopia include the movies in _Dystopia\_Police State?  Rignt now they're excluded I think.
+      - Technically, everything below a folder is that genre, but then the counts would be off.
+
  #>
  
 . .\_dot_include_standard_header.ps1
@@ -94,7 +104,7 @@ While ($reader.Read()) {
     if ($null -ne $genre -and 
         $genre -notin('_Mystery', '_Comedy', '_Sci Fi'))  # To reduce the dump out to Host, exclude things that are ubiquitous and never going to change.
     {
-        Write-Host "Genre: $genre" -NoNewline
+        Write-AllPlaces "Genre: $genre" -NoNewline
         $wrote = $true
         $howManyGenreFoldersWereFound++                             
         $genre = $genre.Substring(1)
@@ -104,7 +114,7 @@ While ($reader.Read()) {
     }                             
 
     if ($null -ne $subgenre) {
-        Write-Host "  Sub-genre: $subgenre"  -NoNewline
+        Write-AllPlaces "  Sub-genre: $subgenre"  -NoNewline
         $wrote = $true
         $howManySubGenreFoldersWereFound++
         $subgenre = $subgenre.Substring(1)
@@ -115,7 +125,7 @@ While ($reader.Read()) {
     }
 
     if ($null -ne $grandsubgenre) {
-        Write-Host "    Grand-sub-genre: $grandsubgenre" -NoNewline
+        Write-AllPlaces "    Grand-sub-genre: $grandsubgenre" -NoNewline
         $wrote = $true
         $howManyGrandSubGenreFoldersWereFound++
         $grandsubgenre = $grandsubgenre.Substring(1)
@@ -124,7 +134,7 @@ While ($reader.Read()) {
     }   
 
     if ($wrote) {
-        Write-Host
+        Write-AllPlaces
     }
 }
 

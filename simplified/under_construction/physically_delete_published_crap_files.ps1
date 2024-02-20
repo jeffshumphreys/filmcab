@@ -133,9 +133,9 @@ while ($possibleCrapFiles.Read()) {
     } elseif ($file_name_with_ext -in $files_to_keep) {
         # Ignore
     } elseif ($file_name_with_ext -cin $files_to_delete) {
-        #Write-Host "DELETE $file_name_with_ext"
+        #Write-AllPlaces "DELETE $file_name_with_ext"
     } elseif ($final_extension -cin $extensions_to_delete) {
-        #Write-Host "DELETE $file_name_with_ext"           
+        #Write-AllPlaces "DELETE $file_name_with_ext"           
     } else {               
         $unique_file_names_with_ext+= $file_name_with_ext + ' (' + $example_directory_path + '?)'
         #@("Keep $file_name_with_ext", $directory_path)|Format-Table

@@ -244,10 +244,10 @@ if ($dbconnopen) {
             update-changestatus -TargetColumnName 'spoken_languages' -SourceColumnCurrentValue $spoken_languages_pulled_val -TargetColumnCurrentValue $original_spoken_languages -sourceid $sourceid -sourcerefid $sourcerefid
             update-changestatus -TargetColumnName 'adult' -SourceColumnCurrentValue $adult_pulled_val -TargetColumnCurrentValue $original_adult -sourceid $sourceid -sourcerefid $sourcerefid
 
-            if ($global:num_columns_upcast -gt 0) { Write-Host "upcast values in $global:num_columns_upcast columns"}
-            if ($global:num_columns_meaningful_value_diff -gt 0) { Write-Host "different values (but didn't do anything with) in $global:num_columns_meaningful_value_diff columns"}
-            if ($global:num_columns_now_empty_in_src -gt 0) { Write-Host "source no longer has values for $global:num_columns_now_empty_in_src columns"}
-            if ($global:num_columns_changed -gt 0) { Write-Host "target updated values in $global:num_columns_changed columns"}
+            if ($global:num_columns_upcast -gt 0) { Write-AllPlaces "upcast values in $global:num_columns_upcast columns"}
+            if ($global:num_columns_meaningful_value_diff -gt 0) { Write-AllPlaces "different values (but didn't do anything with) in $global:num_columns_meaningful_value_diff columns"}
+            if ($global:num_columns_now_empty_in_src -gt 0) { Write-AllPlaces "source no longer has values for $global:num_columns_now_empty_in_src columns"}
+            if ($global:num_columns_changed -gt 0) { Write-AllPlaces "target updated values in $global:num_columns_changed columns"}
 
             Invoke-Sql "UPDATE $target_table_enhancing SET num_columns_changed = $global:num_columns_changed, num_columns_match = $global:num_columns_match, num_columns_meaningful_value_diff = $global:num_columns_meaningful_value_diff
             , num_columns_now_empty_in_src = $global:num_columns_now_empty_in_src, num_columns_upcast = $global:num_columns_upcast
@@ -270,7 +270,7 @@ if ($dbconnopen) {
             if ($status_code -eq '404') {
                 Write-Output "Updating that id not found"
                 $sql = "UPDATE $target_table_enhancing SET tmdb_id_not_found_in_api = clock_timestamp() WHERE $sourceid = $sourcerefid::TEXT"
-                #Write-Host @sql
+                #Write-AllPlaces @sql
                 Invoke-Sql $sql
                 # Add a pause because it's so fast, I'll get 50 in a second if 50 don't come back found, which is the per second limit.
                 Start-Sleep -Milliseconds 250

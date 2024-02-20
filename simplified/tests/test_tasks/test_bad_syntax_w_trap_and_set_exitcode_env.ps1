@@ -14,7 +14,7 @@ Set-StrictMode -Version Latest
 $Exception = $null
     
 switch (3) {
-  1 {try {Write-Host $IdoNotExist} catch {$Exception = $_.Exception }}# -2146233087
+  1 {try {Write-AllPlaces $IdoNotExist} catch {$Exception = $_.Exception }}# -2146233087
   2 {try {1 / 0} catch {$Exception = $_.Exception } } # -2147352558
   3 {[Int32]$i = [Int32]::MaxValue; try {$i + [Int32]::MaxValue|Out-Null } catch {$Exception = $_.Exception } } 
   # 4: Connect to database
@@ -32,7 +32,7 @@ if ($Exception) {
   } else {
     $HResult = $Exception.HResult
   }                              
-  if ($Exception.ErrorRecord) { Write-Host "Error Record= $($Exception.ErrorRecord)"}
+  if ($Exception.ErrorRecord) { Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"}
   # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
   # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
 }

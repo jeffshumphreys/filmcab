@@ -19,4 +19,4 @@
             # 4294967040 => -65536
         }            
                                                               
-        Write-Host "Action return code $returncode is really $realcodeexited"
+        Write-AllPlaces "Action return code $returncode is really $realcodeexited"

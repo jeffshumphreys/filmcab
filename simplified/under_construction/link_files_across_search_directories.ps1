@@ -18,7 +18,7 @@ $filesLinkedAcrossSearchDirectories = WhileReadSql 'SELECT * from files_linked_a
 # Search down each search path for directories that are different or missing from our data store.
 
 while ($filesLinkedAcrossSearchDirectories.Read()) {
-    Write-Host $file_name_no_ext
+    Write-AllPlaces $file_name_no_ext
     $howManyFilesAreMappedAcross++
 }
 
