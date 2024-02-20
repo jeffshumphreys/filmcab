@@ -2,13 +2,13 @@
     Tied/Paired with _dot_include_standard_header.ps1. Won't work if header not included.
 #>                                                                                       
         
-Write-Host
+Write-AllPlaces
 
 if ($Script:WriteCounts.Count -gt 0) {
     $MaxLengthLabel = 0
     $MaxNumber = 0
                                  
-    Write-Host
+    Write-AllPlaces
     ForEach($entry in $Script:WriteCounts) {
         if ($entry.CountLabel.Length -gt $MaxLengthLabel) {$MaxLengthLabel = $entry.CountLabel.Length}
         if ($entry.Count -gt $MaxNumber) {$MaxNumber = $entry.Count}
@@ -21,7 +21,7 @@ if ($Script:WriteCounts.Count -gt 0) {
         if ($entry.CountLabel -ne '') {
         $title = ($entry.CountLabel + ' '*($MaxLengthLabel)).Substring(0,$MaxLengthLabel)
         $CountAsRightJustified = "$($entry.Count)".PadLeft($MaxNumberWidth)
-        Write-Host "$title    `:   $CountAsRightJustified"
+        Write-AllPlaces "$title    `:   $CountAsRightJustified"
         }
     }
 }   

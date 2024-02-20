@@ -27,8 +27,8 @@ While ($reader.Read()) {
 
 
 # Display counts. If nothing is happening in certain areas, investigate.
-Write-Host # Get off the last nonewline
-Write-Host
+Write-AllPlaces # Get off the last nonewline
+Write-AllPlaces
 
 Write-Count howManyNewDirectoriesWhereFound Directory
 
