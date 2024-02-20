@@ -153,7 +153,22 @@
     
     .NOTES
     #TODO: Switch to humanizer?
-    #>
+    #>    
+
+Function Write-AllPlaces {
+    param(
+    [string]$s,
+    [switch]$NoNewLine
+    )
+                   
+    if ($NoNewLine) {
+        Write-Host st $s -NoNewline # To operator
+        # or Write-Progress -CurrentOperation "EnablingFeatureXYZ" ( "Enabling feature XYZ ... " )
+    } else {
+        Write-Output $s
+    }
+}
+    
 Function Format-Humanize($ob) {
     if ($ob -is [Diagnostics.Stopwatch]) {
         $ob = $ob.Elapsed
@@ -252,7 +267,7 @@ function Assert-MeaningfulString([string]$s, $varname = 'string') {
 Display all the error messages availale and exit.
 
 .DESCRIPTION
-Initially I had cut and pasted this code around - until I suddenly noticed it was only display the first "Write-Error"!  I converted to Write-Host, but all the copies. Ugh.  And the failing on LoaderExceptions which isn't always there.
+Initially I had cut and pasted this code around - until I suddenly noticed it was only display the first "Write-Error"!  I converted to Write-AllPlaces, but all the copies. Ugh.  And the failing on LoaderExceptions which isn't always there.
 
 .PARAMETER scriptWhichProducedError
 Usually sql, but not necessarily. Yes it reveals secrets to the hack types, I don't care I want to see what failed.  Maintenance before security.
@@ -277,10 +292,10 @@ Function Show-Error {
     )                                                                        
 
     # WARNING: DONT use Write-Error. The code will stop. It's really "Write-then-Error"
-    Write-Host $scriptWhichProducedError
-    Write-Host "Message: $($_.Exception.Message)"
-    Write-Host "StackTrace: $($_.Exception.StackTrace)"             
-    Write-Host "Failed on $($_.InvocationInfo.ScriptLineNumber)"
+    Write-AllPlaces $scriptWhichProducedError
+    Write-AllPlaces "Message: $($_.Exception.Message)"
+    Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"             
+    Write-AllPlaces "Failed on $($_.InvocationInfo.ScriptLineNumber)"
     $Exception = $_.Exception
     $HResult = 0
 
@@ -290,7 +305,7 @@ Function Show-Error {
     } else {
         $HResult = $Exception.HResult
     }                              
-    if ($Exception.ErrorRecord) { Write-Host "Error Record= $($Exception.ErrorRecord)"}
+    if ($Exception.ErrorRecord) { Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"}
     # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
     # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
     }
@@ -298,7 +313,7 @@ Function Show-Error {
     Get-PSCallStack
     
     try {
-        Write-Host "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
+        Write-AllPlaces "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
     } catch {}
     
     if (-not $DontExit) {    
@@ -371,7 +386,7 @@ Parameter description
 
 .EXAMPLE
 Foreach ($null in [ForEachRowInQuery]::new('select 2 AS x')){
-   Write-Host $x
+   Write-AllPlaces $x
    
 }
 
@@ -551,7 +566,7 @@ Function Out-SqlToList {
         $dataset = New-Object System.Data.DataSet
         $adapter.Fill($dataSet) | out-null
         if (-not $DontWriteSqlToConsole) {
-            Write-Host $sql
+            Write-AllPlaces $sql
         }
         if (-not $DontOutputToConsole) {
             
@@ -653,7 +668,7 @@ Function Out-SqlToDataset {
         $dataset = New-Object System.Data.DataSet
         $adapter.Fill($dataSet) | out-null
         if (-not $DontWriteSqlToConsole) {
-            Write-Host $sql
+            Write-AllPlaces $sql
         }
         if (-not $DontOutputToConsole) {
             
@@ -1236,7 +1251,7 @@ Parameter description
 Parameter description
 
 .EXAMPLE
-Write-Host "How many genre directories were found:          " $(Format-Plural 'Folder' $howManyGenreFolders -includeCount) 
+Write-AllPlaces "How many genre directories were found:          " $(Format-Plural 'Folder' $howManyGenreFolders -includeCount) 
 
 .NOTES
 General notes
@@ -1455,8 +1470,11 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
     if ($sourceob -is [String] -or $sourceob -is [Int32] -or $sourceob -is [datetime]) {
         $targetob.$prop = $sourceob.ToString()
     }                             
-    else {
-        $targetob.$prop = (if(@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1) {$sourceob.$prop } else { ''})
+    else {                
+        $propval = $null
+
+        if(@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1) {$propval = $sourceob.$prop } else { $propval= ''}
+        $targetob.$prop = $propval
     }
 }
 
@@ -1540,7 +1558,7 @@ Function main_for_dot_include_standard_header() {
     $Script:DatabaseConnection.ConnectionTimeout = 10
     
     # https://www.sqlskills.com/blogs/jonathan/capturing-infomessage-output-print-raiserror-from-sql-server-using-powershell/
-    $informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-Host $event.Message }; 
+    $informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-AllPlaces $event.Message }; 
     $Script:DatabaseConnection.add_InfoMessage($informationalmessagehandler) # WARNING: add_InfoMessage will not show up anywere in autocomplete.
     <#
         StateChange event
