@@ -99,3 +99,4 @@ _log/pull_scheduled_task_definitions.ps1.log.txt
 _log/scan_file_directories_for_files.ps1.log.txt
 _log/vacuum_database.ps1.log.txt
 _log/zzz_end_batch_run_session.ps1.log.txt
+_log/pull_scheduled_task_events.ps1.log.txt
