@@ -24,6 +24,7 @@
                                                                                
     # Just an example.
     
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $TpmStatus = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
     
 ############## Environment things FORCED on the user of this dot file.
@@ -73,17 +74,22 @@
     $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
+    
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
     $MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
 
     if ([String]::IsNullOrEmpty($masterScriptPath)) {                                                                
         # So instead of "ScriptName", we've got "Line", "Statement", "MyCommand" (which is actually the Script Name), and "PositionMessage" which is a bit messy, but could be used to get the caller.
-        $MasterScriptPath = $MyInvocation.Line.Trim("`'. ") # No ScriptName if running this file directly, just Line = . 'D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1'  This of course will devolve over PS versions. Why? Because developer constantly finesse stuff and break code.
+        Write-AllPlaces "`$MyInvocation.ScriptName is empty. Grabbing `MyInvocation.Line"
+        $MasterScriptPath = $MyInvocation.Line#.Trim("`' ").TrimEnd('.') # No ScriptName if running this file directly, just Line = . 'D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1'  This of course will devolve over PS versions. Why? Because developer constantly finesse stuff and break code.
     }                                          
     
+    $MasterScriptPath = if ($MasterScriptPath.StartsWith(". .\")) { $MasterScriptPath.Substring(2)} else {$MasterScriptPath}
     # For debugging/logging, when was this file changed? When a script changes, you can toss all previous testing out the window.  This script HASNT been tested.  When did your error first occur? Right after the last write time changed? Interesting, maybe it was what changed that broke.
-                                                                                          
+                                                                                   
+    # At times, the following code breaks with "Cannot find path 'D:\_dot_include_standard_header.ps1' because it does not exist."
+    # This cannot be tested by running THIS file. Only calling from a container, and then only intermittently(!) Even exiting VS Code can fail to recause the error.
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $FileTimeStampForParentScript = (Get-Item -Path $MasterScriptPath).LastWriteTime
     
@@ -668,10 +674,8 @@ Function Out-SqlToDataset {
         $dataset = New-Object System.Data.DataSet
         $adapter.Fill($dataSet) | out-null
         if (-not $DontWriteSqlToConsole) {
+            # Looks like Write-Output gets returned as a row?????
             Write-AllPlaces $sql
-        }
-        if (-not $DontOutputToConsole) {
-            
             $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
         }                          
         return $dataset.Tables[0].Rows
