@@ -15,15 +15,18 @@ param(
 
 # This is also pre-Start-Log so I can't write to the log.
 
-$OS        = '?'
-$IsWindows = $false
-$IsLinux   = $false
-$IsMacOS   = $false
+$OS        = '?'   
+if (($PSVersionTable.PSEdition) -ne 'Core') {
+    $Script:IsWindows = $false
+    $Script:IsLinux   = $false
+    $Script:IsMacOS   = $false
 
-switch ([System.Environment]::OSVersion.Platform) {
-    'Win32NT' { $OS = 'Windows'; $IsWindows = $true}
-    'Unix' { $OS = 'Linux'; $IsLinux = $true}
-}                                  
+    switch ([System.Environment]::OSVersion.Platform) {
+        'Win32NT' { $OS = 'Windows'; $Script:IsWindows = $true}
+        'Unix' { $OS = 'Linux'; $Script:IsLinux = $true}
+        # Mac??
+    }                                  
+}
 
 $ThisScriptPath = ($MyInvocation.Line.TrimStart('. ').Trim("'") -split ' ')[0]
 #$MyCommand     = $MyInvocation.MyCommand
