@@ -1420,7 +1420,12 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
         }
     }   
 }   
+    
+# TODO: Inflector methods. https://github.com/Humanizr/Humanizer?tab=readme-ov-file#inflector-methods
 
+Function HumanizeCount([Int64]$i) {
+    return [string]::Format('{0:N0}', $i)
+}
 Function NullIf([string]$val, [string]$ifthis = '') {
     if ($null -eq $val -or $val.Trim() -eq $ifthis) {return $null}
     return $val
