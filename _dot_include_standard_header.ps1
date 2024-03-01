@@ -311,7 +311,7 @@ Function Show-Error {
     } else {
         $HResult = $Exception.HResult
     }                              
-    if ($Exception.ErrorRecord) { Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"}
+    if ($Exception.PSObject.Properties.Name -match 'ErrorRecord') { Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"}
     # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
     # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
     }
@@ -362,7 +362,11 @@ Also good way to enforce some sort of error response. Damn! Even displays the sq
 Function Invoke-Sql {
     [CmdletBinding()]
     param(           
-        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
+        [Switch]$OneAndOnlyOne,
+        [Switch]$OneOrNone,
+        [Switch]$OneOrMore,
+        [Switch]$SameOrMoreAsLastRun
     )
     try {
         $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set? Set in main. Below.
@@ -370,6 +374,7 @@ Function Invoke-Sql {
         # Hypothetically, you could determine if the sql was a select or an update/insert, and run the right function?
 
         [Int32] $howManyRowsAffected = $DatabaseCommand.ExecuteNonQuery();
+        if ($OneAndOnlyOne -and $howManyRowsAffected -ne 1) { throw [Exception]"Failed one and only one requirement"}
         return $howManyRowsAffected
     } catch {   
         Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
