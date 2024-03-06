@@ -374,7 +374,8 @@ Function Invoke-Sql {
         # Hypothetically, you could determine if the sql was a select or an update/insert, and run the right function?
 
         [Int32] $howManyRowsAffected = $DatabaseCommand.ExecuteNonQuery();
-        if ($OneAndOnlyOne -and $howManyRowsAffected -ne 1) { throw [Exception]"Failed one and only one requirement"}
+        if ($OneAndOnlyOne -and $howManyRowsAffected -ne 1) { throw [Exception]"Failed one and only one requirement: $howManyRowsAffected"}
+        elseif ($OneOrMore -and $howManyRowsAffected -lt 1) { throw [Exception]"Failed one or more requirement: $howManyRowsAffected"}
         return $howManyRowsAffected
     } catch {   
         Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
