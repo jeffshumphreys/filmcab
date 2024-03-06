@@ -12,11 +12,12 @@ description: >-
 
 #### PowerShell Development
 
-* Visual Code 1.86.1 (_for PowerShell Development_)
+* Visual Code 1.87.0 (_for PowerShell Development_)
 * ~~PowerShell 7.4.1 Core for running simple SQL and file loops, especially if I need excel.~~
   * ~~ImportExcel 7.8.6 (Import-Excel) https://github.com/dfinke/ImportExcel (Excel.dll now has blocking unremovable popups if used from automation)~~
-* PowerShell 5.1 (_Core will not allow me to load UNO, which is a great tool for editing excel files without excel_)
-* soffice (_executable part of LibreOffice_)
+* ~~PowerShell 5.1~~ (_Core will not allow me to load UNO, which is a great tool for editing excel files without excel_)
+* PowerShell Core 7.5.0 preview 1 (_Got it to work, though UNO is probably out. Switched to straight LibreOffice_)
+* soffice 24.2.0.3 (_executable part of LibreOffice_)
 * psqlodbc\_x64.msi (_https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc\_15\_00\_0000-x64.zip_)
 
 **PowerShell Extensions**
@@ -35,7 +36,6 @@ description: >-
 **PowerShell Modules**
 * PowerShellHumanizer 3.2
 
-
 #### Database Development
 
 * postgreSQL 15.4 not 16 (local) (_No need for 16_)
@@ -52,8 +52,7 @@ description: >-
 
 * VLC 3.0.20 (_latest always_)
 * X-plore (FireTV) 4.32 ($6) (_almost dead, buggy as hell, getting WORSE_)
-* MX Player (_linux (firetv) only_)
-*
+* MX Player (_linux (firetv) only, can't play protected DSL Audio_)
 
 #### Scheduling
 
@@ -62,7 +61,7 @@ description: >-
 #### User Interface
 
 * ~~Excel~~
-* LibreOffice Calc (_Browse all the files, fix titles, add release year, add tags and genres, characters, actors_)
+* LibreOffice Calc 24.2.0.3 (_Browse all the files, fix titles, add release year, add tags and genres, characters, actors_)
 * Google Keep (_Quickly make notes on my phone that go to my desktop while I'm watching something_)
 
 #### Source Control
@@ -78,7 +77,7 @@ description: >-
 ## Tools Will Not Be Using
 
 * Visual Studio
-* Microsoft SQL Server
+* Microsoft SQL Server (_$$$_)
 * Visio, LucidChart
 * ChatGPT, AI
 * Azure, AWT
