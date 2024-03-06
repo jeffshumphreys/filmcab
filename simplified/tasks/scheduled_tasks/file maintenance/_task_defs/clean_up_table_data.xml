@@ -3,13 +3,13 @@
       <RegistrationInfo>
         <Date>2024-03-06T12:02:35.6605191</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
-        <Description>Part of FilmCab, Mark, not physically delete, any directory entries that no longer exist materially. . # 6</Description>
-        <URI>\FilmCab\file maintenance\delete_missing_directory_entries</URI>
+        <Description>Part of FilmCab, Make sure any old data gets properly aligned to latest logic. . # 21</Description>
+        <URI>\FilmCab\file maintenance\clean_up_table_data</URI>
       </RegistrationInfo>
       <Triggers>
                     <EventTrigger>
             <Enabled>true</Enabled>
-            <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='\FilmCab\file maintenance\scan_for_file_directories']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+            <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='\FilmCab\file maintenance\populate_any_missing_file_hashes']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
           </EventTrigger>
       </Triggers>
       <Principals>
@@ -43,7 +43,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"</Command>
-          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\delete_missing_directory_entries.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\clean_up_table_data.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>
