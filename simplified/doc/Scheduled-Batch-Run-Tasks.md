@@ -13,10 +13,11 @@
 1. ✅delete_file_entries_in_deleted_directories
 1. ✅delete_references_to_missing_files
 1. ✅populate_any_missing_file_hashes
+1. 🚧clean_up_table_data
 1. 💡delete_dup_backups_not_published
 1. ✅extract_genres_from_file_paths
 1. 💡physically_delete_published_crap
-1. 🚧link_files_across_flow_stages
+1. 🚧link_files_across_search_directories
 1. convert_published_duplicates_to_hard_links
 1. report_unpublished_files
 1. 🚧zzz_end_batch_run_session
@@ -37,8 +38,8 @@
 1. export_project_scheduled_task_definition_xml
 
 ## import metadata
-1. ✅load_user_excel_interface
-1. validate_user_excel_interface_quality
+1. ✅load_user_spreadsheet_interface
+1. validate_user_spreadsheet_interface_quality
 1. update_spreadsheet_with_new_files
 1. pull_keep_list
 1. merge_keep_list_into_spreadsheet
@@ -66,7 +67,7 @@
 1. 🤔restart_host
 
 ## polling
-1. monitor_running_batch_run_session
+1. 🌙monitor_running_batch_run_session
 
 ## event driven
-1. trap_new_scheduled_task_definitions
+1. 🌙trap_new_scheduled_task_definitions
