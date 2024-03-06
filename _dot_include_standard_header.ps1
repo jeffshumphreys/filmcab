@@ -87,7 +87,8 @@
     
     $MasterScriptPath = if ($MasterScriptPath.StartsWith(". .\")) { $MasterScriptPath.Substring(2)} else {$MasterScriptPath}
     # For debugging/logging, when was this file changed? When a script changes, you can toss all previous testing out the window.  This script HASNT been tested.  When did your error first occur? Right after the last write time changed? Interesting, maybe it was what changed that broke.
-                                                                                   
+    $MasterScriptPath = if ($MasterScriptPath.StartsWith(". '")) { $MasterScriptPath.Substring(2)} else {$MasterScriptPath}                                                                               
+    $MasterScriptPath = $MasterScriptPath.Trim("'")
     # At times, the following code breaks with "Cannot find path 'D:\_dot_include_standard_header.ps1' because it does not exist."
     # This cannot be tested by running THIS file. Only calling from a container, and then only intermittently(!) Even exiting VS Code can fail to recause the error.
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
