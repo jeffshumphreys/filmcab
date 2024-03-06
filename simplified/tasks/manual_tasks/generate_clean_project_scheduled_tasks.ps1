@@ -100,9 +100,9 @@ else {
 if (-not (Test-Path $script_path_to_run)) {
   throw [Exception]"Path <$script_path_to_run> Does not exist! Fix!"
 }
+Write-AllPlaces "Creating task $scheduled_task_name"
+# WARNING: Destroys all history. Set-ScheduledTask you can't pass in an XML block.
 Register-ScheduledTask -Xml $taskXMLTemplate -TaskPath $scheduled_task_directory -TaskName $scheduled_task_name -User 'DSKTP-HOME-JEFF\jeffs' -Password 'Dill11ie!' -Force
-
-# TODO: Get file if there. compare: if no different, do not push. Ignore the datestamp.
 
 $path_to_XML = $script_path_to_run.Replace('.ps1', '.xml').Replace($scheduled_task_run_set_name, $scheduled_task_run_set_name + '\_task_defs')
 $taskXMLTemplate | Out-File $path_to_XML -Force
