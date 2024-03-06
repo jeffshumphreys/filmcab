@@ -1,8 +1,8 @@
-﻿Starting Log 03/01/2024 12:54:29 on Friday No DST in March, by Windows User <jeffs>
+﻿Starting Log 03/06/2024 07:51:03 on Wednesday No DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 5.1.19041.4046, $PEdition = Desktop, $CommandOrigin = Internal, Current Function = Start-Log
 processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
 Called from Windows Task Scheduler
 Scanning Get-ScheduledTasks
 "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\looping_tasks\keep_drives_awake.ps1'; exit $LASTEXITCODE"
 Finished Scanning (2)
-Stopping Normally after 3.6115214 Second(s)
+Stopping Normally after 3.684033 Second(s)
