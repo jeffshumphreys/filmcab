@@ -87,7 +87,6 @@ $howManyNewSymbolicLinks         = 0
 $howManyNewJunctionLinks         = 0
 $howManyRowsUpdated              = 0
 $howManyRowsInserted             = 0
-$howManyRowsDeleted              = 0
 
 # Fetch a string array of paths to search.
 
@@ -100,20 +99,24 @@ While ($searchDirectories.Read()) {
     #Load first level of hierarchy
 
     if (-not(Test-Path $search_directory)) {
+        Write-AllPlaces
         Write-AllPlaces "search_directory $search_directory not found; skipping scan."
         #TODO: Update search path.
         continue 
     }
+    else {
+       Write-AllPlaces
+       Write-AllPlaces "Starting search of search_directory $search_directory"
+   }
 
     # Stuff the search root search_directory in the FIFOstack so that we can completely shortcut search search_directory if nothing's changed. Has to be a DirectoryInfo object.
     $BaseDirectoryInfoForSearchPath = Get-Item $search_directory
                       
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
+        Write-AllPlaces
         Write-AllPlaces "search_directory $search_directory is not a container; skipping scan."
-    } else {
-        Write-AllPlaces "Starting search of search_directory $search_directory"
     }
-
+    
     $FIFOstack.Enqueue($BaseDirectoryInfoForSearchPath)
     
     Get-ChildItem -Path $search_directory -Directory | ForEach-Object { 
