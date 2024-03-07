@@ -28,7 +28,7 @@ $volumes = Get-Volume|Where DriveLetter -ne ''|Select DriveLetter, Size, SizeRem
 # Search down each search path for directories that are different or missing from our data store.
 
 while ($volumesForSearchDirectories.Read()) {                                                                                 
-    $totalSize = ($volumes|Where DriveLetter -eq $drive_letter|Select Size).Size
+    $totalSize      = ($volumes|Where DriveLetter -eq $drive_letter|Select Size).Size
     $spaceRemaining = ($volumes|Where DriveLetter -eq $drive_letter|Select SizeRemaining).SizeRemaining
     Write-AllPlaces "$drive_letter`: TotalSize=$(HumanizeCount($totalSize)), Free=$(HumanizeCount($spaceRemaining))"
     Invoke-Sql "UPDATE search_directories SET size_of_drive_in_bytes = $totalSize, space_left_on_drive_in_bytes = $spaceRemaining WHERE volume_id = $volume_id" -OneOrNone # Many paths on same volume
