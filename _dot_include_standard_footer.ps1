@@ -19,9 +19,9 @@ if ($Script:WriteCounts.Count -gt 0) {
 
     ForEach($entry in $Script:WriteCounts) {
         if ($entry.CountLabel -ne '') {
-        $title = ($entry.CountLabel + ' '*($MaxLengthLabel)).Substring(0,$MaxLengthLabel)
+        $title                       = ($entry.CountLabel + ' '*($MaxLengthLabel)).Substring(0,$MaxLengthLabel)
         $countWithThousandsSeparator = [string]::Format('{0:N0}', $entry.Count)
-        $CountAsRightJustified = "$countWithThousandsSeparator".PadLeft($MaxNumberWidth)
+        $CountAsRightJustified       = "$countWithThousandsSeparator".PadLeft($MaxNumberWidth)
         Write-AllPlaces "$title    `:   $CountAsRightJustified"
         }
     }
