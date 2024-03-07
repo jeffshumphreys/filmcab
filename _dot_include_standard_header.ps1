@@ -169,7 +169,7 @@ Function Write-AllPlaces {
     )
                    
     if ($NoNewLine) {
-        Write-Host st $s -NoNewline # To operator
+        Write-Host $s -NoNewline # To operator
         # or Write-Progress -CurrentOperation "EnablingFeatureXYZ" ( "Enabling feature XYZ ... " )
     } else {
         Write-Host $s # Always writes to Terminal
