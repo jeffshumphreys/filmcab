@@ -172,7 +172,8 @@ Function Write-AllPlaces {
         Write-Host st $s -NoNewline # To operator
         # or Write-Progress -CurrentOperation "EnablingFeatureXYZ" ( "Enabling feature XYZ ... " )
     } else {
-        Write-Output $s
+        Write-Host $s # Always writes to Terminal
+        #Write-Output $s   # Doesn't always write to terminal? Writes to transcript????????????????????????????
     }
 }
     
@@ -460,10 +461,25 @@ class ForEachRowInQuery {
         return $anyMoreRecordsToRead
     }
 
+    hidden $_HasRows = $($this | Add-Member ScriptProperty 'HasRows' `
+        {
+            # get
+            "getter $($this.readerObject.Value.HasRows)"
+        }#`
+        #{
+        #    # set
+        #    param ( $arg )
+        #    $this._p = "setter $arg"
+        #}
+    )
+    
     # [void] Reset() {
     #     $this.Actual = 0
     # }
-
+                                               
+    [void] Close() {
+        $this.readerObject.Value.Close()
+    }
     # [void] Dispose() {
     #     # Close reader
     # }
@@ -729,7 +745,7 @@ function Get-SqlFieldValue {
         $reader = $readerOb.Value # readers have to be wrapped or they go blank.
     }
     
-    [Int32]$ordinal = $null
+    [Int32]$ordinal      = $null
     [object]$columnValue = $null
 
     $columnODBCMetadata = $null
@@ -753,8 +769,9 @@ function Get-SqlFieldValue {
     ##### Nows to the typing of our DatabaseColumnValue, which we want to maintain in the script. Only tested for Postgres 15
     
     $columnValue = $reader.GetValue($ordinal)
-    if ($columnValue -is [System.DBNull]) {
-        $columnValue = $null
+    $columnValueIsNull = $reader.IsDBNull($ordinal) # We need delicate treatment. Unlike C#, PS cannot hold a null in a string. or an int or a date.
+    if ($columnValue -is [System.DBNull] -or $columnValueIsNull) {
+        $columnValue = $null # NULL IS UNTYPED! IF YOU TRY AND TYPE IT, it changes to empty string, 0, etc.
     }
     
     $columnDataType = $columnODBCMetadata.DataType
@@ -769,12 +786,14 @@ function Get-SqlFieldValue {
         24 {$columnPostgresType = [type][timespan]}                                               # time in database
          3 {
             $columnPostgresType = [type][bool]
-            $columnValue = [bool]$columnValue
+            if (-not $columnValueIsNull) {$columnValue = [bool]$columnValue}
         }
         22 {
             $columnPostgresType = [type][bool]
-            $columnValue = [Int32]$columnValue # The string "0" -as System.Boolean = $True !!! So unfortunate
-            $columnValue = [bool]$columnValue
+            if (-not $columnValueIsNull) {
+                $columnValue = [Int32]$columnValue # The string "0" -as System.Boolean = $True !!! So unfortunate
+                $columnValue = [bool]$columnValue
+            }
         }
         12 {$columnPostgresType = [type][string]}                                                 # varchar in database
          1 {                                    
@@ -805,7 +824,7 @@ function Get-SqlFieldValue {
         }
     }
 
-    $columnValue = $columnValue -as $columnPostgresType
+    if (-not $columnValueIsNull) {$columnValue = $columnValue -as $columnPostgresType}
     
     # Warning: Nulls will NOT return as typed. No can do.
     return $columnValue
