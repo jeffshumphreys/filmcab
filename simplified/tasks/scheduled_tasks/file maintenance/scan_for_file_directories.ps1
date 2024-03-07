@@ -91,20 +91,18 @@ $howManyRowsDeleted              = 0
 
 # Fetch a string array of paths to search.
 
-$searchDirectories = WhileReadSql 'SELECT search_directory, search_directory_id FROM search_directory ORDER BY search_directory_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
+$searchDirectories = WhileReadSql 'SELECT search_directory, search_directory_id FROM search_directories ORDER BY search_directory_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
 
 # Search down each search path for directories that are different or missing from our data store.
 
 While ($searchDirectories.Read()) {
                           
-    $search_directory    = $searchDirectories.GetString(0)
-    $search_directory_id = $searchDirectories.GetInt32(1)
     #Load first level of hierarchy
 
     if (-not(Test-Path $search_directory)) {
         Write-AllPlaces "search_directory $search_directory not found; skipping scan."
         #TODO: Update search path.
-        return # the PS way to continue, whereas PS continue is break
+        continue 
     }
 
     # Stuff the search root search_directory in the FIFOstack so that we can completely shortcut search search_directory if nothing's changed. Has to be a DirectoryInfo object.
@@ -112,6 +110,8 @@ While ($searchDirectories.Read()) {
                       
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
         Write-AllPlaces "search_directory $search_directory is not a container; skipping scan."
+    } else {
+        Write-AllPlaces "Starting search of search_directory $search_directory"
     }
 
     $FIFOstack.Enqueue($BaseDirectoryInfoForSearchPath)
@@ -123,14 +123,15 @@ While ($searchDirectories.Read()) {
     # Recurse down the file hierarchy
 
     while($FIFOstack.Count -gt 0 -and ($item = $FIFOstack.Dequeue())) {
+        Write-Host "." -NoNewline
         if ($item.PSIsContainer) {
             $directory_path        = $item.FullName
             $currentdirectorydate  = TrimToMicroseconds($item.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since it's 7.
-            $currentsymboliclink   = [bool]$null
-            $currentjunctionlink   = [bool]$null
+            $currentsymboliclink   = [bool]$false
+            $currentjunctionlink   = [bool]$false
             $currentlinktarget     = NullIf($item.LinkTarget)   # Probably should verify, eventually
             $currentdriveletter    = [string]$item.FullName[0]
-            $IsARealDirectory      = [bool]$null          # as in not a hard link or junction or symbolic link
+            $IsARealDirectory      = [bool]$false          # as in not a hard link or junction or symbolic link
 
             if ($item.LinkType -eq 'Junction') {
                 $currentjunctionlink  = $true
@@ -172,24 +173,19 @@ While ($searchDirectories.Read()) {
             ";
             $reader = WhileReadSql $sql
 
-            $foundANewDirectory    = [boolean]$null
-            $UpdateDirectoryRecord = [bool]$null
+            $foundANewDirectory    = [bool]$false
+            $UpdateDirectoryRecord = [bool]$false
             $flagScanDirectory     = [bool]$false
-             
-            $deleted          = [bool]$false
-            $directory_date   = [datetime]0     # No $nulls for datetime type.
-            $is_symbolic_link = [boolean]$null
-            $is_junction_link = [boolean]$null
-            $linked_path      = [string]$null
 
             # For additional functionality later $olddirhash   [byte[]]$null
 
             $newdirectorydate = [datetime]0
-            $newsymboliclink  = [bool]$null
-            $newjunctionlink  = [bool]$null
-            $newlinktarget    = [string]$null
+            $newsymboliclink  = [bool]$false
+            $newjunctionlink  = [bool]$false
+            $newlinktarget    = [string]$false
 
             if ($reader.HasRows) {
+                $reader.Read()|Out-Null # Must read in the first row.
                 $foundANewDirectory         = $false
                 $UpdateDirectoryRecord      = $false
                                    
@@ -248,7 +244,7 @@ While ($searchDirectories.Read()) {
                                is_symbolic_link, 
                                is_junction_link, 
                                linked_path,
-                               search_path_id,
+                               search_directory_id,
                                folder,
                                parent_folder,
                                grandparent_folder,
@@ -264,7 +260,7 @@ While ($searchDirectories.Read()) {
                         /*     is_symbolic_link       */ $currentsymboliclink,
                         /*     is_junction_link       */ $currentjunctionlink,
                         /*     linked_path            */ $preppednewlinktarget,
-                        /*     search_path_id         */ $search_directory_id,
+                        /*     search_directory_id    */ $search_directory_id,
                         /*     folder                 */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[1]),
                         /*     parent_folder          */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[2]),
                         /*     grantparent_folder     */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[3]),
@@ -294,7 +290,7 @@ While ($searchDirectories.Read()) {
 
                 $rowsUpdated = Invoke-Sql $sql
                 Write-AllPlaces '📝' -NoNewline
-                if ($flagScanDirectory) { write-host '👓' -NoNewLine}
+                if ($flagScanDirectory) { Write-Host '👓' -NoNewLine} # Getting a trailing "st"
                 $howManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
