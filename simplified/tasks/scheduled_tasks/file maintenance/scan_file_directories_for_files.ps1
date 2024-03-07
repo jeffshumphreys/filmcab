@@ -30,9 +30,9 @@ $loop_sql = "
             FROM 
                 directories
             WHERE
-                deleted is distinct from true
+                deleted IS DISTINCT FROM TRUE
             AND 
-                scan_directory is true
+                scan_directory IS TRUE
 ";
 
 $reader = WhileReadSql $loop_sql
@@ -81,17 +81,18 @@ While ($reader.Read()) {
     
                 $test_sql = "
                             SELECT                                                                       
-                                file_hash
+                              file_hash
                             , directory_hash
                             , file_date                           /* If changed, we need a new hash        */
                             , file_size                           /* Also if changed, in case date isn't enough to detect. The garuntead way is to generate the hash, which is very slow. */
                             , is_symbolic_link                    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
                             , is_hard_link                        /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                             , linked_path                         /* Verify this exists. Haven't tested.                                                                               */
+                            , deleted
                             FROM 
                                 files
                             WHERE
-                                directory_hash = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea
+                                directory_hash = md5_hash_path('$directory_path_escaped')
                             AND
                                 file_name_no_ext = '$file_name_no_ext_escaped'
                             AND
@@ -110,11 +111,19 @@ While ($reader.Read()) {
                     $in_db_directory_hash = @($row.directory_hash|Format-Hex|Select ascii).Ascii -Join ''
                     $in_db_file_date      = $row.file_date
                     $in_db_file_size      = $row.file_size
+                    $in_db_link_path      = NullIf($row.linked_path)
                     $on_fs_broken_link    = $false
                     $new_file_hash        = $null
                     
-                    if ($in_db_file_date -ne $on_fs_file_date -or $in_db_file_size -ne $on_fs_file_size) {
-                        Write-AllPlaces '!!' -NoNewLine
+                    if (    
+                            $deleted -eq $true -or
+                            $in_db_file_date -ne $on_fs_file_date -or 
+                            $in_db_file_size -ne $on_fs_file_size -or
+                            $in_db_link_path -ne $on_fs_file_link_target 
+                        ) {
+   
+                        # Any non-hash changes, we regenerate the hash.  The hash could still be wrong even if nothing else changed. But how to test for that.
+                        
                         try {
                             $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
                         } catch [System.IO.IOException] {
@@ -122,49 +131,48 @@ While ($reader.Read()) {
                             $on_fs_file_hash   = '0'
                         }
                         $new_file_hash = @($on_fs_file_hash|Format-Hex|Select ascii).Ascii -Join ''
-                    } else {
-                        $new_file_hash = $in_db_file_hash
-                    }                                                                               
+  
+                        $update_sql = "
+                                    UPDATE
+                                        files
+                                    SET
+                                        file_hash         = '$new_file_hash'::bytea,
+                                        file_date         = '$file_date_formatted'::TIMESTAMPTZ,
+                                        file_size         = $on_fs_file_size,
+                                        is_symbolic_link  = $on_fs_is_symbolic_link,
+                                        is_hard_link      = $on_fs_is_hard_link,
+                                        deleted           = False,
+                                        broken_link       = $on_fs_broken_link
+                                    WHERE
+                                        file_hash         = '$in_db_file_hash'::bytea
+                                    AND
+                                        directory_hash    = '$in_db_directory_hash'::bytea
+                                    AND
+                                        file_name_no_ext  = '$file_name_no_ext_escaped' /* Found case where two files same directory had same hash different name */
+                                    AND
+                                        final_extension   = '$final_extension_escaped'  /* Many cases with video and subtitles, text, etc. Same name different extension */
+                        "
+                        $howManyRowsUpdated = Invoke-Sql $update_sql
+                        if ($howManyRowsUpdated -ne 1) {
+                            throw [Exception]"Update failed to update anything or too many: $howManyRowsUpdated"
+                        }                                                                  
 
-                    $update_sql = "
-                                UPDATE
-                                    files
-                                SET
-                                    file_hash         = '$new_file_hash'::bytea,
-                                    file_date         = '$file_date_formatted'::TIMESTAMPTZ,
-                                    file_size         = $on_fs_file_size,
-                                    is_symbolic_link  = $on_fs_is_symbolic_link,
-                                    is_hard_link      = $on_fs_is_hard_link,
-                                    deleted           = False,
-                                    broken_link       = $on_fs_broken_link
-                                WHERE
-                                    file_hash         = '$in_db_file_hash'::bytea
-                                AND
-                                    directory_hash    = '$in_db_directory_hash'::bytea
-                                AND
-                                    file_name_no_ext  = '$file_name_no_ext_escaped' /* Found case where two files same directory had same hash different name */
-                                AND
-                                    final_extension   = '$final_extension_escaped'  /* Many cases with video and subtitles, text, etc. Same name different extension */
-                    "
-                    $howManyRowsUpdated = Invoke-Sql $update_sql
-                    if ($howManyRowsUpdated -ne 1) {
-                        throw [Exception]"Update failed to update anything or too many: $howManyRowsUpdated"
-                    }                                                                  
-
-                    Write-AllPlaces '>' -NoNewline 
-                    $howManyUpdatedFiles++
-                } else {    
-                    $on_fs_broken_link    = $false
+                        Write-AllPlaces '📝' -NoNewline # Our now standard update emoji
+                        $howManyUpdatedFiles++
+                    }
+                    } else {    
+                    $on_fs_broken_link     = $false
                     
                     try {
-                        $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
+                        $on_fs_file_hash   = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
                     } catch [System.IO.IOException] {
-                        $on_fs_broken_link    = $true
-                        $on_fs_file_hash = '0'
+                        $on_fs_broken_link = $true
+                        $on_fs_file_hash   = '0'
                     }
 
                     $sql = "
-                        INSERT INTO files(
+                        INSERT INTO 
+                        files(
                             file_hash,
                             directory_hash,
                             file_name_no_ext,
@@ -179,7 +187,7 @@ While ($reader.Read()) {
                         )              
                         VALUES (
                         /*  file_hash              */'$on_fs_file_hash'::bytea,
-                        /*  directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
+                        /*  directory_hash         */ md5_hash_path('$directory_path_escaped'),
                         /*  file_name_no_ext       */'$file_name_no_ext_escaped',
                         /*  final_extension        */'$final_extension_escaped',   
                         /*  file_size              */ $on_fs_file_size,
@@ -192,7 +200,7 @@ While ($reader.Read()) {
                         )
                     "
                     Invoke-Sql $sql|Out-Null   
-                    Write-AllPlaces '+' -NoNewline 
+                    Write-AllPlaces '🆕' -NoNewline 
                     $howManyNewFiles++
                 }
             }
