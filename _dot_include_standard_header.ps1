@@ -731,7 +731,13 @@ Function Out-SqlToDataset {
             # Looks like Write-Output gets returned as a row?????
             Write-AllPlaces $sql
             $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
-        }                          
+        }                 
+        
+        # INCREDIBLY HARD TO GET A SINGLE ROW RETURNED AS AN ARRAY!!!!!!!!!!
+        if ($dataset.Tables[0].Rows.Count -eq 1) {
+            [array]$arr = $dataset.Tables[0].Rows
+            return [array]$arr # This appears to be the key.  the "[array]" typing of the array-type arr variable when returning. Sigh.
+        }
         return $dataset.Tables[0].Rows
         
     } catch {
