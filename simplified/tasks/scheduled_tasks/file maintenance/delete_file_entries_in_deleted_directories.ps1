@@ -18,9 +18,9 @@ if ($DatabaseConnectionIsOpen) {
     FROM               
         files f JOIN directories d USING (directory_hash) 
     WHERE
-        d.deleted is true
+        d.deleted IS TRUE
     AND
-        f.deleted is distinct from true /* We won't bother updatin' ones that are already deleted */
+        f.deleted IS DISTINCT FROM TRUE /* We won't bother updatin' ones that are already deleted */
     )
     UPDATE files SET deleted = true
     FROM x WHERE files.directory_hash = x.directory_hash
