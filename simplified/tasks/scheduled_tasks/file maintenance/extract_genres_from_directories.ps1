@@ -143,6 +143,6 @@ Write-Count howManySubGenreFoldersWereFound        Folder
 Write-Count howManyGrandSubGenreFoldersWereFound   Folder
 Write-Count howManyNewGenreWereFound               Genre  
 #TODO: Update counts to session table
-$genreFileCounts.GetEnumerator()|Select Key, Value|Sort Key
+$genreFileCounts.GetEnumerator()|Select Key, Value|Sort Key|Out-Host
 
 . .\_dot_include_standard_footer.ps1
