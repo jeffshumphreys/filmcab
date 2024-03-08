@@ -44,7 +44,8 @@ elseif ($null -eq $state_of_session) {
 }
     
 # "Starts"
-Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_script, caller, caller_starting) VALUES('$scriptName', '$scriptName', '$Script:Caller', '$Script:Caller')" | Out-Null
+$rowsAdded = Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_script, caller, caller_starting) VALUES('$scriptName', '$scriptName', '$Script:Caller', '$Script:Caller')" 
+Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
 
 # Get last id from batch_run_sessions table.                    
 
