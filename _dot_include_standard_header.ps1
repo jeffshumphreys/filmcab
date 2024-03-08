@@ -74,7 +74,14 @@
     $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
-    
+
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $NEW_OBJECT_INSTANTIATED = '⭐'
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $EXISTING_OBJECT_EDITED = '📝'
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $SCAN_OBJECTS           = '👓'
+
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
     $MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
@@ -162,17 +169,28 @@
     #TODO: Switch to humanizer?
     #>    
 
+$CurrentXPosInTerminal = 0
+
 Function Write-AllPlaces {
     param(
     [string]$s,
-    [switch]$NoNewLine
+    [switch]$NoNewLine, [switch]$ForceStartOnNewLine
     )
-                   
+                                                    
+    if ($ForceStartOnNewLine) {
+        if ($CurrentXPosInTerminal -gt 0) {
+            Write-Host            
+            $CurrentXPosInTerminal = 0
+        }
+    }   
+    
     if ($NoNewLine) {
         Write-Host $s -NoNewline # To operator
+        $CurrentXPosInTerminal+= $s.Length
         # or Write-Progress -CurrentOperation "EnablingFeatureXYZ" ( "Enabling feature XYZ ... " )
     } else {
         Write-Host $s # Always writes to Terminal
+        $CurrentXPosInTerminal = 0
         #Write-Output $s   # Doesn't always write to terminal? Writes to transcript????????????????????????????
     }
 }
@@ -426,7 +444,11 @@ class ForEachRowInQuery {
         $this.sql                         = $sql
         $this.DatabaseCommand             = $Script:DatabaseConnection.CreateCommand()
         $this.DatabaseCommand.CommandText = $sql
-        $this.readerObject                      = [REF]$this.DatabaseCommand.ExecuteReader();
+        try {
+            $this.readerObject                = [REF]$this.DatabaseCommand.ExecuteReader(); # Blows up here if bad syntax
+        } catch {
+            Show-Error -scriptWhichProducedError $sql
+        }
     }
 
     # [object]get_Current() {
