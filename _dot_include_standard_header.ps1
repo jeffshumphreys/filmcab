@@ -74,14 +74,31 @@
     $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
+  
+    $OutputEncoding = [ System.Text.Encoding]::UTF8 
+    # https://www.compart.com/en/unicode/category/So
+    $UNICODE_SMILEY_FACE                  = 0x1F600            # 😀
+    $UNICODE_BALLOT_X                     = 0x2717             # ✗
+    $UNICODE_CROSS_MARK                   = 0x274C             # ❌
+    $UNICODE_SPARKLES                     = 0x2728             # ✨
+    $UNICODE_HEAVY_EXCLAMATION_MARK       = 0x2757             # ❗
+    $UNICODE_BLACK_QUESTION_MARK_ORNAMENT = 0x2753             # ❓
+    # inspect? 🔬
+    # push? 💨
+    # refactor? 🧹
+    #$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
+    # ⭐
 
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $NEW_OBJECT_INSTANTIATED = '⭐'
+    $NEW_OBJECT_INSTANTIATED = '✨'
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $EXISTING_OBJECT_EDITED = '📝'
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $DELETE_OBJECT          = '❌'
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $SCAN_OBJECTS           = '👓'
-
+    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+    $FOUND_EXISTING_OBJECT  = '✔️'
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
 
     $MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
@@ -141,16 +158,7 @@
         }                                  
     }
                     
-    $OutputEncoding = [ System.Text.Encoding]::UTF8 
-    # https://www.compart.com/en/unicode/category/So
-    $UNICODE_SMILEY_FACE                  = 0x1F600            # 😀
-    $UNICODE_BALLOT_X                     = 0x2717             # ✗
-    $UNICODE_CROSS_MARK                   = 0x274C             # ❌
-    $UNICODE_SPARKLES                     = 0x2728             # ✨
-    $UNICODE_HEAVY_EXCLAMATION_MARK       = 0x2757             # ❗
-    $UNICODE_BLACK_QUESTION_MARK_ORNAMENT = 0x2753             # ❓
-    #$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
-
+  
 
     <#
     .SYNOPSIS
