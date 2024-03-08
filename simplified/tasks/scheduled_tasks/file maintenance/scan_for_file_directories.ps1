@@ -78,7 +78,9 @@ It is not updated for these actions:
 
 # Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
 
-$FIFOstack = New-Object System.Collections.Queue
+$all_file_objects = New-Object System.Collections.Queue
+                                
+# Footer code detects these and prints them out in a formatted way
 
 $howManyNewDirectories           = 0
 $howManyUpdatedDirectories       = 0
@@ -99,116 +101,103 @@ While ($searchDirectories.Read()) {
     #Load first level of hierarchy
 
     if (-not(Test-Path $search_directory)) {
-        Write-AllPlaces
-        Write-AllPlaces "search_directory $search_directory not found; skipping scan."
+        Write-AllPlaces "search_directory $search_directory not found; skipping scan." -ForceStartOnNewLine
         #TODO: Update search path.
         continue 
     }
     else {
-       Write-AllPlaces
-       Write-AllPlaces "Starting search of search_directory $search_directory"
+       Write-AllPlaces "Starting search of search_directory $search_directory" -ForceStartOnNewLine
    }
 
-    # Stuff the search root search_directory in the FIFOstack so that we can completely shortcut search search_directory if nothing's changed. Has to be a DirectoryInfo object.
+    # Stuff the search root search_directory in the all_file_objects so that we can completely shortcut search search_directory if nothing's changed. Has to be a DirectoryInfo object.
     $BaseDirectoryInfoForSearchPath = Get-Item $search_directory
                       
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
-        Write-AllPlaces
-        Write-AllPlaces "search_directory $search_directory is not a container; skipping scan."
+        Write-AllPlaces "search_directory $search_directory is not a container; skipping scan." -ForceStartOnNewLine
     }
-    
-    $FIFOstack.Enqueue($BaseDirectoryInfoForSearchPath)
+
+    $all_file_objects.Enqueue($BaseDirectoryInfoForSearchPath)
     
     Get-ChildItem -Path $search_directory -Directory | ForEach-Object { 
-        $FIFOstack.Enqueue($_) 
+        $all_file_objects.Enqueue($_) 
     }
     
     # Recurse down the file hierarchy
 
-    while($FIFOstack.Count -gt 0 -and ($item = $FIFOstack.Dequeue())) {
-        Write-Host "." -NoNewline
-        if ($item.PSIsContainer) {
-            $directory_path        = $item.FullName
-            $currentdirectorydate  = TrimToMicroseconds($item.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since it's 7.
-            $currentsymboliclink   = [bool]$false
-            $currentjunctionlink   = [bool]$false
-            $currentlinktarget     = NullIf($item.LinkTarget)   # Probably should verify, eventually
-            $currentdriveletter    = [string]$item.FullName[0]
-            $IsARealDirectory      = [bool]$false          # as in not a hard link or junction or symbolic link
+    while($all_file_objects.Count -gt 0 -and ($on_fs_file_object = $all_file_objects.Dequeue())) {
+        
+        # Only directories aka Containers
 
-            if ($item.LinkType -eq 'Junction') {
-                $currentjunctionlink  = $true
-                $currentlinktarget    = NullIf($item.LinkTarget)
-                $currentsymboliclink  = $false
-                $IsARealDirectory     = $false
+        if ($on_fs_file_object.PSIsContainer) {
+            $on_fs_directory      = $on_fs_file_object.FullName
+            $on_fs_directory_date = TrimToMicroseconds($on_fs_file_object.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since it's 7.
+            $on_fs_is_symbolic_link  = $false
+            $on_fs_is_junction_link  = $false
+            $on_fs_linked_directory  = NullIf($on_fs_file_object.LinkTarget)   # Probably should verify, eventually
+            $on_fs_driveletter       = $on_fs_file_object.FullName[0]
+            $on_fs_is_real_directory = $false          # as in not a hard link or junction or symbolic link
+
+            if ($on_fs_file_object.LinkType -eq 'Junction') {
+                $on_fs_is_junction_link  = $true
+                $on_fs_linked_directory  = NullIf($on_fs_file_object.LinkTarget)
+                $on_fs_is_symbolic_link  = $false
+                $on_fs_is_real_directory = $false
             }
-            elseif ($item.LinkType -eq 'SymbolicLink') {
-                $currentsymboliclink  = $true
-                $currentlinktarget    = NullIf($item.LinkTarget) # blanks and $nulls never equal each other.
-                $currentjunctionlink  = $false
-                $IsARealDirectory     = $false
+            elseif ($on_fs_file_object.LinkType -eq 'SymbolicLink') {
+                $on_fs_is_symbolic_link  = $true
+                $on_fs_linked_directory  = NullIf($on_fs_file_object.LinkTarget) # blanks and $nulls never equal each other.
+                $on_fs_is_junction_link  = $false
+                $on_fs_is_real_directory = $false
             }                                    
-            elseif (-not [String]::IsNullOrWhiteSpace($item.LinkType)) {
-                throw [Exception]"New unrecognized link type for $directory_path, type is $($item.LinkType)"
+            elseif (-not [String]::IsNullOrWhiteSpace($on_fs_file_object.LinkType)) {
+                throw [Exception]"New unrecognized link type for $on_fs_directory type is $($on_fs_file_object.LinkType)"
             }
             # Note: HardLinks are for files only.
             else {       
-                $currentsymboliclink  = $false
-                $currentjunctionlink  = $false
-                $currentlinktarget    = $null
-                $IsARealDirectory     = $true # Only traverse real directories
+                $on_fs_is_symbolic_link  = $false
+                $on_fs_is_junction_link  = $false
+                $on_fs_linked_directory  = $null
+                $on_fs_is_real_directory = $true # Only traverse real directories
             }
 
-            $directory_path_escaped = $directory_path.Replace("'", "''")
+            $on_fs_directory_escaped = $on_fs_directory.Replace("'", "''")
             $sql = "
                 SELECT 
-                     directory_date    /* Feeble attempt to detect downstream changes                                                                       */
-                   , is_symbolic_link  /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
-                   , is_junction_link  /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
-                   , linked_path       /* Verify this exists. Haven't tested.                                                                               */
-                   , deleted
+                     directory_date                    AS   in_db_directory_date   /* Feeble attempt to detect downstream changes                                                                       */
+                   , COALESCE(is_symbolic_link, False) AS   in_db_is_symbolic_link /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
+                   , COALESCE(is_junction_link, False) AS   in_db_is_junction_link /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                   , NULLIF(linked_path, '')           AS   in_db_linked_directory /* Verify this exists. Haven't tested.                                                                               */
+                   , COALESCE(deleted, False)          AS   in_db_deleted
                 FROM 
                     directories
                 WHERE
-                    directory_path = '$directory_path_escaped'
+                    directory_path  = '$on_fs_directory_escaped'
                 AND 
-                    volume_id      = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter')
+                    volume_id       = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
             ";
             $reader = WhileReadSql $sql
 
-            $foundANewDirectory    = [bool]$false
-            $UpdateDirectoryRecord = [bool]$false
-            $flagScanDirectory     = [bool]$false
+            $foundANewDirectory    = $false
+            $UpdateDirectoryRecord = $false
+            $flagScanDirectory     = $false
 
-            # For additional functionality later $olddirhash   [byte[]]$null
-
-            $newdirectorydate = [datetime]0
-            $newsymboliclink  = [bool]$false
-            $newjunctionlink  = [bool]$false
-            $newlinktarget    = [string]$false
-
-            if ($reader.HasRows) {
-                $reader.Read()|Out-Null # Must read in the first row.
+            # if ($reader.HasRows) {
+              if ($reader.Read()) { #|Out-Null # Must read in the first row.
                 $foundANewDirectory         = $false
                 $UpdateDirectoryRecord      = $false
                                    
-                $newdirectorydate           = $currentdirectorydate
-                $newsymboliclink            = $currentsymboliclink
-                $newjunctionlink            = $currentjunctionlink
-                $newlinktarget              = NullIf $currentlinktarget
-
-                if ($deleted    -eq $true -or # We know the directory exists
-                    $directory_date       -ne $currentdirectorydate    -or
-                    $is_symbolic_link     -ne $currentsymboliclink     -or
-                    $is_junction_link     -ne $currentjunctionlink     -or
-                    $linked_path          -ne $currentlinktarget       
+                if ($in_db_deleted              -eq $true -or # We know the directory exists on the fs
+                    $in_db_directory_date       -ne $on_fs_directory_date       -or
+                    $in_db_is_symbolic_link     -ne $on_fs_is_symbolic_link     -or
+                    $in_db_is_junction_link     -ne $on_fs_is_junction_link     -or
+                    $in_db_linked_directory     -ne $on_fs_linked_directory
                 ) { 
                     $UpdateDirectoryRecord = $true
                 }
 
                 # WARNING: postgres can only store to 6 places of milliseconds. File info is stored to 7 places. So they'll never match without trimming file date to 6. Is the 6 place a rounding, though? TEST
 
-                if ($directory_date     -ne $newdirectorydate) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
+                if ($in_db_directory_date     -ne $on_fs_directory_date) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
                     $flagScanDirectory     = $true 
                 }
             } else {
@@ -217,29 +206,29 @@ While ($searchDirectories.Read()) {
             }
             $reader.Close()
             
-            if ($newjunctionlink -or $currentjunctionlink) { # Possible bug: junction converted to physical search_directory: Not scanned.
+            if ($on_fs_is_junction_link) { 
                 $flagScanDirectory = $false # Please do not traverse links. Even if the directory date changed.
             }
     
             if ($flagScanDirectory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
-            if ($newsymboliclink -and -not $is_symbolic_link) {
+            if ($on_fs_is_symbolic_link -and -not $in_db_is_symbolic_link) {
                 $howManyNewSymbolicLinks++
             }
-            if ($newjunctionlink -and -not $is_junction_link)  {
+            if ($on_fs_is_junction_link -and -not $in_db_is_junction_link)  {
                 $howManyNewJunctionLinks++
             }
                 
-            $formattedcurrentdirectorydate = $currentdirectorydate.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-            $preppednewlinktarget = PrepForSql $newlinktarget
+            $on_fs_directory_date_formatted = $on_fs_directory_date.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
+            $on_fs_linked_directory_escaped = PrepForSql $on_fs_linked_directory
 
             if ($foundANewDirectory) { #even if it's a link, we store it
                 $howManyNewDirectories++
-                Write-AllPlaces "New Directory found: $directory_path on $currentdriveletter drive" 
+                Write-AllPlaces "New Directory found: $on_fs_directory on $on_fs_driveletter drive" 
                 $sql = "
                     INSERT INTO 
                         directories(
                                directory_hash, 
-                               directory_path, 
+                               directory_path,
                                parent_directory_hash, 
                                directory_date, 
                                volume_id, 
@@ -254,25 +243,25 @@ While ($searchDirectories.Read()) {
                                deleted
                         )
                     VALUES(
-                        /*     directory_hash         */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea,
-                        /*     directory_path         */  REPLACE('$directory_path_escaped', '/', '\'),
-                        /*     parent_directory_hash  */  md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/'))], '/'), '/', '\'))::bytea,
-                        /*     directory_date         */ '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
-                        /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
+                        /*     directory_hash         */  md5_hash_path('$on_fs_directory_escaped'),
+                        /*     directory_path         */  REPLACE('$on_fs_directory_escaped', '/', '\'),
+                        /*     parent_directory_hash  */  md5_hash_path('$on_fs_directory_escaped'),
+                        /*     directory_date         */ '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
+                        /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
                         /*     scan_directory         */ $flagScanDirectory,
-                        /*     is_symbolic_link       */ $currentsymboliclink,
-                        /*     is_junction_link       */ $currentjunctionlink,
-                        /*     linked_path            */ $preppednewlinktarget,
+                        /*     is_symbolic_link       */ $on_fs_is_symbolic_link,
+                        /*     is_junction_link       */ $on_fs_is_junction_link,
+                        /*     linked_path            */ $on_fs_linked_directory_escaped,
                         /*     search_directory_id    */ $search_directory_id,
-                        /*     folder                 */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[1]),
-                        /*     parent_folder          */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[2]),
-                        /*     grantparent_folder     */ reverse((string_to_array(reverse('$directory_path_escaped'), '\'))[3]),
+                        /*     folder                 */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1]),
+                        /*     parent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2]),
+                        /*     grantparent_folder     */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
                         /*     deleted                */  False
                     )
                 "
 
                 $rowsInserted = Invoke-Sql $sql
-                Write-AllPlaces '⭐' -NoNewline
+                Write-AllPlaces $NEW_OBJECT_INSTANTIATED -NoNewline
                 $howManyRowsInserted+= $rowsInserted
 
             } elseif ($UpdateDirectoryRecord) {
@@ -282,18 +271,18 @@ While ($searchDirectories.Read()) {
                         directories
                     SET
                         scan_directory   = $flagScanDirectory,
-                        directory_date   = '$formattedcurrentdirectorydate'::TIMESTAMPTZ,
-                        is_symbolic_link = $newsymboliclink,
-                        is_junction_link = $newjunctionlink,
-                        linked_path      = $preppednewlinktarget,
-                        volume_id        = (SELECT volume_id FROM volumes WHERE drive_letter = '$currentdriveletter'),
+                        directory_date   = '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
+                        is_symbolic_link = $on_fs_is_symbolic_link,
+                        is_junction_link = $on_fs_is_junction_link,
+                        linked_path      = $on_fs_linked_directory_escaped,
+                        volume_id        = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
                         deleted          = False
                     WHERE 
-                        directory_hash   = md5(REPLACE(array_to_string((string_to_array('$directory_path_escaped', '/'))[:(howmanychar('$directory_path_escaped', '/')+1)], '/'), '/', '\'))::bytea"
+                        directory_hash   = md5_hash_path('$on_fs_directory_escaped')"
 
                 $rowsUpdated = Invoke-Sql $sql
-                Write-AllPlaces '📝' -NoNewline
-                if ($flagScanDirectory) { Write-Host '👓' -NoNewLine} # Getting a trailing "st"
+                Write-AllPlaces $EXISTING_OBJECT_EDITED -NoNewline
+                if ($flagScanDirectory) { Write-Host $SCAN_OBJECTS -NoNewLine} # Getting a trailing "st"
                 $howManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
@@ -305,9 +294,9 @@ While ($searchDirectories.Read()) {
             # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
             # Performance without skip:   2 minutes 
             # Performance with skip and no changes: 720 ms (so 60 times faster for empties)
-            # DOESNT WORK !!!!! if ($IsARealDirectory -and $walkdownthefilehierarchy ) { # https://stackoverflow.com/questions/1025187/rules-for-date-modified-of-folders-in-windows-explorer
-            if ($IsARealDirectory ) { # No way to avoid it as of Windows 10: Must traverse
-                Get-ChildItem -Path $item.FullName | ForEach-Object { $FIFOstack.Enqueue($_) }
+            # DOESNT WORK !!!!! if ($on_fs_is_real_directory -and $walkdownthefilehierarchy ) { # https://stackoverflow.com/questions/1025187/rules-for-date-modified-of-folders-in-windows-explorer
+            if ($on_fs_is_real_directory ) { # No way to avoid it as of Windows 10: Must traverse
+                Get-ChildItem -Path $on_fs_file_object.FullName | ForEach-Object { $all_file_objects.Enqueue($_) }
             }
         }
     }
