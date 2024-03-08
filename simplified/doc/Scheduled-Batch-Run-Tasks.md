@@ -23,7 +23,7 @@
 1. 🚧zzz_end_batch_run_session
 
 ## video file maintenance
-1. pull_new_file_entries_into_videos
+1. pull_new_file_entries_into_videos 
 1. link_subtitles_to_videos
 1. normalize_video_file_names_to_titles
 1. extract_metadata_from_files_into_video_files
