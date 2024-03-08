@@ -199,6 +199,7 @@ Function Write-AllPlaces {
     } else {
         Write-Host $s # Always writes to Terminal
         $CurrentXPosInTerminal = 0
+        Write-Line $s
         #Write-Output $s   # Doesn't always write to terminal? Writes to transcript????????????????????????????
     }
 }
