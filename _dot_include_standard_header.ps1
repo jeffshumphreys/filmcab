@@ -162,13 +162,13 @@
 
     <#
     .SYNOPSIS
-    Converts a time duration to a more readable form
+    Try and get data to both the terminal AND the log file AND the transcript
     
     .DESCRIPTION
-    I always like to do this.  I want to see "1 Day" vs. "300000 Seconds"
+    It's hard, but at least it's all in one place.
     
-    .PARAMETER ob
-    Parameter description
+    .PARAMETER s
+    What to print
     
     .EXAMPLE
     An example
@@ -194,6 +194,7 @@ Function Write-AllPlaces {
     
     if ($NoNewLine) {
         Write-Host $s -NoNewline # To operator
+        Log-Line $s -NoNewLine
         $CurrentXPosInTerminal+= $s.Length
         # or Write-Progress -CurrentOperation "EnablingFeatureXYZ" ( "Enabling feature XYZ ... " )
     } else {
@@ -204,6 +205,22 @@ Function Write-AllPlaces {
     }
 }
     
+    <#
+    .SYNOPSIS
+    Converts a time duration to a more readable form
+    
+    .DESCRIPTION
+    I always like to do this.  I want to see "1 Day" vs. "300000 Seconds"
+    
+    .PARAMETER ob
+    Parameter description
+    
+    .EXAMPLE
+    An example
+    
+    .NOTES
+    #TODO: Switch to humanizer?
+    #>    
 Function Format-Humanize($ob) {
     if ($ob -is [Diagnostics.Stopwatch]) {
         $ob = $ob.Elapsed
@@ -890,7 +907,8 @@ function Log-Line {
     [CmdletBinding()]
     param(
         [Parameter(Position=1, Mandatory=$false)][string] $Text,
-        [switch]$Restart
+        [switch]$Restart,
+        [switch]$NoNewLine
     )
     #$mtx = New-Object System.Threading.Mutex($false, 'FileMtx')
     #[void] $mtx.WaitOne()
@@ -910,7 +928,11 @@ function Log-Line {
             } else {
                 $HashArguments = @{Append = $true}
 
+            }    
+            if ($NoNewLine) {
+                $HashArguments+= @{NoNewLine = $true}
             }
+
             Write-LogLineToFile $Text $HashArguments
             #Write-LogLineToFile "Wrote line"
         }catch{
