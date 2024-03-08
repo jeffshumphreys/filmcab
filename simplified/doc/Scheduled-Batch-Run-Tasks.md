@@ -1,4 +1,4 @@
-# These are the PowerShell scripts and Windows Task Scheduler Tasks I've begun consolidating:
+# These are the batch PowerShell scripts and Windows Task Scheduler Tasks I've begun scheduling:
 ## database maintenance
 1. ✅vacuum_database
 1. ✅backup_database
