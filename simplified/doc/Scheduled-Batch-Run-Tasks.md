@@ -1,4 +1,4 @@
-# These are the PowerShell scripts and Windows Task Scheduler Tasks I've begun consolidating:
+# These are the batch PowerShell scripts and Windows Task Scheduler Tasks I've begun scheduling:
 ## database maintenance
 1. ✅vacuum_database
 1. ✅backup_database
@@ -13,17 +13,17 @@
 1. ✅delete_file_entries_in_deleted_directories
 1. ✅delete_references_to_missing_files
 1. ✅populate_any_missing_file_hashes
-1. 🚧clean_up_table_data
+1. ✅clean_up_table_data
 1. 💡delete_dup_backups_not_published
 1. ✅extract_genres_from_file_paths
 1. 💡physically_delete_published_crap
-1. 🚧link_files_across_search_directories
+1. link_files_across_search_directories
 1. convert_published_duplicates_to_hard_links
 1. report_unpublished_files
 1. 🚧zzz_end_batch_run_session
 
 ## video file maintenance
-1. pull_new_file_entries_into_videos
+1. pull_new_file_entries_into_videos 
 1. link_subtitles_to_videos
 1. normalize_video_file_names_to_titles
 1. extract_metadata_from_files_into_video_files
@@ -71,3 +71,10 @@
 
 ## event driven
 1. 🌙trap_new_scheduled_task_definitions
+
+Icons
+🚧 - Under construction
+🤔 - Are we sure we want to do this
+🌙 - Dead; so far off and low priority
+💡 - Good idea, concept, how will we implement
+✅ - Deployed, scheduled, appears to be running good

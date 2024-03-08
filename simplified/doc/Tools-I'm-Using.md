@@ -26,9 +26,13 @@ description: >-
 * GitHub 0.0.1
 * Inline Values support for PowerShell 0.0.7
 * Insert Time Stamp 1.1.3 Preview
-* PowerShell 2024.3.0
+* PowerShell 2024.3.1
 * TODO Highlight 1.0.5
-
+* WakaTime 24.4.0
+* Draw.io Integration 1.6.6
+* fake-virtual-space 0.1.3
+* Hide Gitignored 1.1.0
+  
 **NuGet Packages**
 
 * ~~Humanizer (trying to install. May fail. Over 20 minutes.)~~
