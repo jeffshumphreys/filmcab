@@ -1,0 +1,9 @@
+Starting Log 03/16/2024 11:32:07 on Saturday DST in March, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+processtree 1 CommandLine is not null: "C:\Program Files\Microsoft VS Code\Code.exe" --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --user-data-dir="C:\Users\jeffs\AppData\Roaming\Code" --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --mojo-platform-channel-handle=3600 --field-trial-handle=1700,i,5967655677934288736,9337379538468934359,262144 --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess,WinDelaySpellcheckServiceInit,WinRetrieveSuggestionsOnlyOnDemand /prefetch:8
+Called whilest in Visual Code Editor
+Exiting standard_header
+SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running
+*** empty string
+ERROR!: I'm running zzz_end_batch_run_session.ps1 AND NO SESSION IS ACTIVE!!!! (2)
+Exiting all code with LASTEXITCODE of 5

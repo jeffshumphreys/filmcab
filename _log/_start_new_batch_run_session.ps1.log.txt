@@ -1,0 +1,11 @@
+Starting Log 03/16/2024 11:32:35 on Saturday DST in March, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
+Called from Windows Task Scheduler
+Scanning Get-ScheduledTasks
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\_start_new_batch_run_session.ps1'; exit $LASTEXITCODE"
+Finished Scanning (2)
+Added 1 row(s) to batch run_session
+*** empty string
+*** empty string
+Stopping Normally after 0.567111 Second(s)
