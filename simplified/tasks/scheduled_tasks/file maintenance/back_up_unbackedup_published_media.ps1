@@ -30,6 +30,7 @@
     # TODO: When source file has same hash, date and size as a file previously in same directory, and the previous file is gone, and it is not in another directory, rename target on backup to new file name.
 Log-Line "Starting Robocopy"
 Robocopy.exe "O:\Video AllInOne" "G:\Video AllInOne Backup" /E /J /NOOFFLOAD /R:1 /V /UNILOG:D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
+Get-Content D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
 Log-Line "Finished Robocopy"
 
 . .\_dot_include_standard_footer.ps1
