@@ -15,7 +15,7 @@ $volumesForSearchDirectories = WhileReadSql 'SELECT DISTINCT drive_letter from s
 while ($volumesForSearchDirectories.Read()) {
     $TestPath = "$drive_letter`:\"
     Flush-Volume $drive_letter                             
-    Get-ChildItem -Path $TestPath|Out-Null
+    Get-ChildItem -Path $TestPath|Out-Null # Just tapping the reader
 }
 
 . .\_dot_include_standard_footer.ps1
