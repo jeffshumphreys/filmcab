@@ -17,34 +17,31 @@ $HowManyFileEntriesDeleted                   = 0
 $HowManyFileEntriesUndeleted                 = 0
 
 if ($DatabaseConnectionIsOpen) {
-    $sql = "
-                    SELECT 
-                        d.directory_path || '\' || f.file_name_no_ext || CASE WHEN f.final_extension <> '' THEN '.' || f.final_extension ELSE '' END AS file_path,
-                        COALESCE(f.deleted, False)                                                                                                   AS file_deleted,
-                        f.file_id                                                                                                                    AS file_id
-                    FROM 
-                        files       f
-                    JOIN
-                        directories d  USING(directory_hash)
-                    WHERE 
-                        d.deleted is distinct from true
-    "
-    $reader = WhileReadSql $sql # Cannot return reader value directly from a function or it blanks, so return it boxed
+    $reader = WhileReadSql "
+        SELECT 
+            file_path,
+            file_deleted,
+            file_id
+        FROM 
+            files_ext_v
+        "
 
     While ($reader.Read()) {
         if (Test-Path -LiteralPath $file_path) {
-            Write-AllPlaces -NoNewline '=' # Found          
+            _TICK_Found_Existing_Object
             $HowManyFileEntriesMapToExistingFiles++ 
-            if ($file_deleted) {                 
-                Invoke-Sql "UPDATE files SET deleted = False WHERE file_id = $file_id" | Out-Null
+            if ($file_deleted) {                                                      
+                _TICK_Update_Object_Status # Need an undelete tick.
+                Invoke-Sql "UPDATE files_v SET file_deleted = False WHERE file_id = $file_id" | Out-Null
                 $HowManyFileEntriesUpdated++
                 $HowManyFileEntriesUndeleted++
             }                                    
         } else {             
-            Write-AllPlaces -NoNewline '-' # Missing
+            _TICK_Sought_Object_Not_Found
             $HowManyFileEntriesNoLongerMapToExistingFile++
-            if (-not $file_deleted) {
-                Invoke-Sql "UPDATE files SET deleted = True WHERE file_id = $file_id" | Out-Null
+            if (-not $file_deleted) {                                                           
+                _TICK_Update_Object_Status
+                Invoke-Sql "UPDATE files_v SET file_deleted = True WHERE file_id = $file_id" | Out-Null
                 $HowManyFileEntriesUpdated++                                                        
                 $HowManyFileEntriesDeleted++
             }
