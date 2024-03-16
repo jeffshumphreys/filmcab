@@ -14,8 +14,16 @@ $SharedTimestamp = Get-Date -Format $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FO
 
 # TODO: check which is installed and use that.
 
+$powershellInstance = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"  # WARNING: arguments differ from core 7.
 $powershellInstance = "C:\Program Files\PowerShell\7\pwsh.exe"
-$powershellInstance = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"  # Switched back to 5.1
+$powershellInstance = "C:\Program Files\PowerShell\7-preview\pwsh.exe"
+
+#WARNING: -WindowStyle Hidden block transcripts!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IM SUCH A STUPID GIT!!!!!!!!!!
+
+if (-not (Test-Path $powershellInstance)) {
+  throw [Exception]"path to powershell/pwsh not found"
+}
 
 $ScheduledTaskDefsInSetOrder = WhileReadSql 'SELECT * FROM scheduled_tasks_ext_v ORDER BY scheduled_task_run_set_id, order_in_set' 
 
@@ -90,7 +98,7 @@ else {
       <Actions Context="Author">
         <Exec>
           <Command>"$powershellInstance"</Command>
-          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". '$script_path_to_run'; exit `$LASTEXITCODE"</Arguments>
+          <Arguments>-ExecutionPolicy Bypass -Command ". '$script_path_to_run'; exit `$LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>
