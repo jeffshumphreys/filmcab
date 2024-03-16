@@ -1,3 +1,4 @@
+$teststring =@"
 General
 Count	348
 StreamCount	1
@@ -268,3 +269,44 @@ Default Yes
 Default/String	Yes
 Forced	No
 Forced/String	No
+"@
+  
+cls
+<#
+    4 Sections:
+    - General
+    - Video
+    - Audio
+    - Text
+
+    Each section has
+    - A character count
+    - Stream Count
+    - Stream Kind
+    - Stream Kind ID
+    - Stream Order
+    - ID
+    - Unique ID
+#>
+$testarray = $teststring -split '\n'
+# It appears that each line is split in two by at least two spaces. Or it could be split on the first space
+$section = "?"
+$testarray |%{
+    
+    $rw = $_ -split "\t" 
+    if ($rw.Length -eq 2) {
+        "$($rw[0]) = $($rw[1])"
+    } else {     
+        #$_
+        $rw2 = $_ -split "\s"
+        if ($rw2[1] -eq '') {
+            $section = $rw2[0]
+            Write-Host "**********************************************************************************************************"
+            Write-Host "***        Section: <$section>"
+            Write-Host "**********************************************************************************************************"
+        } else {                                   
+            "$($rw2[0]) = $($rw2[1])*"
+        }
+        
+    }
+}
