@@ -6,27 +6,30 @@
     ###### Mon Jan 29 18:12:26 MST 2024
 #>
 
-. .\_dot_include_standard_header.ps1 # 
+. .\_dot_include_standard_header.ps1
 
 $HowManyFilesDeleted = 0    
 
 if ($DatabaseConnectionIsOpen) {
-    $sql = "
-    WITH x AS (
-    SELECT 
-        f.directory_hash
-    FROM               
-        files f JOIN directories d USING (directory_hash) 
-    WHERE
-        d.deleted IS TRUE
-    AND
-        f.deleted IS DISTINCT FROM TRUE /* We won't bother updatin' ones that are already deleted */
-    )
-    UPDATE files SET deleted = true
-    FROM x WHERE files.directory_hash = x.directory_hash
+    $HowManyFilesDeleted = Invoke-Sql "
+    WITH
+        directories_marked_as_deleted AS (
+            SELECT 
+                directory_hash
+            FROM               
+                files_ext_v
+            WHERE
+                directory_deleted
+            AND
+                NOT file_deleted /* We won't bother updatin' ones that are already deleted */
+            )
+    UPDATE files_v
+        SET file_deleted = TRUE 
+    FROM 
+        directories_marked_as_deleted 
+    WHERE 
+        files_v.directory_hash = directories_marked_as_deleted.directory_hash
     "
-
-    $HowManyFilesDeleted = Invoke-Sql $sql
 
     Write-Count HowManyFilesDeleted File
 
