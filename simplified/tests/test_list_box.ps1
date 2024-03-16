@@ -126,8 +126,4 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK)
     $x
 }
 
-
-
-
-
 . .\_dot_include_standard_footer.ps1
