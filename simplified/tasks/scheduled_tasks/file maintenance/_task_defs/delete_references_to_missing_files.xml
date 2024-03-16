@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>2024-03-06T12:02:35.6605191</Date>
+        <Date>2024-03-16T11:10:03.5389068</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, Mark, not physically delete, any file entries that no longer exist materially. . # 7</Description>
         <URI>\FilmCab\file maintenance\delete_references_to_missing_files</URI>
@@ -42,8 +42,8 @@
       </Settings>
       <Actions Context="Author">
         <Exec>
-          <Command>"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"</Command>
-          <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\delete_references_to_missing_files.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Command>"C:\Program Files\PowerShell\7-preview\pwsh.exe"</Command>
+          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\delete_references_to_missing_files.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>
