@@ -163,15 +163,15 @@ While ($searchDirectories.Read()) {
             $on_fs_directory_escaped = $on_fs_directory.Replace("'", "''")
             $sql = "
                 SELECT 
-                     directory_date                    AS   in_db_directory_date   /* Feeble attempt to detect downstream changes                                                                       */
-                   , COALESCE(is_symbolic_link, False) AS   in_db_is_symbolic_link /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
-                   , COALESCE(is_junction_link, False) AS   in_db_is_junction_link /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
-                   , NULLIF(linked_path, '')           AS   in_db_linked_directory /* Verify this exists. Haven't tested.                                                                               */
-                   , COALESCE(deleted, False)          AS   in_db_deleted
+                     directory_date     AS   in_db_directory_date   /* Feeble attempt to detect downstream changes                                                                       */
+                   , is_symbolic_link   AS   in_db_is_symbolic_link /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
+                   , is_junction_link   AS   in_db_is_junction_link /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                   , linked_directory   AS   in_db_linked_directory /* Verify this exists. Haven't tested.                                                                               */
+                   , directory_deleted  AS   in_db_deleted
                 FROM 
-                    directories
+                    directories_ext_v
                 WHERE
-                    directory_path  = '$on_fs_directory_escaped'
+                    directory       = '$on_fs_directory_escaped'
                 AND 
                     volume_id       = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
             ";
@@ -179,7 +179,7 @@ While ($searchDirectories.Read()) {
 
             $foundANewDirectory    = $false
             $UpdateDirectoryRecord = $false
-            $flagScanDirectory     = $false
+            $scan_directory        = $false
 
             # if ($reader.HasRows) {
               if ($reader.Read()) { #|Out-Null # Must read in the first row.
@@ -198,19 +198,19 @@ While ($searchDirectories.Read()) {
                 # WARNING: postgres can only store to 6 places of milliseconds. File info is stored to 7 places. So they'll never match without trimming file date to 6. Is the 6 place a rounding, though? TEST
 
                 if ($in_db_directory_date     -ne $on_fs_directory_date) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
-                    $flagScanDirectory     = $true 
+                    $scan_directory     = $true 
                 }
             } else {
                 $foundANewDirectory = $true
-                $flagScanDirectory  = $true
+                $scan_directory  = $true
             }
             $reader.Close()
             
             if ($on_fs_is_junction_link) { 
-                $flagScanDirectory = $false # Please do not traverse links. Even if the directory date changed.
+                $scan_directory = $false # Please do not traverse links. Even if the directory date changed.
             }
     
-            if ($flagScanDirectory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
+            if ($scan_directory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
             if ($on_fs_is_symbolic_link -and -not $in_db_is_symbolic_link) {
                 $howManyNewSymbolicLinks++
             }
@@ -248,7 +248,7 @@ While ($searchDirectories.Read()) {
                         /*     parent_directory_hash  */  md5_hash_path('$on_fs_directory_escaped'),
                         /*     directory_date         */ '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
                         /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
-                        /*     scan_directory         */ $flagScanDirectory,
+                        /*     scan_directory         */ $scan_directory,
                         /*     is_symbolic_link       */ $on_fs_is_symbolic_link,
                         /*     is_junction_link       */ $on_fs_is_junction_link,
                         /*     linked_path            */ $on_fs_linked_directory_escaped,
@@ -261,8 +261,8 @@ While ($searchDirectories.Read()) {
                 "
 
                 $rowsInserted = Invoke-Sql $sql
-                Write-AllPlaces $NEW_OBJECT_INSTANTIATED -NoNewline
-                $howManyRowsInserted+= $rowsInserted
+                _TICK_New_Object_Instantiated
+                $howManyRowsInserted+= $rowsInserted # One, hopefully
 
             } elseif ($UpdateDirectoryRecord) {
                 $howManyUpdatedDirectories++
@@ -270,7 +270,7 @@ While ($searchDirectories.Read()) {
                     UPDATE 
                         directories
                     SET
-                        scan_directory   = $flagScanDirectory,
+                        scan_directory   = $scan_directory,
                         directory_date   = '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
                         is_symbolic_link = $on_fs_is_symbolic_link,
                         is_junction_link = $on_fs_is_junction_link,
@@ -281,8 +281,8 @@ While ($searchDirectories.Read()) {
                         directory_hash   = md5_hash_path('$on_fs_directory_escaped')"
 
                 $rowsUpdated = Invoke-Sql $sql
-                Write-AllPlaces $EXISTING_OBJECT_EDITED -NoNewline
-                if ($flagScanDirectory) { Write-Host $SCAN_OBJECTS -NoNewLine} # Getting a trailing "st"
+                _TICK_Existing_Object_Edited
+                if ($scan_directory) { Write-Host $SCAN_OBJECTS -NoNewLine} # Getting a trailing "st"
                 $howManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
@@ -306,10 +306,8 @@ Write-Count howManyNewDirectories           Directory
 Write-Count howManyUpdatedDirectories       Directory
 Write-Count howManyRowsUpdated              Row
 Write-Count howManyRowsInserted             Row
-Write-Count howManyRowsDeleted              Row
 Write-Count howManyNewJunctionLinks         Link
 Write-Count howManyNewSymbolicLinks         Link
 Write-Count howManyDirectoriesFlaggedToScan Directory
-#TODO: Update counts to session table
 
 . .\_dot_include_standard_footer.ps1
