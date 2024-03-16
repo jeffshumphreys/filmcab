@@ -15,30 +15,30 @@ $HowManyDirectoryEntriesNoLongerMapToExistingDirectories = 0
 $HowManyDirectoryEntriesCorrected                        = 0
 
 if ($DatabaseConnectionIsOpen) {
-    $sql = "
-                        SELECT 
-                            directory_path           AS directory_path        , /* Deleted or not, we want to validate it. Probably more efficient filter is possible. Skip ones I just added, for instance. Don't descend deleted trees. */
-                            COALESCE(deleted, False) AS directory_deleted
-                        FROM 
-                            directories
+    $reader = WhileReadSql "
+        SELECT 
+            directory             /* Deleted or not, we want to validate it. Probably a more efficient filter is possible. Skip ones I just added, for instance. Don't descend deleted trees. */
+        ,   directory_escaped
+        ,   directory_deleted
+        FROM 
+            directories_ext_v
     "
-    $reader = $reader = WhileReadSql $sql
 
     While ($reader.Read()) {
-        $escapedDirectoryPath = $directory_path.Replace("'", "''")
-        Write-AllPlaces -NoNewline '.'
-        if (Test-Path -LiteralPath $directory_path) {
+        if (Test-Path -LiteralPath $directory) {
             $HowManyDirectoryEntriesMapToExistingDirectories++ 
+
             if ($directory_deleted) {                 
-                Write-AllPlaces -NoNewline $FOUND_EXISTING_OBJECT # Found          (only shows up in Core, 6+)
-                Invoke-Sql "UPDATE directories SET deleted = False WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
+                _TICK_Found_Existing_Object
+                Invoke-Sql "UPDATE directories_v SET directory_deleted = False WHERE directory = '$directory_escaped'" | Out-Null
                 $HowManyDirectoryEntriesCorrected++
             }                                    
         } else {             
             $HowManyDirectoryEntriesNoLongerMapToExistingDirectories++
+
             if (-not $directory_deleted) {
-                Write-AllPlaces -NoNewline $DELETE_OBJECT # Missing                                 
-                Invoke-Sql "UPDATE directories SET deleted = True WHERE directory_path = '$escapedDirectoryPath'" | Out-Null
+                _TICK_Object_Marked_Deleted
+                Invoke-Sql "UPDATE directories_v SET directory_deleted = True WHERE directory = '$directory_escaped'" | Out-Null
                 $HowManyDirectoryEntriesCorrected++
             }
         }
