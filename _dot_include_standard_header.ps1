@@ -88,19 +88,24 @@
     # refactor? 🧹
     #$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
     # ⭐
+                                                                                                                                          
+    Function __TICK ($tick_emoji) {
+        # Only write to terminal if not a scheduled task run
+        if ($Script:Caller -ne 'Windows Task Scheduler') {
+            Write-AllPlaces $tick_emoji -NoNewline -NoLog
+        }
+    }
+    $NEW_OBJECT_INSTANTIATED          = '✨'; Function _TICK_New_Object_Instantiated {__TICK $NEW_OBJECT_INSTANTIATED}
+    $FOUND_EXISTING_OBJECT            = '✔️'; Function _TICK_Found_Existing_Object {__TICK $FOUND_EXISTING_OBJECT}
+    $EXISTING_OBJECT_EDITED           = '📝'; Function _TICK_Existing_Object_Edited {__TICK $EXISTING_OBJECT_EDITED}
+    $EXISTING_OBJECT_ACTUALLY_CHANGED = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED}
+    $OBJECT_MARKED_DELETED            = '❌'; Function _TICK_Object_Marked_Deleted {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
+    $SCAN_OBJECTS                     = '👓'; Function _TICK_Scan_Objects {__TICK $SCAN_OBJECTS} 
+    $SOUGHT_OBJECT_NOT_FOUND          = '😱'; Function _TICK_Sought_Object_Not_Found {__TICK $SOUGHT_OBJECT_NOT_FOUND}  # As in database says it's there but it's not physically on file.
+    $UPDATE_OBJECT_STATUS             = '🚩'; Function _TICK_Update_Object_Status {__TICK $UPDATE_OBJECT_STATUS}
 
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $NEW_OBJECT_INSTANTIATED = '✨'
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $EXISTING_OBJECT_EDITED = '📝'
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $DELETE_OBJECT          = '❌'
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $SCAN_OBJECTS           = '👓'
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $FOUND_EXISTING_OBJECT  = '✔️'
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
-
+    
     $MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
 
     if ([String]::IsNullOrEmpty($masterScriptPath)) {                                                                
@@ -182,7 +187,8 @@ $CurrentXPosInTerminal = 0
 Function Write-AllPlaces {
     param(
     [string]$s,
-    [switch]$NoNewLine, [switch]$ForceStartOnNewLine
+    [switch]$NoNewLine, [switch]$ForceStartOnNewLine, 
+    [switch]$NoLog <# For purely visual "I'm active" live viewing of the terminal, we don't need in the log#>
     )
                                                     
     if ($ForceStartOnNewLine) {
@@ -194,13 +200,13 @@ Function Write-AllPlaces {
     
     if ($NoNewLine) {
         Write-Host $s -NoNewline # To operator
-        Log-Line $s -NoNewLine
+        if (-Not $NoLog) {Log-Line $s -NoNewLine}
         $CurrentXPosInTerminal+= $s.Length
         # or Write-Progress -CurrentOperation "EnablingFeatureXYZ" ( "Enabling feature XYZ ... " )
     } else {
         Write-Host $s # Always writes to Terminal
         $CurrentXPosInTerminal = 0
-        Log-Line $s
+        if (-Not $NoLog) { Log-Line $s}
         #Write-Output $s   # Doesn't always write to terminal? Writes to transcript????????????????????????????
     }
 }
@@ -332,6 +338,7 @@ I default to exiting when there's an error.  My thing. Even in production. Expli
 
 .EXAMPLE
 Show-Error -exitcode 23920  #(Int32 I think is Windows limit)
+Show-Error -message "ERROR!: I'm running zzz_end_batch_run_session.ps1 AND NO SESSION IS ACTIVE!!!! (1)" -exitcode 2
 
 .NOTES
 Could be enhanced. Log to file. Detect new errors, which are more important in debugging. Often lazy developers ignore errors in a priority basis.
@@ -340,39 +347,64 @@ Function Show-Error {
     param(
         [Parameter(Position=0,mandatory=$false)]        [string]$scriptWhichProducedError,    
         [Parameter(Position=1,mandatory=$false)]        [int32] $exitcode = 1, # non-zero generally means failure in executable world
+        [string] $message="",
         [switch]$DontExit # switches always default to false. I forget that sometimes.
     )                                                                        
 
     # WARNING: DONT use Write-Error. The code will stop. It's really "Write-then-Error"
     Write-AllPlaces $scriptWhichProducedError
-    Write-AllPlaces "Message: $($_.Exception.Message)"
-    Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"             
-    Write-AllPlaces "Failed on $($_.InvocationInfo.ScriptLineNumber)"
-    $Exception = $_.Exception
-    $HResult = 0
-
-    if (Test-Path variable:Exception) {
-    if ($Exception.InnerException) {
-        $HResult = $Exception.InnerException.HResult # 
-    } else {
-        $HResult = $Exception.HResult
-    }                              
-    if ($Exception.PSObject.Properties.Name -match 'ErrorRecord') { Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"}
-    # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
-    # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
+    if ($message -ne '')
+    {
+        Write-AllPlaces $message
     }
-
-    Get-PSCallStack
     
+    Get-PSCallStack -Verbose|Out-Host
+                               
+    $WasAnException = $true
+
     try {
-        Write-AllPlaces "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
-    } catch {}
-    
-    if (-not $DontExit) {    
-        Write-VolumeCache D # So that log stuff gets written out in case of fatal crash                                                          # Double-negative. Meh.
-        exit $HResult # These SEEM to be getting back to Task Scheduler 
+        $_
     }
-    return $HResult
+    catch {
+        # There is no exception
+        $WasAnException = $false
+    }                           
+    if ($WasAnException) {
+        Write-AllPlaces "Message: $($_.Exception.Message)" # Will null output if no exception
+        Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"             # Will null output if no exception
+        Write-AllPlaces "Failed on $($_.InvocationInfo.ScriptLineNumber)"                                      # Will null output if no exception
+        $Exception = $_.Exception
+        $HResult = 0
+
+        if (Test-Path variable:Exception) {
+        if ($Exception.InnerException) {
+            $HResult = $Exception.InnerException.HResult # 
+        } else {
+            $HResult = $Exception.HResult
+        }                              
+        if ($Exception.PSObject.Properties.Name -match 'ErrorRecord') { Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"}
+        # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
+        # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
+        }
+
+        if ($null -ne $_.Exception.LoaderExceptions) {
+            Write-AllPlaces "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
+        }                                                                                                                          
+        
+        if ($null -ne $HResult -and $HResult -ne 0 -and $exitcode -ne 1)
+        {
+            # You set a value on calling, and we have an hresult from an actual exception, then that's the code we'll use
+            Write-AllPlaces "LASTEXITCODE to real exception HRESULT"
+            $exitcode = $HResult
+        }
+    }
+    
+    Write-AllPlaces "Exiting all code with LASTEXITCODE of $exitcode"
+    if (-not $DontExit) {    
+        Write-VolumeCache D # BAD DESIGN: So that log stuff gets written out in case of fatal crash                                                          # Double-negative. Meh.
+        exit $exitcode # These SEEM to be getting back to Task Scheduler 
+    }
+    return $exitcode
 }
 
 Function PrepForSql {
@@ -1197,6 +1229,10 @@ function Start-Log {
         } elseif ($determinorOfCaller.Name -eq 'Code.exe') {
             Log-Line "Called whilest in Visual Code Editor"
             $Script:Caller = 'Visual Code Editor'
+        } elseif ($determinorOfCaller.Name -eq 'Code - Insiders.exe') {
+            Log-Line "Called whilest in Visual Code Editor (Preview)"
+            $Script:Caller = 'Visual Code Editor'
+        } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {  
         } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {  
             Log-Line "Called whilest in Command Line"
             $Script:Caller = 'Command Line'
@@ -1580,12 +1616,54 @@ Function Has-Property ($sourceob, $prop) {
     return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
 
+Function Convert-HexStringToByteArray {
+    ################################################################
+    #.Synopsis
+    # Convert a string of hex data into a System.Byte[] array. An
+    # array is always returned, even if it contains only one byte.
+    #.Parameter String
+    # A string containing hex data in any of a variety of formats,
+    # including strings like the following, with or without extra
+    # tabs, spaces, quotes or other non-hex characters:
+    # 0x41,0x42,0x43,0x44
+    # \x41\x42\x43\x44
+    # 41-42-43-44
+    # 41424344
+    # The string can be piped into the function too.
+    ################################################################
+    [CmdletBinding()]
+    Param ( [Parameter(Mandatory = $True, ValueFromPipeline = $True)] [String] $String )
+    
+    #Clean out whitespaces and any other non-hex crud.
+    $String = $String.ToLower() -replace '[^a-f0-9\\,x\-\:]',"
+    
+    #Try to put into canonical colon-delimited format.
+    $String = $String -replace '0x|\x|\-|,',':'
+    
+    #Remove beginning and ending colons, and other detritus.
+    $String = $String -replace '^:+|:+$|x|\',"
+    
+    #Maybe there's nothing left over to convert...
+    if ($String.Length -eq 0) { ,@() ; return }
+    
+    #Split string with or without colon delimiters.
+    if ($String.Length -eq 1)
+    { ,@([System.Convert]::ToByte($String,16)) }
+    elseif (($String.Length % 2 -eq 0) -and ($String.IndexOf(":") -eq -1))
+    { ,@($String -split '([a-f0-9]{2})' | foreach-object { if ($_) {[System.Convert]::ToByte($_,16)}}) }
+    elseif ($String.IndexOf(":") -ne -1)
+    { ,@($String -split ':+' | foreach-object {[System.Convert]::ToByte($_,16)}) }
+    else
+    { ,@() }
+    #The strange ",@(...)" syntax is needed to force the output into an
+    #array even if there is only one element in the output (or none).
+}
 <#
 .SYNOPSIS
-Execute any actions standard across all scripts in this folder.
+Execute any actions standard across all scripts in this folder. Generate any helper functions.
 
 .DESCRIPTION
-Long description
+Greatly reduces complexity of client scripts.
 
 .EXAMPLE
 An example
