@@ -1,3 +1,8 @@
+<#
+    FilmCab GUI library. .NET WinForms
+    - Easiest for me to use
+    - Would have to use Visual Studio for anything else. MAUI is cross-platform and ridiculously huge.
+#>
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
