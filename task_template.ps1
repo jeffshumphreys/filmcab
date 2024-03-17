@@ -6,6 +6,8 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
 
+try {
+    
 . .\_dot_include_standard_header.ps1
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
@@ -32,4 +34,11 @@ Write-AllPlaces
 
 Write-Count howManyNewDirectoriesWhereFound Directory
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}
