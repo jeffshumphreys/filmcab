@@ -182,7 +182,7 @@
     #TODO: Switch to humanizer?
     #>    
 
-$CurrentXPosInTerminal = 0
+$Script:CurrentXPosInTerminal = 0
 
 Function Write-AllPlaces {
     param(
@@ -192,20 +192,20 @@ Function Write-AllPlaces {
     )
                                                     
     if ($ForceStartOnNewLine) {
-        if ($CurrentXPosInTerminal -gt 0) {
+        if ($Script:CurrentXPosInTerminal -gt 0) {
             Write-Host            
-            $CurrentXPosInTerminal = 0 # Reset cursor tracking
+            $Script:CurrentXPosInTerminal = 0 # Reset cursor tracking
         }
     }   
     
     if ($NoNewLine) {
         Write-Host $s -NoNewline # To operator
         if (-Not $NoLog) {Log-Line $s -NoNewLine}
-        $CurrentXPosInTerminal+= $s.Length
+        $Script:CurrentXPosInTerminal+= $s.Length
         # or Write-Progress -CurrentOperation "EnablingFeatureXYZ" ( "Enabling feature XYZ ... " )
     } else {
         Write-Host $s # Always writes to Terminal
-        $CurrentXPosInTerminal = 0
+        $Script:CurrentXPosInTerminal = 0
         if (-Not $NoLog) { Log-Line $s}
         #Write-Output $s   # Doesn't always write to terminal? Writes to transcript????????????????????????????
     }
