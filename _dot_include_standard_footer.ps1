@@ -20,9 +20,13 @@ if ($Script:WriteCounts.Count -gt 0) {
     ForEach($entry in $Script:WriteCounts) {
         if ($entry.CountLabel -ne '') {
         $title                       = ($entry.CountLabel + ' '*($MaxLengthLabel)).Substring(0,$MaxLengthLabel)
+        if ($null -ne $entry.Count) {
         $countWithThousandsSeparator = [string]::Format('{0:N0}', $entry.Count)
         $CountAsRightJustified       = "$countWithThousandsSeparator".PadLeft($MaxNumberWidth)
         Write-AllPlaces "$title    `:   $CountAsRightJustified"
+        } else {
+            Write-AllPlaces "$title : Count is null??"
+        }
         }
     }
 }   
