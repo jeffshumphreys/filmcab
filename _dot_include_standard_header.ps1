@@ -26,6 +26,91 @@
     
     [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
     $TpmStatus = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
+
+    function Get-CRC32 {
+        <#
+            .SYNOPSIS
+                Calculate CRC.
+            .DESCRIPTION
+                This function calculates the CRC of the input data using the CRC32 algorithm.
+            .EXAMPLE
+                Get-CRC32 $data
+            .EXAMPLE
+                $data | Get-CRC32
+            .NOTES
+                C to PowerShell conversion based on code in https://www.w3.org/TR/PNG/#D-CRCAppendix
+    
+                Author: Øyvind Kallstad
+                Date: 06.02.2017
+                Version: 1.0
+            .INPUTS
+                byte[]
+            .OUTPUTS
+                uint32
+            .LINK
+                https://communary.net/
+            .LINK
+                https://www.w3.org/TR/PNG/#D-CRCAppendix
+    
+        #>
+        [CmdletBinding()]
+        param (
+            # Array of Bytes to use for CRC calculation
+            [Parameter(Position = 0, ValueFromPipeline = $true)]
+            [ValidateNotNullOrEmpty()]
+            [byte[]]$InputObject
+        )
+    
+        Begin {
+    
+            function New-CrcTable {
+                [uint32]$c = $null
+                $crcTable = New-Object 'System.Uint32[]' 256
+    
+                for ($n = 0; $n -lt 256; $n++) {
+                    $c = [uint32]$n
+                    for ($k = 0; $k -lt 8; $k++) {
+                        if ($c -band 1) {
+                            $c = (0xEDB88320 -bxor ($c -shr 1))
+                        }
+                        else {
+                            $c = ($c -shr 1)
+                        }
+                    }
+                    $crcTable[$n] = $c
+                }
+    
+                Write-Output $crcTable
+            }
+    
+            function Update-Crc ([uint32]$crc, [byte[]]$buffer, [int]$length) {
+                [uint32]$c = $crc
+    
+                if (-not (Test-Path variable:script:crcTable)) {
+                    $script:crcTable = New-CrcTable
+                }
+    
+                for ($n = 0; $n -lt $length; $n++) {
+                    $c = ($script:crcTable[($c -bxor $buffer[$n]) -band 0xFF]) -bxor ($c -shr 8)
+                }
+    
+                Write-output $c
+            }
+    
+            $dataArray = @()
+        }
+    
+        Process {
+            foreach ($item  in $InputObject) {
+                $dataArray += $item
+            }
+        }
+    
+        End {
+            $inputLength = $dataArray.Length
+            Write-Output ((Update-Crc -crc 0xffffffffL -buffer $dataArray -length $inputLength) -bxor 0xffffffffL)
+        }
+    }
     
 ############## Environment things FORCED on the user of this dot file.
 
@@ -89,6 +174,9 @@
     #$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
     # ⭐
                                                                                                                                           
+    $pretest_assuming_true = $true
+    $pretest_assuming_false = $false
+    
     Function __TICK ($tick_emoji) {
         # Only write to terminal if not a scheduled task run
         if ($Script:Caller -ne 'Windows Task Scheduler') {
@@ -131,7 +219,8 @@
     $ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Base name is nice for labelling
 
     $ProjectRoot  = (Get-Location).Path  # in debug, D:\qt_projects\filmcab
-    
+
+    # Not heavily used yet.
     $PathToConfig = $ProjectRoot + '\config.json'
     $Config       = Get-Content -Path $PathToConfig | ConvertTo-Json
 
@@ -320,6 +409,38 @@ function Assert-MeaningfulString([string]$s, $varname = 'string') {
         $true
     }
 }
+          
+
+$md5provider = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
+$utf8provider = New-Object -TypeName System.Text.UTF8Encoding
+
+<#
+.SYNOPSIS
+Generate MD5 hash from string
+
+.DESCRIPTION
+Impossible to remember
+
+.PARAMETER s
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
+Function Hash-String($s) {
+    return [System.BitConverter]::ToString($md5provider.ComputeHash($utf8provider.GetBytes($s)))    
+}
+# Avoid returning these numbers other than where they belong
+
+$_EXITCODE_UNTRAPPED_EXCEPTION           = 4001
+$_EXITCODE_GENERIC_AND_USELESS_EXCEPTION = -2146233087
+
+# See Show-Error for how these are generated
+$_EXITCODE_VARIABLE_NOT_FOUND            = 15631964        # Get-CRC32 -shr 8
+$_EXITCODE_SCRIPT_NOT_FOUND              = 4479237
 <#
 .SYNOPSIS
 Display all the error messages availale and exit.
@@ -360,7 +481,8 @@ Function Show-Error {
     
     Get-PSCallStack -Verbose|Out-Host
                                
-    $WasAnException = $true
+    $WasAnException = $pretest_assuming_true
+    $FullyQualifiedErrorId = "na"
 
     try {
         $_
@@ -372,22 +494,28 @@ Function Show-Error {
     if ($WasAnException) {
         Write-AllPlaces "Message: $($_.Exception.Message)" # Will null output if no exception
         Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"             # Will null output if no exception
-        Write-AllPlaces "Failed on $($_.InvocationInfo.ScriptLineNumber)"                                      # Will null output if no exception
+        Write-AllPlaces "Failed on line #: $($_.InvocationInfo.ScriptLineNumber)"                                      # Will null output if no exception
         $Exception = $_.Exception
         $HResult = 0
+        $WasThrownFromThrowStatement = $_.Exception.WasThrownFromThrowStatement
 
         if (Test-Path variable:Exception) {
-        if ($Exception.InnerException) {
+        if ($null -ne $Exception.InnerException) {
             $HResult = $Exception.InnerException.HResult # 
         } else {
             $HResult = $Exception.HResult
         }                              
-        if ($Exception.PSObject.Properties.Name -match 'ErrorRecord') { Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"}
+        if ($Exception.PSObject.Properties.Name -match 'ErrorRecord') { 
+            Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"
+            # HResult is STUPID GENERIC!!!!!
+            $FullyQualifiedErrorId = $Exception.ErrorRecord.FullyQualifiedErrorId
+            Write-AllPlaces "Exception.ErrorRecord.FullyQualifiedErrorId = $FullyQualifiedErrorId"
+        }
         # ([Int32]"0x80131501") ==> -2146233087 CORRECT! What HResult was.
         # EventData\Data\ResultCode=2148734209 "{0:X}" -f 2148734209 ==> 80131501 CORRECT. Do not use Format-Hex.
         }
 
-        if ($null -ne $_.Exception.LoaderExceptions) {
+        if (Has-Property  $_.Exception LoaderExceptions) {
             Write-AllPlaces "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
         }                                                                                                                          
         
@@ -399,6 +527,11 @@ Function Show-Error {
         }
     }
     
+    if ($exitcode -eq $_EXITCODE_GENERIC_AND_USELESS_EXCEPTION -and $FullyQualifiedErrorId -ne 'na') {
+        Write-AllPlaces "Generating a specific code from CRC32 since PowerShell giving us useless HResult" # Make a hash 
+        $exitcode64 = [System.Text.Encoding]::ASCII.GetBytes($FullyQualifiedErrorId) | Get-CRC32
+        $exitcode = ($exitcode64 -shr 8)
+    }
     Write-AllPlaces "Exiting all code with LASTEXITCODE of $exitcode"
     if (-not $DontExit) {    
         Write-VolumeCache D # BAD DESIGN: So that log stuff gets written out in case of fatal crash                                                          # Double-negative. Meh.
@@ -1772,6 +1905,7 @@ Function main_for_dot_include_standard_header() {
 
     Start-Log
 }
+                                 
 
 main_for_dot_include_standard_header # So as not to collide with dot includer
                                   
