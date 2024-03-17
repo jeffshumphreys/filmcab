@@ -6,6 +6,7 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
 
+try {
 . .\_dot_include_standard_header.ps1
 
 $SharedTimestamp = Get-Date -Format $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML # All tasks will have same timestamp.
@@ -116,4 +117,11 @@ $path_to_XML = $script_path_to_run.Replace('.ps1', '.xml').Replace($scheduled_ta
 $taskXMLTemplate | Out-File $path_to_XML -Force
 }
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

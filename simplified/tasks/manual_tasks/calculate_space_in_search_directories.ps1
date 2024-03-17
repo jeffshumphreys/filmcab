@@ -6,6 +6,7 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
 
+try {
 . .\_dot_include_standard_header.ps1
 
 $howMuchSpaceLeft   = [Int64]0
@@ -19,6 +20,8 @@ $howMuchSpaceLeft   = [Int64]0
 # E: 3.6 TB free
 # O: 1.7 TB free
 # D: 3.7 TB free
+# K: 10.9 TB free
+
 ###### Tue Mar 5 15:47:32 MST 2024 Bought Avolusion HDDGear Pro X 12TB USB 3.0 External Gaming Hard Drive. Reformat as NTFS
 
 $volumesForSearchDirectories = WhileReadSql 'SELECT DISTINCT volume_id, drive_letter from search_directories_ext_v ORDER BY 1' # All the directories across my volumes that I think have some sort of movie stuff in them.
@@ -38,4 +41,11 @@ while ($volumesForSearchDirectories.Read()) {
 
 Write-Count howMuchSpaceLeft Files                            
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

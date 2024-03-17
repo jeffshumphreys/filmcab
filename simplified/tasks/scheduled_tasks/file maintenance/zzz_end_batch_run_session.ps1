@@ -7,6 +7,7 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
 
+try {
 . .\_dot_include_standard_header.ps1
 
 $state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running"
@@ -56,10 +57,16 @@ elseif ($null -eq $state_of_session -or $state_of_session -is [String]) {
 # Check: $SanityCheckStatus|ConvertTo-Json|Out-File 'D:\qt_projects\filmcab\simplified\_data\__sanity_check_before_connection_before_session_starts.json'
 # Changed??  Shouldn't have.
 
-. .\_dot_include_standard_footer.ps1
-
 . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
 
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}
 # Copy and date days sanity checks to history
 
 # Compare  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_before_session_starts.json

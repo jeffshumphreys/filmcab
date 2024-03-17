@@ -39,7 +39,8 @@
     Idea:
         Flush log for speed after we get it to file and/or database
 #>
-
+  
+try {
 . .\_dot_include_standard_header.ps1 # 
 
 $newtaskSchedulerEvents      = @()
@@ -577,4 +578,11 @@ Select  record_id,
 
 # Yes? Pull new tasks and add to our storage
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

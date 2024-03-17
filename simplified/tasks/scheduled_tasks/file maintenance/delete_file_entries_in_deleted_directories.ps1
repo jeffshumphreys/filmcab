@@ -6,6 +6,7 @@
     ###### Mon Jan 29 18:12:26 MST 2024
 #>
 
+try {
 . .\_dot_include_standard_header.ps1
 
 $HowManyFilesDeleted = 0    
@@ -35,4 +36,11 @@ if ($DatabaseConnectionIsOpen) {
 
 }
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

@@ -5,7 +5,8 @@
  #    ###### Tue Jan 23 18:23:11 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
   #>
-
+                             
+try {
 . .\_dot_include_standard_header.ps1
 
 $howManyUpdatedFiles     = 0
@@ -35,13 +36,13 @@ $walkThruAllFilesReader = WhileReadSql <#sql#>"
 Import-Module Get-MediaInfo
 While ($walkThruAllFilesReader.Read()) {
     if ((Test-Path -LiteralPath $file_path)) {
-        _TICK_Existing_Object_Edited                              
+        _TICK_Found_Existing_Object                              
         Unblock-File -LiteralPath $file_path # Remove in dumb shit "Zone.Identifier [ZoneTransfer] ZoneId=3"
         $file_streams = Get-Item -LiteralPath $file_path -Stream * -Force # 'D:\qBittorrent Downloads\Video\Movies\.14a11a46d30e99f7a47e457a4adbc349ef23f441.parts' required the Force parameter to open.
         if ($file_streams.GetType().Name -ne 'AlternateStreamData') { # Not a single record
             $file_path
             $mediainfoPreParsed = Get-MediaInfo -Path $file_path
-            $mediainforParsedIntoLines
+            $mediainforParsedIntoLines = ($mediainfoPreParsed -split [System.Environment]::NewLine, [System.StringSplitOptions]"RemoveEmptyEntries")
             
             # Get the count of subtitle streams in a movie. Get-MediaInfoValue '.\The Warriors.mkv' -Kind General -Parameter 'TextCount'
             # Get the language of the second audio stream in a movie. The Index parameter is zero based. Get-MediaInfoValue '.\The Warriors.mkv' -Kind Audio -Index 1 -Parameter 'Language/String'
@@ -65,4 +66,11 @@ While ($walkThruAllFilesReader.Read()) {
 
 Write-Count howManyUpdatedFiles           File
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

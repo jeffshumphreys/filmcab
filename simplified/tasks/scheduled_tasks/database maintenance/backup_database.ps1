@@ -7,6 +7,7 @@
  #
  #>
  
+ try {
 . .\_dot_include_standard_header.ps1
 
 $RidiculousLongTimestamp = (Get-Date).DateTime -replace ':', ' '
@@ -27,4 +28,11 @@ $file_name_base = "C:\FilmCab Backups/dump-filmcab-database-schema-only-.$Ridicu
                                                                        
 pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --schema-only --dbname=filmcab --schema=simplified --blobs
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

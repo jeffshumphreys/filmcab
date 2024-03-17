@@ -15,6 +15,7 @@
  #    https://devblogs.microsoft.com/scripting/hey-scripting-guy-how-can-i-use-the-windows-forms-treeview-control/
  #>
 
+ try {
  . .\_dot_include_standard_header.ps1
 
  . .\_dot_include_gui_tools.ps1
@@ -134,4 +135,11 @@
      $x
  }
  
- . .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

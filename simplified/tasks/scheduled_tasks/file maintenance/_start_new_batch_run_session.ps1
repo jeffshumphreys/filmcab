@@ -11,6 +11,7 @@
 # Granted, technically this IS the session, so semantics is important.  What is before session and first of session?  Will this ALWAYS be the first task, that is "_set_new_batch_run_session_id.ps1"?
 # A better name would be "_start_new_batch_run_session" paired to "zzz_end_batch_run_session"
 
+try {
 . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
 
 # Compare  D:\qt_projects\filmcab\simplified\_log\__sanity_checks\__sanity_check_before_connection_before_session_starts.json 
@@ -47,6 +48,11 @@ elseif ($null -eq $state_of_session) {
 $rowsAdded = Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_script, caller, caller_starting) VALUES('$scriptName', '$scriptName', '$Script:Caller', '$Script:Caller')" 
 Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
 
-# Get last id from batch_run_sessions table.                    
-
-. .\_dot_include_standard_footer.ps1 
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

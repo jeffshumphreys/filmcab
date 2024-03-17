@@ -11,6 +11,7 @@
     - Measure-Command {(Get-ScheduledTask -TaskPath '\')}             501 ms
  #>
 
+try {
 . .\_dot_include_standard_header.ps1
 
 $scheduled_task_definitions         = @()
@@ -184,4 +185,11 @@ $scheduled_task_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_da
 $scheduled_task_action_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-actions-definitions.xml'
 $scheduled_task_trigger_definitions|Export-Clixml 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-triggers-definitions.xml'
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

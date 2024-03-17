@@ -7,6 +7,7 @@
  #    Note: Not sure anything ever happens.
  #>
 
+try {
 . .\_dot_include_standard_header.ps1
 
 $howManyUpdatedFiles = 0
@@ -56,4 +57,11 @@ Write-Count howManyUpdatedFiles File
 
 #TODO: Update counts to session table
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

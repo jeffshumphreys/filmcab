@@ -72,8 +72,8 @@ It is not updated for these actions:
     if the folder is a directory junction, changing the target
     adding/deleting alt data streams to a direct child file
 #>
-#TODO: Figger out what better prefixes than old and new would be. on_fs_ and in_table_?
 
+try {
 . .\_dot_include_standard_header.ps1
 
 # Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
@@ -268,7 +268,7 @@ While ($searchDirectories.Read()) {
                 $howManyUpdatedDirectories++
                 $sql = "
                     UPDATE 
-                        directories
+                        directories /* TODO: fix to point to directories_v */
                     SET
                         scan_directory   = $scan_directory,
                         directory_date   = '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
@@ -282,7 +282,9 @@ While ($searchDirectories.Read()) {
 
                 $rowsUpdated = Invoke-Sql $sql
                 _TICK_Existing_Object_Edited
-                if ($scan_directory) { Write-Host $SCAN_OBJECTS -NoNewLine} # Getting a trailing "st"
+                if ($scan_directory) { 
+                    _TICK_Scan_Objects
+                } # Getting a trailing "st"
                 $howManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
@@ -310,4 +312,11 @@ Write-Count howManyNewJunctionLinks         Link
 Write-Count howManyNewSymbolicLinks         Link
 Write-Count howManyDirectoriesFlaggedToScan Directory
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

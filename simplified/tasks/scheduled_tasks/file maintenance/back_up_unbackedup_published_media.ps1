@@ -9,7 +9,8 @@
  #>
 
 # Bug: Cannot find path 'D:\_dot_include_standard_header.ps1' because it does not exist.
-
+                     
+try {
 . .\_dot_include_standard_header.ps1 
 
 # /E for copying empty subdirectories
@@ -33,4 +34,11 @@ Robocopy.exe "O:\Video AllInOne" "G:\Video AllInOne Backup" /E /J /NOOFFLOAD /R:
 Get-Content D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
 Log-Line "Finished Robocopy"
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

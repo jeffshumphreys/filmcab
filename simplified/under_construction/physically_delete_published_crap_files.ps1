@@ -6,6 +6,7 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
  
+try {
 . .\_dot_include_standard_header.ps1
 
 # Track some stats. Useful for finding bugs. For instance, kept getting 12 new junction points, the same ones. turns out the test was bad.
@@ -94,7 +95,7 @@ $rando_download_files_to_ignore = @('cs', 'ps1', 'exe', 'ini', 'htm', 'h', 'idl'
 
 $always_ignore = @('cs', 'ps1', 'exe', 'h', 'idl')
 
-$possibleCrapFilesHandle = Walk-Sql "
+$possibleCrapFilesReader = WhileReadSql "
     SELECT
         file_name_with_ext,
         final_extension,
@@ -113,20 +114,15 @@ $possibleCrapFilesHandle = Walk-Sql "
     " 
 # All the directories across my volumes that I think have some sort of movie stuff in them.
 
-$possibleCrapFiles = $possibleCrapFilesHandle.Value
 
 # Search down each search path for directories that are different or missing from our data store.
 
 $unique_file_names_with_ext = @()
 
-while ($possibleCrapFiles.Read()) {
+while ($possibleCrapFilesReader.Read()) {
     $howManyPossibleCrapFiles++
-    $file_name_with_ext = Get-SqlFieldValue $possibleCrapFilesHandle file_name_with_ext
-    $final_extension = Get-SqlFieldValue $possibleCrapFilesHandle final_extension
-    $example_directory = Get-SqlFieldValue $possibleCrapFilesHandle example_directory
-    $search_directory_tag= Get-SqlFieldValue $possibleCrapFilesHandle search_directory_tag
 
-    if ($search_path_tag -eq 'download' -and $final_extension -in $rando_download_files_to_ignore) {
+    if ($search_directory_tag -eq 'download' -and $final_extension -in $rando_download_files_to_ignore) {
         # Ignore these
     } elseif ($final_extension -in $always_ignore) {
         
@@ -137,7 +133,7 @@ while ($possibleCrapFiles.Read()) {
     } elseif ($final_extension -cin $extensions_to_delete) {
         #Write-AllPlaces "DELETE $file_name_with_ext"           
     } else {               
-        $unique_file_names_with_ext+= $file_name_with_ext + ' (' + $example_directory_path + '?)'
+        $unique_file_names_with_ext+= $file_name_with_ext + ' (' + $example_directory + '?)'
         #@("Keep $file_name_with_ext", $directory_path)|Format-Table
     }
     #Load first level of hierarchy
@@ -157,4 +153,11 @@ Write-Count howManyNewSymbolicLinks Link
 Write-Count howManyDirectoriesFlaggedToScan Directory
 #TODO: Update counts to session table
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

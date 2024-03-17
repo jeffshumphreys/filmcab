@@ -7,7 +7,8 @@
 
     This is done early in the batch so as to reduce labor later, trying to generate hashes on nonexistent files, listing files a dups when one doesn't exist.
 #>
-
+  
+try {
 . .\_dot_include_standard_header.ps1
 
 $HowManyDirectoryEntriesMapToExistingDirectories         = 0
@@ -50,4 +51,11 @@ if ($DatabaseConnectionIsOpen) {
 
 }
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

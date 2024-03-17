@@ -6,14 +6,15 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  # TODO: ignore deleted files???
  #>
-
+   
+ try {
 . .\_dot_include_standard_header.ps1
 
 $howManyFilesAreMappedAcross   = 0
 
 # Fetch a string array of paths to search.
 
-$filesLinkedAcrossSearchDirectories = WhileReadSql 'SELECT * from files_linked_across_search_directories_v' # All the directories across my volumes that I think have some sort of movie stuff in them.
+$filesLinkedAcrossSearchDirectories = WhileReadSql 'SELECT file_name_no_ext from files_linked_across_search_directories_v' # All the directories across my volumes that I think have some sort of movie stuff in them.
 
 # Search down each search path for directories that are different or missing from our data store.
 
@@ -24,4 +25,11 @@ while ($filesLinkedAcrossSearchDirectories.Read()) {
 
 Write-Count howManyFilesAreMappedAcross Files
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}

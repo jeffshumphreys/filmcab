@@ -7,6 +7,7 @@
  #    NOTE: Seems to happen with brackets "[]" in the folder path.
  #>
 
+ try {
  . .\_dot_include_standard_header.ps1
 
 $HowManyFoldersPopulated = Invoke-Sql "UPDATE directories SET folder = reverse((string_to_array(reverse(replace(directory_path::text, '\'::text, '\\'::text)), '\'))[1]) WHERE folder IS NULL"
@@ -15,6 +16,11 @@ $HowManyFoldersPopulated += Invoke-Sql "UPDATE directories SET grandparent_folde
                            
 Write-Count HowManyFoldersPopulated Folder
 
-. .\_dot_include_standard_footer.ps1
-
-#>
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}
