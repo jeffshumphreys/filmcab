@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>2024-03-16T11:10:03.5389068</Date>
+        <Date>2024-03-16T18:54:00.4762569</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, a scan through directories marked to scan. The hashing takes a looooong time. MUST run after scan_for_file_directories. . # 12</Description>
         <URI>\FilmCab\file maintenance\scan_file_directories_for_files</URI>
@@ -37,7 +37,7 @@
         <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
         <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
         <WakeToRun>true</WakeToRun>
-        <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
+        <ExecutionTimeLimit>PT4H</ExecutionTimeLimit>
         <Priority>7</Priority>
       </Settings>
       <Actions Context="Author">
