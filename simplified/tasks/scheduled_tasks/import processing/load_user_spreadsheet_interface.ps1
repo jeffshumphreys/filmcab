@@ -7,6 +7,7 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #>
 
+try {
 . .\_dot_include_standard_header.ps1
                                                                              
 $targettable     = 'user_spreadsheet_interface'
@@ -71,4 +72,11 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     }
 }
 
-. .\_dot_include_standard_footer.ps1
+}
+catch {
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                  
+finally {
+    Write-AllPlaces "Finally"
+    . .\_dot_include_standard_footer.ps1
+}
