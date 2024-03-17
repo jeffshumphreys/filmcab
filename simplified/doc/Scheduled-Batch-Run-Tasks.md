@@ -1,80 +1,94 @@
-# These are the batch PowerShell scripts and Windows Task Scheduler Tasks I've begun scheduling:
+---
+description: >-
+  List of tasks scheduled for project, each section is an entry in the table
+  scheduled_task_run_sets, and the numbered items underneath are entries in
+  scheduled_tasks.
+---
+
+# Windows Task Scheduler Tasks
+
 ## database maintenance
-1. ✅vacuum_database
-1. ✅backup_database
-1. 🤔restart_database_server
+
+1. ✅vacuum\_database
+2. ✅backup\_database
+3. 🤔restart\_database\_server
 
 ## file maintenance
-1. ✅_start_new_batch_run_session
-1. ✅back_up_unbackedup_published_media
-1. ✅scan_for_file_directories
-1. ✅delete_missing_directory_entries
-1. ✅scan_file_directories_for_files
-1. ✅delete_file_entries_in_deleted_directories
-1. ✅delete_references_to_missing_files
-1. ✅populate_any_missing_file_hashes
-1. ✅clean_up_table_data
-1. 💡delete_dup_backups_not_published
-1. ✅extract_genres_from_file_paths
-1. 💡physically_delete_published_crap
-1. link_files_across_search_directories
-1. convert_published_duplicates_to_hard_links
-1. report_unpublished_files
-1. 🚧zzz_end_batch_run_session
+
+1. ✅\_start\_new\_batch\_run\_session
+2. ✅back\_up\_unbackedup\_published\_media
+3. ✅scan\_for\_file\_directories
+4. ✅delete\_missing\_directory\_entries
+5. ✅scan\_file\_directories\_for\_files
+6. ✅delete\_file\_entries\_in\_deleted\_directories
+7. ✅delete\_references\_to\_missing\_files
+8. ✅populate\_any\_missing\_file\_hashes
+9. ✅clean\_up\_table\_data
+10. 💡delete\_dup\_backups\_not\_published
+11. ✅extract\_genres\_from\_file\_paths
+12. 💡physically\_delete\_published\_crap
+13. link\_files\_across\_search\_directories
+14. convert\_published\_duplicates\_to\_hard\_links
+15. report\_unpublished\_files
+16. 🚧zzz\_end\_batch\_run\_session
 
 ## video file maintenance
-1. pull_new_file_entries_into_videos 
-1. link_subtitles_to_videos
-1. normalize_video_file_names_to_titles
-1. extract_metadata_from_files_into_video_files
-1. count_seasons_and_episodes
+
+1. pull\_new\_file\_entries\_into\_videos
+2. link\_subtitles\_to\_videos
+3. normalize\_video\_file\_names\_to\_titles
+4. extract\_metadata\_from\_files\_into\_video\_files
+5. count\_seasons\_and\_episodes
 
 ## video maintenance
-1. generate_alternate_calculable_titles
+
+1. generate\_alternate\_calculable\_titles
 
 ## schedule maintenance
-1. ✅pull_new_scheduled_task_events
-1. ✅pull_scheduled_task_definitions
-1. export_project_scheduled_task_definition_xml
+
+1. ✅pull\_new\_scheduled\_task\_events
+2. ✅pull\_scheduled\_task\_definitions
+3. export\_project\_scheduled\_task\_definition\_xml
 
 ## import metadata
-1. ✅load_user_spreadsheet_interface
-1. validate_user_spreadsheet_interface_quality
-1. update_spreadsheet_with_new_files
-1. pull_keep_list
-1. merge_keep_list_into_spreadsheet
-1. pull_new_tmdb_metadata
-1. scrape_tmdb_metadata_history
-1. pull_imdb_dumps
-1. scrape_imdb_metadata
-1. pull_new_omdb_metadata
-1. pull_wikidata_metadata
-1. pull_wikiquote_metadata
-1. merge_metadata_into_video_files
+
+1. ✅load\_user\_spreadsheet\_interface
+2. validate\_user\_spreadsheet\_interface\_quality
+3. update\_spreadsheet\_with\_new\_files
+4. pull\_keep\_list
+5. merge\_keep\_list\_into\_spreadsheet
+6. pull\_new\_tmdb\_metadata
+7. scrape\_tmdb\_metadata\_history
+8. pull\_imdb\_dumps
+9. scrape\_imdb\_metadata
+10. pull\_new\_omdb\_metadata
+11. pull\_wikidata\_metadata
+12. pull\_wikiquote\_metadata
+13. merge\_metadata\_into\_video\_files
 
 ## download maintenance
-1. pull_torrent_download_status
-1. scan_sources_for_spreadsheet_entries
-1. scrape_source_metadata
-1. identify_best_seeders
-1. identify_worst_trackers
-1. cancel_overdue_downloads
+
+1. pull\_torrent\_download\_status
+2. scan\_sources\_for\_spreadsheet\_entries
+3. scrape\_source\_metadata
+4. identify\_best\_seeders
+5. identify\_worst\_trackers
+6. cancel\_overdue\_downloads
 
 ## video player maintenance
-1. remove_video_files_stale_locks
+
+1. remove\_video\_files\_stale\_locks
 
 ## server maintenance
-1. 🤔restart_host
+
+1. 🤔restart\_host
 
 ## polling
-1. 🌙monitor_running_batch_run_session
+
+1. 🌙monitor\_running\_batch\_run\_session
 
 ## event driven
-1. 🌙trap_new_scheduled_task_definitions
 
-Icons
-🚧 - Under construction
-🤔 - Are we sure we want to do this
-🌙 - Dead; so far off and low priority
-💡 - Good idea, concept, how will we implement
-✅ - Deployed, scheduled, appears to be running good
+1. 🌙trap\_new\_scheduled\_task\_definitions
+
+Icons 🚧 - Under construction 🤔 - Are we sure we want to do this 🌙 - Dead; so far off and low priority 💡 - Good idea, concept, how will we implement ✅ - Deployed, scheduled, appears to be running good

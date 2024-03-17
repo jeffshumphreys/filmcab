@@ -2,7 +2,7 @@
 
 * [FilmCab](README.md)
 * [needs\_work](needs\_work/README.md)
-  * [fetch\_tmdb\_generic\_datapoint\_from\_api](needs\_work/fetch\_tmdb\_generic\_datapoint\_from\_api.cmd)
+  * [fetch\_tmdb\_generic\_datapoint\_from\_api](needs\_work/fetch\_tmdb\_generic\_datapoint\_from\_api.md)
 * [simplified](simplified/README.md)
   * [doc](simplified/doc/README.md)
     * [Agreed-Upon-Terms](simplified/doc/Agreed-Upon-Terms.md)
@@ -12,7 +12,7 @@
     * [Meta-API-Sources](simplified/doc/Meta-API-Sources.md)
     * [Meta-Dump-Sources](simplified/doc/Meta-Dump-Sources.md)
     * [Morning Check](simplified/doc/Morning-Check.md)
-    * [These are the PowerShell scripts and Windows Task Scheduler Tasks I've begun consolidating:](simplified/doc/Scheduled-Batch-Run-Tasks.md)
+    * [Windows Task Scheduler Tasks](simplified/doc/Scheduled-Batch-Run-Tasks.md)
     * [Tools I'm Using](simplified/doc/Tools-I'm-Using.md)
   * [modules](simplified/modules/README.md)
     * [Not necessarily using things in this folder. I wanted to capture them from github in case they could](simplified/modules/\_readme.md)
