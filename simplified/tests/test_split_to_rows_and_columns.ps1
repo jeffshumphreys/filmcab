@@ -1,3 +1,6 @@
+
+. .\_dot_include_standard_header.ps1
+
 $teststring =@"
 General
 Count	348
@@ -287,26 +290,106 @@ cls
     - Stream Order
     - ID
     - Unique ID
+
+
+    Bug:
+    dialnorm_Average = -31
+    dialnorm_Average = -31 dB
+    dialnorm_Minimum = -31
+    dialnorm_Minimum = -31 dB
+    dialnorm_Maximum = -31
+    dialnorm_Maximum = -31 dB
+
+    Bug:
+    Delay = 0, (00:00:00.000), (00:00:00:00)
+    Delay/String5 = 00:00:00.000 (00:00:00:00)
+
+    Split out:
+    Encoded_Library_Settings = cabac=1 / ref=5 / deblock=1:-2:-1 / analyse=0x3:0x113 / me=umh / subme=7 / psy=1 / psy_rd=1.00:0.00 / mixed_ref=1 / me_range=16 / chroma_me=1 / trellis=1 / 8x8dct=1 / cqm=0 / deadzone=21,11 / fast_pskip=1 / chroma_qp_offset=-2 / threads=3 / sliced_threads=0 / nr=0 / decimate=1 / interlaced=0 / constrained_intra=0 / bframes=5 / b_pyramid=2 / b_adapt=2 / b_bias=0 / direct=1 / weightb=1 / open_gop=0 / weightp=2 / keyint=240 / keyint_min=24 / scenecut=40 / intra_refresh=0 / rc_lookahead=50 / rc=2pass / mbtree=1 / bitrate=2050 / ratetol=1.0 / qcomp=0.60 / qpmin=3 / qpmax=51 / qpstep=4 / cplxblur=20.0 / qblur=0.5 / ip_ratio=1.40 / aq=1:1.00   
+
+    Attribute Name truncation:
+    colour_description_present_Sourc = Stream
+
+    Messy:
+    StreamSize = 1080786981, (1.01 GiB (91%)), (1 GiB), (1.0 GiB), (1.01 GiB), (1.007 GiB), (1.01 GiB (91%))
+    Duration = 4308000, (1h), (1h 11mn 48s 0ms), (1h 11mn), (01:11:48.000), (01:11:48:00), (01:11:48.000 (01:11:48:00))
+
+    Confusing:
+    Format_Settings = CABAC
+    Format_Settings_CABAC = Yes
+
+    Bug: When splitting on space, some are more than 2 items. 3 & 4 are getting lost.
+
+    Ever different:
+    Title = Fantastic.Planet.1973.720p.BRRip.x0r
+    Movie = Fantastic.Planet.1973.720p.BRRip.x0r
+
+    Interesting:
+    Format/Extensions = mkv mk3d mka mks
+    Format_Commercial = Matroska
+    Format_Version = Version 2
+    
+    Dupping:
+    Language = en, (eng), (en)
+
 #>
 $testarray = $teststring -split '\n'
 # It appears that each line is split in two by at least two spaces. Or it could be split on the first space
 $section = "?"
+$streamsInSection = 0
+
+$previousAttributeName = ""                
+$previousAttributeValue = ""
+$attributeName = ""
+$attributeValue = ""
+
 $testarray |%{
     
     $rw = $_ -split "\t" 
     if ($rw.Length -eq 2) {
-        "$($rw[0]) = $($rw[1])"
+        $attributeName = $rw[0]; $attributeValue =$rw[1]
     } else {     
         #$_
         $rw2 = $_ -split "\s"
         if ($rw2[1] -eq '') {
             $section = $rw2[0]
-            Write-Host "**********************************************************************************************************"
+            Write-AllPlaces "**********************************************************************************************************" -ForceStartOnNewLine
             Write-Host "***        Section: <$section>"
             Write-Host "**********************************************************************************************************"
+            $attributeName = "";$attributeValue = ""
         } else {                                   
-            "$($rw2[0]) = $($rw2[1])*"
+            $attributeName = [string]$rw2[0]; 
+            $attributeValue =[string]$rw2[1]
         }
-        
+    }                                                  
+
+    $attributeName = $attributeName.Trim()
+    $attributeValue = $attributeValue.Trim()
+    if ($null -ne $attributeName -and -not [string]::IsNullOrWhiteSpace($attributeName) ) {
+        if ($attributeName -in @("$previousAttributeName/String", "$previousAttributeName/String1", "$previousAttributeName/Info") -or
+            ($attributeName -like '*String1' -and $previousAttributeName -like '*String') -or
+            ($attributeName -like '*String2' -and $previousAttributeName -like '*String1') -or
+            ($attributeName -like '*String3' -and $previousAttributeName -like '*String2') -or
+            ($attributeName -like '*String4' -and $previousAttributeName -like '*String3') -or
+            ($attributeName -like '*String5' -and $previousAttributeName -like '*String3') -or
+            ($attributeName -like '*String5' -and $previousAttributeName -like '*String4') -or
+            ($attributeName -like '*Info' -and $previousAttributeName -like '*String1') -or
+            ($attributeName -like '*Info' -and $previousAttributeName -like '*String') -or
+            ($attributeName -like '*String5' -and $attributeName.StartsWith($previousAttributeName)) -or
+            ($attributeName -like '*String3' -and $attributeName.StartsWith($previousAttributeName)) -or
+            ($attributeName -like '*String2' -and $previousAttributeName -like '*String1')
+        ) {
+            
+            if ($previousAttributeValue -ne $attributeValue) {
+                Write-AllPlaces -NoNewLine ", ($attributeValue)"
+            }
+        } else {                                                                                     
+            Write-AllPlaces "$attributeName = $attributeValue" -ForceStartOnNewLine -NoNewLine
+        }
     }
+    $previousAttributeName = $attributeName
+    $previousAttributeValue = $attributeValue
+    
 }
+
+. .\_dot_include_standard_footer.ps1
