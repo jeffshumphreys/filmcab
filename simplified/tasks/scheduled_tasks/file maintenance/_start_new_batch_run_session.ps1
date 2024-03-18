@@ -57,6 +57,8 @@ $rowsAdded = Invoke-Sql "/*sql*/
     ,   '$Script:Caller'
     )" 
 Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
+ 
+$new_batch_run_session_row = Out-SqlToDataset "SELECT batch_run_session_id FROM batch_run_sessions WHERE running" -DontWriteSqlToConsole
 
 }
 catch {
