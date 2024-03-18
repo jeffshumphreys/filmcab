@@ -129,53 +129,55 @@ While ($searchDirectories.Read()) {
         # Only directories aka Containers
 
         if ($on_fs_file_object.PSIsContainer) {
-            $on_fs_directory      = $on_fs_file_object.FullName
-            $on_fs_directory_date = TrimToMicroseconds($on_fs_file_object.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since it's 7.
-            $on_fs_is_symbolic_link  = $false
-            $on_fs_is_junction_link  = $false
-            $on_fs_linked_directory  = NullIf($on_fs_file_object.LinkTarget)   # Probably should verify, eventually
-            $on_fs_driveletter       = $on_fs_file_object.FullName[0]
-            $on_fs_is_real_directory = $false          # as in not a hard link or junction or symbolic link
+            $on_fs_directory                  = $on_fs_file_object.FullName
+            $on_fs_directory_date             = TrimToMicroseconds($on_fs_file_object.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since its 7.
+            $on_fs_directory_is_symbolic_link = $false
+            $on_fs_directory_is_junction_link = $false
+            $on_fs_linked_directory           = NullIf($on_fs_file_object.LinkTarget)   # Probably should verify,                                             eventually
+            $on_fs_driveletter                = $on_fs_file_object.FullName[0]
+            $on_fs_is_real_directory          = $false          # as in not a hard link or junction or symbolic link
 
             if ($on_fs_file_object.LinkType -eq 'Junction') {
-                $on_fs_is_junction_link  = $true
-                $on_fs_linked_directory  = NullIf($on_fs_file_object.LinkTarget)
-                $on_fs_is_symbolic_link  = $false
-                $on_fs_is_real_directory = $false
+                $on_fs_directory_is_junction_link = $true
+                $on_fs_linked_directory           = NullIf($on_fs_file_object.LinkTarget)
+                $on_fs_directory_is_symbolic_link = $false
+                $on_fs_is_real_directory          = $false
             }
             elseif ($on_fs_file_object.LinkType -eq 'SymbolicLink') {
-                $on_fs_is_symbolic_link  = $true
-                $on_fs_linked_directory  = NullIf($on_fs_file_object.LinkTarget) # blanks and $nulls never equal each other.
-                $on_fs_is_junction_link  = $false
-                $on_fs_is_real_directory = $false
+                $on_fs_directory_is_symbolic_link = $true
+                $on_fs_linked_directory           = NullIf($on_fs_file_object.LinkTarget) # blanks and $nulls never equal each other.
+                $on_fs_directory_is_junction_link = $false
+                $on_fs_is_real_directory          = $false
             }                                    
             elseif (-not [String]::IsNullOrWhiteSpace($on_fs_file_object.LinkType)) {
                 throw [Exception]"New unrecognized link type for $on_fs_directory type is $($on_fs_file_object.LinkType)"
             }
             # Note: HardLinks are for files only.
             else {       
-                $on_fs_is_symbolic_link  = $false
-                $on_fs_is_junction_link  = $false
-                $on_fs_linked_directory  = $null
-                $on_fs_is_real_directory = $true # Only traverse real directories
+                $on_fs_directory_is_symbolic_link = $false
+                $on_fs_directory_is_junction_link = $false
+                $on_fs_linked_directory           = $null
+                $on_fs_is_real_directory          = $true # Only traverse real directories
             }
 
-            $on_fs_directory_escaped = $on_fs_directory.Replace("'", "''")
-            $sql = "
+            $on_fs_directory_escaped        = $on_fs_directory.Replace("'", "''")
+            $on_fs_parent_directory         = Split-Path -Parent $on_fs_directory
+            $on_fs_parent_directory_escaped = $on_fs_parent_directory.Replace("'", "''")
+
+            $reader = WhileReadSql "
                 SELECT 
-                     directory_date     AS   in_db_directory_date   /* Feeble attempt to detect downstream changes                                                                       */
-                   , is_symbolic_link   AS   in_db_is_symbolic_link /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
-                   , is_junction_link   AS   in_db_is_junction_link /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
-                   , linked_directory   AS   in_db_linked_directory /* Verify this exists. Haven't tested.                                                                               */
-                   , directory_deleted  AS   in_db_deleted
+                  directory_date               AS   in_db_directory_date             /* Feeble attempt to detect downstream changes                                                                       */
+                , directory_is_symbolic_link   AS   in_db_directory_is_symbolic_link /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
+                , directory_is_junction_link   AS   in_db_directory_is_junction_link /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                , linked_directory             AS   in_db_linked_directory           /* Verify this exists. Haven't tested.                                                                               */
+                , directory_deleted            AS   in_db_directory_deleted
                 FROM 
                     directories_ext_v
                 WHERE
                     directory       = '$on_fs_directory_escaped'
                 AND 
                     volume_id       = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
-            ";
-            $reader = WhileReadSql $sql
+            "
 
             $foundANewDirectory    = $false
             $UpdateDirectoryRecord = $false
@@ -186,11 +188,11 @@ While ($searchDirectories.Read()) {
                 $foundANewDirectory         = $false
                 $UpdateDirectoryRecord      = $false
                                    
-                if ($in_db_deleted              -eq $true -or # We know the directory exists on the fs
-                    $in_db_directory_date       -ne $on_fs_directory_date       -or
-                    $in_db_is_symbolic_link     -ne $on_fs_is_symbolic_link     -or
-                    $in_db_is_junction_link     -ne $on_fs_is_junction_link     -or
-                    $in_db_linked_directory     -ne $on_fs_linked_directory
+                if ($in_db_deleted               -or # We know the directory exists on the fs
+                    $in_db_directory_date                 -ne $on_fs_directory_date       -or
+                    $in_db_directory_is_symbolic_link     -ne $on_fs_directory_is_symbolic_link     -or
+                    $in_db_directory_is_junction_link     -ne $on_fs_directory_is_junction_link     -or
+                    $in_db_linked_directory               -ne $on_fs_linked_directory
                 ) { 
                     $UpdateDirectoryRecord = $true
                 }
@@ -202,19 +204,19 @@ While ($searchDirectories.Read()) {
                 }
             } else {
                 $foundANewDirectory = $true
-                $scan_directory  = $true
+                $scan_directory     = $true
             }
             $reader.Close()
             
-            if ($on_fs_is_junction_link) { 
+            if ($on_fs_directory_is_junction_link) { 
                 $scan_directory = $false # Please do not traverse links. Even if the directory date changed.
             }
     
             if ($scan_directory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
-            if ($on_fs_is_symbolic_link -and -not $in_db_is_symbolic_link) {
+            if ($on_fs_directory_is_symbolic_link -and -not $in_db_directory_is_symbolic_link) {
                 $howManyNewSymbolicLinks++
             }
-            if ($on_fs_is_junction_link -and -not $in_db_is_junction_link)  {
+            if ($on_fs_directory_is_junction_link -and -not $in_db_directory_is_junction_link)  {
                 $howManyNewJunctionLinks++
             }
                 
@@ -226,37 +228,37 @@ While ($searchDirectories.Read()) {
                 Write-AllPlaces "New Directory found: $on_fs_directory on $on_fs_driveletter drive" 
                 $sql = "
                     INSERT INTO 
-                        directories(
+                        directories_v(
                                directory_hash, 
-                               directory_path,
+                               directory,
                                parent_directory_hash, 
                                directory_date, 
                                volume_id, 
                                scan_directory, 
-                               is_symbolic_link, 
-                               is_junction_link, 
-                               linked_path,
+                               directory_is_symbolic_link, 
+                               directory_is_junction_link, 
+                               linked_directory,
                                search_directory_id,
                                folder,
                                parent_folder,
                                grandparent_folder,
-                               deleted
+                               directory_deleted
                         )
                     VALUES(
-                        /*     directory_hash         */  md5_hash_path('$on_fs_directory_escaped'),
-                        /*     directory_path         */  REPLACE('$on_fs_directory_escaped', '/', '\'),
-                        /*     parent_directory_hash  */  md5_hash_path('$on_fs_directory_escaped'),
-                        /*     directory_date         */ '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
-                        /*     volume_id              */ (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
-                        /*     scan_directory         */ $scan_directory,
-                        /*     is_symbolic_link       */ $on_fs_is_symbolic_link,
-                        /*     is_junction_link       */ $on_fs_is_junction_link,
-                        /*     linked_path            */ $on_fs_linked_directory_escaped,
-                        /*     search_directory_id    */ $search_directory_id,
-                        /*     folder                 */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1]),
-                        /*     parent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2]),
-                        /*     grantparent_folder     */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
-                        /*     deleted                */  False
+                        /*     directory_hash              */  md5_hash_path('$on_fs_directory_escaped'),
+                        /*     directory                   */  REPLACE('$on_fs_directory_escaped', '/', '\'),
+                        /*     parent_directory_hash       */  md5_hash_path('$on_fs_parent_directory_escaped'),
+                        /*     directory_date              */ '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
+                        /*     volume_id                   */ (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
+                        /*     scan_directory              */ $scan_directory,
+                        /*     directory_is_symbolic_link  */ $on_fs_directory_is_symbolic_link,
+                        /*     directory_is_junction_link  */ $on_fs_directory_is_junction_link,
+                        /*     linked_directory            */ $on_fs_linked_directory_escaped,
+                        /*     search_directory_id         */ $search_directory_id,
+                        /*     folder                      */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1]),
+                        /*     parent_folder               */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2]),
+                        /*     grantparent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
+                        /*     directory_deleted           */ False
                     )
                 "
 
@@ -268,17 +270,18 @@ While ($searchDirectories.Read()) {
                 $howManyUpdatedDirectories++
                 $sql = "
                     UPDATE 
-                        directories /* TODO: fix to point to directories_v */
+                        directories_v
                     SET
-                        scan_directory   = $scan_directory,
-                        directory_date   = '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
-                        is_symbolic_link = $on_fs_is_symbolic_link,
-                        is_junction_link = $on_fs_is_junction_link,
-                        linked_path      = $on_fs_linked_directory_escaped,
-                        volume_id        = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
-                        deleted          = False
-                    WHERE 
-                        directory_hash   = md5_hash_path('$on_fs_directory_escaped')"
+                        scan_directory             = $scan_directory,
+                        directory_date             = '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
+                        parent_directory_hash      = md5_hash_path('$on_fs_parent_directory_escaped'),
+                        directory_is_symbolic_link = $on_fs_directory_is_symbolic_link,
+                        directory_is_junction_link = $on_fs_directory_is_junction_link,
+                        linked_directory           = $on_fs_linked_directory_escaped,
+                        volume_id                  = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
+                        directory_deleted          = False
+                    WHERE           
+                        directory_hash             = md5_hash_path('$on_fs_directory_escaped')"
 
                 $rowsUpdated = Invoke-Sql $sql
                 _TICK_Existing_Object_Edited
