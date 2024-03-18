@@ -17,6 +17,7 @@ I love the Alt+A command. Works great most of the time.
 ## PowerShell v2024.3.1 (pre-release)
 ###### Sat Mar 9 17:19:28 MST 2024
 1. Ctrl+F2 renames partial strings, too.  Also renames strings inside quotations, not just variables.
+2. Is it super slow? In debugger step, it takes seconds to go from line to line.
 
 ## TODO Highlight v1.0.6
 ###### Sat Mar 9 17:22:52 MST 2024
@@ -25,3 +26,7 @@ I love the Alt+A command. Works great most of the time.
 ## Inline SQL v2.16.0a
 ###### Sat Mar 9 17:24:53 MST 2024
 1. Does nothing for PowerShell, so I'd have to modify it. Making embedded SQL readable inside PowerShell script would help my poor eyes.
+
+# Extensions I Can't Find
+## Go To Next File in Explorer
+1. This would help when I'm doing massive refactoring, like adding try/catch, or a -ForceNewLine to the last log line.
