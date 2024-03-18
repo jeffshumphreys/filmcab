@@ -183,14 +183,15 @@
             Write-AllPlaces $tick_emoji -NoNewline -NoLog
         }
     }
-    $NEW_OBJECT_INSTANTIATED          = '✨'; Function _TICK_New_Object_Instantiated {__TICK $NEW_OBJECT_INSTANTIATED}
-    $FOUND_EXISTING_OBJECT            = '✔️'; Function _TICK_Found_Existing_Object {__TICK $FOUND_EXISTING_OBJECT}
-    $EXISTING_OBJECT_EDITED           = '📝'; Function _TICK_Existing_Object_Edited {__TICK $EXISTING_OBJECT_EDITED}
-    $EXISTING_OBJECT_ACTUALLY_CHANGED = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED}
-    $OBJECT_MARKED_DELETED            = '❌'; Function _TICK_Object_Marked_Deleted {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
-    $SCAN_OBJECTS                     = '👓'; Function _TICK_Scan_Objects {__TICK $SCAN_OBJECTS} 
-    $SOUGHT_OBJECT_NOT_FOUND          = '😱'; Function _TICK_Sought_Object_Not_Found {__TICK $SOUGHT_OBJECT_NOT_FOUND}  # As in database says it's there but it's not physically on file.
-    $UPDATE_OBJECT_STATUS             = '🚩'; Function _TICK_Update_Object_Status {__TICK $UPDATE_OBJECT_STATUS}
+    $NEW_OBJECT_INSTANTIATED             = '✨'; Function _TICK_New_Object_Instantiated             {__TICK $NEW_OBJECT_INSTANTIATED}
+    $FOUND_EXISTING_OBJECT               = '✔️'; Function _TICK_Found_Existing_Object               {__TICK $FOUND_EXISTING_OBJECT}
+    $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE = '🥱'; Function _TICK_Found_Existing_Object_But_No_Change {__TICK $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE}
+    $EXISTING_OBJECT_EDITED              = '📝'; Function _TICK_Existing_Object_Edited              {__TICK $EXISTING_OBJECT_EDITED}
+    $EXISTING_OBJECT_ACTUALLY_CHANGED    = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed    {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED}
+    $OBJECT_MARKED_DELETED               = '❌'; Function _TICK_Object_Marked_Deleted               {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
+    $SCAN_OBJECTS                        = '👓'; Function _TICK_Scan_Objects                        {__TICK $SCAN_OBJECTS} 
+    $SOUGHT_OBJECT_NOT_FOUND             = '😱'; Function _TICK_Sought_Object_Not_Found             {__TICK $SOUGHT_OBJECT_NOT_FOUND}  # As in database says it's there but it's not physically on file.
+    $UPDATE_OBJECT_STATUS                = '🚩'; Function _TICK_Update_Object_Status                {__TICK $UPDATE_OBJECT_STATUS}
 
     # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
     
