@@ -188,10 +188,10 @@ While ($searchDirectories.Read()) {
                 $foundANewDirectory         = $false
                 $UpdateDirectoryRecord      = $false
                                    
-                if ($in_db_deleted               -or # We know the directory exists on the fs
-                    $in_db_directory_date                 -ne $on_fs_directory_date       -or
-                    $in_db_directory_is_symbolic_link     -ne $on_fs_directory_is_symbolic_link     -or
-                    $in_db_directory_is_junction_link     -ne $on_fs_directory_is_junction_link     -or
+                if ($in_db_directory_deleted                                                    -or # We know the directory exists on the fs
+                    $in_db_directory_date                 -ne $on_fs_directory_date             -or
+                    $in_db_directory_is_symbolic_link     -ne $on_fs_directory_is_symbolic_link -or
+                    $in_db_directory_is_junction_link     -ne $on_fs_directory_is_junction_link -or
                     $in_db_linked_directory               -ne $on_fs_linked_directory
                 ) { 
                     $UpdateDirectoryRecord = $true
@@ -268,7 +268,8 @@ While ($searchDirectories.Read()) {
 
             } elseif ($UpdateDirectoryRecord) {
                 $howManyUpdatedDirectories++
-                $sql = "
+
+                $rowsUpdated = Invoke-Sql "
                     UPDATE 
                         directories_v
                     SET
@@ -281,9 +282,8 @@ While ($searchDirectories.Read()) {
                         volume_id                  = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
                         directory_deleted          = False
                     WHERE           
-                        directory_hash             = md5_hash_path('$on_fs_directory_escaped')"
-
-                $rowsUpdated = Invoke-Sql $sql
+                        directory_hash             = md5_hash_path('$on_fs_directory_escaped')
+                "
                 _TICK_Existing_Object_Edited
                 if ($scan_directory) { 
                     _TICK_Scan_Objects
@@ -291,9 +291,7 @@ While ($searchDirectories.Read()) {
                 $howManyRowsUpdated+= $rowsUpdated
             } else {
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
-                
-                #Write-AllPlaces "🥱" -NoNewline # Warning: Generates a space after. The other emojis I've tried do not.
-                #$walkdownthefilehierarchy = $false (Didn't work on detection of grandparents of changed files)
+                _TICK_Found_Existing_Object_But_No_Change
             }
 
             # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
