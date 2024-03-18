@@ -79,7 +79,7 @@ While ($reader.Read()) {
                     throw [Exception]"New unrecognized link type for $on_fs_file_path, type is $($on_fs_file_link_type)"
                 }
     
-                $inDbAlreadyReader = WhileReadSql "
+                $inDbAlreadyReader = WhileReadSql <#sql#>"
                     SELECT                                                                       
                         file_hash                    AS in_db_file_hash
                     ,   directory_hash               AS in_db_directory_hash
