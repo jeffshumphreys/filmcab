@@ -105,9 +105,9 @@ While ($reader.Read()) {
         $wrote = $true
         $howManyGenreFoldersWereFound++                             
         $genre = $genre.Substring(1)
-        Invoke-Sql "UPDATE directories set root_genre = '$genre' where directory_path = '$directory_escaped'"|Out-Null
-        $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$genre', 'published folders', 1, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
-        $howManyNewGenreWereFound+= $howManyAdded
+        Invoke-Sql "UPDATE directories_v set root_genre = '$genre' where directory = '$directory_escaped'"|Out-Null
+        $howManyAdded              = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_example) VALUES('$genre', 'published folders', 1, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyNewGenreWereFound += $howManyAdded
     }                             
 
     if ($null -ne $subgenre) {
@@ -115,19 +115,19 @@ While ($reader.Read()) {
         $wrote = $true
         $howManySubGenreFoldersWereFound++
         $subgenre = $subgenre.Substring(1)
-        Invoke-Sql "UPDATE directories set sub_genre = '$subgenre' where directory_path = '$escaped_directory_path'"|Out-Null
+        Invoke-Sql "UPDATE directories_v set sub_genre = '$subgenre' where directory = '$directory_escaped'"|Out-Null
         #TODO: add parent genre id in.
-        $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$subgenre', 'published folders', 2, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
-        $howManyNewGenreWereFound+= $howManyAdded
+        $howManyAdded              = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_example) VALUES('$subgenre', 'published folders', 2, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyNewGenreWereFound += $howManyAdded
     }
 
     if ($null -ne $grandsubgenre) {
         Write-AllPlaces "    Grand-sub-genre: $grandsubgenre" -NoNewline
         $wrote = $true
         $howManyGrandSubGenreFoldersWereFound++
-        $grandsubgenre = $grandsubgenre.Substring(1)
-        $howManyAdded = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_path_example) VALUES('$grandsubgenre', 'published folders', 3, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
-        $howManyNewGenreWereFound+= $howManyAdded
+        $grandsubgenre             = $grandsubgenre.Substring(1)
+        $howManyAdded              = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_example) VALUES('$grandsubgenre', 'published folders', 3, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
+        $howManyNewGenreWereFound += $howManyAdded
     }   
 
     if ($wrote) {
@@ -144,6 +144,7 @@ $genreFileCounts.GetEnumerator()|Select Key, Value|Sort Key|Out-Host
 
 }
 catch {
+    Write-AllPlaces "Catch"
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
 }                                  
 finally {
