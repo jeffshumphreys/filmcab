@@ -15,7 +15,7 @@ $state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM 
 # Check if old session still marked as active
                                                                          
 if ($null -ne $state_of_session -and $state_of_session -isnot [String] -and $state_of_session.Count -eq 1) {
-    if ( $state_of_session[0] -is [System.Data.DataRow]) {
+    if ( $state_of_session -is [System.Data.DataRow]) { # Out-SqlToDataset returns an object if only one row, hence
         Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', stopped = CURRENT_TIMESTAMP, caller_stopping = '$Script:Caller' WHERE running" | Out-Null
     } else {
         Show-Error -message "ERROR!: I'm running zzz_end_batch_run_session.ps1 AND NO SESSION IS ACTIVE!!!! (1)" -exitcode 2
