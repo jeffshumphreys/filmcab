@@ -96,7 +96,7 @@ While ($reader.Read()) {
         }
     }                                      
               
-    $wrote                  = $false
+    $wrote = $pretest_assuming_false
     
     if ($null -ne $genre -and 
         $genre -notin('_Mystery', '_Comedy', '_Sci Fi'))  # To reduce the dump out to Host, exclude things that are ubiquitous and never going to change.
