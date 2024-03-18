@@ -15,24 +15,41 @@ $RidiculousLongTimestamp = (Get-Date).DateTime -replace ':', ' '
 # format c = Output a custom-format archive suitable for input into pg_restore. Together with the directory output format, this is the most flexible output format in that it allows manual selection and reordering of archived items during restore. This format is also compressed by default
                                                                       
 $file_name_base = "C:\FilmCab Backups/dump-filmcab-database-data_and_schema-.$RidiculousLongTimestamp"
+      
+Write-AllPlaces "base to all backups: $file_name_base"
+                                                    
+$backup_file_path = "$file_name_base-compressed.sql"
+$output = & pg_dump.exe --verbose --format=c --file "$backup_file_path" --dbname=filmcab --schema=simplified 2>&1 
+$stdout = $output | ?{ $_ -isnot [System.Management.Automation.ErrorRecord] }
+$stderr = $output | ?{ $_ -is [System.Management.Automation.ErrorRecord] }
+            
+if ($null -ne $stdout) {
+    $stdout = $stdout.Replace("[", [System.Environment]::NewLine)
+    Write-AllPlaces $stdout
+}
 
-pg_dump.exe --verbose --format=c --file "$file_name_base-compressed.sql" --dbname=filmcab --schema=simplified --blobs
-                                                                                                                                                  
+if ($null -ne $stderr) {
+    $stderr|% {
+        Write-AllPlaces $_
+    }
+}
+                                                                                                                           
+Get-Item $backup_file_path|Select ResolvedTarget, Name, Length, CreationTime, CreationTimeUTC, Attributes
 # format p = simple text
 
-pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --dbname=filmcab --schema=simplified --blobs
+pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --dbname=filmcab --schema=simplified --blobs|Out-Host
 
-pg_dump.exe --verbose --format=p --file "$file_name_base-table-files-in_text.sql" --dbname=filmcab --schema=simplified --table=files --blobs
+pg_dump.exe --verbose --format=p --file "$file_name_base-table-files-in_text.sql" --dbname=filmcab --schema=simplified --table=files --blobs|Out-Host
 
 $file_name_base = "C:\FilmCab Backups/dump-filmcab-database-schema-only-.$RidiculousLongTimestamp"
                                                                        
-pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --schema-only --dbname=filmcab --schema=simplified --blobs
+pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --schema-only --dbname=filmcab --schema=simplified --blobs|Out-Host
 
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
 }                                  
 finally {
-    Write-AllPlaces "Finally"
+    Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1
 }
