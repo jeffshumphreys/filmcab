@@ -14,7 +14,7 @@ $RidiculousLongTimestamp = (Get-Date).DateTime -replace ':', ' '
 
 # format c = Output a custom-format archive suitable for input into pg_restore. Together with the directory output format, this is the most flexible output format in that it allows manual selection and reordering of archived items during restore. This format is also compressed by default
                                                                       
-$file_name_base = "C:\FilmCab Backups/dump-filmcab-database-data_and_schema-.$RidiculousLongTimestamp"
+$file_name_base = "C:\FilmCab Backups/dump-filmcab-database-data-simplified-schema.$RidiculousLongTimestamp"
       
 Write-AllPlaces "base to all backups: $file_name_base"
                                                     
@@ -41,9 +41,29 @@ pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --dbname=f
 
 pg_dump.exe --verbose --format=p --file "$file_name_base-table-files-in_text.sql" --dbname=filmcab --schema=simplified --table=files --blobs|Out-Host
 
-$file_name_base = "C:\FilmCab Backups/dump-filmcab-database-schema-only-.$RidiculousLongTimestamp"
+$file_name_base = "C:\FilmCab Backups/dump-filmcab-database-simplified-schema-only-.$RidiculousLongTimestamp"
+$file_name_to_codebase = "C:\FilmCab Backups/dump-filmcab-database-simplified-schema-only.sql"
                                                                        
 pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --schema-only --dbname=filmcab --schema=simplified --blobs|Out-Host
+
+$schema = Get-Content "$file_name_base-in_text.sql"
+$date_free_schema = @()
+
+Foreach ($line in $schema) {
+    if ($line -notmatch "^-- (Started|Completed) on \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d$") {
+        $date_free_schema+= $line
+    }
+}                                
+$date_free_schema|Set-Content -Path $file_name_to_codebase
+                                   
+$file_name_in_codebase = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.sql"
+    
+$previous_sql_hash = (Get-FileHash -LiteralPath $file_name_to_codebase -Algorithm MD5).Hash
+$new_sql_hash = (Get-FileHash -LiteralPath $file_name_in_codebase -Algorithm MD5).Hash
+
+if ($previous_sql_hash -ne $new_sql_hash) {
+    Copy-Item $file_name_to_codebase -Destination $file_name_in_codebase # Will trigger github changes    
+}
 
 }
 catch {
