@@ -41,11 +41,21 @@ elseif ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -gt 
 }                                                                                                                                                                         
 elseif ($null -eq $state_of_session) {
     # No session active?? Hopefully???
-    
 }
     
 # "Starts"
-$rowsAdded = Invoke-Sql "INSERT INTO batch_run_sessions(last_script_ran, session_starting_script, caller, caller_starting) VALUES('$scriptName', '$scriptName', '$Script:Caller', '$Script:Caller')" 
+$rowsAdded = Invoke-Sql "/*sql*/
+    INSERT INTO batch_run_sessions(
+        last_script_ran
+    ,   session_starting_script
+    ,   caller
+    ,   caller_starting
+    ) VALUES(
+        '$scriptName'
+    ,   '$scriptName'
+    ,   '$Script:Caller'
+    ,   '$Script:Caller'
+    )" 
 Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
 
 }
