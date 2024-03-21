@@ -19,13 +19,14 @@ $file_name_base = "C:\FilmCab Backups/dump-filmcab-database-data-simplified-sche
 Write-AllPlaces "base to all backups: $file_name_base"
                                                     
 $backup_file_path = "$file_name_base-compressed.sql"
+#TODO: Convert following to function
 $output = & pg_dump.exe --verbose --format=c --file "$backup_file_path" --dbname=filmcab --schema=simplified 2>&1 
 $stdout = $output | ?{ $_ -isnot [System.Management.Automation.ErrorRecord] }
 $stderr = $output | ?{ $_ -is [System.Management.Automation.ErrorRecord] }
             
 if ($null -ne $stdout) {
     $stdout = $stdout.Replace("[", [System.Environment]::NewLine)
-    Write-AllPlaces $stdout
+    Write-AllPlaces $stdout # TEST:
 }
 
 if ($null -ne $stderr) {
@@ -57,12 +58,15 @@ Foreach ($line in $schema) {
 $date_free_schema|Set-Content -Path $file_name_to_codebase
                                    
 $file_name_in_codebase = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.sql"
+$file_name_in_codebase_previous_copy = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.$RidiculousLongTimestamp.sql"
     
 $previous_sql_hash = (Get-FileHash -LiteralPath $file_name_to_codebase -Algorithm MD5).Hash
 $new_sql_hash = (Get-FileHash -LiteralPath $file_name_in_codebase -Algorithm MD5).Hash
 
 if ($previous_sql_hash -ne $new_sql_hash) {
-    Copy-Item $file_name_to_codebase -Destination $file_name_in_codebase # Will trigger github changes    
+    Copy-Item $file_name_in_codebase -Destination $file_name_in_codebase_previous_copy -Force -Verbose
+    Copy-Item $file_name_to_codebase -Destination $file_name_in_codebase -Force -Verbose # Will trigger github changes    
+    Copy-Item $file_name_to_codebase -Destination $file_name_in_codebase -Force -Verbose
 }
 
 }
