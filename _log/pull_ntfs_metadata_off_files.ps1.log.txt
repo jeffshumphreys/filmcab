@@ -1,0 +1,10 @@
+Starting Log 03/21/2024 12:50:38 on Thursday DST in March, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+processtree 1 CommandLine is not null: "C:\Program Files\Microsoft VS Code\Code.exe" --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --user-data-dir="C:\Users\jeffs\AppData\Roaming\Code" --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --mojo-platform-channel-handle=3628 --field-trial-handle=1684,i,15194841743740849098,2233526751074350695,262144 --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess,WinDelaySpellcheckServiceInit,WinRetrieveSuggestionsOnlyOnDemand /prefetch:8
+Called whilest in Visual Code Editor
+Exiting standard_header
+Finally
+*** empty string
+*** empty string
+How Many Updated Files    :   0
+Stopping Normally after 649.1427508 Second(s)
