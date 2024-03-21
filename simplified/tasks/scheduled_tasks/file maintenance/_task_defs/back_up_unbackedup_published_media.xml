@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>2024-03-16T11:10:03.5389068</Date>
+        <Date>2024-03-21T15:05:02.4269304</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, a first very basic task to back up any files I published. This creates three copies of a movie: The downloaded copy that must remain untouched in order to seed, The published and normalized file name to a proper title and folder, and then a backup of that version to a physically separate drive. Ideally an additional copy would go to a networked device, then the cloud. . # 4</Description>
         <URI>\FilmCab\file maintenance\back_up_unbackedup_published_media</URI>
@@ -43,7 +43,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7-preview\pwsh.exe"</Command>
-          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\back_up_unbackedup_published_media.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\back_up_unbackedup_published_media.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>

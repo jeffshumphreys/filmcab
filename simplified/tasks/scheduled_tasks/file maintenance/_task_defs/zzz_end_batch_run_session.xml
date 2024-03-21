@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>2024-03-16T11:10:03.5389068</Date>
+        <Date>2024-03-21T15:05:02.4269304</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, Close out the batch_run_session record created in our very first task. Do some tests. . # 14</Description>
         <URI>\FilmCab\file maintenance\zzz_end_batch_run_session</URI>
@@ -9,7 +9,7 @@
       <Triggers>
                     <EventTrigger>
             <Enabled>true</Enabled>
-            <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='\FilmCab\file maintenance\extract_genres_from_file_directories']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+            <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='\FilmCab\file maintenance\pull_ntfs_metadata_off_files']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
           </EventTrigger>
       </Triggers>
       <Principals>
@@ -43,7 +43,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7-preview\pwsh.exe"</Command>
-          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\zzz_end_batch_run_session.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\zzz_end_batch_run_session.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>2024-03-16T11:10:03.5389068</Date>
+        <Date>2024-03-21T15:05:02.4269304</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, In published folders I use underscores to sort out the folders that are groups of genre related files and subfolders. . # 18</Description>
-        <URI>\FilmCab\file maintenance\extract_genres_from_file_directories</URI>
+        <URI>\FilmCab\file maintenance\extract_genres_from_directories</URI>
       </RegistrationInfo>
       <Triggers>
                     <EventTrigger>
@@ -43,7 +43,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7-preview\pwsh.exe"</Command>
-          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\extract_genres_from_directories.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\extract_genres_from_directories.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>

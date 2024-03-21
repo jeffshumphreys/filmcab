@@ -3,13 +3,13 @@
       <RegistrationInfo>
         <Date>2024-03-21T15:05:02.4269304</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
-        <Description>Part of FilmCab, Mark, not physically delete, any file entries that no longer exist materially. . # 7</Description>
-        <URI>\FilmCab\file maintenance\delete_references_to_missing_files</URI>
+        <Description>Part of FilmCab, We eventually will need the ntfs id to detect when renamed stuff is the same thing. . # 22</Description>
+        <URI>\FilmCab\file maintenance\pull_ntfs_metadata_off_files</URI>
       </RegistrationInfo>
       <Triggers>
                     <EventTrigger>
             <Enabled>true</Enabled>
-            <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='\FilmCab\file maintenance\delete_file_entries_in_deleted_directories']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+            <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='\FilmCab\file maintenance\extract_genres_from_directories']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
           </EventTrigger>
       </Triggers>
       <Principals>
@@ -43,7 +43,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7-preview\pwsh.exe"</Command>
-          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\delete_references_to_missing_files.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\pull_ntfs_metadata_off_files.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>

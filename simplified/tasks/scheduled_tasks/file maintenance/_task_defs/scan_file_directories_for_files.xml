@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>2024-03-16T18:54:00.4762569</Date>
+        <Date>2024-03-21T15:05:02.4269304</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, a scan through directories marked to scan. The hashing takes a looooong time. MUST run after scan_for_file_directories. . # 12</Description>
         <URI>\FilmCab\file maintenance\scan_file_directories_for_files</URI>
@@ -43,7 +43,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7-preview\pwsh.exe"</Command>
-          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\file maintenance\scan_file_directories_for_files.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\scan_file_directories_for_files.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>

@@ -64,7 +64,7 @@ catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
 }                                  
 finally {
-    Write-AllPlaces "Finally"
+    Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1
 }
 # Copy and date days sanity checks to history

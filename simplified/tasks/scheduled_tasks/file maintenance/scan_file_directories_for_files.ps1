@@ -81,14 +81,14 @@ While ($reader.Read()) {
     
                 $inDbAlreadyReader = WhileReadSql <#sql#>"
                     SELECT                                                                       
-                        file_hash                    AS in_db_file_hash
-                    ,   directory_hash               AS in_db_directory_hash
-                    ,   file_date                    AS in_db_file_date             /* If changed, we need a new hash                                                                                       */
-                    ,   file_size                    AS in_db_file_size             /* Also if changed, in case date isn't enough to detect. The garuntead way is to generate the hash, which is very slow. */
-                    ,   file_is_symbolic_link        AS in_db_file_is_symbolic_link /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files    */
-                    ,   file_is_hard_link            AS in_db_file_is_hard_link     /* Verified I have these. and they can help organize for better finding of films in different genre folders             */
-                    ,   file_linked_path             AS in_db_file_linked_path      /* Verify this exists. Haven't tested.                                                                                  */
-                    ,   file_deleted                 AS in_db_file_deleted
+                        file_hash                    AS    in_db_file_hash
+                    ,   directory_hash               AS    in_db_directory_hash
+                    ,   file_date                    AS    in_db_file_date                /* If changed, we need a new hash                                                                                       */
+                    ,   file_size                    AS    in_db_file_size                /* Also if changed, in case date isn't enough to detect. The garuntead way is to generate the hash, which is very slow. */
+                    ,   file_is_symbolic_link        AS    in_db_file_is_symbolic_link    /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files    */
+                    ,   file_is_hard_link            AS    in_db_file_is_hard_link        /* Verified I have these. and they can help organize for better finding of films in different genre folders             */
+                    ,   file_linked_path             AS    in_db_file_linked_path         /* Verify this exists. Haven't tested.                                                                                  */
+                    ,   file_deleted                 AS    in_db_file_deleted
                     FROM 
                         files_ext_v                
                     WHERE
@@ -106,15 +106,15 @@ While ($reader.Read()) {
                     # target changed?
                     # length changed?
                     # Do we need a new file hash? date, length changed?
-                    $in_db_file_hash              = @($in_db_file_hash|Format-Hex|Select ascii).Ascii -Join ''
-                    $in_db_directory_hash         = @($in_db_directory_hash|Format-Hex|Select ascii).Ascii -Join ''
+                    $in_db_file_hash              = Convert-ByteArrayToHexString $in_db_file_hash
+                    $in_db_directory_hash         = Convert-ByteArrayToHexString $in_db_directory_hash
                     $on_fs_file_is_broken_link    = $false
                     $recalculated_on_fs_file_hash = $null
                     
                     if (
-                            $in_db_file_deleted                   -or
-                            $in_db_file_date -ne $on_fs_file_date -or 
-                            $in_db_file_size -ne $on_fs_file_size -or
+                            $in_db_file_deleted                                -or
+                            $in_db_file_date        -ne $on_fs_file_date       -or 
+                            $in_db_file_size        -ne $on_fs_file_size       -or
                             $in_db_file_linked_path -ne $on_fs_file_link_path
                         ) {
    
@@ -128,32 +128,32 @@ While ($reader.Read()) {
                                 $on_fs_file_hash = (Get-FileHash -LiteralPath $on_fs_file_path -Algorithm MD5).Hash
                             } catch [System.IO.IOException] {
                                 $on_fs_file_is_broken_link = $true
-                                $on_fs_file_hash   = '0'
+                                $on_fs_file_hash           = '0'
                             }       
                         }
                         $recalculated_on_fs_file_hash = @($on_fs_file_hash|Format-Hex|Select ascii).Ascii -Join '' # May be churn
   
-                        $update_sql = "
-                                    UPDATE
-                                        files_v
-                                    SET
-                                        file_hash             = '$recalculated_on_fs_file_hash'::bytea,
-                                        file_date             = '$on_fs_file_date_formatted'::TIMESTAMPTZ,
-                                        file_size             = $on_fs_file_size,
-                                        file_is_symbolic_link = $on_fs_file_is_symbolic_link,
-                                        file_is_hard_link     = $on_fs_file_is_hard_link,
-                                        file_deleted          = False,
-                                        file_is_broken_link   = $on_fs_file_is_broken_link
-                                    WHERE
-                                        file_hash             = '$in_db_file_hash'::bytea
-                                    AND
-                                        directory_hash        = '$in_db_directory_hash'::bytea
-                                    AND
-                                        file_name_no_ext      = '$on_fs_file_name_no_ext_escaped' /* Found case where two files same directory had same hash different name */
-                                    AND
-                                        final_extension       = '$on_fs_final_extension_escaped'  /* Many cases with video and subtitles, text, etc. Same name different extension */
-                        "
-                        $howManyRowsUpdated = Invoke-Sql $update_sql -OneAndOnlyOne
+                        
+                        Invoke-Sql  "
+                            UPDATE
+                                files_v
+                            SET
+                                file_hash             = '$recalculated_on_fs_file_hash'::bytea,
+                                file_date             = '$on_fs_file_date_formatted'::TIMESTAMPTZ,
+                                file_size             = $on_fs_file_size,
+                                file_is_symbolic_link = $on_fs_file_is_symbolic_link,
+                                file_is_hard_link     = $on_fs_file_is_hard_link,
+                                file_deleted          = False,
+                                file_is_broken_link   = $on_fs_file_is_broken_link
+                            WHERE
+                                file_hash             = '$in_db_file_hash'::bytea
+                            AND
+                                directory_hash        = '$in_db_directory_hash'::bytea
+                            AND
+                                file_name_no_ext      = '$on_fs_file_name_no_ext_escaped' /* Found case where two files same directory had same hash different name */
+                            AND
+                                final_extension       = '$on_fs_final_extension_escaped'  /* Many cases with video and subtitles, text, etc. Same name different extension */
+                            " -OneAndOnlyOne|Out-Null
                           
                         if ($on_fs_file_is_symbolic_link -and -not $in_db_file_is_symbolic_link) {
                             $howManyConvertedToSymbolicLinks++
@@ -176,7 +176,8 @@ While ($reader.Read()) {
                         $on_fs_file_hash   = '0'
                     }
 
-                    $sql = "
+                     # OOOOR, the entire thing. we pass in prefix "_on_fs", target table name, it pulls columns and matches to variables. Wow. Way over the top.
+                    Invoke-Sql "
                         INSERT INTO 
                         files_v(
                             file_hash,
@@ -204,8 +205,7 @@ While ($reader.Read()) {
                         /*  file_is_broken_link    */ $on_fs_file_is_broken_link,
                         /*  file_deleted           */ False
                         )
-                    " # OOOOR, the entire thing. we pass in prefix "_on_fs", target table name, it pulls columns and matches to variables. Wow. Way over the top.
-                    Invoke-Sql $sql|Out-Null   
+                    "|Out-Null   
                     _TICK_New_Object_Instantiated
                     if ($on_fs_file_is_symbolic_link) { $howManyNewSymbolicLinks}
                     if ($on_fs_file_is_hard_link) { $howManyNewHardLinks}
@@ -223,8 +223,8 @@ While ($reader.Read()) {
             WHERE
                 directory = '$directory_escaped'    
             AND
-                scan_directory = True
-        "|Out-Null # Should be a performance boost not to scan folders no longer marked for scan.
+                scan_directory
+        " # Should be a performance boost not to scan folders no longer marked for scan.
     }
 }
 
@@ -244,6 +244,6 @@ catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
 }                                  
 finally {
-    Write-AllPlaces "Finally"
+    Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1
 }

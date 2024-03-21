@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>2024-03-16T11:10:03.5389068</Date>
+        <Date>2024-03-21T15:05:02.4269304</Date>
         <Author>DSKTP-HOME-JEFF\jeffers</Author>
         <Description>Part of FilmCab, pulls all Windows Task Scheduler definitions for FilmCab tasks. So we can track which ones are mal-defined, like the wrong settings or action or trigger. . # 10</Description>
         <URI>\FilmCab\schedule maintenance\pull_scheduled_task_definitions</URI>
@@ -43,7 +43,7 @@
       <Actions Context="Author">
         <Exec>
           <Command>"C:\Program Files\PowerShell\7-preview\pwsh.exe"</Command>
-          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_definitions.ps1'; exit $LASTEXITCODE"</Arguments>
+          <Arguments>-ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_definitions.ps1'; exit $LASTEXITCODE"</Arguments>
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>
