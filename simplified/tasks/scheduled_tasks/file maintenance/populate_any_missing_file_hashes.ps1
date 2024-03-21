@@ -22,11 +22,7 @@ if ($DatabaseConnectionIsOpen) {
         FROM 
             files_ext_v       
         WHERE 
-            NOT directory_deleted 
-        AND 
-            NOT file_is_symbolic_link
-        AND
-            NOT file_is_hard_link
+            is_real_file
         AND
             file_hash IS NULL
     "
