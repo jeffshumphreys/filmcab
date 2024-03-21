@@ -399,7 +399,7 @@ The name of the parameter testing for documentation only.
 .NOTES
 General notes
 #>
-function Assert-MeaningfulString([string]$s, $varname = 'string') {
+Function Assert-MeaningfulString([string]$s, $varname = 'string') {
     if ($null -eq $s){                            # Inquiring minds want to know.  Send me 4 spaces?  Big clue.  Not the same as being sent a null.
         throw "Your $varname is null."
     } elseif ([string]::IsNullOrEmpty($s)){
@@ -411,13 +411,15 @@ function Assert-MeaningfulString([string]$s, $varname = 'string') {
     }
 }
           
-
+Function Convert-ByteArrayToHexString ([byte[]] $bytearray) {
+    return @($bytearray|Format-Hex|Select ascii).Ascii -join ''
+}
 $md5provider = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
 $utf8provider = New-Object -TypeName System.Text.UTF8Encoding
 
 <#
 .SYNOPSIS
-Generate MD5 hash from string
+Generate MD5 hash from string 
 
 .DESCRIPTION
 Impossible to remember
@@ -429,7 +431,7 @@ Parameter description
 An example
 
 .NOTES
-General notes
+Forgot where I was going use it?
 #>
 Function Hash-String($s) {
     return [System.BitConverter]::ToString($md5provider.ComputeHash($utf8provider.GetBytes($s)))    
