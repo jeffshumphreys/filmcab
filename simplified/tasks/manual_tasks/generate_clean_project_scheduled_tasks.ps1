@@ -26,9 +26,29 @@ if (-not (Test-Path $powershellInstance)) {
   throw [Exception]"path to powershell/pwsh not found"
 }
 
-$ScheduledTaskDefsInSetOrder = WhileReadSql 'SELECT * FROM scheduled_tasks_ext_v ORDER BY scheduled_task_run_set_id, order_in_set' 
-
+$ScheduledTaskDefsInSetOrder = WhileReadSql "
+    SELECT 
+      scheduled_task_id                                          
+    , scheduled_task_name
+    , scheduled_task_directory
+    , scheduled_task_run_set_name
+    , uri
+    , scheduled_task_short_description
+    , run_start_time
+    , previous_task_name
+    , previous_uri
+    , execution_time_limit
+    , script_path_to_run
+    FROM 
+      scheduled_tasks_ext_v 
+    ORDER BY 
+      scheduled_task_run_set_id
+    , order_in_set
+  " 
+                        
   While ($ScheduledTaskDefsInSetOrder.Read()) {
+    $script_path_to_run = $script_path_to_run.Replace("%NAME%", $scheduled_task_name)
+
     $RunStartTimestamp = (Get-Date).ToString('yyyy-MM-dd').ToDateTime($null).AddTicks($run_start_time.Ticks).ToString($DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML)
       
     $triggerScript = ""
