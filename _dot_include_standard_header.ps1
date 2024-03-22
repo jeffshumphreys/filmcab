@@ -14,263 +14,280 @@
 
 # Following code seems to close the popup console window almost immediately if you're calling from Windows Task Scheduler. At least very fast.  I like things that run in the background to run in the background.
 
-    Add-Type -name user32 -namespace win32 -memberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
-    $consoleHandle = (get-process -id $pid).mainWindowHandle
-    [void][win32.user32]::showWindow($consoleHandle, 0)
+Add-Type -name user32 -namespace win32 -memberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
+$consoleHandle = (get-process -id $pid).mainWindowHandle
+[void][win32.user32]::showWindow($consoleHandle, 0)
 
-    Import-Module PowerShellHumanizer # See Write-Count for usage.
+Import-Module PowerShellHumanizer # See Write-Count for usage.
 
-    Import-Module DellBIOSProvider                                      
-                                                                               
-    # Just an example.
-    
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $TpmStatus = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
+Import-Module DellBIOSProvider                                      
+                                                                            
+# Just an example.
 
-    function Get-CRC32 {
-        <#
-            .SYNOPSIS
-                Calculate CRC.
-            .DESCRIPTION
-                This function calculates the CRC of the input data using the CRC32 algorithm.
-            .EXAMPLE
-                Get-CRC32 $data
-            .EXAMPLE
-                $data | Get-CRC32
-            .NOTES
-                C to PowerShell conversion based on code in https://www.w3.org/TR/PNG/#D-CRCAppendix
-    
-                Author: Øyvind Kallstad
-                Date: 06.02.2017
-                Version: 1.0
-            .INPUTS
-                byte[]
-            .OUTPUTS
-                uint32
-            .LINK
-                https://communary.net/
-            .LINK
-                https://www.w3.org/TR/PNG/#D-CRCAppendix
-    
-        #>
-        [CmdletBinding()]
-        param (
-            # Array of Bytes to use for CRC calculation
-            [Parameter(Position = 0, ValueFromPipeline = $true)]
-            [ValidateNotNullOrEmpty()]
-            [byte[]]$InputObject
-        )
-    
-        Begin {
-    
-            function New-CrcTable {
-                [uint32]$c = $null
-                $crcTable = New-Object 'System.Uint32[]' 256
-    
-                for ($n = 0; $n -lt 256; $n++) {
-                    $c = [uint32]$n
-                    for ($k = 0; $k -lt 8; $k++) {
-                        if ($c -band 1) {
-                            $c = (0xEDB88320 -bxor ($c -shr 1))
-                        }
-                        else {
-                            $c = ($c -shr 1)
-                        }
-                    }
-                    $crcTable[$n] = $c
-                }
-    
-                Write-Output $crcTable
-            }
-    
-            function Update-Crc ([uint32]$crc, [byte[]]$buffer, [int]$length) {
-                [uint32]$c = $crc
-    
-                if (-not (Test-Path variable:script:crcTable)) {
-                    $script:crcTable = New-CrcTable
-                }
-    
-                for ($n = 0; $n -lt $length; $n++) {
-                    $c = ($script:crcTable[($c -bxor $buffer[$n]) -band 0xFF]) -bxor ($c -shr 8)
-                }
-    
-                Write-output $c
-            }
-    
-            $dataArray = @()
-        }
-    
-        Process {
-            foreach ($item  in $InputObject) {
-                $dataArray += $item
-            }
-        }
-    
-        End {
-            $inputLength = $dataArray.Length
-            Write-Output ((Update-Crc -crc 0xffffffffL -buffer $dataArray -length $inputLength) -bxor 0xffffffffL)
-        }
-    }
-    
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$TpmStatus = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
+
 ############## Environment things FORCED on the user of this dot file.
 
-    # Flush all variables because new code above their definitions will RUN fine until to restart anything.
+# Flush all variables because new code above their definitions will RUN fine until to restart anything.
 
-    # WARNING: Error on line Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
-    ## You cannot call a method on a null-valued expression.
-    ###  $Result += $Global:__VSCodeOriginalPrompt.Invoke()
-    #### SOOOOOOOOOOOOOOO, I just need to shut down powershell EVERY FUCKING TIME I RUN?????????????
-    #  CANNOT DO: Get-Variable -Exclude PWD,*Preference | Remove-Variable -EA 0
-    
-    # Stop on an error, please.  Lazy shits at City of Boise prefer scripts that NEVER error in production - even if there's an issue.
-    $ErrorActionPreference = 'Stop'            
+# WARNING: Error on line Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
+## You cannot call a method on a null-valued expression.
+###  $Result += $Global:__VSCodeOriginalPrompt.Invoke()
+#### SOOOOOOOOOOOOOOO, I just need to shut down powershell EVERY FUCKING TIME I RUN?????????????
+#  CANNOT DO: Get-Variable -Exclude PWD,*Preference | Remove-Variable -EA 0
 
-    # This makes the run Stop if attempting to use an unassigned variable. Lazy shits at City of Boise prefer scripts that NEVER error in production - even if there's an issue. How did I ever survive in this crap worthless world of hacks???
+# Stop on an error, please.  Lazy shits at City of Boise prefer scripts that NEVER error in production - even if there's an issue.
+$ErrorActionPreference = 'Stop'            
 
-    Set-StrictMode -Version Latest
+# This makes the run Stop if attempting to use an unassigned variable. Lazy shits at City of Boise prefer scripts that NEVER error in production - even if there's an issue. How did I ever survive in this crap worthless world of hacks???
 
-    # Considered somewhat standard to avoid failures importing, including, etc., due to Microtoff's every increasing security layers everytime they get hacked.
-    
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-    
-    # Can't do Scheduled Task work anymore (Win 10) without admin privs. Example of above Sec Fetish.
+Set-StrictMode -Version Latest
 
-    $amRunningAsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    
-    # Always time everything.  Eventually you will always want to know how long the damn script ran.
+# Considered somewhat standard to avoid failures importing, including, etc., due to Microtoff's every increasing security layers everytime they get hacked.
 
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $scriptTimer = [Diagnostics.Stopwatch]::StartNew()   # Host to use: $scriptTimer.Elapsed.TotalSeconds                  
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+
+# Can't do Scheduled Task work anymore (Win 10) without admin privs. Example of above Sec Fetish.
+
+$amRunningAsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+# Always time everything.  Eventually you will always want to know how long the damn script ran.
+
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$scriptTimer = [Diagnostics.Stopwatch]::StartNew()   # Host to use: $scriptTimer.Elapsed.TotalSeconds                  
 
 ############ Capture some common globals.  I don't remember "$env:". Ever.
-                                                                                                                                
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $MyComputerName = $env:COMPUTERNAME     # DSKTP-HOME-JEFF            
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $OneDriveDirectory = $env:OneDrive   # D:\OneDrive
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $OSUserName = $env:USERNAME   # jeffs
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $OSUserFiles       = $env:USERPROFILE    # C:\Users\jeffs
+                                                                                                                            
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$MyComputerName = $env:COMPUTERNAME     # DSKTP-HOME-JEFF            
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$OneDriveDirectory = $env:OneDrive   # D:\OneDrive
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$OSUserName = $env:USERNAME   # jeffs
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$OSUserFiles       = $env:USERPROFILE    # C:\Users\jeffs
 
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
-  
-    $OutputEncoding = [ System.Text.Encoding]::UTF8 
-    # https://www.compart.com/en/unicode/category/So
-    $UNICODE_SMILEY_FACE                  = 0x1F600            # 😀
-    $UNICODE_BALLOT_X                     = 0x2717             # ✗
-    $UNICODE_CROSS_MARK                   = 0x274C             # ❌
-    $UNICODE_SPARKLES                     = 0x2728             # ✨
-    $UNICODE_HEAVY_EXCLAMATION_MARK       = 0x2757             # ❗
-    $UNICODE_BLACK_QUESTION_MARK_ORNAMENT = 0x2753             # ❓
-    # inspect? 🔬
-    # push? 💨
-    # refactor? 🧹
-    #$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
-    # ⭐
-                                                                                                                                          
-    $pretest_assuming_true = $true
-    $pretest_assuming_false = $false
-    
-    Function __TICK ($tick_emoji) {
-        # Only write to terminal if not a scheduled task run
-        if ($Script:Caller -ne 'Windows Task Scheduler') {
-            Write-AllPlaces $tick_emoji -NoNewline -NoLog
-        }
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$DEFAULT_POWERSHELL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    ONLY to 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
+
+$OutputEncoding = [ System.Text.Encoding]::UTF8 
+# https://www.compart.com/en/unicode/category/So
+$UNICODE_SMILEY_FACE                  = 0x1F600            # 😀
+$UNICODE_BALLOT_X                     = 0x2717             # ✗
+$UNICODE_CROSS_MARK                   = 0x274C             # ❌
+$UNICODE_SPARKLES                     = 0x2728             # ✨
+$UNICODE_HEAVY_EXCLAMATION_MARK       = 0x2757             # ❗
+$UNICODE_BLACK_QUESTION_MARK_ORNAMENT = 0x2753             # ❓
+# inspect? 🔬
+# push? 💨
+# refactor? 🧹
+#$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
+# ⭐
+                                                                                                                                        
+$pretest_assuming_true = $true
+$pretest_assuming_false = $false
+
+Function __TICK ($tick_emoji) {
+    # Only write to terminal if not a scheduled task run
+    if ($Script:Caller -ne 'Windows Task Scheduler') {
+        Write-AllPlaces $tick_emoji -NoNewline -NoLog
     }
-    $NEW_OBJECT_INSTANTIATED             = '✨'; Function _TICK_New_Object_Instantiated             {__TICK $NEW_OBJECT_INSTANTIATED}
-    $FOUND_EXISTING_OBJECT               = '✔️'; Function _TICK_Found_Existing_Object               {__TICK $FOUND_EXISTING_OBJECT}
-    $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE = '🥱'; Function _TICK_Found_Existing_Object_But_No_Change {__TICK $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE}
-    $EXISTING_OBJECT_EDITED              = '📝'; Function _TICK_Existing_Object_Edited              {__TICK $EXISTING_OBJECT_EDITED}
-    $EXISTING_OBJECT_ACTUALLY_CHANGED    = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed    {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED}
-    $OBJECT_MARKED_DELETED               = '❌'; Function _TICK_Object_Marked_Deleted               {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
-    $SCAN_OBJECTS                        = '👓'; Function _TICK_Scan_Objects                        {__TICK $SCAN_OBJECTS} 
-    $SOUGHT_OBJECT_NOT_FOUND             = '😱'; Function _TICK_Sought_Object_Not_Found             {__TICK $SOUGHT_OBJECT_NOT_FOUND}  # As in database says it's there but it's not physically on file.
-    $UPDATE_OBJECT_STATUS                = '🚩'; Function _TICK_Update_Object_Status                {__TICK $UPDATE_OBJECT_STATUS}
+}
+$NEW_OBJECT_INSTANTIATED             = '✨'; Function _TICK_New_Object_Instantiated             {__TICK $NEW_OBJECT_INSTANTIATED}
+$FOUND_EXISTING_OBJECT               = '✔️'; Function _TICK_Found_Existing_Object               {__TICK $FOUND_EXISTING_OBJECT}
+$FOUND_EXISTING_OBJECT_BUT_NO_CHANGE = '🥱'; Function _TICK_Found_Existing_Object_But_No_Change {__TICK $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE}
+$EXISTING_OBJECT_EDITED              = '📝'; Function _TICK_Existing_Object_Edited              {__TICK $EXISTING_OBJECT_EDITED}
+$EXISTING_OBJECT_ACTUALLY_CHANGED    = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed    {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED}
+$OBJECT_MARKED_DELETED               = '❌'; Function _TICK_Object_Marked_Deleted               {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
+$SCAN_OBJECTS                        = '👓'; Function _TICK_Scan_Objects                        {__TICK $SCAN_OBJECTS} 
+$SOUGHT_OBJECT_NOT_FOUND             = '😱'; Function _TICK_Sought_Object_Not_Found             {__TICK $SOUGHT_OBJECT_NOT_FOUND}  # As in database says it's there but it's not physically on file.
+$UPDATE_OBJECT_STATUS                = '🚩'; Function _TICK_Update_Object_Status                {__TICK $UPDATE_OBJECT_STATUS}
 
-    # The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
+# The following pulls the CALLER path.  If you are running this dot file directly, there is no caller set.
+
+$MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
+
+if ([String]::IsNullOrEmpty($masterScriptPath)) {                                                                
+    # So instead of "ScriptName", we've got "Line", "Statement", "MyCommand" (which is actually the Script Name), and "PositionMessage" which is a bit messy, but could be used to get the caller.
+    Write-Host "`$MyInvocation.ScriptName is empty. Grabbing `MyInvocation.Line"
+    $MasterScriptPath = $MyInvocation.Line#.Trim("`' ").TrimEnd('.') # No ScriptName if running this file directly, just Line = . 'D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1'  This of course will devolve over PS versions. Why? Because developer constantly finesse stuff and break code.
+}                                          
+
+$MasterScriptPath = if ($MasterScriptPath.StartsWith(". .\")) { $MasterScriptPath.Substring(2)} else {$MasterScriptPath}
+# For debugging/logging, when was this file changed? When a script changes, you can toss all previous testing out the window.  This script HASNT been tested.  When did your error first occur? Right after the last write time changed? Interesting, maybe it was what changed that broke.
+$MasterScriptPath = if ($MasterScriptPath.StartsWith(". '")) { $MasterScriptPath.Substring(2)} else {$MasterScriptPath}                                                                               
+$MasterScriptPath = $MasterScriptPath.Trim("'")
+# At times, the following code breaks with "Cannot find path 'D:\_dot_include_standard_header.ps1' because it does not exist."
+# This cannot be tested by running THIS file. Only calling from a container, and then only intermittently(!) Even exiting VS Code can fail to recause the error.
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$FileTimeStampForParentScript = (Get-Item -Path $MasterScriptPath).LastWriteTime
+
+# We're going to call "scriptName" the Name WITHOUT the bloody directory it's in. I'm torn on name with or without extension - BUT since two files can have same base name with different extensions, and soon there'll be a "ps2" (kidding?), we might as well be careful.
     
-    $MasterScriptPath = $MyInvocation.ScriptName  # I suppose you could call this a "Name".  It's a file path.
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$ScriptName                 = (Get-Item -Path $masterScriptPath).Name # Unlike "BaseName" this includes the extension
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Base name is nice for labelling
 
-    if ([String]::IsNullOrEmpty($masterScriptPath)) {                                                                
-        # So instead of "ScriptName", we've got "Line", "Statement", "MyCommand" (which is actually the Script Name), and "PositionMessage" which is a bit messy, but could be used to get the caller.
-        Write-AllPlaces "`$MyInvocation.ScriptName is empty. Grabbing `MyInvocation.Line"
-        $MasterScriptPath = $MyInvocation.Line#.Trim("`' ").TrimEnd('.') # No ScriptName if running this file directly, just Line = . 'D:\qt_projects\filmcab\simplified\_dot_include_standard_header.ps1'  This of course will devolve over PS versions. Why? Because developer constantly finesse stuff and break code.
-    }                                          
-    
-    $MasterScriptPath = if ($MasterScriptPath.StartsWith(". .\")) { $MasterScriptPath.Substring(2)} else {$MasterScriptPath}
-    # For debugging/logging, when was this file changed? When a script changes, you can toss all previous testing out the window.  This script HASNT been tested.  When did your error first occur? Right after the last write time changed? Interesting, maybe it was what changed that broke.
-    $MasterScriptPath = if ($MasterScriptPath.StartsWith(". '")) { $MasterScriptPath.Substring(2)} else {$MasterScriptPath}                                                                               
-    $MasterScriptPath = $MasterScriptPath.Trim("'")
-    # At times, the following code breaks with "Cannot find path 'D:\_dot_include_standard_header.ps1' because it does not exist."
-    # This cannot be tested by running THIS file. Only calling from a container, and then only intermittently(!) Even exiting VS Code can fail to recause the error.
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $FileTimeStampForParentScript = (Get-Item -Path $MasterScriptPath).LastWriteTime
-    
-    # We're going to call "scriptName" the Name WITHOUT the bloody directory it's in. I'm torn on name with or without extension - BUT since two files can have same base name with different extensions, and soon there'll be a "ps2" (kidding?), we might as well be careful.
-     
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $ScriptName                 = (Get-Item -Path $masterScriptPath).Name # Unlike "BaseName" this includes the extension
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Base name is nice for labelling
+$ProjectRoot  = (Get-Location).Path  # in debug, D:\qt_projects\filmcab
 
-    $ProjectRoot  = (Get-Location).Path  # in debug, D:\qt_projects\filmcab
+# Not heavily used yet.
+$PathToConfig = $ProjectRoot + '\config.json'
+$Config       = Get-Content -Path $PathToConfig | ConvertTo-Json
 
-    # Not heavily used yet.
-    $PathToConfig = $ProjectRoot + '\config.json'
-    $Config       = Get-Content -Path $PathToConfig | ConvertTo-Json
+# Maybe grab HistoryId for how many runs in this session. Debug meta? Note that it resets if the powershell terminal is killt.
+                                                                                        
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$CurrentDebugSessionNo = $MyInvocation.HistoryId
+                                            
+$tryToStartTranscriptAttempts = 0
 
-    # Maybe grab HistoryId for how many runs in this session. Debug meta? Note that it resets if the powershell terminal is killt.
-                                                                                          
-    [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
-    $CurrentDebugSessionNo = $MyInvocation.HistoryId
-                                               
-    $tryToStartTranscriptAttempts = 0
-    
-    # Transcript logging is weak, but it's something, as long as you can deal with the locking issues, and not starting and not stopping.
-    # It locks up in debugging if you restart too soon, and don't hit the Stop-Transcript in the footer.  One try is probably enough
-    while ($tryToStartTranscriptAttempts -lt 3) {
+# Transcript logging is weak, but it's something, as long as you can deal with the locking issues, and not starting and not stopping.
+# It locks up in debugging if you restart too soon, and don't hit the Stop-Transcript in the footer.  One try is probably enough     
+# Warning: There is no dynamic transcript updates, only on stop-transcript does it write out.
+while ($tryToStartTranscriptAttempts -lt 3) {
+    try {
+        $tryToStartTranscriptAttempts++
+        Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
+        break
+    }
+    catch [System.IO.IOException]{
+        # Close it, then try, at least two more times.
+        # Transcription cannot be started due to the error: The process cannot access the file 'D:\qt_projects\filmcab\simplified\_log\pull_scheduled_task_definitions.ps1.transcript.log' because it is being used by another process.
         try {
-            $tryToStartTranscriptAttempts++
-            Start-Transcript -Path "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log" -IncludeInvocationHeader
-            break
+            Stop-Transcript "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log"
+        }                                                                                      
+        catch {
+            # Fails so ignore.
         }
-        catch [System.IO.IOException]{
-            # Close it, then try, at least two more times.
-            # Transcription cannot be started due to the error: The process cannot access the file 'D:\qt_projects\filmcab\simplified\_log\pull_scheduled_task_definitions.ps1.transcript.log' because it is being used by another process.
-            try {
-                Stop-Transcript "D:\qt_projects\filmcab\simplified\_log\$ScriptName.transcript.log"
-                Start-Sleep -Milliseconds 10.0
-            }                                                                                      
-            catch {
-                # Fails so ignore.
-            }
-        }                                  
-    }
-                    
-  
+        Start-Sleep -Milliseconds 10.0
+    }                                  
+}
 
+<#
+
+                        88888888b                              dP   oo                      888888ba           .8888b oo          oo   dP   oo                            
+                        88                                     88                           88    `8b          88   "                  88                                 
+                        a88aaaa    dP    dP 88d888b. .d8888b. d8888P dP .d8888b. 88d888b.    88     88 .d8888b. 88aaa  dP 88d888b. dP d8888P dP .d8888b. 88d888b. .d8888b. 
+                        88        88    88 88'  `88 88'  `""   88   88 88'  `88 88'  `88    88     88 88ooood8 88     88 88'  `88 88   88   88 88'  `88 88'  `88 Y8ooooo. 
+                        88        88.  .88 88    88 88.  ...   88   88 88.  .88 88    88    88    .8P 88.  ... 88     88 88    88 88   88   88 88.  .88 88    88       88 
+                        dP        `88888P' dP    dP `88888P'   dP   dP `88888P' dP    dP    8888888P  `88888P' dP     dP dP    dP dP   dP   dP `88888P' dP    dP `88888P' 
+                        ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+#>                                                
+
+# Bring in libraries that were spread apart just for readability
+
+
+. .\_dot_include_standard_header_log_functions.ps1
+
+Function Get-CRC32 {
     <#
-    .SYNOPSIS
-    Try and get data to both the terminal AND the log file AND the transcript
-    
-    .DESCRIPTION
-    It's hard, but at least it's all in one place.
-    
-    .PARAMETER s
-    What to print
-    
-    .EXAMPLE
-    An example
-    
-    .NOTES
-    #TODO: Switch to humanizer?
-    #>    
+        .SYNOPSIS
+            Calculate CRC.
+        .DESCRIPTION
+            This function calculates the CRC of the input data using the CRC32 algorithm.
+        .EXAMPLE
+            Get-CRC32 $data
+        .EXAMPLE
+            $data | Get-CRC32
+        .NOTES
+            C to PowerShell conversion based on code in https://www.w3.org/TR/PNG/#D-CRCAppendix
+
+            Author: Øyvind Kallstad
+            Date: 06.02.2017
+            Version: 1.0
+        .INPUTS
+            byte[]
+        .OUTPUTS
+            uint32
+        .LINK
+            https://communary.net/
+        .LINK
+            https://www.w3.org/TR/PNG/#D-CRCAppendix
+
+    #>
+    [CmdletBinding()]
+    param (
+        # Array of Bytes to use for CRC calculation
+        [Parameter(Position = 0, ValueFromPipeline = $true)]
+        [ValidateNotNullOrEmpty()]
+        [byte[]]$InputObject
+    )
+
+    Begin {
+
+        Function New-CrcTable {
+            [uint32]$c = $null
+            $crcTable = New-Object 'System.Uint32[]' 256
+
+            for ($n = 0; $n -lt 256; $n++) {
+                $c = [uint32]$n
+                for ($k = 0; $k -lt 8; $k++) {
+                    if ($c -band 1) {
+                        $c = (0xEDB88320 -bxor ($c -shr 1))
+                    }
+                    else {
+                        $c = ($c -shr 1)
+                    }
+                }
+                $crcTable[$n] = $c
+            }
+
+            Write-Output $crcTable
+        }
+
+        function Update-Crc ([uint32]$crc, [byte[]]$buffer, [int]$length) {
+            [uint32]$c = $crc
+
+            if (-not (Test-Path variable:script:crcTable)) {
+                $script:crcTable = New-CrcTable
+            }
+
+            for ($n = 0; $n -lt $length; $n++) {
+                $c = ($script:crcTable[($c -bxor $buffer[$n]) -band 0xFF]) -bxor ($c -shr 8)
+            }
+
+            Write-output $c
+        }
+
+        $dataArray = @()
+    }
+
+    Process {
+        foreach ($item  in $InputObject) {
+            $dataArray += $item
+        }
+    }
+
+    End {
+        $inputLength = $dataArray.Length
+        Write-Output ((Update-Crc -crc 0xffffffffL -buffer $dataArray -length $inputLength) -bxor 0xffffffffL)
+    }
+}
+
+
+<#
+.SYNOPSIS
+Try and get data to both the terminal AND the log file AND the transcript
+
+.DESCRIPTION
+It's hard, but at least it's all in one place.
+
+.PARAMETER s
+What to print
+
+.EXAMPLE
+An example
+
+.NOTES
+#TODO: Switch to humanizer?
+#>    
 
 $Script:CurrentXPosInTerminal = 0
 
@@ -929,7 +946,16 @@ Function Out-SqlToDataset {
         Show-Error $sql -exitcode 4
     }   
 }
-
+  
+Function Get-SqlValue {
+    param (
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+    )
+    $DatabaseCommand = $DatabaseConnection.CreateCommand()
+    $DatabaseCommand.CommandText = $sql
+    $value = $DatabaseCommand.ExecuteScalar()
+    return $value
+}
 <#
 .SYNOPSIS
 Fetch a typed DatabaseColumnValue from a reader by either ordinal or name.
@@ -1054,145 +1080,6 @@ function Get-SqlFieldValue {
 
 <#
 .SYNOPSIS
-Write a string line to file defined in Start-Log
-
-.DESCRIPTION
-Long description
-
-.PARAMETER Text
-Parameter description
-
-.PARAMETER Restart
-Parameter description
-
-.EXAMPLE
-An example
-
-.NOTES
-General notes
-#>
-function Log-Line {
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=1, Mandatory=$false)][string] $Text,
-        [switch]$Restart,
-        [switch]$NoNewLine
-    )
-    #$mtx = New-Object System.Threading.Mutex($false, 'FileMtx')
-    #[void] $mtx.WaitOne()
-    
-    if ($null -eq $Text) {
-        Write-LogLineToFile "*** null string" 
-    }
-    elseif ( '' -eq $Text) {
-        Write-LogLineToFile "*** empty string" 
-    } 
-    else {
-        
-        try{
-            $HashArguments = @{}
-            if ($Restart) {
-                $HashArguments = @{Force = $true}
-            } else {
-                $HashArguments = @{Append = $true}
-
-            }    
-            if ($NoNewLine) {
-                $HashArguments+= @{NoNewLine = $true}
-            }
-
-            Write-LogLineToFile $Text $HashArguments
-            #Write-LogLineToFile "Wrote line"
-        }catch{
-            $HashArguments = @{}
-            $err = $_.Exception.Message
-            Write-LogLineToFile "Catching"
-            Write-LogLineToFile "$err" 
-        }finally{
-            #[void] $mtx.ReleaseMutex()
-            #$mtx.Dispose()
-            #$HashArguments = @{}
-           
-        }
-    }
-}
-<#            
-.SYNOPSIS
-Yet another layer, but keeping the file name path, encoding, even that it's out to a file, that helps reduce code.
-
-.DESCRIPTION
-Long description
-
-.PARAMETER text
-Parameter description
-
-.PARAMETER arguments
-Parameter description
-
-.EXAMPLE
-An example
-
-.NOTES
-General notes
-#>
-function Write-LogLineToFile {
-    param([string]$text, [hashtable]$arguments)
-    #"HERE"| Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
-    if ($null -eq $text) {
-        "NULL"|  Out-File "$Script:LogFilePath" -Encoding utf8 -Append
-    } 
-
-    if ($null -eq $arguments) {
-        $text | Out-File "$Script:LogFilePath" -Encoding utf8 -Append
-    } else {
-        $text | Out-File "$Script:LogFilePath" -Encoding utf8 @arguments
-    }
-    # TOO SLOW!!! Write-VolumeCache D # So that log stuff gets written out in case of fatal crash
-}
-function Log-SqlConnection {
-    # Database, driver, etc. Even user!!!!!!!!!!!
-}
-
-function Log-Sql {
-
-}
-
-function Log-SqlError {
-
-}
-
-function Log-SqlChangedObject {
-    # New columns, indexes, constraints, updated function, new postgres version, new extensions
-}
-
-function Log-HttpRequest {
-
-}
-
-function Log-Wait {
-
-}
-function Log-SkipSection {
-
-}
-
-function Log-EmptyElseClause {
-
-}
-
-function Log-Unimplemented {
-
-}
-function Log-Branch {
-
-}
-
-function Log-OutOfBandValue {
-
-}
-
-<#
-.SYNOPSIS
 Get better data typing on a query's columns.
 
 .DESCRIPTION
@@ -1232,179 +1119,7 @@ Function Get-SqlColDefinitions {
     }
 }
                                                 
-<#
-.SYNOPSIS
-Set up persistent logging.
-
-.DESCRIPTION                                                                                                                                                      
-Looked for my perfect logging tool. Made one myself. All the githubs I looked at were a bit off for my needs.  Easy-Peezy with buttloads of detail is what I want.
-My goal was to make it easy for the caller. Least number of parameters you have to send. So 'Log' is a verb.  Not 'Write-LogInfo", "Write-LogError", etc.
-Requirement: Call Start-Log, with no params if you like. It captures as much as it can, regardless of the performance.
-
-.EXAMPLE
-Start-Log
-
-.NOTES
-Over complicated and adds risk and delay.  aka - Features.
-#>
-
-function Log-ScriptCompleted {
-    $elapsedTime = $scriptTimer.Elapsed
-    $secondsRan = $elapsedTime.TotalSeconds
-    Log-Line "Stopping Normally after $secondsRan Second(s)"
-    # Timestamp
-    # Elapsed time in human form
-    # CPU used? etc.
-    # Rows written? Deleted? Updated? Found but no change?
-}
-
 $Script:Caller = 'TBD'
-
-function Start-Log {
-    [CmdletBinding()]
-    param(
-        # i.e., Override filename
-    )
-
-    # https://stackoverflow.com/questions/56551241/difference-between-a-runspace-and-external-request-in-powershell#56558837
-        # Internal = The command was dispatched by the msh engine as a result of a dispatch request from an already running command.
-        # Runspace = The command was submitted via a runspace.
-
-    New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
-    $DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up ordering.
-    
-    $Script:LogDirectory = "$ScriptRoot\_log"
-    
-    New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
-                                                        
-    $Script:LogFileName = $ScriptName + '.log.txt' 
-    $Script:LogFilePath = $Script:LogDirectory + '\' + $Script:LogFileName
-
-    # Header Line 1
-    Log-Line "Starting Log $(Get-Date) on $((Get-Date).DayOfWeek) $DSTTag in $((Get-Date).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
-    
-    $PSVersion       = $PSVersionTable.PSVersion
-    $PEdition        = $PSVersionTable.PSEdition
-    $ScriptFullPath  = $MyInvocation.ScriptName
-    $CommandOrigin   = $MyInvocation.CommandOrigin
-    $CurrentFunction = $MyInvocation.MyCommand
-
-    # Header Line 2   
-    Log-Line "`$ScriptFullPath: $ScriptFullPath, `$PSVersion = $PSVersion, `$PEdition = $PEdition, `$CommandOrigin = $CommandOrigin, Current Function = $CurrentFunction"
-
-    # Get all our parent processes to detect (try) what started us
-    
-    $p = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $PID"
-    $processtree = @()
-
-    While ($p) {
-        $processtree+= $p
-        $p = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $($p.ParentProcessId)"
-    }
-
-    # If being run inside Visual Code editor: Explorer.exe -> Code.exe -> Code.exe ->powershell.exe
-    # If being run from Scheduler: wininit.exe -> services.exe -> svchost.exe -> powershell.exe
-    # cmd  /K "chcp 1252"
-    if ($processtree.Count -ge 2) {
-        $determinorOfCaller = $processtree[1]
-        if ($null -eq $determinorOfCaller.CommandLine) { 
-            Log-Line "processtree 1 CommandLine is null"
-        } else {
-            Log-Line "processtree 1 CommandLine is not null: $($determinorOfCaller.CommandLine)" # C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-        }
-                                                        
-        $partofcmdline = $determinorOfCaller.CommandLine
-
-        if ($partofcmdline.Length -gt 100) {$partofcmdline = $determinorOfCaller.CommandLine.SubString(0,100)}
-     
-        # Called from Windows Task Scheduler?
-
-        if ($determinorOfCaller.Name -eq 'svchost.exe' -and $determinorOfCaller.CommandLine -ilike "*schedule*") {
-            Log-Line "Called from Windows Task Scheduler"
-            $Script:Caller = 'Windows Task Scheduler'
-
-            # Get a list of all defined tasks on this machine. We want to match our execute and arguments to 1 or more tasks' actions.
-            # Hopefully we can guess at which one called us.
-
-    
-            $cmdlineofstartargs = $processtree[0].CommandLine
-            Log-Line "Scanning Get-ScheduledTasks"
-            Log-Line $cmdlineofstartargs
-
-            # $possibleTaskCallingMe = $allregisteredtasks|Where-Object CommandLine -eq $cmdlineofstartargs
-            # if ($null -eq $possibleTaskCallingMe) {
-            #     Log-Line "Null count"
-            # } else {
-            #     Log-Line "Found some tasks"
-            # }
-            # $howmanyfound = $possibleTaskCallingMe.Count
-           
-            # Log-Line "Finished Scanning"
-            # if ($null -eq $howmanyfound -or $howmanyfound -eq 0) {  #THIS LINE FAILS TO DO ANYTHING
-            #     Log-Line "None found"
-            # } else {
-            #     Log-Line "Some found"
-            # }
-        
-            Log-Line "Finished Scanning (2)"
-            exit
-
-            # if ($howmanyfound -eq 1) {
-            #     $TaskThatProbablyCalledUs = $possibleTaskCallingMe.Uri
-            #     Log-Line "Task that probably called us is <$TaskThatProbablyCalledUs>"
-            # }
-            # elseif ($howmanyfound -ge 2) {
-            #     Log-Line "Found $howmanyfound Tasks with same command line + arguments"
-            # }
-            # else {
-            #     Log-Line "Unable to find any existing non-disabled tasks with this command line and arguments"
-            # }
-
-            # TODO: Check history to see if that task just ran
-            
-        } elseif ($determinorOfCaller.Name -eq 'Code.exe') {
-            Log-Line "Called whilest in Visual Code Editor"
-            $Script:Caller = 'Visual Code Editor'
-        } elseif ($determinorOfCaller.Name -eq 'Code - Insiders.exe') {
-            Log-Line "Called whilest in Visual Code Editor (Preview)"
-            $Script:Caller = 'Visual Code Editor'
-        } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {  
-        } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {  
-            Log-Line "Called whilest in Command Line"
-            $Script:Caller = 'Command Line'
-        } else {
-            Log-Line "Caller not detected"
-            $Script:Caller = ($determinorOfCaller.CommandLine)
-            Log-Line ($determinorOfCaller.CommandLine)
-            # Other callers could be the command line, JAMS, a bat file, another powershell script, that one at Simplot, the other one at Ivinci, the one at BofA
-        }
-
-        #Log-Li
-    }
-    else {
-        Log-Line "gfgfasgadgads"
-        $Script:Caller = 'ProcessTree Count less than 2'
-    }
-    if (1 -eq 0) {
-        $ordinal = 0
-        ForEach ($p in $processtree) {
-            $partofcmdline = ""
-            if ($p.CommandLine -eq $null) {
-                $partofcmdline = "(empty)"
-
-            
-            } elseif ($p.CommandLine.Length -lt 100) {
-
-                $partofcmdli
-                $partofcmdline = $p.CommandLine
-            } else {
-                $partofcmdline = $p.CommandLine.SubString(0,100)
-            }
-            Log-Line "$ordinal $($p.Name), #$($p.ProcessId), $partofcmdline"
-            $ordinal++
-        }
-    }
-}
 
 <#
 .SYNOPSIS
@@ -1463,7 +1178,7 @@ Function Least([array]$things) {
 
 Function Left([string]$val, [int32]$howManyChars = 1) {
     if ([String]::IsNullOrEmpty($val)) { 
-        # Made up rule: Empty doesn't have a Leftmost character
+        # Made up rule: Empty doesn't have a Leftmost character. $null should break the caller.  Returning an empty string as "leftmost character" is a fudge, and causes problems.
         return $null
     }               
     $actualLengthWeWillGet = Least $howManyChars  $val.Length
@@ -1693,7 +1408,23 @@ Function TrimToMillseconds([datetime]$date) # Format only for PowerShell! Not Po
     # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
     [DateTime]::ParseExact($date.ToString("yyyy-MM-dd hh:mm:ss.fff"), "yyyy-MM-dd hh:mm:ss.fff", $null)
 }                                
+    
+<#
+.SYNOPSIS
+Prep a .NET date time for insertion into a PostgreSQL query.
 
+.DESCRIPTION
+Postgres, without a type extension, can only support 6 decimal places of time accuracy.  .NET and Windows and SQL Server support 7, so inprecise comparisons cause accidental difference detection between file timestamps when they are in fact the same.
+
+.PARAMETER date
+Powershell Date type, wi  th 7 decimal (100 nanosecond) precision
+
+.EXAMPLE
+An example              
+                
+.NOTES
+General notes
+#>
 Function TrimToMicroseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
 {
     # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
@@ -1902,14 +1633,19 @@ Function main_for_dot_include_standard_header() {
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
         Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
 
-        #Test $searchPathCursor = Out-SqlToArray 'SELECT search_path FROM search_paths ORDER BY search_path_id'
-
+        $Script:active_batch_run_session_id = Get-SqlValue 'SELECT active_batch_run_session_id FROM simplified.batch_run_session_active_running_values_ext_v'
+        if ($Script:active_batch_run_session_id -ne -1) {
+            $Script:active_batch_run_session_task_id = Get-SqlValue("INSERT INTO batch_run_sessions_tasks(batch_run_session_id) VALUES($($Script:active_batch_run_session_id)) RETURNING batch_run_session_task_id")
+            
+        }
     }
 
     Start-Log
+
+    Log-Line "active_batch_run_session_id # = $($Script:active_batch_run_session_id)"
+
 }
                                  
-
 main_for_dot_include_standard_header # So as not to collide with dot includer
                                   
 # If we don't see this in log, then it broke.
