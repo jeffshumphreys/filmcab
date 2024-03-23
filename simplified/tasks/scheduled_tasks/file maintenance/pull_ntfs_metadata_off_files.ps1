@@ -11,7 +11,9 @@
 try {
 . .\_dot_include_standard_header.ps1
 
-$howManyUpdatedFiles = 0
+$howManyUpdatedFiles     = 0
+$howManyEmptiesPopulated = 0
+$howManyChangedValue     = 0
 
 # Let's traverse all the undeleted directories flagged for scan. scan_for_file_directories sets the flag before this daily.
 
@@ -32,18 +34,33 @@ While ($walkThruAllFilesReader.Read()) {
         _TICK_Found_Existing_Object
         $on_fs_file_ntfs_id = (fsutil file queryfileid $file_path).Substring(13) # Trim off annoying lead text
         $in_db_file_ntfs_id = Convert-ByteArrayToHexString ($in_db_file_ntfs_id)
+         
+        # Must be able to get an id from fsutil.  Either we're on linux or some cases don't return an id.
+        if ($null -eq $on_fs_file_ntfs_id) {
+            # We weren't able to get an id from the file
+            _TICK_Impossible_Outcome
+            Show-Error "Unable to get an ntfs_id from fsutil for this file"
+        }
+                                                                                          
+        # Either an id is missing or they've changed. Should track changes to id separately.
 
-        if ($null -eq $on_fs_file_ntfs_id -or $on_fs_file_ntfs_id -ne $in_db_file_ntfs_id) {
+        if ($null -eq $in_db_file_ntfs_id -or $on_fs_file_ntfs_id -ne $in_db_file_ntfs_id) {
             _TICK_Existing_Object_Actually_Changed
             Invoke-Sql "
                 UPDATE 
                     files_v 
                 SET 
-                    file_ntfs_id = '$on_fs_file_ntfs_id'::bytea 
+                    file_ntfs_id = '$on_fs_file_ntfs_id'::bytea     /* You'd think it'd be an integer, but it's too big */
                 WHERE 
                     file_id = $file_id
             "|Out-Null
             $howManyUpdatedFiles++
+            if ($null -eq $in_db_file_ntfs_id) {
+                $howManyEmptiesPopulated++
+            }               
+            elseif ($on_fs_file_ntfs_id -ne $in_db_file_ntfs_id) { # Note that in PS, $null can not equal a not-null. Hence the elseif
+                $howManyChangedValue++
+            }
         }
             
         # optimizemetadata 	This performs an immediate compaction of the metadata for a given file.
@@ -52,8 +69,9 @@ While ($walkThruAllFilesReader.Read()) {
     }
 }
 
-Write-Count howManyUpdatedFiles           File
-
+Write-Count howManyUpdatedFiles          File
+Write-Count howManyEmptiesPopulated      Id
+Write-Count howManyChangedValue          Id
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
