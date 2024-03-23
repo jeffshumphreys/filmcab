@@ -49,7 +49,7 @@ description: >-
 
 1. ✅pull\_new\_scheduled\_task\_events
 2. ✅pull\_scheduled\_task\_definitions
-3. export\_project\_scheduled\_task\_definition\_xml
+3. ❌export\_project\_scheduled\_task\_definition\_xml
 
 ## import metadata
 
