@@ -58,7 +58,9 @@ $rowsAdded = Invoke-Sql "/*sql*/
     )" 
 Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
  
-$new_batch_run_session_row = Out-SqlToDataset "SELECT batch_run_session_id FROM batch_run_sessions WHERE running" -DontWriteSqlToConsole
+$new_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions WHERE running"
+Get-SqlValue "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $new_batch_run_session_id"
+# or While-Sql??? Invoke-Sql "INSERT INTO batch_run_sessions_tasks(batch_run_session_id) VALUES($($Script:active_batch_run_session_id)) RETURNING batch_run_session_task_id"
 
 }
 catch {
