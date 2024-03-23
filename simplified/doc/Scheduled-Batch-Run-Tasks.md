@@ -26,11 +26,12 @@ description: >-
 9. ✅clean\_up\_table\_data
 10. 💡delete\_dup\_backups\_not\_published
 11. ✅extract\_genres\_from\_file\_paths
-12. 💡physically\_delete\_published\_crap
-13. link\_files\_across\_search\_directories
-14. convert\_published\_duplicates\_to\_hard\_links
-15. report\_unpublished\_files
-16. 🚧zzz\_end\_batch\_run\_session
+12. ✅pull_ntfs_metadata_off_files
+13. 💡physically\_delete\_published\_crap
+14. link\_files\_across\_search\_directories
+15. convert\_published\_duplicates\_to\_hard\_links
+16. report\_unpublished\_files
+17. ✅zzz\_end\_batch\_run\_session
 
 ## video file maintenance
 
