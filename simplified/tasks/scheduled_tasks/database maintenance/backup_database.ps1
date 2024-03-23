@@ -57,8 +57,8 @@ Foreach ($line in $schema) {
 }                                
 $date_free_schema|Set-Content -Path $file_name_to_codebase
                                    
-$file_name_in_codebase = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.sql"
-$file_name_in_codebase_previous_copy = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.$RidiculousLongTimestamp.sql"
+$file_name_in_codebase               = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.sql"
+$file_name_in_codebase_previous_copy = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.prev.sql"
     
 $previous_sql_hash = (Get-FileHash -LiteralPath $file_name_to_codebase -Algorithm MD5).Hash
 $new_sql_hash = (Get-FileHash -LiteralPath $file_name_in_codebase -Algorithm MD5).Hash
