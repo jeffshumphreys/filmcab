@@ -23,7 +23,7 @@ try {
                                                                             
 # . D:\qt_projects\filmcab\simplified\__sanity_check_with_db_connection.ps1
 #
-$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running" -DontWriteSqlToConsole
+$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions_v WHERE running" -DontWriteSqlToConsole
 
 # Check if old session still marked as active
 
@@ -33,11 +33,11 @@ if ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -eq 1) {
 
     # Flush out the active marked record so we can start a new session.
     
-    Invoke-Sql "UPDATE batch_run_sessions SET running = NULL, session_killing_script = '$ScriptName', marking_stopped_after_overrun = CURRENT_TIMESTAMP WHERE running" | Out-Null
+    Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" | Out-Null
 }                                                                          
 elseif ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -gt 1) {                         
     # Broken table constraint, only possibility, so note it and crash.
-    throw [System.Exception]"ERROR: More than one session marked active: Query was 'SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running', STOPPING!"
+    throw [System.Exception]"ERROR: More than one session marked active: Query was 'SELECT batch_run_session_id, started FROM batch_run_sessions_v WHERE running', STOPPING!"
 }                                                                                                                                                                         
 elseif ($null -eq $state_of_session) {
     # No session active?? Hopefully???
@@ -45,7 +45,7 @@ elseif ($null -eq $state_of_session) {
     
 # "Starts"
 $rowsAdded = Invoke-Sql "/*sql*/
-    INSERT INTO batch_run_sessions(
+    INSERT INTO batch_run_sessions_v(
         last_script_ran
     ,   session_starting_script
     ,   caller
@@ -58,7 +58,7 @@ $rowsAdded = Invoke-Sql "/*sql*/
     )" 
 Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
  
-$new_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions WHERE running"
+$new_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
 Get-SqlValue "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $new_batch_run_session_id"
 # or While-Sql??? Invoke-Sql "INSERT INTO batch_run_sessions_tasks(batch_run_session_id) VALUES($($Script:active_batch_run_session_id)) RETURNING batch_run_session_task_id"
 
