@@ -1080,7 +1080,7 @@ Function main_for_dot_include_standard_header() {
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
         Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
 
-        $Script:active_batch_run_session_id = Get-SqlValue 'SELECT active_batch_run_session_id FROM simplified.batch_run_session_active_running_values_ext_v'
+        $Script:active_batch_run_session_id = Get-SqlValue 'SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v'
         if ($Script:active_batch_run_session_id -ne -1) {
             $Script:active_batch_run_session_task_id = Get-SqlValue("INSERT INTO batch_run_sessions_tasks(batch_run_session_id) VALUES($($Script:active_batch_run_session_id)) RETURNING batch_run_session_task_id")
             
