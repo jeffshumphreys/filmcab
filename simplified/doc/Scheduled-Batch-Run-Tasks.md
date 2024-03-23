@@ -92,4 +92,4 @@ description: >-
 
 1. 🌙trap\_new\_scheduled\_task\_definitions
 
-Icons 🚧 - Under construction 🤔 - Are we sure we want to do this 🌙 - Dead; so far off and low priority 💡 - Good idea, concept, how will we implement ✅ - Deployed, scheduled, appears to be running good
+Icons 🚧 - Under construction 🤔 - Are we sure we want to do this 🌙 - Dead; so far off and low priority 💡 - Good idea, concept, how will we implement ✅ - Deployed, scheduled, appears to be running good ❌Cancelled
