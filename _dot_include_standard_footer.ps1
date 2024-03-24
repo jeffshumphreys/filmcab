@@ -37,6 +37,9 @@ Format-Humanize $scriptTimer
 
 Log-ScriptCompleted
 
+#End-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName -batch_run_session_task_id $Script:active_batch_run_session_task_id
+
+
 try {Stop-Transcript}catch{}
 
 exit 0
