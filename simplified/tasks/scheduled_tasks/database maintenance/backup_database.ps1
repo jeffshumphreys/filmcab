@@ -13,8 +13,8 @@
 $RidiculousLongTimestamp = (Get-Date).DateTime -replace ':', ' '
 
 # format c = Output a custom-format archive suitable for input into pg_restore. Together with the directory output format, this is the most flexible output format in that it allows manual selection and reordering of archived items during restore. This format is also compressed by default
-                                                                      
-$file_name_base = "C:\FilmCab Backups/dump-filmcab-database-data-simplified-schema.$RidiculousLongTimestamp"
+
+$file_name_base = "$($Config.backup_path)/dump-$($Config.database)-database-data-$($Config.schema)-schema.$RidiculousLongTimestamp.sql"
       
 Write-AllPlaces "base to all backups: $file_name_base"
                                                     
@@ -42,8 +42,8 @@ pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --dbname=f
 
 pg_dump.exe --verbose --format=p --file "$file_name_base-table-files-in_text.sql" --dbname=filmcab --schema=simplified --table=files --blobs|Out-Host
 
-$file_name_base = "C:\FilmCab Backups/dump-filmcab-database-simplified-schema-only-.$RidiculousLongTimestamp"
-$file_name_to_codebase = "C:\FilmCab Backups/dump-filmcab-database-simplified-schema-only.sql"
+$file_name_base = "$($Config.backup_path)/dump-$($Config.database)-database-$($Config.schema)-schema-only.$RidiculousLongTimestamp.sql"
+$file_name_to_codebase = "$($Config.backup_path)/dump-$($Config.database)-database-$($Config.schema)-schema-only.sql"
                                                                        
 pg_dump.exe --verbose --format=p --file "$file_name_base-in_text.sql" --schema-only --dbname=filmcab --schema=simplified --blobs|Out-Host
 
@@ -56,17 +56,22 @@ Foreach ($line in $schema) {
     }
 }                                
 $date_free_schema|Set-Content -Path $file_name_to_codebase
-                                   
-$file_name_in_codebase               = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.sql"
-$file_name_in_codebase_previous_copy = "D:\qt_projects/filmcab/simplified/sql/dump-filmcab-database-simplified-schema-only.prev.sql"
+
+$path_base_for_all = "$($Config.local_path)\$($Config.subfolder)"
+
+$file_name_in_codebase               = "$path_base_for_all/sql/dump-$($Config.database)-database-$($Config.schema)-schema-only.sql"
+$file_name_in_codebase_previous_copy = "$path_base_for_all/sql/dump-$($Config.database)-database-$($Config.schema)-schema-only.prev.sql"
     
 $previous_sql_hash = (Get-FileHash -LiteralPath $file_name_to_codebase -Algorithm MD5).Hash
 $new_sql_hash = (Get-FileHash -LiteralPath $file_name_in_codebase -Algorithm MD5).Hash
 
 if ($previous_sql_hash -ne $new_sql_hash) {
+    Write-AllPlaces "Difference between new and last DDL detected."
     Copy-Item $file_name_in_codebase -Destination $file_name_in_codebase_previous_copy -Force -Verbose
     Copy-Item $file_name_to_codebase -Destination $file_name_in_codebase -Force -Verbose # Will trigger github changes    
     Copy-Item $file_name_to_codebase -Destination $file_name_in_codebase -Force -Verbose
+} else {
+    Write-AllPlaces "No difference between new and last DDL detected."
 }
 
 }
