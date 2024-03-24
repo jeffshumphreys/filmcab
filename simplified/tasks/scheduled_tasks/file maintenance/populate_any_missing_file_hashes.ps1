@@ -30,18 +30,15 @@ if ($DatabaseConnectionIsOpen) {
     While ($reader.Read()) {
         if ((Test-Path $file_path)) {
             $on_fs_file_hash = (Get-FileHash -LiteralPath $file_path -Algorithm MD5).Hash
-                    $update_sql = "
+                    
+                    Invoke-Sql "
                         UPDATE
                             files_v
                         SET 
                             file_hash   = '$on_fs_file_hash'::bytea
                         WHERE
                             file_id     = $file_id
-                    "
-                    $howManyRowsUpdated = Invoke-Sql $update_sql
-                    if ($howManyRowsUpdated -ne 1) {
-                        throw [Exception]"Update failed to update anything or too many: $howManyRowsUpdated"
-                    }                                                                  
+                    " -OneAndOnlyOne |Out-Null
 
                     _TICK_Existing_Object_Actually_Changed
                     $howManyUpdatedFiles++

@@ -36,7 +36,7 @@ $dropandrecreate_expanded_json = $true
 if ($dbconnopen) {
     if ($load_json) {
         if ($dropandrecreate_json) {
-            Invoke-Sql "DROP TABLE IF EXISTS receiving_dock.json_data;";
+            Invoke-Sql "DROP TABLE IF EXISTS receiving_dock.json_data;"
             Invoke-Sql "
                 CREATE TABLE receiving_dock.json_data(LIKE public.template_for_docking_tables INCLUDING ALL,
                     content_source_id        int8
@@ -45,7 +45,7 @@ if ($dbconnopen) {
                 ,	json_data_as_json_object JSON
                 ,   inputpath                text UNIQUE
                 ,   record_added_on          timestamptz default clock_timestamp()	
-                );" 
+                )" 
         }
 
         $c = '.'
@@ -67,11 +67,11 @@ if ($dbconnopen) {
                 }
                 $cleanfilepath = $cleanfilepath.Replace('''', '''''')
                 Invoke-Sql "
-                INSERT INTO receiving_dock.json_data(
-                    content_source_id, source_meta_agg, source_content_class, inputpath, json_data_as_json_object) 
-                SELECT $content_source_id, '$source_meta_agg', '$source_content_class', '$cleanfilepath', pg_read_file('$cleanfilepath')::json
-                WHERE NOT EXISTS(SELECT 1 FROM receiving_dock.json_data a WHERE '$cleanfilepath' = a.inputpath)
-                ;"
+                    INSERT INTO receiving_dock.json_data(
+                        content_source_id, source_meta_agg, source_content_class, inputpath, json_data_as_json_object) 
+                    SELECT $content_source_id, '$source_meta_agg', '$source_content_class', '$cleanfilepath', pg_read_file('$cleanfilepath')::json
+                    WHERE NOT EXISTS(SELECT 1 FROM receiving_dock.json_data a WHERE '$cleanfilepath' = a.inputpath)
+                "
             }
         }
     }

@@ -66,7 +66,7 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
         }
 
         $sql+= "FROM '$copytopath' CSV HEADER;" + [System.Environment]::NewLine;
-        Invoke-Sql $sql > $null
+        Invoke-Sql $sql |Out-Null
     } catch {
         Show-Error $sql -exitcode 2
     }

@@ -134,7 +134,7 @@ While ($reader.Read()) {
                         $recalculated_on_fs_file_hash = @($on_fs_file_hash|Format-Hex|Select ascii).Ascii -Join '' # May be churn
   
                         
-                        Invoke-Sql  "
+                        Invoke-Sql "
                             UPDATE
                                 files_v
                             SET
@@ -239,7 +239,7 @@ Write-Count howManyConvertedToHardLinks           Link
 Write-Count howManyNewSymbolicLinks               Link
 Write-Count howManyConvertedToSymbolicLinks       Link
 Write-Count howManyScanDirectoryTriggersDisabled  Trigger
-}
+}                                 
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
 }                                  

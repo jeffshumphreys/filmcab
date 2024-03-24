@@ -226,43 +226,42 @@ While ($searchDirectories.Read()) {
             if ($foundANewDirectory) { #even if it's a link, we store it
                 $howManyNewDirectories++
                 Write-AllPlaces "New Directory found: $on_fs_directory on $on_fs_driveletter drive" 
-                $sql = "
-                    INSERT INTO 
-                        directories_v(
-                               directory_hash, 
-                               directory,
-                               parent_directory_hash, 
-                               directory_date, 
-                               volume_id, 
-                               scan_directory, 
-                               directory_is_symbolic_link, 
-                               directory_is_junction_link, 
-                               linked_directory,
-                               search_directory_id,
-                               folder,
-                               parent_folder,
-                               grandparent_folder,
-                               directory_deleted
-                        )
-                    VALUES(
-                        /*     directory_hash              */  md5_hash_path('$on_fs_directory_escaped'),
-                        /*     directory                   */  REPLACE('$on_fs_directory_escaped', '/', '\'),
-                        /*     parent_directory_hash       */  md5_hash_path('$on_fs_parent_directory_escaped'),
-                        /*     directory_date              */ '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
-                        /*     volume_id                   */ (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
-                        /*     scan_directory              */ $scan_directory,
-                        /*     directory_is_symbolic_link  */ $on_fs_directory_is_symbolic_link,
-                        /*     directory_is_junction_link  */ $on_fs_directory_is_junction_link,
-                        /*     linked_directory            */ $on_fs_linked_directory_escaped,
-                        /*     search_directory_id         */ $search_directory_id,
-                        /*     folder                      */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1]),
-                        /*     parent_folder               */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2]),
-                        /*     grantparent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
-                        /*     directory_deleted           */ False
-                    )
-                "
 
-                $rowsInserted = Invoke-Sql $sql
+                $rowsInserted = Invoke-Sql "
+                INSERT INTO 
+                    directories_v(
+                           directory_hash, 
+                           directory,
+                           parent_directory_hash, 
+                           directory_date, 
+                           volume_id, 
+                           scan_directory, 
+                           directory_is_symbolic_link, 
+                           directory_is_junction_link, 
+                           linked_directory,
+                           search_directory_id,
+                           folder,
+                           parent_folder,
+                           grandparent_folder,
+                           directory_deleted
+                    )
+                VALUES(
+                    /*     directory_hash              */  md5_hash_path('$on_fs_directory_escaped'),
+                    /*     directory                   */  REPLACE('$on_fs_directory_escaped', '/', '\'),
+                    /*     parent_directory_hash       */  md5_hash_path('$on_fs_parent_directory_escaped'),
+                    /*     directory_date              */ '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
+                    /*     volume_id                   */ (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
+                    /*     scan_directory              */ $scan_directory,
+                    /*     directory_is_symbolic_link  */ $on_fs_directory_is_symbolic_link,
+                    /*     directory_is_junction_link  */ $on_fs_directory_is_junction_link,
+                    /*     linked_directory            */ $on_fs_linked_directory_escaped,
+                    /*     search_directory_id         */ $search_directory_id,
+                    /*     folder                      */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1]),
+                    /*     parent_folder               */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2]),
+                    /*     grantparent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
+                    /*     directory_deleted           */ False
+                )
+            "
                 _TICK_New_Object_Instantiated
                 $howManyRowsInserted+= $rowsInserted # One, hopefully
 

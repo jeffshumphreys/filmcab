@@ -72,11 +72,11 @@ if ($dbconnopen) {
                 Invoke-Sql "UPDATE $target_table_enhancing SET $datapoint = to_date('$datapoint_pulled_val', 'yyyy-mm-dd') WHERE $sourceid = $sourcerefid"
 
             } else {
-                $sql = "INSERT INTO receiving_dock.pull_attr_frm_src_log
+                
+                Invoke-Sql "INSERT INTO receiving_dock.pull_attr_frm_src_log
                 (source_row_id, source_datapoint, source_datapoint_val, source_row_capt_dt, target_row_id, target_table, target_column, target_column_orig_val, target_row_dt, applied)
                 VALUES($sourcerefid, '$datapoint', '$datapoint_pulled_val', clock_timestamp(), $sourcerefid, '$target_table_enhancing', '$datapoint', NULL, '$target_row_capt_dt', false);
                 "
-                Invoke-Sql $sql
             }
         } catch {
             # Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
@@ -84,14 +84,14 @@ if ($dbconnopen) {
             $Error
             $PSItem
             Write-AllPlaces $_.ScriptStackTrace
-            $status_code = $_.Exception.Response.StatusCode.value__ # Not the 32 you see in the error, hmmm. rather, 404
-            $status_message = $_.Exception.Response.StatusDescription # Empty!
+            $status_code     = $_.Exception.Response.StatusCode.value__ # Not the 32 you see in the error, hmmm. rather, 404
+            $status_message  = $_.Exception.Response.StatusDescription # Empty!
             $request_message = $_.Exception.Response.RequestMessage.RequestUri.OriginalString
-            $sql = "INSERT INTO receiving_dock.pull_attr_frm_src_log
+            
+            Invoke-Sql "INSERT INTO receiving_dock.pull_attr_frm_src_log
             (source_row_id, source_datapoint, source_datapoint_val, source_row_capt_dt, target_row_id, target_table, target_column, target_column_orig_val, target_row_dt, applied, source_query_err, request_message)
             VALUES($sourcerefid, '$datapoint', '$datapoint_pulled_val', clock_timestamp(), $sourcerefid, '$target_table_enhancing', '$datapoint', NULL, '$target_row_capt_dt', false, $status_code, '$request_message');
             "
-            Invoke-Sql $sql
             if ($status_code -eq '') {
                 $status_code = '<blank>'
                 $_.Exception

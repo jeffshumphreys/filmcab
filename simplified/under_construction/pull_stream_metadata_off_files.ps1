@@ -13,7 +13,7 @@ $howManyUpdatedFiles     = 0
 
 # Let's traverse all the undeleted directories flagged for scan. scan_for_file_directories sets the flag before this daily.
 
-$walkThruAllFilesReader = WhileReadSql <#sql#>"
+$walkThruAllFilesReader = WhileReadSql "
     SELECT 
         file_id
     ,   file_path

@@ -35,7 +35,7 @@ while ($volumesForSearchDirectories.Read()) {
     $spaceRemaining = ($volumes|Where DriveLetter -eq $drive_letter|Select SizeRemaining).SizeRemaining
     Write-AllPlaces "$drive_letter`: TotalSize=$(HumanizeCount($totalSize)), Free=$(HumanizeCount($spaceRemaining))"
     
-    Invoke-Sql "UPDATE search_directories SET size_of_drive_in_bytes = $totalSize, space_left_on_drive_in_bytes = $spaceRemaining WHERE volume_id = $volume_id" -OneOrMore |Out-Null # Many paths on same volume
+    Invoke-Sql "UPDATE search_directories_v SET size_of_drive_in_bytes = $totalSize, space_left_on_drive_in_bytes = $spaceRemaining WHERE volume_id = $volume_id" -OneOrMore |Out-Null # Many paths on same volume
     $howMuchSpaceLeft+= $spaceRemaining
 }
 
