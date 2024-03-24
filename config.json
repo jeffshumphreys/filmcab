@@ -2,6 +2,7 @@
     "project" : "filmcab",  
     "project_pretty_title": "FilmCab",     
     "local_path": "D:\\qt_projects\\filmcab", 
+    "backup_path": "C:\\FilmCab Backups",
     "developer": "Jeffrey Scott Humphreys",
     "github_paths": {
         "source": "https://github.com/jeffshumphreys/filmcab",
@@ -9,6 +10,7 @@
     },
     "subfolder": "simplified",
     "database": "filmcab",        
+    "schema": "simplified",        
     "Primary_OS": "Windows",
     "IDE": "VS Code",
     "database_implementation": "PostgreSQL",   
