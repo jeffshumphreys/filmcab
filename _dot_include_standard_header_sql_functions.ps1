@@ -7,7 +7,53 @@
  #
  #    All writing to relational SQL databases.
  #>                                                                                                
-     
+   
+ <#
+ .SYNOPSIS
+ Prep PowerShell object for embedding in postgresql string
+ 
+ .DESCRIPTION
+ Lots to do, convert dates, bytes, ints, deal with nulls, format datetime, date, escape strings
+ 
+ .PARAMETER val
+ typed value (or null)
+ 
+ .PARAMETER KeepEmpties
+ Parameter description
+ 
+ .EXAMPLE
+ $script_name_prepped_for_sql = PrepForSql $script_name # Not sure an ideal example.
+ $script_name = PrepForSql $script_name      # Hmm, still bad. Now I've messed the original. So after the INSERT, now I have a fragile value.
+ $Script:batch_run_session_task_id = Get-SqlValue("
+            INSERT INTO 
+                batch_run_sessions_tasks(
+                    batch_run_session_id,
+                    script_changed,
+                    script_name
+                )
+                VALUES(
+                    $batch_run_session_id,
+                    '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                    $script_name_prepped_for_sql     /* This at least is really clear why I don't have apostrophes wrapping this variable */
+                )
+
+Another way I'm  considering but I'm not excited about:
+
+           INSERT INTO 
+                batch_run_sessions_tasks(
+                    batch_run_session_id,
+                    script_changed,
+                    script_name
+                )
+                VALUES(
+                    $batch_run_session_id,
+                    '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                    $(PrepForSql $script_name)
+                )
+ 
+ .NOTES
+ General notes
+ #>
  Function PrepForSql {
     param (
         $val,
@@ -29,10 +75,13 @@ Mostly just to reduce caller bloat.  There's no $DatabaseCommand.ExecuteNonQuery
 Doesn't capture return values.
 
 .PARAMETER sql
-Script to execute.
+Script to execute. 
 
 .EXAMPLE
 Invoke-Sql 'SET search_path = simplified, "$user", public'
+Invoke-Sql "UPDATE search_directories_v SET size_of_drive_in_bytes = $totalSize, space_left_on_drive_in_bytes = $spaceRemaining WHERE volume_id = $volume_id" -OneOrMore |Out-Null
+$HowManyFoldersPopulated = Invoke-Sql "UPDATE directories SET folder = reverse((string_to_array(reverse(replace(directory_path::text, '\'::text, '\\'::text)), '\'))[1]) WHERE folder IS NULL"
+$howManyAdded              = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_example) VALUES('$subgenre', 'published folders', 2, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
 
 .NOTES
 Also good way to enforce some sort of error response. Damn! Even displays the sql executed!!!!!!! Hell has broken out on the face of the Earth!
@@ -394,10 +443,14 @@ Function Get-SqlValue {
     param (
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
     )
-    $DatabaseCommand = $DatabaseConnection.CreateCommand()
-    $DatabaseCommand.CommandText = $sql
-    $value = $DatabaseCommand.ExecuteScalar()
-    return $value
+    try {
+        $DatabaseCommand = $DatabaseConnection.CreateCommand()
+        $DatabaseCommand.CommandText = $sql
+        $value = $DatabaseCommand.ExecuteScalar()
+        return $value
+    } catch {
+        Show-Error $sql -exitcode 44
+    }
 }
 <#
 .SYNOPSIS
