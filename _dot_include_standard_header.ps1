@@ -75,21 +75,24 @@ $DEFAULT_POSTGRES_TIMESTAMP_FORMAT = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 202
 [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
 $DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
 
-$OutputEncoding = [ System.Text.Encoding]::UTF8 
+$OutputEncoding = [System.Text.Encoding]::UTF8 
+
+# Just some FYI hey these look cool, but I'm trying to use the TICK functions below in including code.
 # https://www.compart.com/en/unicode/category/So
-$UNICODE_SMILEY_FACE                  = 0x1F600            # 😀
-$UNICODE_BALLOT_X                     = 0x2717             # ✗
-$UNICODE_CROSS_MARK                   = 0x274C             # ❌
-$UNICODE_SPARKLES                     = 0x2728             # ✨
-$UNICODE_HEAVY_EXCLAMATION_MARK       = 0x2757             # ❗
-$UNICODE_BLACK_QUESTION_MARK_ORNAMENT = 0x2753             # ❓
+#$UNICODE_SMILEY_FACE                  = 0x1F600            # 😀
+#$$UNICODE_BALLOT_X                     = 0x2717             # ✗
+#$UNICODE_CROSS_MARK                   = 0x274C             # ❌
+#$UNICODE_SPARKLES                     = 0x2728             # ✨
+#$UNICODE_HEAVY_EXCLAMATION_MARK       = 0x2757             # ❗
+#$UNICODE_BLACK_QUESTION_MARK_ORNAMENT = 0x2753             # ❓
 # inspect? 🔬
 # push? 💨
 # refactor? 🧹
 #$UNICODE_OK_HAND_SIGN                 = 0xD83D 0xDC4C
 # ⭐
                                                                                                                                         
-$pretest_assuming_true = $true
+$pretest_assuming_true = $true                                                         
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')] # Not sure if this is used anywhere, but it's one of my inventions.  Don't set a flag to false without some indication  that "hey this is a presumptive non-value for a variable that cannot hold a null as a type, and it will only have meaning after the following test or successful action."
 $pretest_assuming_false = $false
 
 Function __TICK ($tick_emoji) {
@@ -137,9 +140,10 @@ $ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Ba
 
 $ProjectRoot  = (Get-Location).Path  # in debug, D:\qt_projects\filmcab
 
-# Not heavily used yet.
-$PathToConfig = $ProjectRoot + '\config.json'
-$Config       = Get-Content -Path $PathToConfig | ConvertTo-Json
+# Not heavily used yet. Oh well.
+$PathToConfig = $ProjectRoot + '\config.json'                                         
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
+$Config       = (Get-Content -Path $PathToConfig | ConvertFrom-Json)
 
 # Maybe grab HistoryId for how many runs in this session. Debug meta? Note that it resets if the powershell terminal is killt.
                                                                                         
@@ -458,13 +462,17 @@ Forgot where I was going use it?
 Function Hash-String($s) {
     return [System.BitConverter]::ToString($md5provider.ComputeHash($utf8provider.GetBytes($s)))    
 }
-# Avoid returning these numbers other than where they belong
+# Avoid returning these numbers other than where they belong, as in, "exit 39202" just to try and randomly avoid collision and give some sort of searchable number.  A fine idea but we should have numbers tied to mneumonics, and return the string not the digits. Why? Because eventually, in the scheduler, I see a 4001 value, I go "Oh! untrapped! New problem!"
 
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
 $_EXITCODE_UNTRAPPED_EXCEPTION           = 4001
 $_EXITCODE_GENERIC_AND_USELESS_EXCEPTION = -2146233087
 
 # See Show-Error for how these are generated
-$_EXITCODE_VARIABLE_NOT_FOUND            = 15631964        # Get-CRC32 -shr 8
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')] # These were hard numbers to generate in order to establish meaningful distinct codes for specific issues. HRESULT is the above generic code in the following cases.
+# These are hashes generated from the distinct messages we get when HRESULT is $_EXITCODE_GENERIC_AND_USELESS_EXCEPTION
+$_EXITCODE_VARIABLE_NOT_FOUND            = 15631964        # Get-CRC32 -shr 8                                                                                                                                                                              
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
 $_EXITCODE_SCRIPT_NOT_FOUND              = 4479237
 <#
 .SYNOPSIS
@@ -522,7 +530,8 @@ Function Show-Error {
         Write-AllPlaces "Failed on line #: $($_.InvocationInfo.ScriptLineNumber)"                                      # Will null output if no exception
         $Exception = $_.Exception
         $HResult = 0
-        $WasThrownFromThrowStatement = $_.Exception.WasThrownFromThrowStatement
+        $WasThrownFromThrowStatement = $_.Exception.WasThrownFromThrowStatement # An interesting property
+        if ($WasThrownFromThrowStatement) { Write-AllPlaces "This exception was from a throw statement"}
 
         if (Test-Path variable:Exception) {
         if ($null -ne $Exception.InnerException) {
@@ -929,7 +938,30 @@ Function Get-Property ($sourceob, $prop) {
 Function Has-Property ($sourceob, $prop) {
     return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
-
+               
+Function Create-BatchRunSessionTaskEntry (
+    [Int32] $batch_run_session_id,
+    [string]$script_name
+    ) {  
+        
+        $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
+        $script_name_prepped_for_sql = PrepForSql $script_name
+        $Script:batch_run_session_task_id = Get-SqlValue("
+            INSERT INTO 
+                batch_run_sessions_tasks(
+                    batch_run_session_id,
+                    script_changed,
+                    script_name
+                )
+                VALUES(
+                    $batch_run_session_id,
+                    '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                    $script_name_prepped_for_sql
+                )
+                RETURNING batch_run_session_task_id
+            ")
+        return $Script:batch_run_session_task_id
+    }
 Function Convert-HexStringToByteArray {
     ################################################################
     #.Synopsis
@@ -1077,14 +1109,12 @@ Function main_for_dot_include_standard_header() {
         $Script:DBReaderCommand.CommandText = 'Select 1' # Can't instantiate a reader without a query.
         $Script:reader = [System.Data.Odbc.OdbcDataReader]$Script:DBReaderCommand.ExecuteReader()
         # PostgreSql specific settings, also specific to filmcab, and the simplified effort.
-        Invoke-Sql "SET application_name to '$($Script:ScriptName)'" > $null
-        Invoke-Sql 'SET search_path = simplified, "$user", public' > $null      # I'm in the simplified folder. So just set this here.
+        Invoke-Sql "SET application_name to '$($Script:ScriptName)'" | Out-Null
+        Invoke-Sql 'SET search_path = simplified, "$user", public'  | Out-Null    # I'm always in the simplified folder. So just set this here.
 
-        $Script:active_batch_run_session_id = Get-SqlValue 'SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v'
-        if ($Script:active_batch_run_session_id -ne -1) {
-            $Script:active_batch_run_session_task_id = Get-SqlValue("INSERT INTO batch_run_sessions_tasks(batch_run_session_id) VALUES($($Script:active_batch_run_session_id)) RETURNING batch_run_session_task_id")
-            
-        }
+        if ($Script:active_batch_run_session_id -ne -1 -and $ScriptName -notin('_start_new_batch_run_session.ps1', 'zzz_end_batch_run_session.ps1')) {
+            $Script:active_batch_run_session_task_id = Create-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName
+        }        
     }
 
     Start-Log
