@@ -187,16 +187,8 @@ function Start-Log {
         # Internal = The command was dispatched by the msh engine as a result of a dispatch request from an already running command.
         # Runspace = The command was submitted via a runspace.
 
-    New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
     $DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up ordering.
     
-    $Script:LogDirectory = "$ScriptRoot\_log"
-    
-    New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
-                                                        
-    $Script:LogFileName = $ScriptName + '.log.txt' 
-    $Script:LogFilePath = $Script:LogDirectory + '\' + $Script:LogFileName
-
     # Header Line 1
     Log-Line "Starting Log $(Get-Date) on $((Get-Date).DayOfWeek) $DSTTag in $((Get-Date).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
     
