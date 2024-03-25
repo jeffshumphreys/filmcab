@@ -140,6 +140,14 @@ $ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Ba
 
 $ProjectRoot  = (Get-Location).Path  # in debug, D:\qt_projects\filmcab
 
+New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
+$Script:LogDirectory = "$ScriptRoot\_log"
+
+New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
+                                                    
+$Script:LogFileName = $ScriptName + '.log.txt' 
+$Script:LogFilePath = $Script:LogDirectory + '\' + $Script:LogFileName
+
 # Not heavily used yet. Oh well.
 $PathToConfig = $ProjectRoot + '\config.json'                                         
 [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -1111,15 +1119,22 @@ Function main_for_dot_include_standard_header() {
         # PostgreSql specific settings, also specific to filmcab, and the simplified effort.
         Invoke-Sql "SET application_name to '$($Script:ScriptName)'" | Out-Null
         Invoke-Sql 'SET search_path = simplified, "$user", public'  | Out-Null    # I'm always in the simplified folder. So just set this here.
+                                                                                                                                                   
+        # In the first of the first scripts, BEFORE it has run, there is no batch_session_id. We don't create a task id if no session.
 
-        if ($Script:active_batch_run_session_id -ne -1 -and $ScriptName -notin('_start_new_batch_run_session.ps1', 'zzz_end_batch_run_session.ps1')) {
+        if ($ScriptName -notin('_start_new_batch_run_session.ps1', 'zzz_end_batch_run_session.ps1', '_dot_include_standard_header.ps1') -and
+            (Test-Path variable:script:active_batch_run_session_id) -and 
+            $Script:active_batch_run_session_id -ne -1) 
+        {
             $Script:active_batch_run_session_task_id = Create-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName
         }        
     }
 
     Start-Log
-
-    Log-Line "active_batch_run_session_id # = $($Script:active_batch_run_session_id)"
+                                                                   
+    if ((Test-Path variable:script:active_batch_run_session_id)) {
+        Log-Line "active_batch_run_session_id # = $($Script:active_batch_run_session_id)"
+    }
 
 }
                                  
