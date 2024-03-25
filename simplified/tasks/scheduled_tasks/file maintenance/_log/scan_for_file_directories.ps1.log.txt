@@ -1,0 +1,29 @@
+Starting Log 03/25/2024 10:26:00 on Monday DST in March, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
+Called from Windows Task Scheduler
+Scanning Get-ScheduledTasks
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\scan_for_file_directories.ps1'; exit $LASTEXITCODE"
+Finished Scanning (2)
+Starting search of search_directory D:\qBittorrent Downloads\Video
+New Directory found: D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1 on D drive
+Starting search of search_directory O:\Video AllInOne
+Starting search of search_directory G:\Video AllInOne Backup
+Starting search of search_directory D:\qBittorrent Downloads\_torrent files
+Starting search of search_directory D:\qBittorrent Downloads\_finished_download_torrent_files
+Starting search of search_directory C:\Users\jeffs\Downloads
+Starting search of search_directory D:\qBittorrent Downloads\temp
+New Directory found: D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip on D drive
+Starting search of search_directory N:\Video AllInOne Seen
+Starting search of search_directory I:\Video AllInOne Corrupt
+Finally
+*** empty string
+*** empty string
+How Many New Directories                :   2
+How Many Updated Directories            :   6
+How Many Rows Updated                   :   6
+How Many Rows Inserted                  :   2
+How Many New Junction Links             :   0
+How Many New Symbolic Links             :   0
+How Many Directories Flagged to Scan    :   8
+Stopping Normally after 135.5082995 Second(s)

@@ -9,9 +9,8 @@ AS SELECT
     brs.running,
     brs.run_duration_in_seconds,
     brs.last_script_ran,
-    brs.session_killing_script        AS session_ending_script,
     brs.session_starting_script,
-    brs.caller,
+    brs.session_killing_script        AS session_ending_script,
     brs.caller_starting,
     brs.caller_stopping               AS caller_ending
    FROM batch_run_sessions brs;
@@ -27,9 +26,8 @@ AS SELECT
     running,
     run_duration_in_seconds,
     last_script_ran,
-    session_ending_script,
     session_starting_script,
-    caller,
+    session_ending_script,
     caller_starting,
     caller_ending
    FROM batch_run_sessions_v
@@ -47,9 +45,8 @@ AS SELECT
     running,
     run_duration_in_seconds,
     last_script_ran,
-    session_ending_script,
     session_starting_script,
-    caller,
+    session_ending_script,
     caller_starting,
     caller_ending
    FROM batch_run_sessions_v
@@ -59,5 +56,12 @@ AS SELECT
     ended IS NOT NULL 
   AND 
     ended > started
-
+  AND 
+    session_starting_script = '_start_new_batch_run_session.ps1'
+  AND 
+    session_ending_script = 'zzz_end_batch_run_session.ps1'
+  AND
+    caller_starting = 'Windows Task Scheduler' 
+  AND 
+    caller_ending = 'Windows Task Scheduler'
   ORDER BY started;

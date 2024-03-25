@@ -1,0 +1,12 @@
+Starting Log 03/25/2024 10:28:38 on Monday DST in March, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
+Called from Windows Task Scheduler
+Scanning Get-ScheduledTasks
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\delete_file_entries_in_deleted_directories.ps1'; exit $LASTEXITCODE"
+Finished Scanning (2)
+Finally
+*** empty string
+*** empty string
+How Many Files Deleted    :   0
+Stopping Normally after 1.0333839 Second(s)
