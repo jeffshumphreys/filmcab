@@ -48,14 +48,12 @@ $rowsAdded = Invoke-Sql "/*sql*/
     INSERT INTO batch_run_sessions_v(
         last_script_ran
     ,   session_starting_script
-    ,   caller
     ,   caller_starting
     ) VALUES(
         '$scriptName'
     ,   '$scriptName'
     ,   '$Script:Caller'
-    ,   '$Script:Caller'
-    )" 
+    )" -OneAndOnlyOne 
 Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
  
 $Script:active_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
