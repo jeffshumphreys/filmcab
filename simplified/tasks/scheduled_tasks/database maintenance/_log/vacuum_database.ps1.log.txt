@@ -1,0 +1,742 @@
+Starting Log 03/25/2024 19:30:15 on Monday DST in March, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
+Called from Windows Task Scheduler
+Scanning Get-ScheduledTasks
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\database maintenance\vacuum_database.ps1'; exit $LASTEXITCODE"
+Finished Scanning (2)
+Starting Vacuum
+INFO: vacuuming "filmcab.simplified.apps";INFO: finished vacuuming "filmcab.simplified.apps": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
+tuples: 0 removed, 19 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.365 MB/s
+buffer usage: 45 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 7665 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.02 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1529161";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1529161": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 3194417
+INFO: vacuuming "filmcab.simplified.apps";INFO: finished vacuuming "filmcab.simplified.apps": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
+tuples: 0 removed, 19 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.365 MB/s
+buffer usage: 45 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 7665 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.02 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1529161";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1529161": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 39.457 MB/s
+buffer usage: 21 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 8053 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.batch_run_session_active_running_values";INFO: finished vacuuming "filmcab.simplified.batch_run_session_active_running_values": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 15 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31943622, which is 1687 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 27.183 MB/s
+buffer usage: 9 hits, 0 misses, 5 dirtied
+WAL usage: 3 records, 2 full page images, 8635 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.batch_run_sessions";INFO: finished vacuuming "filmcab.simplified.batch_run_sessions": index scans: 1
+pages: 0 removed, 3 remain, 3 scanned (100.00% of total)
+tuples: 8 removed, 80 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan needed: 3 pages from table (100.00% of total) had 17 dead item identifiers removed
+index "batch_run_sessions_one_true": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "batch_run_sessions_pk": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 42.436 MB/s
+buffer usage: 60 hits, 0 misses, 10 dirtied
+WAL usage: 12 records, 7 full page images, 39778 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1526618";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1526618": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of 
+INFO: vacuuming "filmcab.simplified.batch_run_sessions";INFO: finished vacuuming "filmcab.simplified.batch_run_sessions": index scans: 1
+pages: 0 removed, 3 remain, 3 scanned (100.00% of total)
+tuples: 8 removed, 80 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan needed: 3 pages from table (100.00% of total) had 17 dead item identifiers removed
+index "batch_run_sessions_one_true": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "batch_run_sessions_pk": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 42.436 MB/s
+buffer usage: 60 hits, 0 misses, 10 dirtied
+WAL usage: 12 records, 7 full page images, 39778 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1526618";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1526618": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.batch_run_sessions_tasks";INFO: finished vacuuming "filmcab.simplified.batch_run_sessions_tasks": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 8 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31943612, which is 1 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 22.612 MB/s, avg write rate: 28.265 MB/s
+buffer usage: 19 hits, 4 misses, 5 dirtied
+WAL usage: 2 records, 1 full page images, 8444 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1532638";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1532638": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when ope
+INFO: vacuuming "filmcab.simplified.batch_run_sessions_tasks";INFO: finished vacuuming "filmcab.simplified.batch_run_sessions_tasks": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 8 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31943612, which is 1 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 22.612 MB/s, avg write rate: 28.265 MB/s
+buffer usage: 19 hits, 4 misses, 5 dirtied
+WAL usage: 2 records, 1 full page images, 8444 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1532638";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1532638": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 563 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.374 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 18 hits, 1 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.02 s
+INFO: vacuuming "filmcab.simplified.codecs";INFO: finished vacuuming "filmcab.simplified.codecs": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 10 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 36 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.02 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1529143";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1529143": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 3194
+INFO: vacuuming "filmcab.simplified.codecs";INFO: finished vacuuming "filmcab.simplified.codecs": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 10 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 36 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.02 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1529143";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1529143": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 14.441 MB/s
+buffer usage: 19 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 7473 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.computers";INFO: finished vacuuming "filmcab.simplified.computers": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 56 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.01 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524951";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524951": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not need
+INFO: vacuuming "filmcab.simplified.computers";INFO: finished vacuuming "filmcab.simplified.computers": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 56 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.01 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524951";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524951": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 40.271 MB/s
+buffer usage: 19 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 7753 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.directories";INFO: launched 1 parallel vacuum worker for index vacuuming (planned: 1);INFO: finished vacuuming "filmcab.simplified.directories": index scans: 1
+pages: 0 removed, 236 remain, 236 scanned (100.00% of total)
+tuples: 13 removed, 6258 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan needed: 17 pages from table (7.20% of total) had 17 dead item identifiers removed
+index "directories_pkey": pages: 76 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "directories_directory_path_volume_id_key": pages: 111 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 2.892 MB/s, avg write rate: 20.372 MB/s
+buffer usage: 700 hits, 23 misses, 162 dirtied
+WAL usage: 181 records, 43 full page images, 277739 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.06 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1525462";INFO: finished vacuuming "filmcab.pg_toast.pg
+INFO: vacuuming "filmcab.simplified.directories";INFO: launched 1 parallel vacuum worker for index vacuuming (planned: 1);INFO: finished vacuuming "filmcab.simplified.directories": index scans: 1
+pages: 0 removed, 236 remain, 236 scanned (100.00% of total)
+tuples: 13 removed, 6258 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan needed: 17 pages from table (7.20% of total) had 17 dead item identifiers removed
+index "directories_pkey": pages: 76 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "directories_directory_path_volume_id_key": pages: 111 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 2.892 MB/s, avg write rate: 20.372 MB/s
+buffer usage: 700 hits, 23 misses, 162 dirtied
+WAL usage: 181 records, 43 full page images, 277739 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.06 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1525462";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1525462": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.file_extensions";INFO: finished vacuuming "filmcab.simplified.file_extensions": index scans: 0
+pages: 0 removed, 8 remain, 8 scanned (100.00% of total)
+tuples: 0 removed, 589 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 50 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1529130";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1529130": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new
+INFO: vacuuming "filmcab.simplified.file_extensions";INFO: finished vacuuming "filmcab.simplified.file_extensions": index scans: 0
+pages: 0 removed, 8 remain, 8 scanned (100.00% of total)
+tuples: 0 removed, 589 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 50 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1529130";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1529130": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.file_links_across_search_paths";INFO: finished vacuuming "filmcab.simplified.file_links_across_search_paths": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 29 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528944";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528944": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XID
+INFO: vacuuming "filmcab.simplified.file_links_across_search_paths";INFO: finished vacuuming "filmcab.simplified.file_links_across_search_paths": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 29 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528944";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528944": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.files";INFO: launched 1 parallel vacuum worker for index vacuuming (planned: 1);INFO: finished vacuuming "filmcab.simplified.files": index scans: 1
+pages: 0 removed, 1215 remain, 183 scanned (15.06% of total)
+tuples: 19 removed, 44265 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan needed: 55 pages from table (4.53% of total) had 65 dead item identifiers removed
+index "files_pkey": pages: 150 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "files_file_name_no_ext_final_extension_directory_hash_key": pages: 742 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 109.979 MB/s, avg write rate: 19.250 MB/s
+buffer usage: 583 hits, 777 misses, 136 dirtied
+WAL usage: 211 records, 84 full page images, 609862 bytes
+system usage: CPU: user: 0.00 s, system: 0.01 s, elapsed: 0.05 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1525174";INFO: finished vacuuming "filmcab.pg_toas
+INFO: vacuuming "filmcab.simplified.files";INFO: launched 1 parallel vacuum worker for index vacuuming (planned: 1);INFO: finished vacuuming "filmcab.simplified.files": index scans: 1
+pages: 0 removed, 1215 remain, 183 scanned (15.06% of total)
+tuples: 19 removed, 44265 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan needed: 55 pages from table (4.53% of total) had 65 dead item identifiers removed
+index "files_pkey": pages: 150 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "files_file_name_no_ext_final_extension_directory_hash_key": pages: 742 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 109.979 MB/s, avg write rate: 19.250 MB/s
+buffer usage: 583 hits, 777 misses, 136 dirtied
+WAL usage: 211 records, 84 full page images, 609862 bytes
+system usage: CPU: user: 0.00 s, system: 0.01 s, elapsed: 0.05 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1525174";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1525174": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.genres";INFO: finished vacuuming "filmcab.simplified.genres": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 40 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 38 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528886";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528886": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0
+INFO: vacuuming "filmcab.simplified.genres";INFO: finished vacuuming "filmcab.simplified.genres": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 40 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 38 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528886";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528886": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.internet_service_providers";INFO: finished vacuuming "filmcab.simplified.internet_service_providers": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.959 MB/s
+buffer usage: 36 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 7941 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524900";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524900": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old whe
+INFO: vacuuming "filmcab.simplified.internet_service_providers";INFO: finished vacuuming "filmcab.simplified.internet_service_providers": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.959 MB/s
+buffer usage: 36 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 7941 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524900";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524900": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.local_networks";INFO: finished vacuuming "filmcab.simplified.local_networks": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 83 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524911";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524911": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new rel
+INFO: vacuuming "filmcab.simplified.local_networks";INFO: finished vacuuming "filmcab.simplified.local_networks": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 83 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524911";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524911": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.media_files";INFO: finished vacuuming "filmcab.simplified.media_files": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 16 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1527032";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1527032": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfroz
+INFO: vacuuming "filmcab.simplified.media_files";INFO: finished vacuuming "filmcab.simplified.media_files": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 16 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1527032";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1527032": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.network_adapters";INFO: finished vacuuming "filmcab.simplified.network_adapters": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 52 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524933";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524933": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new
+INFO: vacuuming "filmcab.simplified.network_adapters";INFO: finished vacuuming "filmcab.simplified.network_adapters": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 52 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524933";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524933": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.scheduled_task_run_sets";INFO: finished vacuuming "filmcab.simplified.scheduled_task_run_sets": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 4 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 22 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.01 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528778";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528778": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previo
+INFO: vacuuming "filmcab.simplified.scheduled_task_run_sets";INFO: finished vacuuming "filmcab.simplified.scheduled_task_run_sets": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 4 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 22 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.01 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528778";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528778": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.scheduled_tasks";INFO: finished vacuuming "filmcab.simplified.scheduled_tasks": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
+tuples: 0 removed, 17 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 75 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.01 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528766";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528766": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index 
+INFO: vacuuming "filmcab.simplified.scheduled_tasks";INFO: finished vacuuming "filmcab.simplified.scheduled_tasks": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
+tuples: 0 removed, 17 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 75 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.01 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528766";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528766": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.search_directories";INFO: finished vacuuming "filmcab.simplified.search_directories": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
+tuples: 0 removed, 9 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 8.087 MB/s
+buffer usage: 37 hits, 0 misses, 2 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1526235";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1526235": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+i
+INFO: vacuuming "filmcab.simplified.search_directories";INFO: finished vacuuming "filmcab.simplified.search_directories": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
+tuples: 0 removed, 9 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 8.087 MB/s
+buffer usage: 37 hits, 0 misses, 2 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1526235";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1526235": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.search_terms";INFO: finished vacuuming "filmcab.simplified.search_terms": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 17 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 39 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528787";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528787": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfro
+INFO: vacuuming "filmcab.simplified.search_terms";INFO: finished vacuuming "filmcab.simplified.search_terms": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 17 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 39 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1528787";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1528787": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.user_spreadsheet_interface";INFO: finished vacuuming "filmcab.simplified.user_spreadsheet_interface": index scans: 0
+pages: 0 removed, 148 remain, 1 scanned (0.68% of total)
+tuples: 0 removed, 5080 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 53 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1531472";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1531472": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 3 XIDs ahead of 
+INFO: vacuuming "filmcab.simplified.user_spreadsheet_interface";INFO: finished vacuuming "filmcab.simplified.user_spreadsheet_interface": index scans: 0
+pages: 0 removed, 148 remain, 1 scanned (0.68% of total)
+tuples: 0 removed, 5080 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 53 hits, 0 misses, 0 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1531472";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1531472": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 3 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 16.075 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 1 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.video_files";INFO: finished vacuuming "filmcab.simplified.video_files": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 1.663 MB/s
+buffer usage: 16 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 8149 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1527220";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1527220": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfro
+INFO: vacuuming "filmcab.simplified.video_files";INFO: finished vacuuming "filmcab.simplified.video_files": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 1.663 MB/s
+buffer usage: 16 hits, 0 misses, 1 dirtied
+WAL usage: 1 records, 1 full page images, 8149 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1527220";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1527220": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.videos";INFO: finished vacuuming "filmcab.simplified.videos": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 104 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1525028";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1525028": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31
+INFO: vacuuming "filmcab.simplified.videos";INFO: finished vacuuming "filmcab.simplified.videos": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 104 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1525028";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1525028": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.videos_to_video_files";INFO: finished vacuuming "filmcab.simplified.videos_to_video_files": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 16 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO: vacuuming "filmcab.simplified.volumes";INFO: finished vacuuming "filmcab.simplified.volumes": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 9 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 2.630 MB/s
+buffer usage: 59 hits, 0 misses, 1 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524969";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524969": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 
+INFO: vacuuming "filmcab.simplified.volumes";INFO: finished vacuuming "filmcab.simplified.volumes": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
+tuples: 0 removed, 9 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 2.630 MB/s
+buffer usage: 59 hits, 0 misses, 1 dirtied
+WAL usage: 0 records, 0 full page images, 0 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s;INFO: vacuuming "filmcab.pg_toast.pg_toast_1524969";INFO: finished vacuuming "filmcab.pg_toast.pg_toast_1524969": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 31944174, which was 0 XIDs old when operation ended
+new relfrozenxid: 31944174, which is 1679 XIDs ahead of previous value
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 19 hits, 0 misses, 0 dirtied
+WAL usage: 1 records, 0 full page images, 188 bytes
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+Done Vacuuming
+Finally
+*** empty string
+*** empty string
+Stopping Normally after 1.1358816 Second(s)

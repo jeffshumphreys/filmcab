@@ -1,9 +1,10 @@
-Starting Log 03/25/2024 19:23:14 on Monday DST in March, by Windows User <jeffs>
+Starting Log 03/25/2024 19:31:25 on Monday DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-processtree 1 CommandLine is not null: "C:\Program Files\Microsoft VS Code\Code.exe" --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --user-data-dir="C:\Users\jeffs\AppData\Roaming\Code" --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --mojo-platform-channel-handle=3668 --field-trial-handle=1668,i,4795656294111160661,9501025719651674077,262144 --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess,WinDelaySpellcheckServiceInit,WinRetrieveSuggestionsOnlyOnDemand /prefetch:8
-Called whilest in Visual Code Editor
-active_batch_run_session_id # = 79
-Exiting standard_header
+processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
+Called from Windows Task Scheduler
+Scanning Get-ScheduledTasks
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\import processing\load_user_spreadsheet_interface.ps1'; exit $LASTEXITCODE"
+Finished Scanning (2)
 TRUNCATE TABLE user_spreadsheet_interface RESTART IDENTITY
 COPY user_spreadsheet_interface(
      seen                    ,
@@ -40,4 +41,4 @@ FROM 'D:\qt_projects\filmcab\simplified\_data\user_spreadsheet_interface.csv' CS
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 2.2334049 Second(s)
+Stopping Normally after 3.1529722 Second(s)
