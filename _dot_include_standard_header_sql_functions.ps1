@@ -444,11 +444,15 @@ Function Out-SqlToDataset {
   
 Function Get-SqlValue {
     param (
-        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
+        [Switch]$LogSqlToHost
     )
     try {
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
         $DatabaseCommand.CommandText = $sql
+        if ($LogSqlToHost) {
+            Write-Host $sql
+        }
         $value = $DatabaseCommand.ExecuteScalar()
         return $value
     } catch {
