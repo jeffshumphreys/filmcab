@@ -23,7 +23,7 @@ try {
                                                                             
 # . D:\qt_projects\filmcab\simplified\__sanity_check_with_db_connection.ps1
 #
-$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions_v WHERE running" -DontWriteSqlToConsole
+$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions_v WHERE running"
 
 # Check if old session still marked as active
 
@@ -33,7 +33,7 @@ if ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -eq 1) {
 
     # Flush out the active marked record so we can start a new session.
     
-    Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" | Out-Null
+    Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost | Out-Null
 }                                                                          
 elseif ($null -ne $state_of_session -and $state_of_session.Table.Rows.Count -gt 1) {                         
     # Broken table constraint, only possibility, so note it and crash.
@@ -53,11 +53,11 @@ $rowsAdded = Invoke-Sql "/*sql*/
         '$scriptName'
     ,   '$scriptName'
     ,   '$Script:Caller'
-    )" -OneAndOnlyOne 
+    )" -OneAndOnlyOne -LogSqlToHost
 Write-AllPlaces "Added $rowsAdded row(s) to batch run_session"
  
-$Script:active_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
-Get-SqlValue "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)"
+$Script:active_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running" -LogSqlToHost
+Invoke-Sql "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost
 
 }
 catch {
