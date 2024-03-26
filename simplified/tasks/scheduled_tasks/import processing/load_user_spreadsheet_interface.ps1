@@ -20,7 +20,7 @@ Stop-Process -Name 'excel' -Force -ErrorAction Ignore
 soffice --headless --convert-to csv  $copyfrompath --outdir $copytodirectory
 $NewExcelCSVFileGenerated = $true
 
-Invoke-Sql "TRUNCATE TABLE $targettable RESTART IDENTITY"
+Invoke-Sql "TRUNCATE TABLE $targettable RESTART IDENTITY" -LogSqlToHost
 #TODO: Pull these from the spreadsheet?
 $columns_csv = "
     seen, 
@@ -59,14 +59,14 @@ foreach($columnname in $columns) {if ($columnname.Length -gt $widestcolumnname) 
 
 if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
     try {
-        $sql = "COPY $targettable("
+        $sql = "COPY $targettable(" + [System.Environment]::NewLine
         foreach($columnname in $columns)
         {
             $sql+= " "*4 + $columnname.PadRight($widestcolumnname)  + $(If($columnname -eq $columns[-1]) {")"} else {","}) + [System.Environment]::NewLine;
         }
 
         $sql+= "FROM '$copytopath' CSV HEADER;" + [System.Environment]::NewLine;
-        Invoke-Sql $sql |Out-Null
+        Invoke-Sql $sql -LogSqlToHost |Out-Null
     } catch {
         Show-Error $sql -exitcode 2
     }
