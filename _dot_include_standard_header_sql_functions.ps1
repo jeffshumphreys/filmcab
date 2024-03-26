@@ -93,11 +93,14 @@ Function Invoke-Sql {
         [Switch]$OneAndOnlyOne,
         [Switch]$OneOrNone,
         [Switch]$OneOrMore,
-        [Switch]$SameOrMoreAsLastRun
+        [Switch]$SameOrMoreAsLastRun,
+        [Switch]$LogSqlToHost
     )
     try {
         $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set? Set in main. Below.
-
+        if ($LogSqlToHost) {
+            Log-Line $sql
+        }
         # Hypothetically, you could determine if the sql was a select or an update/insert, and run the right function?
 
         [Int32] $howManyRowsAffected = $DatabaseCommand.ExecuteNonQuery();
