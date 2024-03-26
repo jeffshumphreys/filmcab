@@ -1,8 +1,0 @@
-﻿Starting Log 03/07/2024 00:13:28 on Thursday No DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 5.1.19041.4046, $PEdition = Desktop, $CommandOrigin = Internal, Current Function = Start-Log
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Scanning Get-ScheduledTasks
-"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -WindowStyle Hidden -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_events.ps1'; exit $LASTEXITCODE"
-Finished Scanning (2)
-Stopping Normally after 200.5996924 Second(s)
