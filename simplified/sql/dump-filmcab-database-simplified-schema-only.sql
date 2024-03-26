@@ -503,7 +503,7 @@ ALTER TABLE simplified.batch_run_sessions ALTER COLUMN batch_run_session_id ADD 
 
 
 --
--- TOC entry 360 (class 1259 OID 1533339)
+-- TOC entry 360 (class 1259 OID 1533404)
 -- Name: batch_run_sessions_v; Type: VIEW; Schema: simplified; Owner: postgres
 --
 
@@ -515,9 +515,8 @@ CREATE VIEW simplified.batch_run_sessions_v AS
     brs.running,
     brs.run_duration_in_seconds,
     brs.last_script_ran,
-    brs.session_killing_script AS session_ending_script,
     brs.session_starting_script,
-    brs.caller,
+    brs.session_killing_script AS session_ending_script,
     brs.caller_starting,
     brs.caller_stopping AS caller_ending
    FROM simplified.batch_run_sessions brs;
@@ -526,7 +525,7 @@ CREATE VIEW simplified.batch_run_sessions_v AS
 ALTER TABLE simplified.batch_run_sessions_v OWNER TO postgres;
 
 --
--- TOC entry 362 (class 1259 OID 1533347)
+-- TOC entry 362 (class 1259 OID 1533412)
 -- Name: batch_run_sessions_scheduled_and_completed_v; Type: VIEW; Schema: simplified; Owner: postgres
 --
 
@@ -538,13 +537,12 @@ CREATE VIEW simplified.batch_run_sessions_scheduled_and_completed_v AS
     batch_run_sessions_v.running,
     batch_run_sessions_v.run_duration_in_seconds,
     batch_run_sessions_v.last_script_ran,
-    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.session_starting_script,
-    batch_run_sessions_v.caller,
+    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.caller_starting,
     batch_run_sessions_v.caller_ending
    FROM simplified.batch_run_sessions_v
-  WHERE ((batch_run_sessions_v.started IS NOT NULL) AND (batch_run_sessions_v.ended IS NOT NULL) AND (batch_run_sessions_v.ended > batch_run_sessions_v.started))
+  WHERE ((batch_run_sessions_v.started IS NOT NULL) AND (batch_run_sessions_v.ended IS NOT NULL) AND (batch_run_sessions_v.ended > batch_run_sessions_v.started) AND ((batch_run_sessions_v.session_starting_script)::text = '_start_new_batch_run_session.ps1'::text) AND (batch_run_sessions_v.session_ending_script = 'zzz_end_batch_run_session.ps1'::text) AND ((batch_run_sessions_v.caller_starting)::text = 'Windows Task Scheduler'::text) AND ((batch_run_sessions_v.caller_ending)::text = 'Windows Task Scheduler'::text))
   ORDER BY batch_run_sessions_v.started;
 
 
@@ -618,7 +616,7 @@ ALTER TABLE simplified.batch_run_sessions_tasks ALTER COLUMN batch_run_session_t
 
 
 --
--- TOC entry 361 (class 1259 OID 1533343)
+-- TOC entry 361 (class 1259 OID 1533408)
 -- Name: batch_run_sessions_v_last_10_days_v; Type: VIEW; Schema: simplified; Owner: postgres
 --
 
@@ -630,9 +628,8 @@ CREATE VIEW simplified.batch_run_sessions_v_last_10_days_v AS
     batch_run_sessions_v.running,
     batch_run_sessions_v.run_duration_in_seconds,
     batch_run_sessions_v.last_script_ran,
-    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.session_starting_script,
-    batch_run_sessions_v.caller,
+    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.caller_starting,
     batch_run_sessions_v.caller_ending
    FROM simplified.batch_run_sessions_v
