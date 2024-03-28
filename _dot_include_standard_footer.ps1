@@ -33,8 +33,6 @@ if ($Script:WriteCounts.Count -gt 0) {
 
 Format-Humanize $scriptTimer
 
-# Log-ScriptCompleted
-
 Log-ScriptCompleted
 
 #End-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName -batch_run_session_task_id $Script:active_batch_run_session_task_id
