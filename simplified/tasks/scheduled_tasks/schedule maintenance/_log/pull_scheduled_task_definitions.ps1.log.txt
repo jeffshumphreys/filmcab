@@ -1,11 +1,15 @@
-Starting Log 03/25/2024 19:30:47 on Monday DST in March, by Windows User <jeffs>
+Starting Log 03/28/2024 00:13:23 on Thursday DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_definitions.ps1'; exit $LASTEXITCODE"
 processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
 Called from Windows Task Scheduler
-Scanning Get-ScheduledTasks
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_definitions.ps1'; exit $LASTEXITCODE"
-Finished Scanning (2)
+Attempting to get triggering event for pull_scheduled_task_definitions for run set name \schedule maintenance in root directory \FilmCab
+Got following event back: Task triggered on scheduler
+@{Message=Task Scheduler launched "{1bb3c86f-347c-4f8f-b01c-cd4f0def6099}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions" due to a time trigger condition.; TaskDisplayName=Task triggered on scheduler; TimeCreated=03/28/2024 00:13:21; RecordId=202626; ActivityId=1bb3c86f-347c-4f8f-b01c-cd4f0def6099; ThreadId=1976; ResultCode=; UserContext=; UserName=; Id=107}
+Finished Scanning for caller details
+active_batch_run_session_id # = 93
+Exiting standard_header
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 3.114769 Second(s)
+Stopping Normally after 3.6412379 Second(s)

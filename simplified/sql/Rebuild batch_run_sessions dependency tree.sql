@@ -1,5 +1,5 @@
 -- simplified.batch_run_sessions_v source
-DROP VIEW batch_run_sessions_v CASCADE;
+DROP VIEW IF EXISTS batch_run_sessions_v CASCADE;
 CREATE OR REPLACE VIEW simplified.batch_run_sessions_v
 AS SELECT 
     brs.batch_run_session_id,
@@ -12,7 +12,9 @@ AS SELECT
     brs.session_starting_script,
     brs.session_killing_script        AS session_ending_script,
     brs.caller_starting,
-    brs.caller_stopping               AS caller_ending
+    brs.caller_stopping               AS caller_ending,
+    brs.trigger_type,
+    brs.triggered_by_login                                                                                                                                                                                       AS triggered_by_login
    FROM batch_run_sessions brs;
    
 -- simplified.batch_run_sessions_v_last_10_days_v source

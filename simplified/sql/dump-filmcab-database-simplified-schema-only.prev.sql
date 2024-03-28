@@ -405,10 +405,10 @@ CREATE TABLE simplified.batch_run_sessions (
     new_files integer,
     missing_files integer,
     session_starting_script character varying,
-    caller character varying,
     caller_stopping character varying,
     caller_starting character varying,
-    marking_stopped_after_overrun timestamp with time zone
+    marking_stopped_after_overrun timestamp with time zone,
+    triggered_by text
 );
 
 
@@ -480,10 +480,19 @@ COMMENT ON COLUMN simplified.batch_run_sessions.session_starting_script IS 'Who 
 --
 -- TOC entry 5198 (class 0 OID 0)
 -- Dependencies: 325
--- Name: COLUMN batch_run_sessions.caller; Type: COMMENT; Schema: simplified; Owner: postgres
+-- Name: COLUMN batch_run_sessions.caller_starting; Type: COMMENT; Schema: simplified; Owner: postgres
 --
 
-COMMENT ON COLUMN simplified.batch_run_sessions.caller IS 'Who called me? VS Code debug session? Windows Task Scheduler? We don''t know because Jeff went and "bought" some job scheduler, or wrote a Quantz.Net app, or what.';
+COMMENT ON COLUMN simplified.batch_run_sessions.caller_starting IS 'Who called me? VS Code debug session? Windows Task Scheduler? We don''t know because Jeff went and "bought" some job scheduler, or wrote a Quantz.Net app, or what.';
+
+
+--
+-- TOC entry 5199 (class 0 OID 0)
+-- Dependencies: 325
+-- Name: COLUMN batch_run_sessions.triggered_by; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.batch_run_sessions.triggered_by IS 'either some event or time, calendar, etc., or directly by a user.';
 
 
 --
@@ -503,7 +512,7 @@ ALTER TABLE simplified.batch_run_sessions ALTER COLUMN batch_run_session_id ADD 
 
 
 --
--- TOC entry 360 (class 1259 OID 1533339)
+-- TOC entry 360 (class 1259 OID 1533404)
 -- Name: batch_run_sessions_v; Type: VIEW; Schema: simplified; Owner: postgres
 --
 
@@ -515,9 +524,8 @@ CREATE VIEW simplified.batch_run_sessions_v AS
     brs.running,
     brs.run_duration_in_seconds,
     brs.last_script_ran,
-    brs.session_killing_script AS session_ending_script,
     brs.session_starting_script,
-    brs.caller,
+    brs.session_killing_script AS session_ending_script,
     brs.caller_starting,
     brs.caller_stopping AS caller_ending
    FROM simplified.batch_run_sessions brs;
@@ -526,7 +534,7 @@ CREATE VIEW simplified.batch_run_sessions_v AS
 ALTER TABLE simplified.batch_run_sessions_v OWNER TO postgres;
 
 --
--- TOC entry 362 (class 1259 OID 1533347)
+-- TOC entry 362 (class 1259 OID 1533412)
 -- Name: batch_run_sessions_scheduled_and_completed_v; Type: VIEW; Schema: simplified; Owner: postgres
 --
 
@@ -538,13 +546,12 @@ CREATE VIEW simplified.batch_run_sessions_scheduled_and_completed_v AS
     batch_run_sessions_v.running,
     batch_run_sessions_v.run_duration_in_seconds,
     batch_run_sessions_v.last_script_ran,
-    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.session_starting_script,
-    batch_run_sessions_v.caller,
+    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.caller_starting,
     batch_run_sessions_v.caller_ending
    FROM simplified.batch_run_sessions_v
-  WHERE ((batch_run_sessions_v.started IS NOT NULL) AND (batch_run_sessions_v.ended IS NOT NULL) AND (batch_run_sessions_v.ended > batch_run_sessions_v.started))
+  WHERE ((batch_run_sessions_v.started IS NOT NULL) AND (batch_run_sessions_v.ended IS NOT NULL) AND (batch_run_sessions_v.ended > batch_run_sessions_v.started) AND ((batch_run_sessions_v.session_starting_script)::text = '_start_new_batch_run_session.ps1'::text) AND (batch_run_sessions_v.session_ending_script = 'zzz_end_batch_run_session.ps1'::text) AND ((batch_run_sessions_v.caller_starting)::text = 'Windows Task Scheduler'::text) AND ((batch_run_sessions_v.caller_ending)::text = 'Windows Task Scheduler'::text))
   ORDER BY batch_run_sessions_v.started;
 
 
@@ -575,7 +582,7 @@ CREATE TABLE simplified.batch_run_sessions_tasks (
 ALTER TABLE simplified.batch_run_sessions_tasks OWNER TO postgres;
 
 --
--- TOC entry 5199 (class 0 OID 0)
+-- TOC entry 5200 (class 0 OID 0)
 -- Dependencies: 353
 -- Name: TABLE batch_run_sessions_tasks; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -584,7 +591,7 @@ COMMENT ON TABLE simplified.batch_run_sessions_tasks IS 'Track each task run in 
 
 
 --
--- TOC entry 5200 (class 0 OID 0)
+-- TOC entry 5201 (class 0 OID 0)
 -- Dependencies: 353
 -- Name: COLUMN batch_run_sessions_tasks.script_name; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -593,7 +600,7 @@ COMMENT ON COLUMN simplified.batch_run_sessions_tasks.script_name IS 'Capture na
 
 
 --
--- TOC entry 5201 (class 0 OID 0)
+-- TOC entry 5202 (class 0 OID 0)
 -- Dependencies: 353
 -- Name: COLUMN batch_run_sessions_tasks.script_changed; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -618,7 +625,7 @@ ALTER TABLE simplified.batch_run_sessions_tasks ALTER COLUMN batch_run_session_t
 
 
 --
--- TOC entry 361 (class 1259 OID 1533343)
+-- TOC entry 361 (class 1259 OID 1533408)
 -- Name: batch_run_sessions_v_last_10_days_v; Type: VIEW; Schema: simplified; Owner: postgres
 --
 
@@ -630,9 +637,8 @@ CREATE VIEW simplified.batch_run_sessions_v_last_10_days_v AS
     batch_run_sessions_v.running,
     batch_run_sessions_v.run_duration_in_seconds,
     batch_run_sessions_v.last_script_ran,
-    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.session_starting_script,
-    batch_run_sessions_v.caller,
+    batch_run_sessions_v.session_ending_script,
     batch_run_sessions_v.caller_starting,
     batch_run_sessions_v.caller_ending
    FROM simplified.batch_run_sessions_v
@@ -658,7 +664,7 @@ CREATE TABLE simplified.codecs (
 ALTER TABLE simplified.codecs OWNER TO postgres;
 
 --
--- TOC entry 5202 (class 0 OID 0)
+-- TOC entry 5203 (class 0 OID 0)
 -- Dependencies: 343
 -- Name: TABLE codecs; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -683,7 +689,7 @@ CREATE SEQUENCE simplified.codecs_codec_id_seq
 ALTER TABLE simplified.codecs_codec_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5203 (class 0 OID 0)
+-- TOC entry 5204 (class 0 OID 0)
 -- Dependencies: 342
 -- Name: codecs_codec_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -711,7 +717,7 @@ CREATE TABLE simplified.computers (
 ALTER TABLE simplified.computers OWNER TO postgres;
 
 --
--- TOC entry 5204 (class 0 OID 0)
+-- TOC entry 5205 (class 0 OID 0)
 -- Dependencies: 314
 -- Name: TABLE computers; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -720,7 +726,7 @@ COMMENT ON TABLE simplified.computers IS 'machines! hosts! What these files sit 
 
 
 --
--- TOC entry 5205 (class 0 OID 0)
+-- TOC entry 5206 (class 0 OID 0)
 -- Dependencies: 314
 -- Name: COLUMN computers.network_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -745,7 +751,7 @@ CREATE SEQUENCE simplified.computers_computer_id_seq
 ALTER TABLE simplified.computers_computer_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5206 (class 0 OID 0)
+-- TOC entry 5207 (class 0 OID 0)
 -- Dependencies: 313
 -- Name: computers_computer_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -785,7 +791,7 @@ CREATE TABLE simplified.directories (
 ALTER TABLE simplified.directories OWNER TO postgres;
 
 --
--- TOC entry 5207 (class 0 OID 0)
+-- TOC entry 5208 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: TABLE directories; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -794,7 +800,7 @@ COMMENT ON TABLE simplified.directories IS 'Useful to avoid rescanning folders i
 
 
 --
--- TOC entry 5208 (class 0 OID 0)
+-- TOC entry 5209 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.directory_hash; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -803,7 +809,7 @@ COMMENT ON COLUMN simplified.directories.directory_hash IS 'Hash of the full pat
 
 
 --
--- TOC entry 5209 (class 0 OID 0)
+-- TOC entry 5210 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.directory_path; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -812,7 +818,7 @@ COMMENT ON COLUMN simplified.directories.directory_path IS 'The path on the driv
 
 
 --
--- TOC entry 5210 (class 0 OID 0)
+-- TOC entry 5211 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.folder; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -821,7 +827,7 @@ COMMENT ON COLUMN simplified.directories.folder IS 'Make our life easier later a
 
 
 --
--- TOC entry 5211 (class 0 OID 0)
+-- TOC entry 5212 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.parent_directory_hash; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -830,7 +836,7 @@ COMMENT ON COLUMN simplified.directories.parent_directory_hash IS 'We have to su
 
 
 --
--- TOC entry 5212 (class 0 OID 0)
+-- TOC entry 5213 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.parent_folder; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -839,7 +845,7 @@ COMMENT ON COLUMN simplified.directories.parent_folder IS 'We want to know thing
 
 
 --
--- TOC entry 5213 (class 0 OID 0)
+-- TOC entry 5214 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.grandparent_folder; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -848,7 +854,7 @@ COMMENT ON COLUMN simplified.directories.grandparent_folder IS 'For subs and epi
 
 
 --
--- TOC entry 5214 (class 0 OID 0)
+-- TOC entry 5215 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.root_genre; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -857,7 +863,7 @@ COMMENT ON COLUMN simplified.directories.root_genre IS 'Have added code to fill 
 
 
 --
--- TOC entry 5215 (class 0 OID 0)
+-- TOC entry 5216 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.sub_genre; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -866,7 +872,7 @@ COMMENT ON COLUMN simplified.directories.sub_genre IS 'Using grand-parent folder
 
 
 --
--- TOC entry 5216 (class 0 OID 0)
+-- TOC entry 5217 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.directory_date; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -875,7 +881,7 @@ COMMENT ON COLUMN simplified.directories.directory_date IS '> last scanned date?
 
 
 --
--- TOC entry 5217 (class 0 OID 0)
+-- TOC entry 5218 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.volume_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -884,7 +890,7 @@ COMMENT ON COLUMN simplified.directories.volume_id IS 'Not a hash here, since wh
 
 
 --
--- TOC entry 5218 (class 0 OID 0)
+-- TOC entry 5219 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.is_symbolic_link; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -893,7 +899,7 @@ COMMENT ON COLUMN simplified.directories.is_symbolic_link IS 'Simpler, smaller t
 
 
 --
--- TOC entry 5219 (class 0 OID 0)
+-- TOC entry 5220 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.is_junction_link; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -902,7 +908,7 @@ COMMENT ON COLUMN simplified.directories.is_junction_link IS 'For directories on
 
 
 --
--- TOC entry 5220 (class 0 OID 0)
+-- TOC entry 5221 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.linked_path; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -911,7 +917,7 @@ COMMENT ON COLUMN simplified.directories.linked_path IS 'For now, in case it''s 
 
 
 --
--- TOC entry 5221 (class 0 OID 0)
+-- TOC entry 5222 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.link_directory_still_exists; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -920,7 +926,7 @@ COMMENT ON COLUMN simplified.directories.link_directory_still_exists IS 'We have
 
 
 --
--- TOC entry 5222 (class 0 OID 0)
+-- TOC entry 5223 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.scan_directory; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -929,7 +935,7 @@ COMMENT ON COLUMN simplified.directories.scan_directory IS 'Set to trigger a sca
 
 
 --
--- TOC entry 5223 (class 0 OID 0)
+-- TOC entry 5224 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.deleted; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -938,7 +944,7 @@ COMMENT ON COLUMN simplified.directories.deleted IS 'Used to clean out files tha
 
 
 --
--- TOC entry 5224 (class 0 OID 0)
+-- TOC entry 5225 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.search_directory_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -947,7 +953,7 @@ COMMENT ON COLUMN simplified.directories.search_directory_id IS 'What search pat
 
 
 --
--- TOC entry 5225 (class 0 OID 0)
+-- TOC entry 5226 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.moved_off_to_seen; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -956,7 +962,7 @@ COMMENT ON COLUMN simplified.directories.moved_off_to_seen IS 'See the N drive, 
 
 
 --
--- TOC entry 5226 (class 0 OID 0)
+-- TOC entry 5227 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.moved_off_to_corrupt; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -965,7 +971,7 @@ COMMENT ON COLUMN simplified.directories.moved_off_to_corrupt IS 'These are tire
 
 
 --
--- TOC entry 5227 (class 0 OID 0)
+-- TOC entry 5228 (class 0 OID 0)
 -- Dependencies: 321
 -- Name: COLUMN directories.when_move_off_started; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -996,7 +1002,7 @@ CREATE TABLE simplified.search_directories (
 ALTER TABLE simplified.search_directories OWNER TO postgres;
 
 --
--- TOC entry 5228 (class 0 OID 0)
+-- TOC entry 5229 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: TABLE search_directories; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1005,7 +1011,7 @@ COMMENT ON TABLE simplified.search_directories IS 'paths used in scan_for_new_di
 
 
 --
--- TOC entry 5229 (class 0 OID 0)
+-- TOC entry 5230 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.search_directory_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1014,7 +1020,7 @@ COMMENT ON COLUMN simplified.search_directories.search_directory_id IS 'unique i
 
 
 --
--- TOC entry 5230 (class 0 OID 0)
+-- TOC entry 5231 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.search_directory; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1023,7 +1029,7 @@ COMMENT ON COLUMN simplified.search_directories.search_directory IS 'the url, or
 
 
 --
--- TOC entry 5231 (class 0 OID 0)
+-- TOC entry 5232 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.extensions_to_grab; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1032,7 +1038,7 @@ COMMENT ON COLUMN simplified.search_directories.extensions_to_grab IS 'for most 
 
 
 --
--- TOC entry 5232 (class 0 OID 0)
+-- TOC entry 5233 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.primary_function_of_entry; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1041,7 +1047,7 @@ COMMENT ON COLUMN simplified.search_directories.primary_function_of_entry IS 'Wh
 
 
 --
--- TOC entry 5233 (class 0 OID 0)
+-- TOC entry 5234 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.file_names_can_be_changed; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1050,7 +1056,7 @@ COMMENT ON COLUMN simplified.search_directories.file_names_can_be_changed IS 'In
 
 
 --
--- TOC entry 5234 (class 0 OID 0)
+-- TOC entry 5235 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.tag; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1059,7 +1065,7 @@ COMMENT ON COLUMN simplified.search_directories.tag IS 'published, backup, paylo
 
 
 --
--- TOC entry 5235 (class 0 OID 0)
+-- TOC entry 5236 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.volume_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1068,7 +1074,7 @@ COMMENT ON COLUMN simplified.search_directories.volume_id IS 'Probably search pa
 
 
 --
--- TOC entry 5236 (class 0 OID 0)
+-- TOC entry 5237 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.directly_deletable; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1077,7 +1083,7 @@ COMMENT ON COLUMN simplified.search_directories.directly_deletable IS 'Avoid phy
 
 
 --
--- TOC entry 5237 (class 0 OID 0)
+-- TOC entry 5238 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.size_of_drive_in_bytes; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1086,7 +1092,7 @@ COMMENT ON COLUMN simplified.search_directories.size_of_drive_in_bytes IS 'Tryin
 
 
 --
--- TOC entry 5238 (class 0 OID 0)
+-- TOC entry 5239 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.space_left_on_drive_in_bytes; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1095,7 +1101,7 @@ COMMENT ON COLUMN simplified.search_directories.space_left_on_drive_in_bytes IS 
 
 
 --
--- TOC entry 5239 (class 0 OID 0)
+-- TOC entry 5240 (class 0 OID 0)
 -- Dependencies: 323
 -- Name: COLUMN search_directories.skip_hash_generation; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1212,7 +1218,7 @@ CREATE VIEW simplified.directories_ext_v AS
 ALTER TABLE simplified.directories_ext_v OWNER TO postgres;
 
 --
--- TOC entry 5240 (class 0 OID 0)
+-- TOC entry 5241 (class 0 OID 0)
 -- Dependencies: 355
 -- Name: VIEW directories_ext_v; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1269,7 +1275,7 @@ CREATE TABLE simplified.file_extensions (
 ALTER TABLE simplified.file_extensions OWNER TO postgres;
 
 --
--- TOC entry 5241 (class 0 OID 0)
+-- TOC entry 5242 (class 0 OID 0)
 -- Dependencies: 341
 -- Name: TABLE file_extensions; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1294,7 +1300,7 @@ CREATE SEQUENCE simplified.file_extensions_file_extension_id_seq
 ALTER TABLE simplified.file_extensions_file_extension_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5242 (class 0 OID 0)
+-- TOC entry 5243 (class 0 OID 0)
 -- Dependencies: 340
 -- Name: file_extensions_file_extension_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -1320,7 +1326,7 @@ CREATE TABLE simplified.file_links_across_search_paths (
 ALTER TABLE simplified.file_links_across_search_paths OWNER TO postgres;
 
 --
--- TOC entry 5243 (class 0 OID 0)
+-- TOC entry 5244 (class 0 OID 0)
 -- Dependencies: 337
 -- Name: TABLE file_links_across_search_paths; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1369,7 +1375,7 @@ CREATE TABLE simplified.files (
 ALTER TABLE simplified.files OWNER TO postgres;
 
 --
--- TOC entry 5244 (class 0 OID 0)
+-- TOC entry 5245 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: TABLE files; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1378,7 +1384,7 @@ COMMENT ON TABLE simplified.files IS 'All the files in our interested directorie
 
 
 --
--- TOC entry 5245 (class 0 OID 0)
+-- TOC entry 5246 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.file_hash; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1387,7 +1393,7 @@ COMMENT ON COLUMN simplified.files.file_hash IS 'Fingerprint for file detecting 
 
 
 --
--- TOC entry 5246 (class 0 OID 0)
+-- TOC entry 5247 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.directory_hash; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1396,7 +1402,7 @@ COMMENT ON COLUMN simplified.files.directory_hash IS 'Could be null if we lost t
 
 
 --
--- TOC entry 5247 (class 0 OID 0)
+-- TOC entry 5248 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.file_name_no_ext; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1406,7 +1412,7 @@ The extension has no real meaning to the name of the file.';
 
 
 --
--- TOC entry 5248 (class 0 OID 0)
+-- TOC entry 5249 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.final_extension; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1415,7 +1421,7 @@ COMMENT ON COLUMN simplified.files.final_extension IS 'With torrents there are a
 
 
 --
--- TOC entry 5249 (class 0 OID 0)
+-- TOC entry 5250 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.file_size; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1424,7 +1430,7 @@ COMMENT ON COLUMN simplified.files.file_size IS 'Not space used, but reported si
 
 
 --
--- TOC entry 5250 (class 0 OID 0)
+-- TOC entry 5251 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.file_date; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1433,7 +1439,7 @@ COMMENT ON COLUMN simplified.files.file_date IS 'The modified date on the file, 
 
 
 --
--- TOC entry 5251 (class 0 OID 0)
+-- TOC entry 5252 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.deleted; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1442,7 +1448,7 @@ COMMENT ON COLUMN simplified.files.deleted IS 'Flag deletion for now rather than
 
 
 --
--- TOC entry 5252 (class 0 OID 0)
+-- TOC entry 5253 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.is_symbolic_link; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1451,7 +1457,7 @@ COMMENT ON COLUMN simplified.files.is_symbolic_link IS 'I don''t use these as VL
 
 
 --
--- TOC entry 5253 (class 0 OID 0)
+-- TOC entry 5254 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.is_hard_link; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1460,7 +1466,7 @@ COMMENT ON COLUMN simplified.files.is_hard_link IS 'Hard links really save space
 
 
 --
--- TOC entry 5254 (class 0 OID 0)
+-- TOC entry 5255 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.linked_path; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1469,7 +1475,7 @@ COMMENT ON COLUMN simplified.files.linked_path IS 'Set when you Get-Item from di
 
 
 --
--- TOC entry 5255 (class 0 OID 0)
+-- TOC entry 5256 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.broken_link; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1478,7 +1484,7 @@ COMMENT ON COLUMN simplified.files.broken_link IS 'Noticed Get-FileHash fails if
 
 
 --
--- TOC entry 5256 (class 0 OID 0)
+-- TOC entry 5257 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.file_ntfs_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1487,7 +1493,7 @@ COMMENT ON COLUMN simplified.files.file_ntfs_id IS 'Pulled using fsutil queryfil
 
 
 --
--- TOC entry 5257 (class 0 OID 0)
+-- TOC entry 5258 (class 0 OID 0)
 -- Dependencies: 320
 -- Name: COLUMN files.scan_for_ntfs_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1633,7 +1639,7 @@ CREATE VIEW simplified.files_ext_v AS
 ALTER TABLE simplified.files_ext_v OWNER TO postgres;
 
 --
--- TOC entry 5258 (class 0 OID 0)
+-- TOC entry 5259 (class 0 OID 0)
 -- Dependencies: 356
 -- Name: VIEW files_ext_v; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1658,7 +1664,7 @@ CREATE SEQUENCE simplified.files_file_id_seq
 ALTER TABLE simplified.files_file_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5259 (class 0 OID 0)
+-- TOC entry 5260 (class 0 OID 0)
 -- Dependencies: 319
 -- Name: files_file_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -1816,7 +1822,7 @@ CREATE TABLE simplified.genres (
 ALTER TABLE simplified.genres OWNER TO postgres;
 
 --
--- TOC entry 5260 (class 0 OID 0)
+-- TOC entry 5261 (class 0 OID 0)
 -- Dependencies: 335
 -- Name: TABLE genres; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1862,7 +1868,7 @@ CREATE TABLE simplified.internet_service_providers (
 ALTER TABLE simplified.internet_service_providers OWNER TO postgres;
 
 --
--- TOC entry 5261 (class 0 OID 0)
+-- TOC entry 5262 (class 0 OID 0)
 -- Dependencies: 308
 -- Name: TABLE internet_service_providers; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1871,7 +1877,7 @@ COMMENT ON TABLE simplified.internet_service_providers IS 'My network is on this
 
 
 --
--- TOC entry 5262 (class 0 OID 0)
+-- TOC entry 5263 (class 0 OID 0)
 -- Dependencies: 308
 -- Name: COLUMN internet_service_providers.bill_amount; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1896,7 +1902,7 @@ CREATE SEQUENCE simplified.internet_service_providers_internet_service_provider_
 ALTER TABLE simplified.internet_service_providers_internet_service_provider_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5263 (class 0 OID 0)
+-- TOC entry 5264 (class 0 OID 0)
 -- Dependencies: 307
 -- Name: internet_service_providers_internet_service_provider_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -1930,7 +1936,7 @@ CREATE TABLE simplified.local_networks (
 ALTER TABLE simplified.local_networks OWNER TO postgres;
 
 --
--- TOC entry 5264 (class 0 OID 0)
+-- TOC entry 5265 (class 0 OID 0)
 -- Dependencies: 310
 -- Name: TABLE local_networks; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -1955,7 +1961,7 @@ CREATE SEQUENCE simplified.local_networks_local_network_id_seq
 ALTER TABLE simplified.local_networks_local_network_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5265 (class 0 OID 0)
+-- TOC entry 5266 (class 0 OID 0)
 -- Dependencies: 309
 -- Name: local_networks_local_network_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -2004,7 +2010,7 @@ CREATE TABLE simplified.media_files (
 ALTER TABLE simplified.media_files OWNER TO postgres;
 
 --
--- TOC entry 5266 (class 0 OID 0)
+-- TOC entry 5267 (class 0 OID 0)
 -- Dependencies: 326
 -- Name: TABLE media_files; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2013,7 +2019,7 @@ COMMENT ON TABLE simplified.media_files IS 'Tear apart the "files" entry into pa
 
 
 --
--- TOC entry 5267 (class 0 OID 0)
+-- TOC entry 5268 (class 0 OID 0)
 -- Dependencies: 326
 -- Name: COLUMN media_files.media_file_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2022,7 +2028,7 @@ COMMENT ON COLUMN simplified.media_files.media_file_id IS 'This needs to keep up
 
 
 --
--- TOC entry 5268 (class 0 OID 0)
+-- TOC entry 5269 (class 0 OID 0)
 -- Dependencies: 326
 -- Name: COLUMN media_files.original_file_name; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2031,7 +2037,7 @@ COMMENT ON COLUMN simplified.media_files.original_file_name IS 'A copy of txt fr
 
 
 --
--- TOC entry 5269 (class 0 OID 0)
+-- TOC entry 5270 (class 0 OID 0)
 -- Dependencies: 326
 -- Name: COLUMN media_files.cleaned_file_name_with_year; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2061,7 +2067,7 @@ CREATE TABLE simplified.network_adapters (
 ALTER TABLE simplified.network_adapters OWNER TO postgres;
 
 --
--- TOC entry 5270 (class 0 OID 0)
+-- TOC entry 5271 (class 0 OID 0)
 -- Dependencies: 312
 -- Name: TABLE network_adapters; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2086,7 +2092,7 @@ CREATE SEQUENCE simplified.network_adapters_network_adapter_id_seq
 ALTER TABLE simplified.network_adapters_network_adapter_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5271 (class 0 OID 0)
+-- TOC entry 5272 (class 0 OID 0)
 -- Dependencies: 311
 -- Name: network_adapters_network_adapter_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -2112,7 +2118,7 @@ CREATE TABLE simplified.scheduled_task_run_sets (
 ALTER TABLE simplified.scheduled_task_run_sets OWNER TO postgres;
 
 --
--- TOC entry 5272 (class 0 OID 0)
+-- TOC entry 5273 (class 0 OID 0)
 -- Dependencies: 331
 -- Name: TABLE scheduled_task_run_sets; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2137,7 +2143,7 @@ CREATE SEQUENCE simplified.scheduled_task_run_sets_scheduled_task_run_set_id_seq
 ALTER TABLE simplified.scheduled_task_run_sets_scheduled_task_run_set_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5273 (class 0 OID 0)
+-- TOC entry 5274 (class 0 OID 0)
 -- Dependencies: 330
 -- Name: scheduled_task_run_sets_scheduled_task_run_set_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -2168,7 +2174,7 @@ CREATE TABLE simplified.scheduled_tasks (
 ALTER TABLE simplified.scheduled_tasks OWNER TO postgres;
 
 --
--- TOC entry 5274 (class 0 OID 0)
+-- TOC entry 5275 (class 0 OID 0)
 -- Dependencies: 329
 -- Name: TABLE scheduled_tasks; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2177,7 +2183,7 @@ COMMENT ON TABLE simplified.scheduled_tasks IS 'Definitions, limited as they are
 
 
 --
--- TOC entry 5275 (class 0 OID 0)
+-- TOC entry 5276 (class 0 OID 0)
 -- Dependencies: 329
 -- Name: COLUMN scheduled_tasks.execution_time_limit; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2218,7 +2224,7 @@ CREATE VIEW simplified.scheduled_tasks_ext_v AS
 ALTER TABLE simplified.scheduled_tasks_ext_v OWNER TO postgres;
 
 --
--- TOC entry 5276 (class 0 OID 0)
+-- TOC entry 5277 (class 0 OID 0)
 -- Dependencies: 346
 -- Name: VIEW scheduled_tasks_ext_v; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2243,7 +2249,7 @@ CREATE SEQUENCE simplified.scheduled_tasks_scheduled_task_id_seq
 ALTER TABLE simplified.scheduled_tasks_scheduled_task_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5277 (class 0 OID 0)
+-- TOC entry 5278 (class 0 OID 0)
 -- Dependencies: 328
 -- Name: scheduled_tasks_scheduled_task_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -2276,7 +2282,7 @@ CREATE TABLE simplified.volumes (
 ALTER TABLE simplified.volumes OWNER TO postgres;
 
 --
--- TOC entry 5278 (class 0 OID 0)
+-- TOC entry 5279 (class 0 OID 0)
 -- Dependencies: 316
 -- Name: TABLE volumes; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2285,7 +2291,7 @@ COMMENT ON TABLE simplified.volumes IS 'Drives on Windows, with letters, mount p
 
 
 --
--- TOC entry 5279 (class 0 OID 0)
+-- TOC entry 5280 (class 0 OID 0)
 -- Dependencies: 316
 -- Name: COLUMN volumes.volume_serial_no; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2294,7 +2300,7 @@ COMMENT ON COLUMN simplified.volumes.volume_serial_no IS 'In case moved to diffe
 
 
 --
--- TOC entry 5280 (class 0 OID 0)
+-- TOC entry 5281 (class 0 OID 0)
 -- Dependencies: 316
 -- Name: COLUMN volumes.seq1m_q8t1_read; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2303,7 +2309,7 @@ COMMENT ON COLUMN simplified.volumes.seq1m_q8t1_read IS 'Some are pretty slow, t
 
 
 --
--- TOC entry 5281 (class 0 OID 0)
+-- TOC entry 5282 (class 0 OID 0)
 -- Dependencies: 316
 -- Name: COLUMN volumes.is_log_dump; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2385,7 +2391,7 @@ CREATE TABLE simplified.search_terms (
 ALTER TABLE simplified.search_terms OWNER TO postgres;
 
 --
--- TOC entry 5282 (class 0 OID 0)
+-- TOC entry 5283 (class 0 OID 0)
 -- Dependencies: 333
 -- Name: TABLE search_terms; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2394,7 +2400,7 @@ COMMENT ON TABLE simplified.search_terms IS 'This is how I find stuff on pirate 
 
 
 --
--- TOC entry 5283 (class 0 OID 0)
+-- TOC entry 5284 (class 0 OID 0)
 -- Dependencies: 333
 -- Name: COLUMN search_terms.search_term; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2531,7 +2537,7 @@ CREATE TABLE simplified.video_files (
 ALTER TABLE simplified.video_files OWNER TO postgres;
 
 --
--- TOC entry 5284 (class 0 OID 0)
+-- TOC entry 5285 (class 0 OID 0)
 -- Dependencies: 327
 -- Name: TABLE video_files; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2540,7 +2546,7 @@ COMMENT ON TABLE simplified.video_files IS 'Of the media files I have, these are
 
 
 --
--- TOC entry 5285 (class 0 OID 0)
+-- TOC entry 5286 (class 0 OID 0)
 -- Dependencies: 327
 -- Name: COLUMN video_files.title; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2579,7 +2585,7 @@ CREATE TABLE simplified.videos (
 ALTER TABLE simplified.videos OWNER TO postgres;
 
 --
--- TOC entry 5286 (class 0 OID 0)
+-- TOC entry 5287 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: TABLE videos; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2594,7 +2600,7 @@ Major goal: Narrow this table for rapid analysis and joining work. Let views exp
 
 
 --
--- TOC entry 5287 (class 0 OID 0)
+-- TOC entry 5288 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.video_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2603,7 +2609,7 @@ COMMENT ON COLUMN simplified.videos.video_id IS 'A unique id regardless of exter
 
 
 --
--- TOC entry 5288 (class 0 OID 0)
+-- TOC entry 5289 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.primary_title; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2614,7 +2620,7 @@ Oh, and FYI: Get Over It.';
 
 
 --
--- TOC entry 5289 (class 0 OID 0)
+-- TOC entry 5290 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.release_year; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2623,7 +2629,7 @@ COMMENT ON COLUMN simplified.videos.release_year IS 'Part of an alternate key, t
 
 
 --
--- TOC entry 5290 (class 0 OID 0)
+-- TOC entry 5291 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.is_episodic; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2632,7 +2638,7 @@ COMMENT ON COLUMN simplified.videos.is_episodic IS 'Force a choice: Is it a movi
 
 
 --
--- TOC entry 5291 (class 0 OID 0)
+-- TOC entry 5292 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.title_is_descriptive; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2641,7 +2647,7 @@ COMMENT ON COLUMN simplified.videos.title_is_descriptive IS 'Is it a title we go
 
 
 --
--- TOC entry 5292 (class 0 OID 0)
+-- TOC entry 5293 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.video_edition_type; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2650,7 +2656,7 @@ COMMENT ON COLUMN simplified.videos.video_edition_type IS 'extended, director''s
 
 
 --
--- TOC entry 5293 (class 0 OID 0)
+-- TOC entry 5294 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.video_sub_type; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2660,7 +2666,7 @@ But a thing I saw in memory is must be a real thing. My knowledge of what it was
 
 
 --
--- TOC entry 5294 (class 0 OID 0)
+-- TOC entry 5295 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.is_adult; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2669,7 +2675,7 @@ COMMENT ON COLUMN simplified.videos.is_adult IS 'A key metric. Why do I store th
 
 
 --
--- TOC entry 5295 (class 0 OID 0)
+-- TOC entry 5296 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.runtime; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2678,7 +2684,7 @@ COMMENT ON COLUMN simplified.videos.runtime IS 'in minutes. When comparing IMDB 
 
 
 --
--- TOC entry 5296 (class 0 OID 0)
+-- TOC entry 5297 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.imdb_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2687,7 +2693,7 @@ COMMENT ON COLUMN simplified.videos.imdb_id IS 'not always populated, certainly 
 
 
 --
--- TOC entry 5297 (class 0 OID 0)
+-- TOC entry 5298 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.omdb_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2696,7 +2702,7 @@ COMMENT ON COLUMN simplified.videos.omdb_id IS 'Haven''t grabbed it yet. Not eve
 
 
 --
--- TOC entry 5298 (class 0 OID 0)
+-- TOC entry 5299 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.parent_video_id; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2705,7 +2711,7 @@ COMMENT ON COLUMN simplified.videos.parent_video_id IS 'So the parent of the rif
 
 
 --
--- TOC entry 5299 (class 0 OID 0)
+-- TOC entry 5300 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.parent_title; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2715,7 +2721,7 @@ Since I''m more a movie buff than tv buff, I put parent_title low on the view or
 
 
 --
--- TOC entry 5300 (class 0 OID 0)
+-- TOC entry 5301 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.season_no; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2724,7 +2730,7 @@ COMMENT ON COLUMN simplified.videos.season_no IS 'Any show have more than 255 se
 
 
 --
--- TOC entry 5301 (class 0 OID 0)
+-- TOC entry 5302 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.episode_no; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2733,7 +2739,7 @@ COMMENT ON COLUMN simplified.videos.episode_no IS 'A reality show could have 360
 
 
 --
--- TOC entry 5302 (class 0 OID 0)
+-- TOC entry 5303 (class 0 OID 0)
 -- Dependencies: 318
 -- Name: COLUMN videos.file_hash; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2759,7 +2765,7 @@ CREATE TABLE simplified.videos_to_video_files (
 ALTER TABLE simplified.videos_to_video_files OWNER TO filmcab_superuser;
 
 --
--- TOC entry 5303 (class 0 OID 0)
+-- TOC entry 5304 (class 0 OID 0)
 -- Dependencies: 339
 -- Name: TABLE videos_to_video_files; Type: COMMENT; Schema: simplified; Owner: filmcab_superuser
 --
@@ -2784,7 +2790,7 @@ CREATE SEQUENCE simplified.videos_video_id_seq
 ALTER TABLE simplified.videos_video_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5304 (class 0 OID 0)
+-- TOC entry 5305 (class 0 OID 0)
 -- Dependencies: 317
 -- Name: videos_video_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -2809,7 +2815,7 @@ CREATE SEQUENCE simplified.volumes_volume_id_seq
 ALTER TABLE simplified.volumes_volume_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5305 (class 0 OID 0)
+-- TOC entry 5306 (class 0 OID 0)
 -- Dependencies: 315
 -- Name: volumes_volume_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
 --
@@ -2941,7 +2947,7 @@ ALTER TABLE ONLY simplified.videos
 
 
 --
--- TOC entry 5306 (class 0 OID 0)
+-- TOC entry 5307 (class 0 OID 0)
 -- Dependencies: 4932
 -- Name: CONSTRAINT ak_videos_hash ON videos; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2959,7 +2965,7 @@ ALTER TABLE ONLY simplified.videos
 
 
 --
--- TOC entry 5307 (class 0 OID 0)
+-- TOC entry 5308 (class 0 OID 0)
 -- Dependencies: 4934
 -- Name: CONSTRAINT ak_videos_imdb ON videos; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -2977,7 +2983,7 @@ ALTER TABLE ONLY simplified.videos
 
 
 --
--- TOC entry 5308 (class 0 OID 0)
+-- TOC entry 5309 (class 0 OID 0)
 -- Dependencies: 4936
 -- Name: CONSTRAINT ak_videos_logical ON videos; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -3076,7 +3082,7 @@ ALTER TABLE ONLY simplified.directories
 
 
 --
--- TOC entry 5309 (class 0 OID 0)
+-- TOC entry 5310 (class 0 OID 0)
 -- Dependencies: 4948
 -- Name: CONSTRAINT directories_directory_path_volume_id_key ON directories; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -3094,7 +3100,7 @@ ALTER TABLE ONLY simplified.directories
 
 
 --
--- TOC entry 5310 (class 0 OID 0)
+-- TOC entry 5311 (class 0 OID 0)
 -- Dependencies: 4950
 -- Name: CONSTRAINT directories_pkey ON directories; Type: COMMENT; Schema: simplified; Owner: postgres
 --
@@ -3577,7 +3583,7 @@ ALTER TABLE ONLY simplified.scheduled_tasks
 
 
 --
--- TOC entry 5311 (class 0 OID 0)
+-- TOC entry 5312 (class 0 OID 0)
 -- Dependencies: 5013
 -- Name: CONSTRAINT scheduled_tasks_scheduled_task_run_sets_fk ON scheduled_tasks; Type: COMMENT; Schema: simplified; Owner: postgres
 --

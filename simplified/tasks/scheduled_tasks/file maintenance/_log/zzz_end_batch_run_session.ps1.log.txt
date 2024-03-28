@@ -1,12 +1,16 @@
-Starting Log 03/25/2024 10:54:56 on Monday DST in March, by Windows User <jeffs>
+Starting Log 03/28/2024 00:22:00 on Thursday DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\zzz_end_batch_run_session.ps1'; exit $LASTEXITCODE"
 processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
 Called from Windows Task Scheduler
-Scanning Get-ScheduledTasks
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\zzz_end_batch_run_session.ps1'; exit $LASTEXITCODE"
-Finished Scanning (2)
+Attempting to get triggering event for zzz_end_batch_run_session for run set name \file maintenance in root directory \FilmCab
+Got following event back: Task triggered on event
+@{Message=Task Scheduler launched "{cfa3b4dd-75f3-41b5-96e2-4b7bb99bd96a}"  instance of task "\FilmCab\file maintenance\zzz_end_batch_run_session"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:21:59; RecordId=202661; ActivityId=cfa3b4dd-75f3-41b5-96e2-4b7bb99bd96a; ThreadId=18348; ResultCode=; UserContext=; UserName=; Id=108}
+Finished Scanning for caller details
+active_batch_run_session_id # = 93
+Exiting standard_header
 SELECT batch_run_session_id, started FROM batch_run_sessions_v WHERE running
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 6.3787948 Second(s)
+Stopping Normally after 6.978632 Second(s)

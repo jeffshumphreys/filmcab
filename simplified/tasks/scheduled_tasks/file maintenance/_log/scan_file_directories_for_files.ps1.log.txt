@@ -1,307 +1,125 @@
-Starting Log 03/25/2024 10:35:27 on Monday DST in March, by Windows User <jeffs>
+Starting Log 03/28/2024 00:06:24 on Thursday DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\scan_file_directories_for_files.ps1'; exit $LASTEXITCODE"
 processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
 Called from Windows Task Scheduler
-Scanning Get-ScheduledTasks
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\scan_file_directories_for_files.ps1'; exit $LASTEXITCODE"
-Finished Scanning (2)
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\spud.txt
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E01.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E02.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E03.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E04.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E05.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E06.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E07.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E08.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E09.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Unite 42 (Unit 42) - season 1\Unit 42 S01E10.mkv
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E01.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E02.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E03.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E04.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E05.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E06.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E07.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E08.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E09.WEB-DLRip.avi.!qB
-Scanning D:\qBittorrent Downloads\temp\Aallonmurtaja.S01.WEB-DLRip\Aallonmurtaja.S01E10.WEB-DLRip.avi.!qB
+Attempting to get triggering event for scan_file_directories_for_files for run set name \file maintenance in root directory \FilmCab
+Got following event back: Task triggered on event
+@{Message=Task Scheduler launched "{61d8ef95-cc36-44d0-a649-e6e61a372642}"  instance of task "\FilmCab\file maintenance\scan_file_directories_for_files"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:06:23; RecordId=202589; ActivityId=61d8ef95-cc36-44d0-a649-e6e61a372642; ThreadId=17540; ResultCode=; UserContext=; UserName=; Id=108}
+Finished Scanning for caller details
+active_batch_run_session_id # = 93
+Exiting standard_header
+Scanning D:\qBittorrent Downloads\Video\Movies\Black.Crab.2022.720p.NF.WEBRip.800MB.x264-GalaxyRG[TGx]
+Scanning D:\qBittorrent Downloads\Video\Movies\Knight Rider 2000 (1991)
+Scanning D:\qBittorrent Downloads\Video\Movies\Knight Rider 2000 (1991)\kr.2000.xvid-syntax.avi
+Scanning D:\qBittorrent Downloads\Video\Movies\Knight Rider 2000 (1991)\kr.2000.xvid-syntax.jpg
+Scanning D:\qBittorrent Downloads\Video\Movies\Knight Rider 2000 (1991)\kr.2000.xvid-syntax.nfo
+Scanning D:\qBittorrent Downloads\temp\[ www.Torrentday.com ] - Escape.From.The.Bronx.1983.(Bronx.Warriors.2).DVDRIP.XVID.AC3-MAJESTiC
+Scanning D:\qBittorrent Downloads\temp\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69
+Scanning D:\qBittorrent Downloads\temp\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69\1337x text file.txt
+Scanning D:\qBittorrent Downloads\temp\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69.avi.!qB
+Scanning D:\qBittorrent Downloads\temp\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69.srt
+Scanning D:\qBittorrent Downloads\temp\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69\Downloaded from katcr.co.txt
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\02 Battlestar Galactica - Blood and Chrome (2012).mp4
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\02 Battlestar Galactica - Blood and Chrome.srt
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\03 Battlestar Galactica Mini-Series - Part 1 of 2 (2003).mp4
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\04 Battlestar Galactica - Mini-series - Part 2 of 2 (2003).mp4
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E01.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E02.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E03.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E04.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E05.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E06.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E07.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E08.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E09.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E10.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E11.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E12.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\05 Battlestar Galactica - S01E13.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E01.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E02.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E03.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E04.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E05.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E06.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E07.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E08.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E09.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E10.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E11.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E12.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E13.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E14.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E15.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E16.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E17.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E18.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E19.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\06 Battlestar Galactica - S02E20.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\07 BSG The Resistance Webisodes 1-10 x264 AC-3.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E01.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E02.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E03.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E04.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E05.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E06.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E07.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E08.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E09.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E10.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E11.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E12.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E13.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E14.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E15.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E16.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E17.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E18.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E19.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\08 Battlestar Galactica - S03E20.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\09 Battlestar Galactica Razor Flashbacks Complete v3 1080p 6ch x265 HEVC.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\10 Battlestar Galactica - Razor Unrated Extended (2007).mp4
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E01 He That Believeth in Me (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E02 Six of One (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E03 The Ties That Bind (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E04 Battlestar Galactica (2003) S04E04 Escape Velocity.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E05 The Road Less Traveled (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E06 Faith (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E07 Guess What's Coming to Dinner (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E08 Sine Qua Non (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E09 The Hub (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E10 Revelations (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\11 BGS S04E11 Sometimes a Great Notion (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E001 - The Face of theemy - Scene 01.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E002 - The Face of theemy - Scene 02.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E004 - The Face of theemy - Scene 04.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E005 - The Face of theemy - Scene 05.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E006 - The Face of theemy - Scene 06.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E007 - The Face of theemy - Scene 07.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E008 - The Face of theemy - Scene 08.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\12 Battlestar Galactica Specials - S01E010 - The Face of theemy - Scene 10.avi
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\13 BGS S04E12 A Disquiet Follows My Soul EXTENDED (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\13 BGS S04E13 The Oath (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\13 BGS S04E14 Blood on the Scales (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\13 BGS S04E15 No Exit (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\14 Battlestar Galactica - The Plan (2009).mp4
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\15 BGS S04E16 Deadlock (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\15 BGS S04E17 Someone to Watch Over Me (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\15 BGS S04E18 Islanded in a Stream of Stars EXTENDED (1080p x265 10bit.mkv
+Scanning G:\Video AllInOne Backup\_Sci Fi\Battlestar Galactica\15 BGS S04E19-20-21 Daybreak EXTENDED (1080p x265 10bit.mkv
 Scanning D:\qBittorrent Downloads\temp
 Scanning D:\qBittorrent Downloads\temp\041551522X encyclopedia confucianism.pdf.!qB
 Scanning D:\qBittorrent Downloads\temp\1107074061 singular universe.pdf.!qB
 Scanning D:\qBittorrent Downloads\temp\1847065783 kant dictionary.pdf.!qB
 Scanning D:\qBittorrent Downloads\temp\3319054724 quantum chance.pdf.!qB
+Scanning D:\qBittorrent Downloads\temp\Benji.the.Hunted.1987.720p Eng.HD.mp4.!qB
 Scanning D:\qBittorrent Downloads\temp\Dark Metropolis.2010. REPACK.DVDRip.XviD-WBZ.[UsaBit.com].avi.!qB
 Scanning D:\qBittorrent Downloads\temp\Gotham.Knights.S01E09.Dark.Knight.of.the.Soul.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv.!qB
+Scanning D:\qBittorrent Downloads\temp\How.To.Steal.A.Million.1966.1080p.BluRay.x265-RBG.mp4.!qB
+Scanning D:\qBittorrent Downloads\temp\RIFFTRAX - Warriors Of The Wasteland.avi.!qB
 Scanning D:\qBittorrent Downloads\temp\The_Sleeping_Cardinal.1931.Sherlock_Holmes_Fatal_Hour.avi.!qB
-Scanning D:\qBittorrent Downloads\Video\TV
-Scanning D:\qBittorrent Downloads\Video\TV\.1e22d08391edaa9222c335599bc6687405730cb3.parts
-Scanning D:\qBittorrent Downloads\Video\TV\.353eedfa536efb7ab82606fe69c516976ce93cff.parts
-Scanning D:\qBittorrent Downloads\Video\TV\.7626eee38aa7f49d503b6b2a6189a765f023c862.parts
-Scanning D:\qBittorrent Downloads\Video\TV\.96a639f5a6dcd2da1f5be6a252f2942a6ce5a0d0.parts
-Scanning D:\qBittorrent Downloads\Video\TV\.9dee34f90ec02e32d6bfd69270e4fa9f2dd352c0.parts
-Scanning D:\qBittorrent Downloads\Video\TV\.a308580fc5043d62f84d4db2300c0e6e5ba03b3d.parts
-Scanning D:\qBittorrent Downloads\Video\TV\.c93edfea2139d1e4fe42931ce5cb377cbdf7a781.parts
-Scanning D:\qBittorrent Downloads\Video\TV\[ Torrent911.me ] Astrid.et.Raphaelle.S04E01.FRENCH.WEBRip.x264.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\[TGx]Downloaded from torrentgalaxy.to .txt
-Scanning D:\qBittorrent Downloads\Video\TV\Agatha.Christies.Ten.Little.Indians.1965.DVDRip.XviD.avi
-Scanning D:\qBittorrent Downloads\Video\TV\AndThenThereWereNone.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Antiques.Roadshow.US.S27E19.480p.x264-mSD[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Antiques.Roadshow.US.S27E20.1080p.WEB.h264-BAE[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Antiques.Roadshow.US.S27E21.1080p.WEB.h264-BAE[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Antiques.Roadshow.US.S27E23.1080p.HEVC.x265-MeGusta[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Antiques.Roadshow.US.S27E24.480p.x264-mSD[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E01 He That Believeth in Me.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E02 Six of One.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E03 The Ties That Bind.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E04 Escape Velocity.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E05 The Road Less Traveled.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E06 Faith.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E07 Guess What's Coming to Dinner.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E08 Sine Qua Non.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E09 The Hub.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E10 Revelations.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E11 Sometimes a Great Notion.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E12 A Disquiet Follows My Soul.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E13 The Oath.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E14 Blood on the Scales.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E15 No Exit.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E16 Deadlock.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E17 Someone to Watch Over Me.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E18 Islanded in a Stream of Stars.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Battlestar Galactica (2003) S04E19 Daybreak (1) and (2).mkv
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.A.History.of.Ancient.Britain.1of4.Age.of.Ice.HDTV.x264.AC3.MVGroup.org.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.A.History.of.Celtic.Britain.1of4.Age.of.Iron.HDTV.x264.AC3.MVGroup.org.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.Genius.Of.The.Modern.World.2of3.Nietzsche.720p.HDTV.x264.[By ExYu-Subs HC].mp4
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.In.the.Name.of.Peace.John.Hume.in.America.720p.x264.AAC.MVGroup.org.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.Russia.1917.Countdown.to.Revolution.1080p.HDTV.x264.AAC.MVGroup.org.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.Secrets.of.World.War.II.Set.1.02of14.Adolf.Hitlers.Last.Days.x264.AC3.MVGroup.org.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.The.Science.of.Doctor.Who.1080p.HDTV.x264.AAC.MVGroup.org.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\BBC.Versailles.3of3.Countdown.to.Revolution.HDTV.x264.AC3.MVGroup.Forum.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Big Fat Quiz of The Year 2022 720p Webrip x264 AAC-PoNg.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Craith.(Hidden).S01E04.HC.Eng.Subs.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Craith.(Hidden).S01E05.HC.Eng.Subs.S4C.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Craith.S01E01.x264-TVC.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Credits.txt
-Scanning D:\qBittorrent Downloads\Video\TV\Criminal.Record.S01E01.1080p.HEVC.x265-MeGusta[EZTVx.to].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Criminal.Record.S01E02.1080p.HEVC.x265-MeGusta[EZTVx.to].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Criminal.Record.S01E03.1080p.HEVC.x265-MeGusta[EZTVx.to].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Derrick.S01E16.Tod_der_Kolibris.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Disk 1.jpg
-Scanning D:\qBittorrent Downloads\Video\TV\Disk 2.jpg
-Scanning D:\qBittorrent Downloads\Video\TV\Disk 3.jpg
-Scanning D:\qBittorrent Downloads\Video\TV\Disk 4.jpg
-Scanning D:\qBittorrent Downloads\Video\TV\Doctor Who - Wikipedia.pdf
-Scanning D:\qBittorrent Downloads\Video\TV\Doctor.Who.2005.A.Christmas.Carol.2010.Special.720p.HDTV.x264-FoV.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 1 Escape From Tomorrow.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 10 The Interrogation.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 11 The Tyrant.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 12 The Cure.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 13 The Liberator.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 14 Up Above the World So High.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 2 The Gladiators.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 3 The Trap.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 4 The Good Seeds.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 5 The Legacy.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 6 Tomorrow's Tide.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 7 The Surgeon.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 8 The Deception.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Episode 9 The Horse Race.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Files.txt
-Scanning D:\qBittorrent Downloads\Video\TV\Folders.txt
-Scanning D:\qBittorrent Downloads\Video\TV\Hard.Quiz.S08E00.Battle.of.the.Influencers.XviD-AFG[EZTVx.to].avi
-Scanning D:\qBittorrent Downloads\Video\TV\hard.quiz.s08e02.1080p.hdtv.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\hard.quiz.s08e16.1080p.hdtv.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\hard.quiz.s08e18.1080p.hdtv.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\hard.quiz.s08e26.1080p.hdtv.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\hard.quiz.s08e27.1080p.hdtv.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\hard.quiz.s08e28.1080p.hdtv.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\hard.quiz.s08e33.1080p.hdtv.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\hitler.countdown.to.war.s01e02.1080p.web.h264-cbfm[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Jägarna 720p.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Jägarna S01 E01 - 720p x265 HEVC - SWE (HARD ENG SUBS) [BRSHNKV] .mp4
-Scanning D:\qBittorrent Downloads\Video\TV\John Denver and the Muppets - A Christmas Together (1979).avi
-Scanning D:\qBittorrent Downloads\Video\TV\List of Doctor Who Serials - Wikipedia.pdf
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E01.PDTV.x264-W4F.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E02.Xvid-AJAXEN.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E03.Xvid[AreaFiles]AJAXEN.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E04.PDTV.x264-W4F.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E05.Xvid-AJAXEN.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E06.Xvid-AJAXEN.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E07.PDTV.x264-BATV.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E07.Xvid-AJAXEN.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E08.PDTV.x264-W4F.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E09.PDTV.x264-FUtV.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E10.Xvid-AJAXEN.avi
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E11.PDTV.x264-W4F.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E12.PDTV.x264-BWB.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Miss.Fishers.Murder.Mysteries.S02E13.Xvid-AJAXEN.avi
-Scanning D:\qBittorrent Downloads\Video\TV\miss.fishers.murder.mysteries.s03e01.pdtv.x264-w4f.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\miss.fishers.murder.mysteries.s03e02.pdtv.x264-w4f.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\miss.fishers.murder.mysteries.s03e08.pdtv.x264-w4f.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Morden i Sandhamn S04E01.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Morden i Sandhamn S04E02.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Morden i Sandhamn S04E03.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\PBS.Shanghai.1937.PDTV.x264.AAC.MVGroup.org.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Planet Of The Apes Front Cover.jpg
-Scanning D:\qBittorrent Downloads\Video\TV\Read Me.txt
-Scanning D:\qBittorrent Downloads\Video\TV\README.txt
-Scanning D:\qBittorrent Downloads\Video\TV\Recipes.For.Love.and.Murder.S01E01.1080p.HEVC.x265-MeGusta[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Shakespeare.and.Hathaway-Private.Investigators-No.More.Desire.a.Rose--2022-BBC-720p-w.subs-x265-HEVC.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E01.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E02.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E03.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E04.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E05.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E06.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E07.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E08.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E09.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E10.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E11.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E12.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E13.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E14.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star Trek Discovery S01E15.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Star.Trek.Strange.New.Worlds.S02E01.1080p.HEVC.x265-MeGusta[eztv.re].mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Stonemouth S01E01 x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Stonemouth S01E02 x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Ten Little Indians 1974- Oliver Reed.avi
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E01 - Brokenwood The Musical 1080P x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E01 - Brokenwood The Musical 1080P x264 RB58.srt
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E02 - Old Blood Money 1080P x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E02 - Old Blood Money 1080P x264 RB58.srt
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E03 - Nun of the Above 1080P x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E03 - Nun of the Above 1080P x264 RB58.srt
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E04 - Going to the Dogs 1080P x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E04 - Going to the Dogs 1080p x264 RB58.srt
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E05 - Shot of Love 1080P x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E05 - Shot of Love 1080P x264 RB58.srt
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E06 - Motorcycle Mamas 1080P x264 RB58.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The Brokenwood Mysteries S09E06 - Motorcycle Mamas 1080P x264 RB58.srt
-Scanning D:\qBittorrent Downloads\Video\TV\The Horror of Party Beach (1964).mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E01.720p.WEBRip.x264-skorpion.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E02.720p.WEBRip.x264-skorpion.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E03.WEBRip.x264-skorpion.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E04.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E05.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E05.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E06.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E07.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E07.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E08.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E08.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E09.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E10.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E11.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E12.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E12.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E13.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S08E14.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E02.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E03.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E04.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E06.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E07.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E08.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E09.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E10.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E11.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E12.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E13.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E15.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E16.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E17.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E21.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E25.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E31.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E32.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E34.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S09E40.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S10E08.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S10E11.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S10E12.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E01.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E02.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E03.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E07.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E08.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E09.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E10.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E11.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E12.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E14.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E15.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E17.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E22.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E23.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E24.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E25.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E26.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E27.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E28.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E29.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E30.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E31.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E32.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E33.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E34.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E35.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E36.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E37.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E38.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E39.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S11E40.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E02.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E03.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E04.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E06.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E07.Windrush.Special.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E08.NHS.Special.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E09.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E09.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E10.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E10.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E11.720p.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\The.Repair.Shop.S12E11.WEBRip.x264-skorpion.mp4
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E01 Pilot.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E02 The Way Home.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E03 Rocking the Boat.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E04 Sunday.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E05 Souvenirs.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E06 Always After.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E07 A Safe Place.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E08 Insomnia.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E09 Untethered.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Those Who Kill (US) S01E10 Surrender.mkv
-Scanning D:\qBittorrent Downloads\Video\TV\Torrent_downloaded_from_Demonoid.me.txt
-Scanning D:\qBittorrent Downloads\Video\TV\Where I Upload.txt
-Scanning C:\Users\jeffs\Downloads
-Scanning C:\Users\jeffs\Downloads\After_Mein_Kampf.mp4
-Scanning C:\Users\jeffs\Downloads\Betty_Boop_On_with_the_New.mp4
-Scanning C:\Users\jeffs\Downloads\desktop.ini
-Scanning C:\Users\jeffs\Downloads\Dick_Tracy_1_The_Spider_Strikes.mp4
-Scanning C:\Users\jeffs\Downloads\emoji_apple_all_ios_iphone.png
-Scanning C:\Users\jeffs\Downloads\Full Emoji List, v15.1.htm
-Scanning C:\Users\jeffs\Downloads\ICEBERG.qbtheme
-Scanning C:\Users\jeffs\Downloads\Inner_Sanctum.mpeg
-Scanning C:\Users\jeffs\Downloads\klcp_update_1818_20240308.exe
-Scanning C:\Users\jeffs\Downloads\LibreOffice_24.2.1_Win_x86-64.msi
-Scanning C:\Users\jeffs\Downloads\Man_Who_Cheated_Himself.mp4
-Scanning C:\Users\jeffs\Downloads\qBittorrentDarktheme-Rev12.zip
-Scanning C:\Users\jeffs\Downloads\radarmen_chapter1.mp4
-Scanning C:\Users\jeffs\Downloads\Sky_Patrol.mp4
-Scanning C:\Users\jeffs\Downloads\Tea Dance.mp4
-Scanning C:\Users\jeffs\Downloads\Ted Weems and his Orchestra _Cheer Up!_ 1930 (480p_25fps_H264-128kbit_AAC).mp4
-Scanning C:\Users\jeffs\Downloads\The $1.98 Beauty Show (September 14, 1978).mp4
-Scanning C:\Users\jeffs\Downloads\The File on Thelma Jordon (1950) Barbara Stanwyck, Wendell Corey, Paul Kelly (1)_x264.mp4
-Scanning C:\Users\jeffs\Downloads\The Silver Blaze aka Murder_At_The_Baskervilles.mp4
-Scanning C:\Users\jeffs\Downloads\TheRunningJumpingAndStandingStillFilm1959.mpeg
-Scanning C:\Users\jeffs\Downloads\Too_Late_for_Tears_1949.mp4
-Scanning C:\Users\jeffs\Downloads\TrackActiveWindowInstaller.exe
-Scanning C:\Users\jeffs\Downloads\VisualStudioSetup.exe
 Scanning D:\qBittorrent Downloads\Video\Movies
 Scanning D:\qBittorrent Downloads\Video\Movies\.04c71abbcaaf070d504be5521d9b7573ca4fbc20.parts
 Scanning D:\qBittorrent Downloads\Video\Movies\.14a11a46d30e99f7a47e457a4adbc349ef23f441.parts
@@ -610,6 +428,7 @@ Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\20000.Leagues
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\2036.Nexus.Dawn.2017.1080p.BluRay.x264-FLAME[N1C].torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\2036.Origin.Unknown.2018.1080p.WEBRip.x264.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\2037 2022 720p Korean HDRip H265 BONE.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\2040.2019.PROPER.BDRiP.x264-SD480P.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\2067.2020.720p.WEBRip.800MB.x264-GalaxyRG.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\2149.The.Aftermath.2021.HDRip.XviD.AC3-EVO.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\25th.Anniversary.Swimsuit.Video.1994-[Erotic].DVDRip.torrent
@@ -636,6 +455,7 @@ Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\A.I.Artificia
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\A.Shaun.The.Sheep.Movie.Farmageddon.2019.1080p.BluRay.x264.AAC5..torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\A.Shaun.The.Sheep.Movie.Farmageddon.2019.720p.BluRay.x264.AAC.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\A.Shot.in.the.Dark.1964.1080p.BluRay.H264.AAC-.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Aallonmurtaja.S01.WEB-DLRip.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\abbott and costello - meet the keystone cops (1955).mp4.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\abbott and costello - one night in the tropics (1940).mp4.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Abbott And Costello In Hollywood  (Comedy 1945)  720p.torrent
@@ -767,12 +587,14 @@ Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Beforeigners 
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Beforeigners - season 2.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Being There (1979) Peter Sellers 1080p H.264 (moviesbyrizzo).torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Beneath the Planet of the Apes (1970) 1080p BrRip x264 - YIFY.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Benji (1974) [1080p] [BluRay].torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Beyond Skyline 2017 1080p BluRay 6CH AAc x264 - EiE.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Big Fat Quiz of The Year 2022 720p Webrip x264 AAC-PoNg.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Birdemic 2 The Resurrection 2013 720p WEBRip x264-PLAYNOW.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Birdemic 3 Sea Eagle (2022) [1080p] [WEBRip].torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Birdemic.Shock.And.Terror.2010.1080p.BluRay.H264.AAC.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Birds.Of.Prey.020.1080p.BluRay.x264.AAC5.1.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Black.Crab.2022.720p.NF.WEBRip.800MB.x264-GalaxyRG.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Blackbeard's Ghost (1968) BRRip Oldies.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Blade Runner (1982) Final Cut 1080p BluRay.x264 SUJAIDR.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Blade Runner 2049.HDRip.XviD.AC3-EVO.torrent
@@ -815,6 +637,7 @@ Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Cardinal-S01-
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Career Opportunities 1991 720p WEB-DL H264 BONE.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Cargo.2009.1080p.BluRay.x265.HEVC.EAC3.MULTI-SARTRE.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Carnival.of.Souls.1962.(Horror).1080p.BRRip.x264-Classics.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Cartoon - Bon Voyage, Charlie Brown (1980).torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Casablanca (1942) 720p BrRip mkv - 600MB - YIFY.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Casino.Royale.1967.720p.BluRay.999MB.HQ.x265.10bit-GalaxyRG[TGx].torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Cat.People.1942.RESTORED.1080p.BluRay.H264.AAC-GoodFilms.torrent
@@ -1171,6 +994,7 @@ Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\King.Kong.Esc
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Kiss Me Kate (1953) 1080p BrRip x264 - YIFY.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Kiss.Me.Deadly.1955.(Film.Noir).1080p.BRRip.x264-Classics.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Kitty Foyle  (Drama 1940)  Ginger Rogers  720p.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Knight Rider 2000 (1991).torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Knight Rider 2010 DVDRip x264-HJ.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Knightriders - i cavalieri (1981) 720p h264 Ita Eng Sub Ita Eng-MIRCrew.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Kong- Skull Island (2017) [1080p] [English].torrent
@@ -1324,6 +1148,7 @@ Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Nitty Gritty 
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Nitty Gritty Dirt Band - Will The Circle Be Unbroken 2CD.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Nitty Gritty Dirt Band - Will the Circle Be Unbroken-Trilogy [6CD](2003).torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\No Country For Old Men (2007) 1080p BrRip x264 - 1.6GB - YIFY.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\No Deposit No Return (1976) David Niven + Don Knotts .1080p.x264.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\No Offence 2015-2018 S01-S03 720p WEB-DL H265 BONE.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Noi Vivi  We The Living (1942).torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\Nothing.Sacred.1937.REMASTERED.1080p.BluRay.X264-AMIABLE [GFilms.torrent
@@ -1599,6 +1424,7 @@ Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Batman (2
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Batman Superman Movie  World's Finest (1998) DVD RIP.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Battle of Algiers (1966) 720p BRrip_ShAaNiG_sujaidr.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Beastmaster 3 The Eye Of Braxus (1995).avi.torrent
+Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Benji Collection (1974-2004) BDRip 1080p.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Big Lebowski (1998) 720p BrRip x264 - 650MB - YIFY.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Big Sleep (1946) 720p BluRay x265 HEVC SUJAIDR.torrent
 Scanning D:\qBittorrent Downloads\_finished_download_torrent_files\The Birds (1963) 720p HDTV x264 - 700MB - YIFY.torrent
@@ -2184,6 +2010,8 @@ Scanning D:\qBittorrent Downloads\_torrent files\Ator IV - The Hobgoblin (1990).
 Scanning D:\qBittorrent Downloads\_torrent files\Ator L'invincibile 2 - The Blade Master - Joe D'amato (1984) U.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Ator the Fighting Eagle (1982) BRRip Oldies.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Attraction.2.Invasion.2020.1080p.BDRip.X264.DD.5.1-EVO[TGx].torrent
+Scanning D:\qBittorrent Downloads\_torrent files\Attraction.2.Invasion.2020.DUBBED.720p.BluRay.900MB.x264-GalaxyR.torrent
+Scanning D:\qBittorrent Downloads\_torrent files\Attraction.2017.DUBBED.BRRip.XviD.B4ND1T69.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Auntie Mame (1958) Rosalind Russell Eng.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Avengers Confidential Black Widow And Punisher[2014] HDRip XviD[.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Awake.2021.HDRip.XviD.AC3-EVO.torrent
@@ -2238,12 +2066,14 @@ Scanning D:\qBittorrent Downloads\_torrent files\Beforeigners - season 2.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Being There (1979) Peter Sellers 1080p H.264 (moviesbyrizzo).torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Beneath the Planet of the Apes (1970) 1080p BrRip x264 - YIFY.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Benji (1974) [1080p] [BluRay].torrent
+Scanning D:\qBittorrent Downloads\_torrent files\Benji.the.Hunted.1987.720p Eng.HD.mp4.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Beyond Skyline 2017 1080p BluRay 6CH AAc x264 - EiE.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Big Fat Quiz of The Year 2022 720p Webrip x264 AAC-PoNg.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Birdemic 2 The Resurrection 2013 720p WEBRip x264-PLAYNOW.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Birdemic 3 Sea Eagle (2022) [1080p] [WEBRip].torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Birdemic.Shock.And.Terror.2010.1080p.BluRay.H264.AAC.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Birds.Of.Prey.020.1080p.BluRay.x264.AAC5.1.torrent
+Scanning D:\qBittorrent Downloads\_torrent files\Black.Crab.2022.720p.NF.WEBRip.800MB.x264-GalaxyRG.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Blackbeard's Ghost (1968) BRRip Oldies.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Blade Runner (1982) Final Cut 1080p BluRay.x264 SUJAIDR.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Blade Runner 2049.HDRip.XviD.AC3-EVO.torrent
@@ -2425,6 +2255,7 @@ Scanning D:\qBittorrent Downloads\_torrent files\Equus 1977 720p BrRip EN-SUB x2
 Scanning D:\qBittorrent Downloads\_torrent files\Eraserhead (1977).torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Ericas.Erotic.Nights.2004-[Erotic].DVDRip.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Erik The Viking 1989 1080p WEB-DL HEVC x265 BONE.torrent
+Scanning D:\qBittorrent Downloads\_torrent files\Escape.From.The.Bronx.1983.(Bronx.Warriors.2).DVDRIP.XVID.AC3-MA.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Euthanizer 2017 BDRip x264-FiCO.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Eve Of Destruction (1991) 720p BluRay-LAMA.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Evil Dead II (1987) [1080p].torrent
@@ -2563,6 +2394,7 @@ Scanning D:\qBittorrent Downloads\_torrent files\Hot Lead  (Western 1951)  Tim H
 Scanning D:\qBittorrent Downloads\_torrent files\Hot Lead &amp; Cold Feet  (West. Comedy 1978)  J. Dale  720p  HD.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Hound of the Baskervilles (2002) DVDRip Eng-Hindi 3v!lk!d.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\How to Murder Your Wife (1965) - Jack Lemmon - BRRip.XviD.torrent
+Scanning D:\qBittorrent Downloads\_torrent files\How.To.Steal.A.Million.1966.1080p.BluRay.x265-RBG.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Hulk (2003) 1080p BrRip x264 - YIFY.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Humanoids from the Deep (1980) Ita Eng MIRCrew.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\I Married a Monster From Outer Space [Sci-Fi] (1958) DVDRip Oldi.torrent
@@ -2661,6 +2493,7 @@ Scanning D:\qBittorrent Downloads\_torrent files\King.Kong.Escapes.1967.DVDRIP.X
 Scanning D:\qBittorrent Downloads\_torrent files\Kiss Me Kate (1953) 1080p BrRip x264 - YIFY.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Kiss.Me.Deadly.1955.(Film.Noir).1080p.BRRip.x264-Classics.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Kitty Foyle  (Drama 1940)  Ginger Rogers  720p.torrent
+Scanning D:\qBittorrent Downloads\_torrent files\Knight Rider 2000 (1991).torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Knight Rider 2010 DVDRip x264-HJ.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Knight.Riders{1981}[Eng]Dvdrip.Dino.avi.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Knightriders - i cavalieri (1981) 720p h264 Ita Eng Sub Ita Eng-MIRCrew.torrent
@@ -2927,6 +2760,7 @@ Scanning D:\qBittorrent Downloads\_torrent files\Ridley.S01.COMPLETE.720p.AMZN.W
 Scanning D:\qBittorrent Downloads\_torrent files\Rifftrax - 1990 Bronx Warriors HD.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Rifftrax - Ator, The Fighting Eagle HighTV.mp4.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Rifftrax - The Sword and the Sorcerer.mp4.torrent
+Scanning D:\qBittorrent Downloads\_torrent files\RIFFTRAX - Warriors Of The Wasteland WIDESCREEN VERSION.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Riget (The Kingdom) - season 1.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Righteous Kill (2008) 720p BrRip x264 - 550MB - YIFY.torrent
 Scanning D:\qBittorrent Downloads\_torrent files\Rillington.Place.Complete.Series.1.EN.SUB.MPEG4.x264.WEBRIP.MPup.torrent
@@ -3570,8 +3404,8 @@ Scanning D:\qBittorrent Downloads\_torrent files\Zombie Strippers! (2008) 1080p 
 Finally
 *** empty string
 *** empty string
-How Many New Files                           :   30
-How Many Updated Files                       :    1
+How Many New Files                           :   18
+How Many Updated Files                       :    0
 How Many Rows Updated                        :    0
 How Many Rows Inserted                       :    0
 How Many New Hard Links                      :    0
@@ -3579,4 +3413,4 @@ How Many Converted to Hard Links             :    0
 How Many New Symbolic Links                  :    0
 How Many Converted to Symbolic Links         :    0
 How Many Scan Directory Triggers Disabled    :    1
-Stopping Normally after 439.1778633 Second(s)
+Stopping Normally after 209.0515859 Second(s)

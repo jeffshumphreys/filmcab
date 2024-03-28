@@ -1,12 +1,16 @@
-Starting Log 03/25/2024 10:42:51 on Monday DST in March, by Windows User <jeffs>
+Starting Log 03/28/2024 00:09:59 on Thursday DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\clean_up_table_data.ps1'; exit $LASTEXITCODE"
 processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
 Called from Windows Task Scheduler
-Scanning Get-ScheduledTasks
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\clean_up_table_data.ps1'; exit $LASTEXITCODE"
-Finished Scanning (2)
+Attempting to get triggering event for clean_up_table_data for run set name \file maintenance in root directory \FilmCab
+Got following event back: Task triggered on event
+@{Message=Task Scheduler launched "{e0b6a077-d30c-42ee-b8f8-29ae51d2644c}"  instance of task "\FilmCab\file maintenance\clean_up_table_data"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:09:58; RecordId=202609; ActivityId=e0b6a077-d30c-42ee-b8f8-29ae51d2644c; ThreadId=3016; ResultCode=; UserContext=; UserName=; Id=108}
+Finished Scanning for caller details
+active_batch_run_session_id # = 93
+Exiting standard_header
 Finally
 *** empty string
 *** empty string
 How Many Folders Populated    :   0
-Stopping Normally after 0.688805 Second(s)
+Stopping Normally after 0.9975845 Second(s)

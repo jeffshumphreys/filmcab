@@ -1,10 +1,14 @@
-Starting Log 03/25/2024 19:31:25 on Monday DST in March, by Windows User <jeffs>
+Starting Log 03/28/2024 00:21:02 on Thursday DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\import processing\load_user_spreadsheet_interface.ps1'; exit $LASTEXITCODE"
 processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
 Called from Windows Task Scheduler
-Scanning Get-ScheduledTasks
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\filmcab\simplified\tasks\scheduled_tasks\import processing\load_user_spreadsheet_interface.ps1'; exit $LASTEXITCODE"
-Finished Scanning (2)
+Attempting to get triggering event for load_user_spreadsheet_interface for run set name \import processing in root directory \FilmCab
+Got following event back: Task triggered on scheduler
+@{Message=Task Scheduler launched "{47dfcd43-2809-4fd8-9f6f-8d62f707ff51}"  instance of task "\FilmCab\import processing\load_user_spreadsheet_interface" due to a time trigger condition.; TaskDisplayName=Task triggered on scheduler; TimeCreated=03/28/2024 00:21:01; RecordId=202638; ActivityId=47dfcd43-2809-4fd8-9f6f-8d62f707ff51; ThreadId=17816; ResultCode=; UserContext=; UserName=; Id=107}
+Finished Scanning for caller details
+active_batch_run_session_id # = 93
+Exiting standard_header
 TRUNCATE TABLE user_spreadsheet_interface RESTART IDENTITY
 COPY user_spreadsheet_interface(
      seen                    ,
@@ -41,4 +45,4 @@ FROM 'D:\qt_projects\filmcab\simplified\_data\user_spreadsheet_interface.csv' CS
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 3.1529722 Second(s)
+Stopping Normally after 4.9945061 Second(s)

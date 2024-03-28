@@ -1,12 +1,28 @@
-Starting Log 03/25/2024 10:25:48 on Monday DST in March, by Windows User <jeffs>
+Starting Log 03/28/2024 00:01:10 on Thursday DST in March, by Windows User <jeffs>
 $ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
+"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\_start_new_batch_run_session.ps1'; exit $LASTEXITCODE"
 processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
 Called from Windows Task Scheduler
-Scanning Get-ScheduledTasks
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\_start_new_batch_run_session.ps1'; exit $LASTEXITCODE"
-Finished Scanning (2)
+Attempting to get triggering event for _start_new_batch_run_session for run set name \file maintenance in root directory \FilmCab
+Got following event back: Task triggered on scheduler
+@{Message=Task Scheduler launched "{5c5910d3-f0bd-4023-b372-b6e101765dfd}"  instance of task "\FilmCab\file maintenance\_start_new_batch_run_session" due to a time trigger condition.; TaskDisplayName=Task triggered on scheduler; TimeCreated=03/28/2024 00:01:01; RecordId=202553; ActivityId=5c5910d3-f0bd-4023-b372-b6e101765dfd; ThreadId=12168; ResultCode=; UserContext=; UserName=; Id=107}
+Finished Scanning for caller details
+active_batch_run_session_id # = 
+Exiting standard_header
+SELECT batch_run_session_id, started FROM batch_run_sessions_v WHERE running
+/*sql*/
+    INSERT INTO batch_run_sessions_v(
+        last_script_ran
+    ,   session_starting_script
+    ,   caller_starting
+    ) VALUES(
+        '_start_new_batch_run_session.ps1'
+    ,   '_start_new_batch_run_session.ps1'
+    ,   'Windows Task Scheduler'
+    )
 Added 1 row(s) to batch run_session
+UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = 93
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 0.5332144 Second(s)
+Stopping Normally after 2.2467132 Second(s)
