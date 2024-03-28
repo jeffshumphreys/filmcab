@@ -201,6 +201,8 @@ while ($tryToStartTranscriptAttempts -lt 3) {
 
 . .\_dot_include_standard_header_sql_functions.ps1
 
+. .\_dot_include_standard_header_helper_functions.ps1
+
 Function Get-CRC32 {
     <#
         .SYNOPSIS
@@ -342,7 +344,7 @@ Function Write-AllPlaces {
     I always like to do this.  I want to see "1 Day" vs. "300000 Seconds"
     
     .PARAMETER ob
-    Parameter description
+    The timer hopefully started earlier, perhaps at the top of the _dot_include_standard_header?
     
     .EXAMPLE
     An example
@@ -350,33 +352,29 @@ Function Write-AllPlaces {
     .NOTES
     #TODO: Switch to humanizer?
     #>    
-Function Format-Humanize($ob) {
-    if ($ob -is [Diagnostics.Stopwatch]) {
-        $ob = $ob.Elapsed
-    }                    
+Function Format-Humanize([Diagnostics.Stopwatch]$ob) {
+    [timespan]$elapsed = $ob.Elapsed
     
-    if ($ob -is [timespan]) {
-        if ($ob.Days -gt 0) {
-            Format-Plural 'Day' $($ob.Days) -includeCount
-        }
-        elseif ($ob.Hours -gt 0) {
-            Format-Plural 'Hour' $($ob.Hours) -includeCount
-        }
-        elseif ($ob.Minutes -gt 0) {
-            Format-Plural 'Minute' $($ob.Minutes) -includeCount
-        }
-        elseif ($ob.Seconds -gt 0) {
-            Format-Plural 'Second' $($ob.Seconds) -includeCount
-        }
-        elseif ($ob.Milliseconds -gt 0) {
-            Format-Plural 'Millisecond' $($ob.Milliseconds) -includeCount
-        }
-        elseif ($ob.Microseconds -gt 0) {
-            Format-Plural 'Microsecond' $($ob.Microseconds) -includeCount
-        }
-        elseif ($ob.Ticks -gt 0) {
-            Format-Plural 'Tick' $($ob.Ticks) -includeCount
-        }
+    if ($elapsed.TotalDays -gt 0) {
+            Format-Plural 'Day' $($ob.TotalDays) -includeCount
+    }
+    elseif ($elapsed.TotalHours -gt 0) {
+        Format-Plural 'Hour' $($elapsed.TotalHours) -includeCount
+    }
+    elseif ($elapsed.TotalMinutes -gt 0) {
+        Format-Plural 'Minute' $($elapsed.TotalMinutes) -includeCount
+    }
+    elseif ($elapsed.TotalSeconds -gt 0) {
+        Format-Plural 'Second' $($elapsed.TotalSeconds) -includeCount
+    }
+    elseif ($elapsed.TotalMilliseconds -gt 0) {
+        Format-Plural 'Millisecond' $($elapsed.TotalMilliseconds) -includeCount
+    }
+    elseif ($elapsed.TotalMicroseconds -gt 0) {
+        Format-Plural 'Microsecond' $($elapsed.TotalMicroseconds) -includeCount
+    }
+    elseif ($elapsed.Ticks-gt 0) {
+        Format-Plural 'Tick' $($elapsed.Ticks) -includeCount
     }
 }
 <#
@@ -444,32 +442,6 @@ Function Assert-MeaningfulString([string]$s, $varname = 'string') {
     }
 }
           
-Function Convert-ByteArrayToHexString ([byte[]] $bytearray) {
-    if ($null -eq $bytearray) {return $null}
-    return @($bytearray|Format-Hex|Select ascii).Ascii -join ''
-}
-$md5provider = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-$utf8provider = New-Object -TypeName System.Text.UTF8Encoding
-
-<#
-.SYNOPSIS
-Generate MD5 hash from string 
-
-.DESCRIPTION
-Impossible to remember
-
-.PARAMETER s
-Parameter description
-
-.EXAMPLE
-An example
-
-.NOTES
-Forgot where I was going use it?
-#>
-Function Hash-String($s) {
-    return [System.BitConverter]::ToString($md5provider.ComputeHash($utf8provider.GetBytes($s)))    
-}
 # Avoid returning these numbers other than where they belong, as in, "exit 39202" just to try and randomly avoid collision and give some sort of searchable number.  A fine idea but we should have numbers tied to mneumonics, and return the string not the digits. Why? Because eventually, in the scheduler, I see a 4001 value, I go "Oh! untrapped! New problem!"
 
 [Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -587,34 +559,6 @@ $Script:Caller = 'TBD'
 
 <#
 .SYNOPSIS
-Return the best readable string for a SID DatabaseColumnValue.
-
-.DESCRIPTION
-Hack reductive way to get annoying sid strings to something readable.  But, to keep the call simple, if a user id or name is passed in and we can't convert it to a name, it just returns that string.  Making life easier, one day at a time.
-
-
-.PARAMETER sidString
-Either a sid, or a user's login id, machine id, etc.
-
-.EXAMPLE
-An example
-
-.NOTES
-This function is necessary since an unrecognized sid throws an error.
-#>
-Function Convert-SidToUser {
-    param($sidString)
-    try {
-        $sid = New-Object System.Security.Principal.SecurityIdentifier($sidString)
-        $user = $sid.Translate([System.Security.Principal.NTAccount])
-        $user.Value
-    } catch {
-        return $sidString
-    }
-}
-
-<#
-.SYNOPSIS
 Generate an ordinal column inside a pipeline block.
 
 .DESCRIPTION
@@ -635,40 +579,6 @@ Function New-ArrayIndex {
         $index
     }.GetNewClosure()
 }                    
-
-Function Least([array]$things) {
-    return ($things|Measure -Minimum).Minimum
-}                                            
-
-Function Left([string]$val, [int32]$howManyChars = 1) {
-    if ([String]::IsNullOrEmpty($val)) { 
-        # Made up rule: Empty doesn't have a Leftmost character. $null should break the caller.  Returning an empty string as "leftmost character" is a fudge, and causes problems.
-        return $null
-    }               
-    $actualLengthWeWillGet = Least $howManyChars  $val.Length
-    return $val.Substring(0,$actualLengthWeWillGet)
-}
-
-Function Starts-With($str, $startswith) {
-    throw [System.NotImplementedException]
-}   
-
-Function Ends-With($str, $startswith) {
-    throw [System.NotImplementedException]
-}   
-
-Function Right([string]$val, [int32]$howManyChars = 1) {
-    if ([String]::IsNullOrEmpty($val)) { 
-        return $null
-    }               
-    $actualLengthWeWillGet = Least $howManyChars  $val.Length
-    
-    return $val.Substring($val.Length - $actualLengthWeWillGet)           
-}
-
-Function Greatest([array]$things) {
-    return ($things|Measure -Maximum).Maximum
-}                                            
 
 # Note: Stopping a run in debug does not close the connection
 # Close does not delete the entry from pg_stat_activity, nor does Dispose
@@ -862,10 +772,6 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
 Function HumanizeCount([Int64]$i) {
     return [string]::Format('{0:N0}', $i)
 }
-Function NullIf([string]$val, [string]$ifthis = '') {
-    if ($null -eq $val -or $val.Trim() -eq $ifthis) {return $null}
-    return $val
-}                        
 
 Function TrimToMillseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
 {
@@ -970,48 +876,6 @@ Function Create-BatchRunSessionTaskEntry (
             ")
         return $Script:batch_run_session_task_id
     }
-Function Convert-HexStringToByteArray {
-    ################################################################
-    #.Synopsis
-    # Convert a string of hex data into a System.Byte[] array. An
-    # array is always returned, even if it contains only one byte.
-    #.Parameter String
-    # A string containing hex data in any of a variety of formats,
-    # including strings like the following, with or without extra
-    # tabs, spaces, quotes or other non-hex characters:
-    # 0x41,0x42,0x43,0x44
-    # \x41\x42\x43\x44
-    # 41-42-43-44
-    # 41424344
-    # The string can be piped into the function too.
-    ################################################################
-    [CmdletBinding()]
-    Param ( [Parameter(Mandatory = $True, ValueFromPipeline = $True)] [String] $String )
-    
-    #Clean out whitespaces and any other non-hex crud.
-    $String = $String.ToLower() -replace '[^a-f0-9\\,x\-\:]',"
-    
-    #Try to put into canonical colon-delimited format.
-    $String = $String -replace '0x|\x|\-|,',':'
-    
-    #Remove beginning and ending colons, and other detritus.
-    $String = $String -replace '^:+|:+$|x|\',"
-    
-    #Maybe there's nothing left over to convert...
-    if ($String.Length -eq 0) { ,@() ; return }
-    
-    #Split string with or without colon delimiters.
-    if ($String.Length -eq 1)
-    { ,@([System.Convert]::ToByte($String,16)) }
-    elseif (($String.Length % 2 -eq 0) -and ($String.IndexOf(":") -eq -1))
-    { ,@($String -split '([a-f0-9]{2})' | foreach-object { if ($_) {[System.Convert]::ToByte($_,16)}}) }
-    elseif ($String.IndexOf(":") -ne -1)
-    { ,@($String -split ':+' | foreach-object {[System.Convert]::ToByte($_,16)}) }
-    else
-    { ,@() }
-    #The strange ",@(...)" syntax is needed to force the output into an
-    #array even if there is only one element in the output (or none).
-}
 <#
 .SYNOPSIS
 Execute any actions standard across all scripts in this folder. Generate any helper functions.
@@ -1121,16 +985,25 @@ Function main_for_dot_include_standard_header() {
         Invoke-Sql 'SET search_path = simplified, "$user", public'  | Out-Null    # I'm always in the simplified folder. So just set this here.
                                                                                                                                                    
         # In the first of the first scripts, BEFORE it has run, there is no batch_session_id. We don't create a task id if no session.
+                                                                                                
+        $Script:active_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
 
-        if ($ScriptName -notin('_start_new_batch_run_session.ps1', 'zzz_end_batch_run_session.ps1', '_dot_include_standard_header.ps1') -and
-            (Test-Path variable:script:active_batch_run_session_id) -and 
-            $Script:active_batch_run_session_id -ne -1) 
-        {
-            $Script:active_batch_run_session_task_id = Create-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName
-        }        
+        if ($null -ne $Script:active_batch_run_session_id) {
+            if ($ScriptName -notin('_start_new_batch_run_session.ps1', 'zzz_end_batch_run_session.ps1', '_dot_include_standard_header.ps1') -and
+                (Test-Path variable:script:active_batch_run_session_id) -and 
+                $Script:active_batch_run_session_id -ne -1) 
+            {
+                $Script:active_batch_run_session_task_id = Create-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName
+            }                                            
+        }
     }
-
-    Start-Log
+              
+    # Support for our hack to debug scheduled runs
+    if ((Test-Path variable:script:TestScheduleDrivenTaskDetection) -and $Script:TestScheduleDrivenTaskDetection -eq $true) {
+        Start-Log -TestScheduleDrivenTaskDetection
+    } else {
+        Start-Log
+    }
                                                                    
     if ((Test-Path variable:script:active_batch_run_session_id)) {
         Log-Line "active_batch_run_session_id # = $($Script:active_batch_run_session_id)"
