@@ -135,8 +135,17 @@ Foreach ($null in [ForEachRowInQuery]::new('select 2 AS x')){
 .NOTES
 General notes
 #>
-Function WhileReadSql($sql) {
-    return ([ForEachRowInQuery]::new($sql))
+Function WhileReadSql {
+    param(
+        $sql, [switch]$prereadfirstrow
+    )
+    if ($prereadfirstrow) {
+        $r = [ForEachRowInQuery]::new($sql)
+        $r.Read()
+        return $r
+    } else {
+        return ([ForEachRowInQuery]::new($sql))
+    }
 }
 
 class ForEachRowInQuery {
