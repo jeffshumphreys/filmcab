@@ -355,22 +355,22 @@ Function Write-AllPlaces {
 Function Format-Humanize([Diagnostics.Stopwatch]$ob) {
     [timespan]$elapsed = $ob.Elapsed
     
-    if ($elapsed.TotalDays -gt 0) {
-            Format-Plural 'Day' $($ob.TotalDays) -includeCount
+    if ($elapsed.TotalDays -ge 1) {
+            Format-Plural 'Day' $($elapsed.TotalDays) -includeCount
     }
-    elseif ($elapsed.TotalHours -gt 0) {
+    elseif ($elapsed.TotalHours -ge 1) {
         Format-Plural 'Hour' $($elapsed.TotalHours) -includeCount
     }
-    elseif ($elapsed.TotalMinutes -gt 0) {
+    elseif ($elapsed.TotalMinutes -ge 1) {
         Format-Plural 'Minute' $($elapsed.TotalMinutes) -includeCount
     }
-    elseif ($elapsed.TotalSeconds -gt 0) {
+    elseif ($elapsed.TotalSeconds -ge 1) {
         Format-Plural 'Second' $($elapsed.TotalSeconds) -includeCount
     }
-    elseif ($elapsed.TotalMilliseconds -gt 0) {
+    elseif ($elapsed.TotalMilliseconds -ge 1) {
         Format-Plural 'Millisecond' $($elapsed.TotalMilliseconds) -includeCount
     }
-    elseif ($elapsed.TotalMicroseconds -gt 0) {
+    elseif ($elapsed.TotalMicroseconds -ge 1) {
         Format-Plural 'Microsecond' $($elapsed.TotalMicroseconds) -includeCount
     }
     elseif ($elapsed.Ticks-gt 0) {
@@ -862,7 +862,7 @@ Function Create-BatchRunSessionTaskEntry (
         $script_name_prepped_for_sql = PrepForSql $script_name
         $Script:batch_run_session_task_id = Get-SqlValue("
             INSERT INTO 
-                batch_run_sessions_tasks(
+                batch_run_session_tasks(
                     batch_run_session_id,
                     script_changed,
                     script_name
@@ -995,6 +995,9 @@ Function main_for_dot_include_standard_header() {
             {
                 $Script:active_batch_run_session_task_id = Create-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName
             }                                            
+        } else {
+            # Need some dummy value to track, probaly a test run like D:\qt_projects\filmcab\simplified\tests\test_detect_who_started_scheduled_task.ps1
+            $Script:active_batch_run_session_id = 1 # Something, anything!
         }
     }
               
