@@ -19,7 +19,7 @@ $powershellInstance = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
 $powershellInstance = "C:\Program Files\PowerShell\7\pwsh.exe"
 $powershellInstance = "C:\Program Files\PowerShell\7-preview\pwsh.exe"
 
-#WARNING: -WindowStyle Hidden block transcripts!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#WARNING: -WindowStyle Hidden blocks transcripts!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IM SUCH A STUPID GIT!!!!!!!!!!
 
 if (-not (Test-Path $powershellInstance)) {
@@ -47,13 +47,18 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
   " 
                         
   While ($ScheduledTaskDefsInSetOrder.Read()) {
+    if ($null -eq $run_start_time) {
+      $run_start_time = Get-Date # Just grab something since not one set.  This is common for loopings.
+    }
     $RunStartTimestamp = (Get-Date).ToString('yyyy-MM-dd').ToDateTime($null).AddTicks($run_start_time.Ticks).ToString($DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML)
       
+    # Build the trigger portion, either a scheduled (timed) start, or an event trigger from the previous task in set.
+
     $triggerScript = ""
 
     if ([string]::IsNullOrWhiteSpace($previous_task_name)) {
-          $triggerScript = "
-          <CalendarTrigger>
+          $triggerScript = @"
+          <CalendarTrigger id="start_batch_run_session_on_time">
           <StartBoundary>$RunStartTimestamp</StartBoundary>
           <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
           <Enabled>true</Enabled>
@@ -61,11 +66,11 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
             <DaysInterval>1</DaysInterval>
           </ScheduleByDay>
         </CalendarTrigger>
-          "
+"@
       }                            
 else {
             $triggerScript = @"
-            <EventTrigger>
+            <EventTrigger id="previous_task_completed_successfully">    
             <Enabled>true</Enabled>
             <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='$previous_uri']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
           </EventTrigger>
