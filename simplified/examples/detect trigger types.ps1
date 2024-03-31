@@ -1,11 +1,57 @@
-﻿$ScriptNameWithoutExtension = '_start_new_batch_run_session' 
-$t = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|select Triggers|Select  @{Name='TriggerClass'; Expression = { 
-    (@($_.Triggers)[0])
-    $t.TriggerClass.pstypenames[0] # Microsoft.Management.Infrastructure.CimInstance#Root/Microsoft/Windows/TaskScheduler/MSFT_TaskDailyTrigger
+﻿$ScriptNameWithoutExtension = 'back_up_unbackedup_published_media' # MSFT_TaskEventTrigger
+$ScriptNameWithoutExtension = 'Adobe Acrobat Update Task' # MSFT_TaskLogonTrigger
+$ScriptNameWithoutExtension = 'MicrosoftEdgeUpdateTaskMachineCore' # 
+$ScriptNameWithoutExtension = '_start_new_batch_run_session' # MSFT_TaskDailyTrigger
 
-}      
-}
+#Get-ScheduledTask|select *| select TaskName, Name -expandProperty Triggers|
+Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|select *| select -expandProperty Triggers|
+    % {
+        $d = [PSCustomObject]@{ 
+            Id            = $_.Id # Never set :(
+            TriggerType   = (($_.pstypenames[0])-split '/')[-1] 
+            TaskPath      = $_.TaskPath
+            TaskName      = $_.TaskName
+            Enabled       = $_.Enabled
+            StartBoundary = $_.StartBoundary
+            EndBoundary   = $_.EndBoundary
+            DaysInterval  = $_.DaysInterval
+            WeeksInterval = $_.WeeksInterval
+            DaysOfWeek    = $_.DaysOfWeek # uint16
+            MonthOfYear   = $_.MonthOfYear
+            DaysOfMonth   = $_.DaysOfMonth
+            RunOnLastWeekOfMonth = $_.RunOnLastWeekOfMonth
+            WeeksOfMonth                = $_.WeeksOfMonth
+            ExecutionTimeLimit  = $_.ExecutionTimeLimit
+            RepetitionInterval  = $_.Repetition.Interval # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S 
+            RepetitionDuration  = $_.Repetition.Duration 
+            RepetitionStopAtDurationEnd = $_.Repetition.Duration            # PT4H
+            RandomDelay = $_.RandomDelay
+            Delay       = $_.Delay                                          # PT15S
+            UserId      = $_.UserId
+            StateChange = $_.StateChange
 
+            }
+        $d
+    }|Select *|Where ExecutionTimeLimit -ne $null
+
+     
+
+<#
+typedef enum _TASK_TRIGGER_TYPE {
+  TASK_TIME_TRIGGER_ONCE = 0,
+  TASK_TIME_TRIGGER_DAILY = 1,
+  TASK_TIME_TRIGGER_WEEKLY = 2,
+  TASK_TIME_TRIGGER_MONTHLYDATE = 3,
+  TASK_TIME_TRIGGER_MONTHLYDOW = 4,
+  TASK_EVENT_TRIGGER_ON_IDLE = 5,
+  TASK_EVENT_TRIGGER_AT_SYSTEMSTART = 6,
+  TASK_EVENT_TRIGGER_AT_LOGON = 7
+} TASK_TRIGGER_TYPE, *PTASK_TRIGGER_TYPE;
+#>
+
+# https://wutils.com/wmi/root/microsoft/windows/taskscheduler/msft_taskdailytrigger/
+ 
+#$t.TriggerClass.pstypenames[0] # Microsoft.Management.Infrastructure.CimInstance#Root/Microsoft/Windows/TaskScheduler/MSFT_TaskDailyTrigger
 <#
 $t.TriggerClass.GetType()|Select *
 
