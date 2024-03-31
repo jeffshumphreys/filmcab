@@ -274,7 +274,8 @@ function Start-Log {
             
         $reader = WhileReadSql "
             SELECT 
-                scheduled_task_root_directory, scheduled_task_run_set_name  
+                scheduled_task_root_directory
+            ,   scheduled_task_run_set_name
             FROM 
                 scheduled_tasks_ext_v 
             WHERE 
@@ -322,7 +323,7 @@ function Start-Log {
             2) Grab their threadIds. any record ids between min and max and have no activity id, but share a threadid, include that in activity id.
         #>
 
-        $lastEventWhileRunningIs = Get-WinEvent -FilterXml $xmlfilter -MaxEvents 100|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, 
+        $lastEventWhileRunningIs = Get-WinEvent -FilterXml $xmlfilter -MaxEvents 100|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, ProcessId,
         @{Name='ResultCode'; Expression = {
                 if ($_.Id -in @(203,716,201,715,714,305,713,316,315,717,202,718,105,205,104,712,103,306,204,101,307,311,331,403,711,702,126,303,703,130,704,705,706,707,708,709,413,412,113,146,410,408,401,115,116,710,404,409,151,150,406,407,148,405,701)) {
                               if ($_.Id -in @(716,715,717,718,712,702,703,704,705,413,412,410,408,115,710,409,406,407,405,701) -and $_.Version -eq 0) {
@@ -389,24 +390,177 @@ function Start-Log {
             # Pull task definition?????
             Write-AllPlaces "Got following event back: $($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName)"
             $timeTaskTriggered = $Script:WindowsSchedulerTaskTriggeringEvent.TimeCreated
+            $taskActivityUUID  = $Script:WindowsSchedulerTaskTriggeringEvent.ActivityId
+            $taskThreadId      = $Script:WindowsSchedulerTaskTriggeringEvent.ThreadId
+            $taskProcessId     = $Script:WindowsSchedulerTaskTriggeringEvent.ProcessId
+            $taskEventRecordId = $Script:WindowsSchedulerTaskTriggeringEvent.RecordId
 
-            if ($Script:ScriptNameWithoutExtension -eq '_start_new_batch_run_session') {
+            # Not currently using, just wanted to remember how to get this detail.  Good to know if last run failed, when it's expected to run next. Does Last Run Time mean now or previous?
+            $scheduledTaskRunDetails = Get-ScheduledTaskInfo -TaskName $fullTaskPath
+            # https://learn.microsoft.com/en-us/windows/win32/taskschd/registeredtask
+            # Stop()
+            # Run, RunEx
+            # GetRunTimes
+            # GetInstances
+            # LastRunTime
+            # LastTaskResult
+            # NextRunTime                     Event triggered tasks won't have a next will they?
+            # State
+            # XML
+            # NumberOfMissedRuns Gets the number of times the registered task has missed a scheduled run.
+            $targetTable           = "batch_run_sessions"
+            $targetTableIdCol      = "batch_run_session_id"
+            $targetTableIdColValue = $Script:active_batch_run_session_id
+            
+            if ($Script:ScriptNameWithoutExtension -ne '_start_new_batch_run_session') {
+                $targetTable           = "batch_run_session_tasks"
+                $targetTableIdCol      = "batch_run_session_task_id"                      
+                # Doesn't really get created until Much later
+                if (-not(Test-Path Script:active_batch_run_session_task_id) -or $null -eq $Script:active_batch_run_session_task_id -or $Script:active_batch_run_session_task_id -eq -1) {
+                    $Script:active_batch_run_session_task_id = Create-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName
+                }
+                $targetTableIdColValue = $Script:active_batch_run_session_task_id
+            }
+
+            if ($true) {
+                # else target = batch_run_session_tasks
                 switch ($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName) {
-                    "Task triggered by user" {
-                        Invoke-Sql "UPDATE batch_run_sessions set trigger_type = 'user', triggered_by_login = '$($lastEventWhileRunningIs.UserContext)' WHERE batch_run_session_id = $($Script:active_batch_run_session_id)"
+                    "Task triggered by user" {         # If a non-lead task triggered by user, then do not attach it to whatever random floating id in active_run_session.
+                        Invoke-Sql "
+                            UPDATE 
+                                $targetTable 
+                            SET 
+                                trigger_type       = 'user',
+                                triggered_by_login = '$($lastEventWhileRunningIs.UserContext)',
+                                thread_id          = $taskThreadId,
+                                process_id         = $taskProcessId,
+                                activity_uuid      = '$taskActivityUUID'
+                            WHERE 
+                                $targetTableIdCol = $targetTableIdColValue"
                     }
                     "Task triggered on scheduler" {
-                        #TODO: Filter out non-calendar ones. Often there's an event one in the mix.
-                        $arrayOfTimeTriggers = (Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|select -ExpandProperty Triggers|Where Enabled -eq $true|Select StartBoundary)
-                        #TODO: If more than one, which one is closest? Which one was for today? This week? Was there a random delay? Month??  Ugh.
+                        Set-StrictMode -Off # Critical to avoid not found errors on following attributes
+                        $triggers = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|
+                        SELECT -expandProperty Triggers|
+                        % {
+                            $trigger = [PSCustomObject]@{ 
+                                Id                          = $_.Id # Never set :(
+                                TriggerType                 = (($_.pstypenames[0])-split '/')[-1] 
+                                TaskName                    = $_.TaskName
+                                Enabled                     = $_.Enabled
+                                StartBoundary               = $_.StartBoundary
+                                EndBoundary                 = $_.EndBoundary
+                                DaysInterval                = $_.DaysInterval
+                                WeeksInterval               = $_.WeeksInterval
+                                DaysOfWeek                  = $_.DaysOfWeek # uint16
+                                MonthOfYear                 = $_.MonthOfYear
+                                DaysOfMonth                 = $_.DaysOfMonth
+                                RunOnLastWeekOfMonth        = $_.RunOnLastWeekOfMonth
+                                WeeksOfMonth                = $_.WeeksOfMonth
+                                ExecutionTimeLimit          = $_.ExecutionTimeLimit
+                                RepetitionInterval          = $_.Repetition.Interval # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S 
+                                RepetitionDuration          = $_.Repetition.Duration 
+                                RepetitionStopAtDurationEnd = $_.Repetition.Duration            # PT4H
+                                RandomDelay                 = $_.RandomDelay
+                                Delay                       = $_.Delay                                          # PT15S
+                                UserId                      = $_.UserId
+                                StateChange                 = $_.StateChange
+                            }
+                            $trigger # Dump it to our triggers array
+                        }|Select *|Where Enabled|Where TriggerType -match 'Daily|Weekly|Monthly|Time'
+                        Set-StrictMode -Version Latest
+                     
+                        #TODO: If more than one, which one is closest as to trigger time? Which one was for today? This week? Was there a random delay? Month??  Ugh.
+                        $triggersWithSameStartTime = @()
+                     
+                        # Loop all we found and pull out ones with nearly same schedule time and actually started time
+
+                        $triggers| % {
+                            if ($null -ne $_.StartBoundary) {
+                                $scheduledStartTime = [DateTime]$_.StartBoundary                                                             
+                                $nearnessOfRunStartToScheduledStart = $timeTaskTriggered.TimeOfDay - $scheduledStartTime.TimeOfDay
+                                if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {                       
+                                    if ($null -ne $_.DaysOfWeek) {
+
+                                    }   
+                                    if ($null -ne $_.DaysOfMonth) {
+
+                                    }   
+                                    if ($null -ne $_.WeeksOfMonth) {
+
+                                    }   
+                                    if ($null -ne $_.RunOnLastWeekOfMonth) {
+
+                                    }   
+                                    if ($null -ne $_.MonthOfYear) {
+                                        #if ($scheduledStartTime.Month -eq $timeTaskTriggered.Month)
+                                    }
+                                    # WARNING: Needs to check DaysOfWeek set and if it would include the day of week. Same for WeeksOfMonth, MonthsOfYear
+                                    # This is the event? unless two are set
+                                    
+                                    $triggersWithSameStartTime+= $_
+                                } else {
+                                    # are we in the random delay period?
+                                    # are we a repetition?
+                                    # YIKES, the complexity - but only if more than one time trigger.
+                                }
+                            }
+                        }                                          
+
+                        if ($triggersWithSameStartTime.Count -eq 0) {
+                            # Ooops! How started with schedule? RandomDelay?
+                        }
+                        if ($triggersWithSameStartTime.Count -gt 1) {
+                            # Hmmm, possible issue?
+                        }                          
+                        else {
+                            # Just the one.  We need the "ID" or at least an index of which trigger it was.  Somehow categorize which trigger definition it is.
+                        }
+                                                                            
+                        Invoke-Sql "
+                            UPDATE 
+                                $targetTable 
+                            SET 
+                                trigger_type  = 'schedule',
+                                thread_id     = $taskThreadId,
+                                process_id    = $taskProcessId,
+                                activity_uuid = '$taskActivityUUID'
+                            WHERE 
+                                $targetTableIdCol = $targetTableIdColValue"
+
+                        # Lots of parsing to figure out time if it's a complex trigger def
                         # Get time, match to task trigger definition
+                        # Was there a delay, or randomdelay?
+                        # If there was a repetition interval, does that match time?
+                        # Check settings for Retry specifications
                     }
                     "Task triggered on event" {
-                        Invoke-Sql "UPDATE batch_run_sessions set trigger_type = 'event' WHERE batch_run_session_id = $($Script:active_batch_run_session_id)"
-                        # Get time, match to task trigger definition
+                        Invoke-Sql "
+                            UPDATE 
+                                $targetTable 
+                            SET 
+                                trigger_type  = 'event', /* Or an Idle event */
+                                thread_id     = $taskThreadId,
+                                process_id    = $taskProcessId,
+                                activity_uuid = '$taskActivityUUID'
+                            WHERE 
+                                $targetTableIdCol = $targetTableIdColValue"
+                            # Get time, match to task trigger definition                  
+                        # match Event or Idle. Manually test since MSFT_TaskIdleTrigger comes in log as an event trigger.
+                        # Which Event if there are several???
                     }
                     "Task triggered on logon" {
-                        Invoke-Sql "UPDATE batch_run_sessions set trigger_type = 'logon', triggered_by_login = '$($lastEventWhileRunningIs.UserName)' WHERE batch_run_session_id = $($Script:active_batch_run_session_id)"
+                        Invoke-Sql "
+                            UPDATE 
+                                $targetTable 
+                            SET 
+                                trigger_type  = 'logon', 
+                                thread_id     = $taskThreadId,
+                                process_id    = $taskProcessId,
+                                activity_uuid = '$taskActivityUUID'
+                            WHERE 
+                                $targetTableIdCol = $targetTableIdColValue"
+                        # match Logon
                     }
                 }
             }
