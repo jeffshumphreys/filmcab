@@ -121,15 +121,19 @@ Function Invoke-Sql {
 Simple read
 
 .DESCRIPTION
-Long description
+Any columns or aliases, these are forced into Script scope variables typed matching their column data type.
 
 .PARAMETER sql
-Parameter description
+The sql that should return a row
 
 .EXAMPLE
-Foreach ($null in [ForEachRowInQuery]::new('select 2 AS x')){
-   Write-AllPlaces $x
-   
+$reader = WhileReadSql "SELECT 1 t FROM x" -prereadfirstrow
+Write-ToAllPlaces $t
+ 
+$volumesForSearchDirectories = WhileReadSql 'SELECT DISTINCT drive_letter from search_directories_ext_v ORDER BY 1'
+while ($volumesForSearchDirectories.Read()) {
+    $TestPath = "$drive_letter`:\"
+    Flush-Volume $drive_letter                             
 }
 
 .NOTES
