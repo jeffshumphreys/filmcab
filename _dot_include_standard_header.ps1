@@ -510,10 +510,13 @@ Function Show-Error {
         Write-AllPlaces "Failed on line #: $($_.InvocationInfo.ScriptLineNumber)"                                      # Will null output if no exception
         $Exception = $_.Exception
         $HResult = 0
-        $WasThrownFromThrowStatement = $_.Exception.WasThrownFromThrowStatement # An interesting property
-        if ($WasThrownFromThrowStatement) { Write-AllPlaces "This exception was from a throw statement"}
 
         if (Test-Path variable:Exception) {
+        if (Test-Path variable:Exception.WasThrownFromThrowStatement) {
+            $WasThrownFromThrowStatement = $_.Exception.WasThrownFromThrowStatement # An interesting property
+            if ($WasThrownFromThrowStatement) { Write-AllPlaces "This exception was from a throw statement"}
+        }
+        
         if ($null -ne $Exception.InnerException) {
             $HResult = $Exception.InnerException.HResult # 
         } else {
