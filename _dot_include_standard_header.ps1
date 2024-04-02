@@ -140,7 +140,7 @@ $ScriptNameWithoutExtension = (Get-Item -Path $masterScriptPath).BaseName   # Ba
 
 $ProjectRoot  = (Get-Location).Path  # in debug, D:\qt_projects\filmcab
 
-New-Variable -Name ScriptRoot -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
+New-Variable -Name ScriptRoot -Scope Script -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) -Force
 $Script:LogDirectory = "$ScriptRoot\_log"
 
 New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
