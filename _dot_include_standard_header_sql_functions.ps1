@@ -97,13 +97,15 @@ Function Invoke-Sql {
         [Switch]$LogSqlToHost
     )
     try {
-        $DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set? Set in main. Below.
+        $Script:DatabaseCommand = [System.Data.Odbc.OdbcCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        $Script:DatabaseCommand.CommandTimeout = 0
+        $Script:DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set? Set in main. Below.
         if ($LogSqlToHost) {
             Log-Line $sql
         }
         # Hypothetically, you could determine if the sql was a select or an update/insert, and run the right function?
 
-        [Int32] $howManyRowsAffected = $DatabaseCommand.ExecuteNonQuery();
+        [Int32] $howManyRowsAffected = $Script:DatabaseCommand.ExecuteNonQuery();
         if ($OneAndOnlyOne -and $howManyRowsAffected -ne 1) { throw [Exception]"Failed one and only one requirement: $howManyRowsAffected"}
         elseif ($OneOrMore -and $howManyRowsAffected -lt 1) { throw [Exception]"Failed one or more requirement: $howManyRowsAffected"}
         return $howManyRowsAffected
