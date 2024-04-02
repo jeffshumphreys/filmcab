@@ -59,11 +59,11 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
     if ([string]::IsNullOrWhiteSpace($previous_task_name)) {
           $triggerScript = @"
           <CalendarTrigger id="start_batch_run_session_on_time">
-          <StartBoundary>$RunStartTimestamp</StartBoundary>
-          <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
-          <Enabled>true</Enabled>
+          <StartBoundary>         $RunStartTimestamp    </StartBoundary>
+          <ExecutionTimeLimit>    PT72H                 </ExecutionTimeLimit>
+          <Enabled>               true                  </Enabled>
           <ScheduleByDay>
-            <DaysInterval>1</DaysInterval>
+            <DaysInterval> 1 </DaysInterval>
           </ScheduleByDay>
         </CalendarTrigger>
 "@
@@ -71,22 +71,29 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
 else {
             $triggerScript = @"
             <EventTrigger id="previous_task_completed_successfully">    
-            <Enabled>true</Enabled>
+            <Enabled> true </Enabled>
             <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='$previous_uri']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
           </EventTrigger>
 "@
     }
 
     # Build XML to import into scheduler
-    
+    # https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-schema
+                              
+    if ([string]::IsNullOrWhiteSpace($previous_task_name)) {
+        $previous_task_name = "N/A"
+    }                             
+
     $taskXMLTemplate = @"
 <?xml version="1.0" encoding="UTF-16"?>
     <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
       <RegistrationInfo>
-        <Date>$SharedTimestamp</Date>
-        <Author>DSKTP-HOME-JEFF\jeffers</Author>
-        <Description>Part of FilmCab, $scheduled_task_short_description . # $scheduled_task_id</Description>
-        <URI>$uri</URI>
+        <Version>             1                                                                        </Version>
+        <Source>              $previous_task_name                                                      </Source>
+        <Date>                $SharedTimestamp                                                         </Date>
+        <Author>              DSKTP-HOME-JEFF\jeffers                                                  </Author>
+        <Description>         Part of FilmCab, $scheduled_task_short_description . # $scheduled_task_id</Description>
+        <URI>                 $uri                                                                     </URI>
       </RegistrationInfo>
       <Triggers>
         $triggerScript
@@ -99,25 +106,27 @@ else {
         </Principal>
       </Principals>
       <Settings>
-        <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
-        <DisallowStartIfOnBatteries>true</DisallowStartIfOnBatteries>
-        <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
-        <AllowHardTerminate>true</AllowHardTerminate>
-        <StartWhenAvailable>false</StartWhenAvailable>
-        <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+        <MultipleInstancesPolicy>    IgnoreNew     </MultipleInstancesPolicy>
+        <DisallowStartIfOnBatteries> true          </DisallowStartIfOnBatteries>
+        <StopIfGoingOnBatteries>     true          </StopIfGoingOnBatteries>
+        <AllowHardTerminate>         true          </AllowHardTerminate>
+        <StartWhenAvailable>         false         </StartWhenAvailable>
+        <RunOnlyIfNetworkAvailable>  false         </RunOnlyIfNetworkAvailable>
         <IdleSettings>
-          <StopOnIdleEnd>true</StopOnIdleEnd>
-          <RestartOnIdle>false</RestartOnIdle>
+          <StopOnIdleEnd>     true    </StopOnIdleEnd>
+          <RestartOnIdle>     false   </RestartOnIdle>
+          <WaitTimeout>       PT1H    </WaitTimeout>
+          <Duration>          PT1M    </Duration>
         </IdleSettings>
-        <AllowStartOnDemand>true</AllowStartOnDemand>
-        <Enabled>true</Enabled>
-        <Hidden>false</Hidden>
-        <RunOnlyIfIdle>false</RunOnlyIfIdle>
-        <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
-        <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
-        <WakeToRun>true</WakeToRun>
-        <ExecutionTimeLimit>$execution_time_limit</ExecutionTimeLimit>
-        <Priority>7</Priority>
+        <AllowStartOnDemand>                    true                      </AllowStartOnDemand>
+        <Enabled>                               true                      </Enabled>
+        <Hidden>                                false                     </Hidden>
+        <RunOnlyIfIdle>                         false                     </RunOnlyIfIdle>
+        <DisallowStartOnRemoteAppSession>       false                     </DisallowStartOnRemoteAppSession>
+        <UseUnifiedSchedulingEngine>            true                      </UseUnifiedSchedulingEngine>
+        <WakeToRun>                             true                      </WakeToRun>
+        <ExecutionTimeLimit>                    $execution_time_limit     </ExecutionTimeLimit>
+        <Priority>                              7                         </Priority>
       </Settings>
       <Actions Context="Author">
         <Exec>
