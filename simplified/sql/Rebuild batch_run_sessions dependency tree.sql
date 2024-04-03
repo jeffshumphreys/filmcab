@@ -53,4 +53,31 @@ AS SELECT *
     caller_ending = 'Windows Task Scheduler'
   ORDER BY started;
   
+CREATE OR REPLACE VIEW simplified.batch_run_session_tasks_v
+AS 
+SELECT 
+    brst.batch_run_session_task_id
+,   brst.batch_run_session_id
+,   brst.started
+,   brst.ended
+,   brst.error_code
+,   TRUNC(EXTRACT(EPOCH FROM (brst.ended - brst.started))) AS run_duration_in_seconds                       
+,   brst.running
+,   brst.caller
+,   brst.caller_ending
+,   brst.caller_starting
+,   brst.marking_ended_after_overrun
+,   brst.script_name
+,   brst.script_changed
+,   brst.triggered_by_login
+,   brst.trigger_type
+,   brst.thread_id
+,   brst.process_id
+,   brst.activity_uuid
+,   brst.trigger_id    
+FROM
+    batch_run_session_tasks brst
+JOIN
+    batch_run_sessions USING(batch_run_session_id)
+;
 SELECT * FROM batch_run_sessions_scheduled_and_completed_v brssacv  
