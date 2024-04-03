@@ -5,7 +5,7 @@
 try {
 Write-AllPlaces
 
-if ($Script:WriteCounts.Count -gt 0) {
+if ((Test-Path variable:script:WriteCounts) -and $Script:WriteCounts.Count -gt 0) {
     $MaxLengthLabel = 0
     $MaxNumber = 0
                                  
