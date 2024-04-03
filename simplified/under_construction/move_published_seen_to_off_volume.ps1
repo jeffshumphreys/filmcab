@@ -52,23 +52,42 @@
  $selectedDirectoryInput.Location   = New-Object System.Drawing.Point(($treeViewWidth+10),20)
  $selectedDirectoryInput.Size       = New-Object System.Drawing.Size(280,20)
  $form.Controls.Add($selectedDirectoryInput)
- 
+
+ $selectedTargetComboBox            = New-Object System.Windows.Forms.ComboBox
+ $selectedTargetComboBox.Location   = New-Object System.Drawing.Point(($treeViewWidth+10),42)
+ $selectedTargetComboBox.Size       = New-Object System.Drawing.Size(280,20)
+ $i = $selectedTargetComboBox.Items.Add("Seen")                    | Out-Null
+      $selectedTargetComboBox.Items.Add("Won't Watch") | Out-Null
+      $selectedTargetComboBox.Items.Add("Corrupt") | Out-Null
+      $selectedTargetComboBox.Items.Add("Poor Quality") | Out-Null
+      $selectedTargetComboBox.Items.Add("Copyright Audio") | Out-Null
+ $selectedTargetComboBox.SelectedIndex = $i
+ $form.Controls.Add($selectedTargetComboBox)
+
  $MoveButton              = New-Object System.Windows.Forms.Button
  $MoveButton.Location     = New-Object System.Drawing.Point(($treeViewWidth + 280+5),20)                                                 
  $MoveButton.Size         = New-Object System.Drawing.Size(75,23)
  $MoveButton.Text         = "Move -->"                        
  
  $form.Controls.Add($MoveButton)
- 
+
+ ###########################################################################################################################################################################################
  $Move_Directory = {
      $sourcePath = $treeView.SelectedNode.Name
      $partOfPath = $treeView.SelectedNode.Tag
-     $targetPath = "N:\Video AllInOne Seen\$partOfPath)"
+     $targetType = $selectedTargetComboBox.Text
+     $targetPath = "N:\Video AllInOne Seen\$partOfPath"
+     if ($targetType -eq "Won't Watch") {
+        $targetPath = "K:\Video AllInOne Won't Watch\$partOfPath"
+     }
+     $targetPath = (Get-Item $targetPath).Parent.FullName
      New-Item -ItemType Directory -Force -Path $targetPath
      Copy-Item -LiteralPath $sourcePath -Destination $targetPath -Force -Recurse
-     #$treeView.SelectedNode.Remove(
+     $treeView.SelectedNode.Remove()
+     # $directory_hashb = Get-SqlValue "UPDATE directories SET moved_on, moved_to, moved_reason, bytes_moved WHERE directory = '' RETURNING directory_hash"
+     # Invoke-Sql "UPDATE files_v SET moved_on, moved_to, moved_reason, bytes_moved WHERE directory_hash = ''"
      #TODO: Update record in directories, and files. Add a moved and where flag, (seen or corrupt) Set reasons in the directories table, like seen, won't finish, etc.
-     # Set deleted and moved_to
+     # Set deleted and moved_to so it doesn't get flushed out of backups, or removed from payloads or downloads
  }
  
  $MoveButton.add_click($Move_Directory)
@@ -86,10 +105,14 @@
  $treeView.DataBindings.DefaultDataSourceUpdateMode = 0
  $treeView.TabIndex                                 = 0
  $form.Controls.Add($treeView)
- 
+
+ #################################################################################################################################################################################################
  $treeView.add_AfterSelect({
-     $directory_path = $this.SelectedNode.Tag
-     $selectedDirectoryInput.Text = $directory_path
+     $Script:directory_path = $this.SelectedNode.Tag
+     $Script:full_directory_path = $this.SelectedNode.Name
+     $selectedDirectoryInput.Text = $Script:directory_path
+     # Get nodes before and after for when this node is removed.
+
  
  })
  
@@ -107,22 +130,46 @@
  $rootNode.Text = "$search_directory"
  $treeView.Nodes.Add($rootNode)|Out-Null
  
- $AddFoldersToSeenOffline = WhileReadSql "SELECT directory, useful_part_of_directory, parent_directory, folder FROM directories_ext_v dev WHERE search_directory_id = $searchDirectoryId AND directory_depth >= 1 ORDER BY directory_depth, directory"
+ $AddFoldersToSeenOffline = WhileReadSql "
+    SELECT 
+        directory, 
+        useful_part_of_directory, 
+        parent_directory, 
+        folder 
+    FROM 
+        directories_ext_v dev 
+    WHERE 
+        search_directory_id = $searchDirectoryId 
+    AND 
+        directory_depth >= 1 
+    ORDER BY 
+        directory_depth, 
+        directory
+    "
  # Load all the subfolders
  
  while ($AddFoldersToSeenOffline.Read()) {                                                                                 
      $parentBranch = $parentDirectories[$parent_directory]
-     $branchNode = New-Object System.Windows.Forms.TreeNode      
+     $branchNode   = New-Object System.Windows.Forms.TreeNode
      $parentDirectories.Add($directory, $branchNode)
      $branchNode.Text = "$folder"
      $branchNode.Name = "$directory"
-     $branchNode.Tag =  "$useful_part_of_directory"
+     $branchNode.Tag  = "$useful_part_of_directory"
      $parentBranch.Nodes.Add($branchNode)|Out-Null
  }
  
  $rootNode.Expand()
                         
  $treeView.EndUpdate()
+
+ if (Test-Path variable:Script:full_directory_path) {
+    [array]$treeNodesForThatDirectory = $treeView.Nodes.Find($Script:full_directory_path, $true)
+    # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
+    if ($treeNodesForThatDirectory.Count -ge 1) {
+        $treeView.SelectedNode = ($treeNodesForThatDirectory[0])
+        # Get nodes before and after for when this node is removed.
+    }
+ }
  $form.Topmost = $True
  
  $form.BringToFront() # Required to get it on top, not just "TopMost"
