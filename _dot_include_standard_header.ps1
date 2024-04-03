@@ -2,7 +2,7 @@
 Import-Module PowerShellHumanizer
 Import-Module DellBIOSProvider                                      
 
-Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptName, LogDirectory -Scope Script -ErrorAction Ignore
+Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptName, LogDirectory -Scope Script -ErrorAction Continue -Verbose
 
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 1 - Set environment control
@@ -26,7 +26,7 @@ $Script:pretest_assuming_false                    = $false
 
 $Script:ProjectRoot                               = (Get-Location).Path                                                   # D:\qt_projects\filmcab. May be to do with WorkingDirectory setting in Windows Task Scheduler for Exec commands.
 $Script:PathToConfig                              = $ProjectRoot + '\config.json'
-$Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json)
+$Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json)           # Will fail if not exist, which is the desired outcome.
 
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 3 - Get Script Name and Path
@@ -40,10 +40,11 @@ if ([String]::IsNullOrEmpty($MasterScriptPath)) {
 $Script:MasterScriptPath                          = if ($Script:MasterScriptPath.StartsWith(". .\")) { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
 $Script:MasterScriptPath                          = if ($Script:MasterScriptPath.StartsWith(". '"))  { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
 $Script:MasterScriptPath                          = $Script:MasterScriptPath.Trim("'")
+Test-Path $Script:MasterScriptPath
 $Script:FileTimeStampForParentScript              = (Get-Item -Path $Script:MasterScriptPath).LastWriteTime
 $Script:ScriptName                                = (Get-Item -Path $Script:MasterScriptPath).Name       # Unlike "BaseName" this includes the extension
 $Script:ScriptNameWithoutExtension                = (Get-Item -Path $Script:MasterScriptPath).BaseName   # Base name is nice for labelling and searching scheduler tasks
-$Script:ScriptRoot                                = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath))
+$Script:ScriptRoot                                = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
 if ($null -eq $Script:ScriptRoot) {
     $Script:ScriptRoot                            = (Get-Item -Path $masterScriptPath).DirectoryName
 }
@@ -138,7 +139,7 @@ $Script:PSVersion                                           = $PSVersionTable.PS
 $Script:PS_Edition                                          = $PSVersionTable.PSEdition                       # Core
 $Script:CommandOrigin                                       = $MyInvocation.CommandOrigin                     # Internal
 $Script:CurrentFunction                                     = $MyInvocation.MyCommand                         # _dot_include_standard_header.v2.ps1
-$Script:InvokationName                                      = $MyInvocation.InvocationName                    # .
+$Script:InvokationName                                      = $MyInvocation.InvocationName                    # always "." when included or ran direct.
     
 Log-Line "Starting Log $($Script:SnapshotMasterRunDate) on $(($Script:SnapshotMasterRunDate).DayOfWeek) $($Script:DSTTag) in $(($Script:SnapshotMasterRunDate).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
 Log-Line "`$ScriptFullPath: $Script:MasterScriptPath, `$PSVersion = $($Script:PSVersion), `$PSEdition = $($Script:PSEdition), `$CommandOrigin = $($Script:CommandOrigin), Current Function = $($Script:CurrentFunction)"
@@ -280,9 +281,13 @@ Function Show-Error {
         $WasAnException = $false
     }                           
     if ($WasAnException) {
-        Write-AllPlaces "Message: $($_.Exception.Message)" # Will null output if no exception
-        Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"             # Will null output if no exception
-        Write-AllPlaces "Failed on line #: $($_.InvocationInfo.ScriptLineNumber)"                                      # Will null output if no exception
+        Write-AllPlaces "Message: $($_.Exception.Message)"                 
+        Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"           
+        Write-AllPlaces "Failed on line #: $($_.InvocationInfo.ScriptLineNumber)" 
+        Write-AllPlaces "of Script: $($_.InvocationInfo.ScriptName)"        # Critical, or else we have to guess where the error occurred
+        Write-AllPlaces "in line: $($_.InvocationInfo.Line)"                # Partial. For multiline commands, only the line where the bug is
+        Write-AllPlaces "in statement: $($_.InvocationInfo.Statement)"      # Not super valuable
+
         $Exception = $_.Exception
         $HResult   = 0
 
@@ -676,28 +681,49 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
             INSERT INTO batch_run_sessions_v(
                 last_script_ran
             ,   session_starting_script
-            ,   caller_starting
+            ,   caller_starting                        
+            ,   triggered_by_login
+            ,   trigger_type
+            ,   trigger_id
             ) VALUES(
                 '$Script:ScriptName'
             ,   '$Script:ScriptName'
             ,   '$Script:Caller'
-            )" -OneAndOnlyOne -LogSqlToHost|Out-Null
+            ,   '$triggered_by_login
+            ,   '$triggerType'
+            ,   '$triggerId'
+            )" -LogSqlToHost|Out-Null
         Invoke-Sql "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null # Flush active session regardless of how this script was run.
-    ############################################################################################################################
+        $Script:batch_run_session_task_id      = Get-SqlValue("
+        INSERT INTO 
+            batch_run_session_tasks_v(
+                batch_run_session_id,
+                script_changed,
+                script_name,
+                triggered_by_login,
+                trigger_type,
+                trigger_id
+            )
+            VALUES(
+                $($Script:active_batch_run_session_id),
+                '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                $script_name_prepped_for_sql
+            ,   '$triggered_by_login
+            ,   '$triggerType'
+            ,   '$triggerId'
+                    )
+            RETURNING batch_run_session_task_id
+        ")
+############################################################################################################################
     } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
         if ($triggerType -eq 'event') {
             if ($null -ne $Script:active_batch_run_session_id) {
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
-                # For safety.
+                # For safety, in case using the "running" flag fails.
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
             }
         }                                                                                                                                                                 
         Invoke-Sql "DELETE batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
-
-        # Update counts, times.
-        # Update active record, close out, set inactive
-        # UPDATE open (previous) task log as closed.
-        # DELETE batch_run_session_active_running_values_ext_v
     ############################################################################################################################
     } elseif ($script_position_in_lineup -eq 'In-Between') {
         # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
@@ -709,15 +735,23 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
             $Script:active_batch_run_session_id    = Get-SqlValue("SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v")
             $Script:batch_run_session_task_id      = Get-SqlValue("
                 INSERT INTO 
-                    batch_run_session_tasks(
+                    batch_run_session_tasks_v(
                         batch_run_session_id,
                         script_changed,
-                        script_name
+                        script_name,
+                        triggered_by_login,
+                        trigger_type,
+                        trigger_id,
+                        is_testscheduledriventaskdetection
                     )
                     VALUES(
-                        $($Script:batch_run_session_id),
-                    '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                        $($Script:active_batch_run_session_id),
+                        '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
                         $script_name_prepped_for_sql
+                    ,   '$triggered_by_login
+                    ,   '$triggerType'
+                    ,   '$triggerId'                      
+                    ,   $($Script:TestScheduleDrivenTaskDetection)
                     )
                     RETURNING batch_run_session_task_id
                 ")
@@ -725,6 +759,31 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
     }
 }   
 
+Function End-BatchRunSessionTaskEntry() {
+    if ((Test-Path variable:Script:batch_run_session_task_id) -and
+        (Test-Path variable:script:active_batch_run_session_id)) {
+        $tied_batch_run_session_task = Get-SqlValue "
+            SELECT batch_run_session_task_id 
+            FROM batch_run_session_tasks_v 
+            WHERE batch_run_session_task_id = $($Script:batch_run_session_task_id)
+            AND batch_run_session_id        = $($Script:active_batch_run_session_id)
+            AND running
+            "
+        if ($null -eq $tied_batch_run_session_task) {
+            Show-Error -message "ERROR trying to find task log record that goes with this session. batch_run_session_task_id = $($Script:batch_run_session_task_id), batch_run_session_id = $($Script:active_batch_run_session_id)"
+        }                                                                                                                                                                                                                          
+
+        Invoke-Sql "
+            UPDATE 
+                batch_run_session_tasks_v 
+            SET 
+              running = false
+            , ended   = CURRENT_TIMESTAMP
+            WHERE
+                batch_run_session_task_id = $tied_batch_run_session_task
+            " -OneAndOnlyOne
+        }
+}
 #####################################################################################################################################################################################################################################################
 # Bootstrap Final steps, no dependencies. Define global constants
 #####################################################################################################################################################################################################################################################
@@ -741,5 +800,5 @@ $Script:CurrentDebugSessionNo                               = $MyInvocation.Hist
 # Do we need?
 
 . .\_dot_include_standard_header_helper_functions.ps1
-                                                
+                                     
 Log-Line "Exiting standard_header v2"
