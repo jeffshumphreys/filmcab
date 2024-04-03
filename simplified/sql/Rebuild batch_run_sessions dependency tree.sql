@@ -75,9 +75,8 @@ SELECT
 ,   brst.process_id
 ,   brst.activity_uuid
 ,   brst.trigger_id    
+,   brst.is_testscheduledriventaskdetection
 FROM
     batch_run_session_tasks brst
-JOIN
-    batch_run_sessions USING(batch_run_session_id)
 ;
 SELECT * FROM batch_run_sessions_scheduled_and_completed_v brssacv  
