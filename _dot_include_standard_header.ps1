@@ -581,9 +581,9 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
         $trigger # Dump it to our triggers array
     }|Select *|Where Enabled
     Set-StrictMode -Version Latest
-    $triggerType = $Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName
-    $triggerId   = $Script:WindowsSchedulerTaskTriggeringEvent.Id
-
+    $triggerType        = $Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName
+    $triggerId          = $Script:WindowsSchedulerTaskTriggeringEvent.Id
+    $timeTaskTriggered  = $Script:WindowsSchedulerTaskTriggeringEvent.TimeCreated
     $triggered_by_login = ''
 
     switch ($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName) {
@@ -670,7 +670,10 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
         }
     }
             
-    $Script:active_batch_run_session_id = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
+    $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
+            $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
+            $script_name_prepped_for_sql           = PrepForSql $Script:ScriptName
+
     ############################################################################################################################
     if ($script_position_in_lineup -in 'Starting', 'Starting-Ending') {
         .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'        
@@ -689,10 +692,12 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                 '$Script:ScriptName'
             ,   '$Script:ScriptName'
             ,   '$Script:Caller'
-            ,   '$triggered_by_login
+            ,   '$triggered_by_login'
             ,   '$triggerType'
             ,   '$triggerId'
-            )" -LogSqlToHost|Out-Null
+            )
+            RETURNING batch_run_session_id
+            " -LogSqlToHost
         Invoke-Sql "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null # Flush active session regardless of how this script was run.
         $Script:batch_run_session_task_id      = Get-SqlValue("
         INSERT INTO 
@@ -708,13 +713,13 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                 $($Script:active_batch_run_session_id),
                 '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
                 $script_name_prepped_for_sql
-            ,   '$triggered_by_login
+            ,   '$triggered_by_login'
             ,   '$triggerType'
             ,   '$triggerId'
                     )
             RETURNING batch_run_session_task_id
-        ")
-############################################################################################################################
+        ") -LogSqlToHost
+    ############################################################################################################################
     } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
         if ($triggerType -eq 'event') {
             if ($null -ne $Script:active_batch_run_session_id) {
@@ -728,9 +733,10 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
     } elseif ($script_position_in_lineup -eq 'In-Between') {
         # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
         # if there is not an active session??????? Crash?????
-        $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-        $script_name_prepped_for_sql           = PrepForSql $script_name      
         if ($triggerType -eq 'Event') {   
+            if (-not (Test-Path variable:Script:TestScheduleDrivenTaskDetection)) {
+                $Script:TestScheduleDrivenTaskDetection = 'NULL'
+            }
             # UPDATE open (previous) task log 
             $Script:active_batch_run_session_id    = Get-SqlValue("SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v")
             $Script:batch_run_session_task_id      = Get-SqlValue("
@@ -748,13 +754,13 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                         $($Script:active_batch_run_session_id),
                         '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
                         $script_name_prepped_for_sql
-                    ,   '$triggered_by_login
+                    ,   '$triggered_by_login'
                     ,   '$triggerType'
                     ,   '$triggerId'                      
                     ,   $($Script:TestScheduleDrivenTaskDetection)
                     )
                     RETURNING batch_run_session_task_id
-                ")
+                ") -LogSqlToHost
         }
     }
 }   
@@ -799,6 +805,224 @@ $Script:CurrentDebugSessionNo                               = $MyInvocation.Hist
 
 # Do we need?
 
-. .\_dot_include_standard_header_helper_functions.ps1
+#. .\_dot_include_standard_header_helper_functions.ps1
+#####################################################################################################################################################################################################################################################
+# Bootstrap Final steps, interdependent on each other. Helper functions for includers.
+#####################################################################################################################################################################################################################################################
+ 
+Function TrimToMicroseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
+{
+    # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
+    [DateTime]::ParseExact($date.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "yyyy-MM-dd HH:mm:ss.ffffff", $null)
+}                                
+                                                   
+Function Least([array]$things) {
+    return ($things|Measure -Minimum).Minimum
+}                                            
+
+Function Right([string]$val, [int32]$howManyChars = 1) {
+    if ([String]::IsNullOrEmpty($val)) { 
+        return $null
+    }               
+    $actualLengthWeWillGet = Least $howManyChars  $val.Length
+    
+    return $val.Substring($val.Length - $actualLengthWeWillGet)           
+}
+
+Function Left([string]$val, [int32]$howManyChars = 1) {
+    if ([String]::IsNullOrEmpty($val)) { 
+        # Made up rule: Empty doesn't have a Leftmost character. $null should break the caller.  Returning an empty string as "leftmost character" is a fudge, and causes problems.
+        return $null
+    }               
+    $actualLengthWeWillGet = Least $howManyChars  $val.Length
+    return $val.Substring(0,$actualLengthWeWillGet)
+}
+
+Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null, [switch]$includeCount, [string]$variableName = $null) {
+    $ct = ""
+
+    if ($null -ne $variableName -and -not [string]::IsNullOrWhiteSpace($variableName)) {
+        
+        $ct+= $variableName.Humanize() + ": "
+        $number = Get-Variable -Name $variableName -Scope Global -Value
+        $includeCount = $true
+    }
+
+
+    if ($includeCount) {
+        $ct+= $number.ToString() + " "
+    }   
+
+    if ($number -eq 1) {return ($ct + $singularLabel)}
+    If ([String]::IsNullOrEmpty($pluralLabel)) {
+        $LastCharacter = Right $singularLabel
+        $Last2Characters = Right $singularLabel 2
+        $SecondLastCharacter = Left $Last2Characters # Concise. Dont repit yourself.
+
+        $Irregulars     = @{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
+        $NonCount= @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
+        $OnlyS = @('photo', 'halo', 'piano')                                                                                                                
+        $ExceptionsToFE = @('chef', 'roof')      
+           
+        if ($singularLabel -in $NonCount) {
+            $plurallabel = $singularLabel 
+        }                                                                        
+        elseif ($singularLabel -in $Irregulars.Keys) {
+            $plurallabel = $Irregulars[$singularLabel]
+        }
+        elseif ($singularLabel -in $OnlyS -or $singularLabel -in $ExceptionsToFE) {
+            $plurallabel = $singularLabel + 's'
+        }
+        elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) { 
+            $pluralLabel = $singularLabel + 'es'
+        }  
+        elseif ($Last2Characters -in @('f', 'fe')) { 
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'ves' # Wife => Wives
+        }  
+        elseif ($LastCharacter -in @('f', 'fe')) { 
+            $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ves'   # Calf => Calves
+        }  
+        elseif ($Last2Characters -in @('us')) {  
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'i'   # Cactus => Cacti
+        }  
+        elseif ($Last2Characters -in @('is')) {  
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'es'   # Analysis => analyses
+        }  
+        elseif ($Last2Characters -in @('on')) {  
+            $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'a'   # Phenomenon => Phenomena
+        }  
+        elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) { 
+            $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ies' # City => Cities
+        }  
+        else {
+            $pluralLabel = $singularLabel + 's'                             # Cat => Cats
+        }
+    }   
+
+    if ($number -ge 2 -or $number -eq 0) { return ($ct + $pluralLabel)}
+    return ($ct + $singularLabel)
+}   
+                                                                                   
+Function Format-Humanize([Diagnostics.Stopwatch]$ob) {
+    [timespan]$elapsed = $ob.Elapsed
+    
+    if ($elapsed.TotalDays -ge 1) {
+            Format-Plural 'Day' $($elapsed.TotalDays) -includeCount
+    }
+    elseif ($elapsed.TotalHours -ge 1) {
+        Format-Plural 'Hour' $($elapsed.TotalHours) -includeCount
+    }
+    elseif ($elapsed.TotalMinutes -ge 1) {
+        Format-Plural 'Minute' $($elapsed.TotalMinutes) -includeCount
+    }
+    elseif ($elapsed.TotalSeconds -ge 1) {
+        Format-Plural 'Second' $($elapsed.TotalSeconds) -includeCount
+    }
+    elseif ($elapsed.TotalMilliseconds -ge 1) {
+        Format-Plural 'Millisecond' $($elapsed.TotalMilliseconds) -includeCount
+    }
+    elseif ($elapsed.TotalMicroseconds -ge 1) {
+        Format-Plural 'Microsecond' $($elapsed.TotalMicroseconds) -includeCount
+    }
+    elseif ($elapsed.Ticks-gt 0) {
+        Format-Plural 'Tick' $($elapsed.Ticks) -includeCount
+    }
+}                                    
+
+Function NullIf([string]$val, [string]$ifthis = '') {
+    if ($null -eq $val -or $val.Trim() -eq $ifthis) {return $null}
+    return $val
+}                        
                                      
+Function __TICK ($tick_emoji) {
+    # Only write to terminal if not a scheduled task run
+    if ($Script:Caller -ne 'Windows Task Scheduler') {
+        Write-AllPlaces $tick_emoji -NoNewline -NoLog
+    }
+}
+$NEW_OBJECT_INSTANTIATED             = '✨'; Function _TICK_New_Object_Instantiated             {__TICK $NEW_OBJECT_INSTANTIATED}
+$FOUND_EXISTING_OBJECT               = '✔️'; Function _TICK_Found_Existing_Object               {__TICK $FOUND_EXISTING_OBJECT}
+$FOUND_EXISTING_OBJECT_BUT_NO_CHANGE = '🥱'; Function _TICK_Found_Existing_Object_But_No_Change {__TICK $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE}
+$EXISTING_OBJECT_EDITED              = '📝'; Function _TICK_Existing_Object_Edited              {__TICK $EXISTING_OBJECT_EDITED}
+$EXISTING_OBJECT_ACTUALLY_CHANGED    = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed    {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED} # Warning: Comes out different in terminal than editor. fonts. Geez.
+$OBJECT_MARKED_DELETED               = '❌'; Function _TICK_Object_Marked_Deleted               {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
+$SCAN_OBJECTS                        = '👓'; Function _TICK_Scan_Objects                        {__TICK $SCAN_OBJECTS} 
+$SOUGHT_OBJECT_NOT_FOUND             = '😱'; Function _TICK_Sought_Object_Not_Found             {__TICK $SOUGHT_OBJECT_NOT_FOUND}  # As in database says it's there but it's not physically on file.
+$UPDATE_OBJECT_STATUS                = '🚩'; Function _TICK_Update_Object_Status                {__TICK $UPDATE_OBJECT_STATUS}
+$IMPOSSIBLE_OUTCOME                  = '🤷‍♂️'; Function _TICK_Impossible_Outcome                  {__TICK $IMPOSSIBLE_OUTCOME}
+                                     
+$Script:WriteCounts = @([PSCustomObject]@{
+    CountLabel = '';
+    Count      = 0;
+    Tag        = 'x';
+})             
+
+Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [string]$pluralLabel = $null) {
+    $countLabel = ""
+
+    $countLabel = $variableName.Humanize()
+    $number = Get-Variable -Name $variableName -Scope Global -Value
+
+    if ($number -eq 1) {
+        $Script:WriteCounts+= [PSCustomObject]@{
+            CountLabel = $countLabel;
+            Count      = $number;
+            Tag        = $singularLabel;
+        }
+        return 
+    } else {
+        # FIX: This code duplicated from Format-Plural!
+        If ([String]::IsNullOrEmpty($pluralLabel)) {
+            $LastCharacter = Right $singularLabel
+            $Last2Characters = Right $singularLabel 2
+            $SecondLastCharacter = Left $Last2Characters # Concise. Dont repit yourself.
+
+            $Irregulars     = @{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
+            $NonCount= @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
+            $OnlyS = @('photo', 'halo', 'piano')                                                                                                                
+            $ExceptionsToFE = @('chef', 'roof')      
+            
+            if ($singularLabel -in $NonCount) {
+                $plurallabel = $singularLabel 
+            }                                                                        
+            elseif ($singularLabel -in $Irregulars.Keys) {
+                $plurallabel = $Irregulars[$singularLabel]
+            }
+            elseif ($singularLabel -in $OnlyS -or $singularLabel -in $ExceptionsToFE) {
+                $plurallabel = $singularLabel + 's'
+            }
+            elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) { 
+                $pluralLabel = $singularLabel + 'es'
+            }  
+            elseif ($Last2Characters -in @('f', 'fe')) { 
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'ves' # Wife => Wives
+            }  
+            elseif ($LastCharacter -in @('f', 'fe')) { 
+                $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ves'   # Calf => Calves
+            }  
+            elseif ($Last2Characters -in @('us')) {  
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'i'   # Cactus => Cacti
+            }  
+            elseif ($Last2Characters -in @('is')) {  
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'es'   # Analysis => analyses
+            }  
+            elseif ($Last2Characters -in @('on')) {  
+                $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'a'   # Phenomenon => Phenomena
+            }  
+            elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) { 
+                $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ies' # City => Cities
+            }  
+            else {
+                $pluralLabel = $singularLabel + 's'                             # Cat => Cats
+            }
+        }
+
+        $Script:WriteCounts+= [PSCustomObject]@{
+            CountLabel = $countLabel;
+            Count      = $number;
+            Tag        = $pluralLabel;
+        }
+    }   
+}   
+
 Log-Line "Exiting standard_header v2"
