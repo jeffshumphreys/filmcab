@@ -1016,13 +1016,46 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
                 $pluralLabel = $singularLabel + 's'                             # Cat => Cats
             }
         }
+    }
+}
+ 
+Function Convert-SidToUser {
+    param($sidString)
+    try {
+        $sid = New-Object System.Security.Principal.SecurityIdentifier($sidString)
+        $user = $sid.Translate([System.Security.Principal.NTAccount])
+        $user.Value
+    } catch {
+        return $sidString
+    }
+}
 
-        $Script:WriteCounts+= [PSCustomObject]@{
-            CountLabel = $countLabel;
-            Count      = $number;
-            Tag        = $pluralLabel;
-        }
-    }   
-}   
+Function Convert-ByteArrayToHexString ([byte[]] $bytearray) {
+    if ($null -eq $bytearray) {return $null}
+    return @($bytearray|Format-Hex|Select ascii).Ascii -join ''
+}
+
+Function Fill-Property ($targetob, $sourceob, $prop) {
+    # TODO: Add property if not found.
+    # TODO: take in an array of properties all at once!!!!
+    # IDEA: Could just move all properties over???
+    $propAlreadyInTarget = @($targetob.PSObject.Properties|Where Name -eq "$prop").Count
+                                
+    if (-not $propAlreadyInTarget) {
+        $targetob | Add-Member -MemberType NoteProperty -Name $prop -Value ''
+    }
+    
+    if ($sourceob -is [String] -or $sourceob -is [Int32] -or $sourceob -is [datetime]) {
+        $targetob.$prop = $sourceob.ToString()
+    }                             
+    else {                
+        $propval = $null
+
+        if(@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1) {$propval = $sourceob.$prop } else { $propval= ''}
+        $targetob.$prop = $propval
+    }
+}
+    
+
 
 Log-Line "Exiting standard_header v2"
