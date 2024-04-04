@@ -4,6 +4,7 @@
 DROP VIEW IF EXISTS simplified.directories_v CASCADE;
 CREATE OR REPLACE VIEW simplified.directories_v AS 
 SELECT 
+    d.directory_id,
     d.directory_hash,
     d.directory_path              AS directory,
     d.folder                      AS folder,
@@ -20,7 +21,10 @@ SELECT
     d.link_directory_still_exists AS linked_directory_still_exists,
     d.scan_directory              AS scan_directory,
     d.deleted                     AS directory_deleted,
-    d.search_directory_id         AS search_directory_id
+    d.search_directory_id         AS search_directory_id,
+    d.move_id,
+    d.moved_in,
+    d.moved_out
 FROM simplified.directories d 
 ;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,6 +33,7 @@ DROP VIEW IF EXISTS simplified.directories_ext_v CASCADE;
 CREATE OR REPLACE VIEW simplified.directories_ext_v
 AS WITH base AS (
          SELECT 
+            d.directory_id,
             d.directory_path                                                        AS directory_path,                                                                     /* SUPPORTS_OLD_STYLE */
             d.directory_path                                                        AS directory,
             REPLACE(d.directory_path::TEXT, '''', '''''')                           AS directory_escaped,
@@ -53,7 +58,10 @@ AS WITH base AS (
             d.root_genre                                                            AS root_genre,
             d.volume_id                                                             AS volume_id,
             COALESCE(d.scan_directory, TRUE)                                        AS scan_directory,
-            sd.skip_hash_generation                                                 AS skip_hash_generation
+            sd.skip_hash_generation                                                 AS skip_hash_generation,
+    d.move_id,
+    d.moved_in,
+    d.moved_out
 
         FROM 
             directories d
@@ -85,6 +93,7 @@ AS WITH base AS (SELECT
     f.file_hash                                                                                                                                              AS file_hash,      
     f.file_ntfs_id                                                                                                                                           AS file_ntfs_id,   
     d.directory_hash                                                                                                                                         AS directory_hash, 
+    d.directory_id,
     f.file_name_no_ext                                                                                                                                       AS file_name_no_ext,
     f.file_name_no_ext || CASE WHEN f.final_extension <> ''::text THEN '.'::text || f.final_extension ELSE ''::TEXT END                                      AS file_name_with_ext,
     f.final_extension                                                                                                                                        AS final_extension,   
@@ -113,7 +122,9 @@ AS WITH base AS (SELECT
     COALESCE(f.is_hard_link, FALSE)                                                                                                                          AS file_is_hard_link,
     NULLIF(f.linked_path, '')                                                                                                                                AS file_linked_path,
     d.directory_is_symbolic_link                                                                                                                             AS directory_is_symbolic_link,
-    d.directory_is_junction_link                                                                                                                             AS directory_is_junction_link
+    d.directory_is_junction_link                                                                                                                             AS directory_is_junction_link,
+    d.move_id AS directory_move_id,
+    f.move_id AS file_move_id
    FROM files f
      JOIN directories_ext_v d USING (directory_hash)
      JOIN search_directories sd USING (search_directory_id)
@@ -163,6 +174,7 @@ AS SELECT files.file_id,
     files.broken_link      AS file_is_broken_link,
     files.linked_path,
     files.file_ntfs_id,
-    files.scan_for_ntfs_id AS scan_file_for_ntfs_id
+    files.scan_for_ntfs_id AS scan_file_for_ntfs_id,
+    files.move_id
    FROM files;
    SELECT count(*) FROM simplified.files_ext_v WHERE is_real_file
