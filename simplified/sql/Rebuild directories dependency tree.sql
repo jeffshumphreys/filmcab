@@ -38,6 +38,7 @@ AS WITH base AS (
             d.directory_path                                                        AS directory,
             REPLACE(d.directory_path::TEXT, '''', '''''')                           AS directory_escaped,
             d.directory_hash                                                        AS directory_hash,
+            d.parent_directory_hash,
             d.directory_date                                                        AS directory_date,
             Left(d.directory_path, length(d.directory_path)-(length(d.folder)+1))   AS parent_directory,
             sd.search_directory                                                     AS search_path,                                                                /* SUPPORTS_OLD_STYLE */
@@ -175,6 +176,8 @@ AS SELECT files.file_id,
     files.linked_path,
     files.file_ntfs_id,
     files.scan_for_ntfs_id AS scan_file_for_ntfs_id,
-    files.move_id
+    files.move_id,
+    files.moved_out,
+    files.moved_in
    FROM files;
    SELECT count(*) FROM simplified.files_ext_v WHERE is_real_file
