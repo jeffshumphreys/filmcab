@@ -55,34 +55,70 @@ $targetPath = "$file_name_base-in_text.sql"
 pg_dump.exe --verbose --format=plain --file "$targetPath" --schema-only --dbname=$($Config.database) --schema=$($Config.database_schema) --blobs|Out-Host
 Write-AllPlaces "(4) pg_dump to $targetPath completed"
 
-$schema = Get-Content "$file_name_base-in_text.sql"
-$date_free_schema = @()
+######################################################################################################################################################################################
+#
+#         Compare new and previous schemas for material differences. If any difference, push new schema to github local project folder.
+#
+######################################################################################################################################################################################
 
-Foreach ($line in $schema) {
-    if ($line -notmatch "^-- (Started|Completed) on \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d$") {
-        $date_free_schema+= $line
+# Step 1: Determine hash for new schema without touching project folder.
+
+$new_schema_path = $targetPath
+
+$temp_file_for_new_schema = New-TemporaryFile
+
+$new_schema = Get-Content $new_schema_path
+$clean_new_schema_lines = @()
+
+Foreach ($line in $new_schema) {
+    if ($line -notmatch "^-- (Started|Completed) on \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d$" -and
+        $line -notmatch "^-- TOC entry" -and
+        $line -notmatch "^-- Dependencies:"
+    ) {
+        $clean_new_schema_lines+= $line
     }
 }                                
-$date_free_schema|Set-Content -Path $file_name_to_codebase
+$clean_new_schema_lines|Set-Content -Path $temp_file_for_new_schema
+
+$new_sql_hash      = (Get-FileHash -Path $temp_file_for_new_schema -Algorithm MD5).Hash
 
 $path_base_for_all = "$($Config.local_path)\$($Config.subfolder)"
 
 $file_name_in_codebase               = "$path_base_for_all/sql/dump-$($Config.database)-database-$($Config.database_schema)-schema-only.sql"
 $file_name_in_codebase_previous_copy = "$path_base_for_all/sql/dump-$($Config.database)-database-$($Config.database_schema)-schema-only.prev.sql"
-Write-AllPlaces "`$file_name_in_codebase = $file_name_in_codebase"
+
+Write-AllPlaces "`$file_name_in_codebase               = $file_name_in_codebase"
 Write-AllPlaces "`$file_name_in_codebase_previous_copy = $file_name_in_codebase_previous_copy"
 
-# Error: Following doesn't detect MATERIAL differences due to crap in the file
+# Step 2: Determine hash for previous schema if there is a previous schema.
 
-$previous_sql_hash = (Get-FileHash -LiteralPath $file_name_to_codebase -Algorithm MD5).Hash
-$new_sql_hash      = (Get-FileHash -LiteralPath $file_name_in_codebase -Algorithm MD5).Hash
+$prev_schema_path = $file_name_in_codebase_previous_copy
+$previous_sql_hash = "0"
+
+$temp_file_for_prev_schema = New-TemporaryFile
+
+if (Test-Path $prev_schema_path) {
+    $prev_schema = Get-Content $prev_schema_path
+    $clean_prev_schema_lines = @()
+    
+    Foreach ($line in $prev_schema) {
+        if ($line -notmatch "^-- (Started|Completed) on \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d$" -and
+        $line -notmatch "^-- TOC entry" -and
+        $line -notmatch "^-- Dependencies:"
+        ) {
+            $clean_prev_schema_lines+= $line
+        }
+    }                     
+    $clean_prev_schema_lines|Set-Content -Path $temp_file_for_prev_schema
+    $previous_sql_hash = (Get-FileHash -LiteralPath $temp_file_for_prev_schema -Algorithm MD5).Hash
+}
 
 if ($previous_sql_hash -ne $new_sql_hash) {
     Write-AllPlaces "Difference between new and last DDL detected."
-    Copy-Item $file_name_in_codebase -Destination $file_name_in_codebase_previous_copy -Force -Verbose
-    Copy-Item $file_name_to_codebase -Destination $file_name_in_codebase -Force -Verbose # Will trigger github changes    
+    Copy-Item $temp_file_for_prev_schema -Destination $file_name_in_codebase_previous_copy -Force -Verbose
+    Copy-Item $temp_file_for_new_schema -Destination $file_name_in_codebase -Force -Verbose # Will trigger github changes    
 } else {
-    Write-AllPlaces "No difference between new and last DDL detected."
+    Write-AllPlaces "No material difference between new and last DDL detected."
 }
 
 }
