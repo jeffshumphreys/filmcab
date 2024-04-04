@@ -22,76 +22,37 @@
  
  Import-Module BitsTransfer
  
- $form               = New-Object System.Windows.Forms.Form
- $form.Text          = "Select a directory to offload"
- $form.StartPosition = "CenterScreen"
- $form.WindowState   = 'Maximized'
- $form.Height        = $ScreenHeight
- $form.Width         = $ScreenWidth
- 
+ $form                  = New-Object System.Windows.Forms.Form
+ $form.Text             = "Select a directory to offload"
+ $form.StartPosition    = "CenterScreen"
+ $form.WindowState      = 'Maximized'
+ $form.Height           = $ScreenHeight
+ $form.Width            = $ScreenWidth
+ $BUTTON_WIDTH          = 75
+ $BUTTON_HEIGHT         = 23
+ $HORIZONTAL_SPACER     = 5
+
+ ########################################################################################################################################################################################################
  $OKButton              = New-Object System.Windows.Forms.Button
- $OKButton.Location     = New-Object System.Drawing.Point(($ScreenWidth - 75 - 5 - 75),($ScreenHeight - 23))
- $OKButton.Size         = New-Object System.Drawing.Size(75,23)
+ $OKButton.Location     = New-Object System.Drawing.Point(($ScreenWidth -  $BUTTON_WIDTH - $HORIZONTAL_SPACER -  $BUTTON_WIDTH),($ScreenHeight - $BUTTON_HEIGHT))
+ $OKButton.Size         = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
  $OKButton.Text         = "OK"
  $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
  $form.AcceptButton     = $OKButton
  $form.Controls.Add($OKButton)
  
+ ########################################################################################################################################################################################################
  $CancelButton              = New-Object System.Windows.Forms.Button
- $CancelButton.Location     = New-Object System.Drawing.Point(($ScreenWidth - 75),($ScreenHeight - 23))                                                 
- $CancelButton.Size         = New-Object System.Drawing.Size(75,23)
+ $CancelButton.Location     = New-Object System.Drawing.Point(($ScreenWidth - $BUTTON_WIDTH),($ScreenHeight - $BUTTON_WIDTH))
+ $CancelButton.Size         = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
  $CancelButton.Text         = "Cancel"
  $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
  $form.CancelButton         = $CancelButton
  $form.Controls.Add($CancelButton)
-                                                      
- $treeViewWidth = 344
  
- $selectedDirectoryInput            = New-Object System.Windows.Forms.TextBox
- $selectedDirectoryInput.ReadOnly   = $true
- $selectedDirectoryInput.Location   = New-Object System.Drawing.Point(($treeViewWidth+10),20)
- $selectedDirectoryInput.Size       = New-Object System.Drawing.Size(280,20)
- $form.Controls.Add($selectedDirectoryInput)
-
- $selectedTargetComboBox            = New-Object System.Windows.Forms.ComboBox
- $selectedTargetComboBox.Location   = New-Object System.Drawing.Point(($treeViewWidth+10),42)
- $selectedTargetComboBox.Size       = New-Object System.Drawing.Size(280,20)
- $i = $selectedTargetComboBox.Items.Add("Seen")                    | Out-Null
-      $selectedTargetComboBox.Items.Add("Won't Watch") | Out-Null
-      $selectedTargetComboBox.Items.Add("Corrupt") | Out-Null
-      $selectedTargetComboBox.Items.Add("Poor Quality") | Out-Null
-      $selectedTargetComboBox.Items.Add("Copyright Audio") | Out-Null
- $selectedTargetComboBox.SelectedIndex = $i
- $form.Controls.Add($selectedTargetComboBox)
-
- $MoveButton              = New-Object System.Windows.Forms.Button
- $MoveButton.Location     = New-Object System.Drawing.Point(($treeViewWidth + 280+5),20)                                                 
- $MoveButton.Size         = New-Object System.Drawing.Size(75,23)
- $MoveButton.Text         = "Move -->"                        
- 
- $form.Controls.Add($MoveButton)
-
- ###########################################################################################################################################################################################
- $Move_Directory = {
-     $sourcePath = $treeView.SelectedNode.Name
-     $partOfPath = $treeView.SelectedNode.Tag
-     $targetType = $selectedTargetComboBox.Text
-     $targetPath = "N:\Video AllInOne Seen\$partOfPath"
-     if ($targetType -eq "Won't Watch") {
-        $targetPath = "K:\Video AllInOne Won't Watch\$partOfPath"
-     }
-     $targetPath = (Get-Item $targetPath).Parent.FullName
-     New-Item -ItemType Directory -Force -Path $targetPath
-     Copy-Item -LiteralPath $sourcePath -Destination $targetPath -Force -Recurse
-     $treeView.SelectedNode.Remove()
-     # $directory_hashb = Get-SqlValue "UPDATE directories SET moved_on, moved_to, moved_reason, bytes_moved WHERE directory = '' RETURNING directory_hash"
-     # Invoke-Sql "UPDATE files_v SET moved_on, moved_to, moved_reason, bytes_moved WHERE directory_hash = ''"
-     #TODO: Update record in directories, and files. Add a moved and where flag, (seen or corrupt) Set reasons in the directories table, like seen, won't finish, etc.
-     # Set deleted and moved_to so it doesn't get flushed out of backups, or removed from payloads or downloads
- }
- 
- $MoveButton.add_click($Move_Directory)
- 
+ ########################################################################################################################################################################################################
+ $columnWidth1 = 344
+ $treeViewWidth = $columnWidth1
  $treeView                                          = New-Object System.Windows.Forms.TreeView
  $System_Drawing_Size                               = New-Object System.Drawing.Size
  $System_Drawing_Size.Width                         = $treeViewWidth
@@ -106,11 +67,147 @@
  $treeView.TabIndex                                 = 0
  $form.Controls.Add($treeView)
 
+ $maxObjectWidth2 = 280
+ $columnWidth2 = $maxObjectWidth2 + ($HORIZONTAL_SPACER*2)
+ $selectedDirectoryInput            = New-Object System.Windows.Forms.TextBox
+ $selectedDirectoryInput.ReadOnly   = $true
+ $selectedDirectoryInput.Location   = New-Object System.Drawing.Point(($treeViewWidth+$HORIZONTAL_SPACER), $BUTTON_HEIGHT)
+ $selectedDirectoryInput.Size       = New-Object System.Drawing.Size($maxObjectWidth2,$BUTTON_WIDTH)
+ $form.Controls.Add($selectedDirectoryInput)
+
+ $selectedTargetComboBox            = New-Object System.Windows.Forms.ComboBox
+ $selectedTargetComboBox.Location   = New-Object System.Drawing.Point(($treeViewWidth+$HORIZONTAL_SPACER), 0)
+ $selectedTargetComboBox.Size       = New-Object System.Drawing.Size($maxObjectWidth2, $BUTTON_WIDTH)
+ $i = $selectedTargetComboBox.Items.Add("Seen")                    | Out-Null
+      $selectedTargetComboBox.Items.Add("Won't Watch") | Out-Null
+      $selectedTargetComboBox.Items.Add("Corrupt") | Out-Null
+      $selectedTargetComboBox.Items.Add("Poor Quality") | Out-Null
+      $selectedTargetComboBox.Items.Add("Copyright Audio") | Out-Null
+ $selectedTargetComboBox.SelectedIndex = $i
+ $form.Controls.Add($selectedTargetComboBox)
+
+ $MoveButton              = New-Object System.Windows.Forms.Button
+ $MoveButton.Location     = New-Object System.Drawing.Point(($treeViewWidth + $columnWidth2),0)                                                 
+ $MoveButton.Size         = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
+ $MoveButton.Text         = "Move -->"                        
+ 
+ $form.Controls.Add($MoveButton)
+ 
+ ###########################################################################################################################################################################################
+ # Action taken when we click the move button
+ ###########################################################################################################################################################################################
+ $Move_Directory = {
+     $sourceDirectory                 = $treeView.SelectedNode.Name
+     $sourceDirectory_prepped_for_sql = PrepForSql $sourceDirectory
+     $sizeOfSourceDirectory           = ((gci –force -LiteralPath $sourceDirectory –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+     $partOfPath                      = $treeView.SelectedNode.Tag
+     $targetType                      = $selectedTargetComboBox.Text
+     $targetType_prepped_for_sql      = PrepForSql $targetType
+     $targetDirectory                 = "N:\Video AllInOne Seen\$partOfPath"
+     
+     if ($targetType -ne "Seen") {
+        $targetDirectory = "K:\Video AllInOne $targetType\$partOfPath"
+     } else {
+        $targetDirectory = "N:\Video AllInOne Seen\$partOfPath"
+     }                       
+
+     $targetDirectory = (Get-Item $targetDirectory).Parent.FullName
+     $targetDirectory_prepped_for_sql = PrepForSql $targetDirectory
+     New-Item -ItemType Directory -Force -Path $targetDirectory
+     $move_id = Get-SqlValue "
+        INSERT INTO 
+            moves(
+                    move_started
+                ,   bytes_moved
+                ,   from_directory
+                ,   to_directory
+                ,   move_reason
+                ) 
+                VALUES(
+                    CURRENT_TIMESTAMP
+                ,   $sizeOfSourceDirectory
+                ,   $sourceDirectory_prepped_for_sql
+                ,   $targetDirectory_prepped_for_sql
+                ,   $targetType_prepped_for_sql
+                ) 
+                RETURNING move_id"
+
+     #Copy-Item -LiteralPath $sourceDirectory -Destination $targetDirectory -Force -Recurse
+     Invoke-Sql "UPDATE moves SET move_ended = CURRENT_TIMESTAMP WHERE move_id = $move_id"
+     $directory_hash = Get-SqlValue "UPDATE directories_v SET move_id = $move_id, moved_out = True WHERE directory = $sourceDirectory_prepped_for_sql RETURNING directory_hash"     
+     $directory_hash = @($directory_hash|Format-Hex|Select ascii).Ascii -Join ''
+     Invoke-Sql "
+        WITH RECURSIVE nodes AS (SELECT * FROM directories_ext_v dev  WHERE directory = 'O:\Video AllInOne\_Mystery\Annika (2021-)'
+        UNION ALL 
+        SELECT dev.* FROM directories_ext_v dev JOIN nodes  ON dev.parent_directory_hash = nodes.directory_hash
+        )
+        UPDATE directories_v x SET move_id = $move_id, moved_out = TRUE WHERE directory_hash IN(SELECT directory_hash FROM nodes)
+     "                                                                                                                             
+     # Now with all the files                
+     # Get 
+     $target_driveletter = Left $targetDirectory
+     
+     Invoke-Sql "
+        WITH RECURSIVE nodes AS (SELECT * FROM directories_ext_v dev  WHERE directory = 'O:\Video AllInOne\_Mystery\Annika (2021-)'
+        UNION ALL 
+        SELECT dev.* FROM directories_ext_v dev JOIN nodes  ON dev.parent_directory_hash = nodes.directory_hash
+        )
+        INSERT 
+            directories_v(
+                directory_hash, 
+                directory,
+                parent_directory_hash, 
+                directory_date, 
+                volume_id, 
+                scan_directory, 
+                directory_is_symbolic_link, 
+                directory_is_junction_link, 
+                linked_directory,
+                search_directory_id,
+                folder,
+                parent_folder,
+                grandparent_folder,
+                directory_deleted,
+                move_id
+            ,   moved_in                         
+            )
+        SELECT 
+            (recalc)                                      AS directory_hash, 
+            (adjusted from to base)                       AS directory,
+            (recalc)                                      AS parent_directory_hash, 
+            (need)                                        AS directory_date, 
+            (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter') AS volume_id, 
+            false                                         AS scan_directory, 
+            directory_is_symbolic_link                    AS directory_is_symbolic_link, 
+            directory_is_junction_link,                   AS directory_is_junction_link, 
+            linked_directory                              AS linked_directory,
+            (?????)                                       AS search_directory_id,
+            (recalc)                                      AS folder,
+            (recalc)                                      AS parent_folder,
+            (recalc)                                      AS grandparent_folder,
+            directory_deleted                             AS directory_deleted,
+            $move_id                                      AS move_id,
+            True                                          AS moved_in                                    
+        FROM nodes 
+     "                                                                                                                             
+
+     # Now create directories dupping the ones from source
+     # Now copy file detail, especially hashes over
+     $treeView.SelectedNode.Remove()                                       
+ }
+ 
+ $MoveButton.add_click($Move_Directory)
+ 
+ #################################################################################################################################################################################################
+ # When the user selects a node in the tree, we capture the detail for displaying for the move action
  #################################################################################################################################################################################################
  $treeView.add_AfterSelect({
-     $Script:directory_path = $this.SelectedNode.Tag
-     $Script:full_directory_path = $this.SelectedNode.Name
+     $Script:directory_path = $this.SelectedNode.Name
      $selectedDirectoryInput.Text = $Script:directory_path
+     $Script:parent_directory_path = $this.TopNode.Name
+     $Script:prev_directory_path = $this.SelectedNode.PrevNode.Name
+     $Script:next_directory_path = $this.SelectedNode.NextNode.Name
+     
      # Get nodes before and after for when this node is removed.
 
  
@@ -141,7 +238,9 @@
     WHERE 
         search_directory_id = $searchDirectoryId 
     AND 
-        directory_depth >= 1 
+        directory_depth >= 1                       
+    AND
+        move_id IS NULL /* Not already moven */
     ORDER BY 
         directory_depth, 
         directory
@@ -162,14 +261,32 @@
                         
  $treeView.EndUpdate()
 
- if (Test-Path variable:Script:full_directory_path) {
-    [array]$treeNodesForThatDirectory = $treeView.Nodes.Find($Script:full_directory_path, $true)
+ # Set our place in the tree where we were last, or very near there.
+ 
+ if (Test-Path variable:Script:directory_path) {
+    [array]$treeNodesForThatDirectory = $treeView.Nodes.Find($Script:directory_path, $true)
+    # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
+    if ($treeNodesForThatDirectory.Count -ge 1) {
+        $treeView.SelectedNode = ($treeNodesForThatDirectory[0])
+        $treeView.Focus()
+        # Get nodes before and after for when this node is removed.
+    }
+ } elseif ((Test-Path variable:Script:prev_directory_path) -and -not [string]::IsNullOrWhiteSpace($Script:prev_directory_path)) {
+    [array]$treeNodesForThatDirectory = $treeView.Nodes.Find($Script:prev_directory_path, $true)
     # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
     if ($treeNodesForThatDirectory.Count -ge 1) {
         $treeView.SelectedNode = ($treeNodesForThatDirectory[0])
         # Get nodes before and after for when this node is removed.
     }
- }
+ } elseif ((Test-Path variable:Script:next_directory_path) -and -not [string]::IsNullOrWhiteSpace($Script:next_directory_path)) {
+    [array]$treeNodesForThatDirectory = $treeView.Nodes.Find($Script:next_directory_path, $true)
+    # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
+    if ($treeNodesForThatDirectory.Count -ge 1) {
+        $treeView.SelectedNode = ($treeNodesForThatDirectory[0])
+        # Get nodes before and after for when this node is removed.
+    }
+ }                                                                   
+
  $form.Topmost = $True
  
  $form.BringToFront() # Required to get it on top, not just "TopMost"
