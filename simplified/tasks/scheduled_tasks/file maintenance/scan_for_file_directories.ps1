@@ -92,7 +92,7 @@ $howManyRowsInserted             = 0
 
 # Fetch a string array of paths to search.
 
-$searchDirectories = WhileReadSql 'SELECT search_directory, search_directory_id FROM search_directories ORDER BY search_directory_id' # All the directories across my volumes that I think have some sort of movie stuff in them.
+$searchDirectories = WhileReadSql "SELECT search_directory, search_directory_id FROM search_directories ORDER BY search_directory_id" # All the directories across my volumes that I think have some sort of movie stuff in them.
 
 # Search down each search path for directories that are different or missing from our data store.
 
@@ -129,13 +129,13 @@ While ($searchDirectories.Read()) {
         # Only directories aka Containers
 
         if ($on_fs_file_object.PSIsContainer) {
-            $on_fs_directory                  = $on_fs_file_object.FullName
-            $on_fs_directory_date             = TrimToMicroseconds($on_fs_file_object.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since its 7.
-            $on_fs_directory_is_symbolic_link = $false
-            $on_fs_directory_is_junction_link = $false
-            $on_fs_linked_directory           = NullIf($on_fs_file_object.LinkTarget)   # Probably should verify,                                             eventually
-            $on_fs_driveletter                = $on_fs_file_object.FullName[0]
-            $on_fs_is_real_directory          = $false          # as in not a hard link or junction or symbolic link
+            $on_fs_directory                      = $on_fs_file_object.FullName
+            $on_fs_directory_date                 = TrimToMicroseconds($on_fs_file_object.LastWriteTime) # Postgres cannot store past 6 decimals of milliseconds, so on Windows will always cause a mismatch since its 7.
+            $on_fs_directory_is_symbolic_link     = $pretest_assuming_false
+            $on_fs_directory_is_junction_link     = $pretest_assuming_false
+            $on_fs_linked_directory               = NullIf($on_fs_file_object.LinkTarget)   # Probably should verify,                                             eventually
+            $on_fs_driveletter                    = $on_fs_file_object.FullName[0]
+            $on_fs_is_real_directory              = $pretest_assuming_false          # as in not a hard link or junction or symbolic link
 
             if ($on_fs_file_object.LinkType -eq 'Junction') {
                 $on_fs_directory_is_junction_link = $true
@@ -166,10 +166,10 @@ While ($searchDirectories.Read()) {
 
             $reader = WhileReadSql "
                 SELECT 
-                  directory_date               AS   in_db_directory_date             /* Feeble attempt to detect downstream changes                                                                       */
-                , directory_is_symbolic_link   AS   in_db_directory_is_symbolic_link /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
-                , directory_is_junction_link   AS   in_db_directory_is_junction_link /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
-                , linked_directory             AS   in_db_linked_directory           /* Verify this exists. Haven't tested.                                                                               */
+                  directory_date               AS   in_db_directory_date                  /* Feeble attempt to detect downstream changes                                                                       */
+                , directory_is_symbolic_link   AS   in_db_directory_is_symbolic_link      /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
+                , directory_is_junction_link   AS   in_db_directory_is_junction_link      /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                , linked_directory             AS   in_db_linked_directory                /* Verify this exists. Haven't tested.                                                                               */
                 , directory_deleted            AS   in_db_directory_deleted
                 FROM 
                     directories_ext_v
@@ -179,14 +179,14 @@ While ($searchDirectories.Read()) {
                     volume_id       = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
             "
 
-            $foundANewDirectory    = $false
-            $UpdateDirectoryRecord = $false
-            $scan_directory        = $false
+            $foundANewDirectory    = $pretest_assuming_false
+            $UpdateDirectoryRecord = $pretest_assuming_false
+            $scan_directory        = $pretest_assuming_false
 
             # if ($reader.HasRows) {
               if ($reader.Read()) { #|Out-Null # Must read in the first row.
-                $foundANewDirectory         = $false
-                $UpdateDirectoryRecord      = $false
+                $foundANewDirectory        = $false
+                $UpdateDirectoryRecord     = $false
                                    
                 if ($in_db_directory_deleted                                                    -or # We know the directory exists on the fs
                     $in_db_directory_date                 -ne $on_fs_directory_date             -or
@@ -199,17 +199,17 @@ While ($searchDirectories.Read()) {
 
                 # WARNING: postgres can only store to 6 places of milliseconds. File info is stored to 7 places. So they'll never match without trimming file date to 6. Is the 6 place a rounding, though? TEST
 
-                if ($in_db_directory_date     -ne $on_fs_directory_date) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
-                    $scan_directory     = $true 
+                if ($in_db_directory_date                 -ne $on_fs_directory_date) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
+                    $scan_directory        = $true 
                 }
             } else {
-                $foundANewDirectory = $true
-                $scan_directory     = $true
+                $foundANewDirectory        = $true
+                $scan_directory            = $true
             }
             $reader.Close()
             
             if ($on_fs_directory_is_junction_link) { 
-                $scan_directory = $false # Please do not traverse links. Even if the directory date changed.
+                $scan_directory            = $false # Please do not traverse links. Even if the directory date changed.
             }
     
             if ($scan_directory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
