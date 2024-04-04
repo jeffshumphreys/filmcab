@@ -725,10 +725,11 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
             if ($null -ne $Script:active_batch_run_session_id) {
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
                 # For safety, in case using the "running" flag fails.
-                Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
+                Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
             }
-        }                                                                                                                                                                 
-        Invoke-Sql "DELETE batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
+        }    
+        . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'                                                                                                                                                             
+        Invoke-Sql "DELETE FROM batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
     ############################################################################################################################
     } elseif ($script_position_in_lineup -eq 'In-Between') {
         # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
