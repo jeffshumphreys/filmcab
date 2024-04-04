@@ -4,6 +4,7 @@
  #    Status: In production, adding functionality
  #    ###### Sat Feb 3 15:13:56 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #    WARNING: Casing on "false" and "true" values is sensitive. "False" will block registration.
  #>
 
 try {
@@ -37,10 +38,15 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
     ,   run_start_time
     ,   previous_task_name
     ,   previous_uri
-    ,   execution_time_limit
-    ,   script_path_to_run
+    ,   task_execution_time_limit
+    ,   script_path_to_run                 
+    ,   repeat
+    ,   repeat_interval
+    ,   repeat_duration
+    ,   stop_when_repeat_duration_reached
+    ,   trigger_execution_time_limit
     FROM 
-        scheduled_tasks_ext_v 
+        scheduled_tasks_ext_v where repeat
     ORDER BY 
         scheduled_task_run_set_id
     ,   order_in_set
@@ -55,12 +61,27 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
     # Build the trigger portion, either a scheduled (timed) start, or an event trigger from the previous task in set.
 
     $triggerScript = ""
+    $repeatScript = ""
+    
+     if ($null -eq $trigger_execution_time_limit) {
+         $trigger_execution_time_limit = 'P1D'
+     }                                       
+    
+    
+    if ($repeat) {
+         $repeatScript = "               <Repetition>
+                     <Interval>$repeat_interval</Interval>
+                     <Duration>$repeat_duration</Duration>  
+                     <StopAtDurationEnd>$($stop_when_repeat_duration_reached.ToString().ToLower())</StopAtDurationEnd>
+                 </Repetition>"
 
+    }
     if ([string]::IsNullOrWhiteSpace($previous_task_name)) {
           $triggerScript = @"
           <CalendarTrigger id="start_batch_run_session_on_time">
+          $repeatScript
           <StartBoundary>         $RunStartTimestamp    </StartBoundary>
-          <ExecutionTimeLimit>    PT72H                 </ExecutionTimeLimit>
+          <ExecutionTimeLimit>    $trigger_execution_time_limit                 </ExecutionTimeLimit>
           <Enabled>               true                  </Enabled>
           <ScheduleByDay>
             <DaysInterval> 1 </DaysInterval>
@@ -100,33 +121,33 @@ else {
       </Triggers>
       <Principals>
         <Principal id="Author">
-          <UserId>S-1-5-21-260979430-3554011381-420227292-1001</UserId>
-          <LogonType>Password</LogonType>
-          <RunLevel>HighestAvailable</RunLevel>
+          <UserId>                         S-1-5-21-260979430-3554011381-420227292-1001</UserId>
+          <LogonType>                      Password                                    </LogonType>
+          <RunLevel>                       HighestAvailable                            </RunLevel>                
         </Principal>
       </Principals>
       <Settings>
-        <MultipleInstancesPolicy>    IgnoreNew     </MultipleInstancesPolicy>
-        <DisallowStartIfOnBatteries> true          </DisallowStartIfOnBatteries>
-        <StopIfGoingOnBatteries>     true          </StopIfGoingOnBatteries>
-        <AllowHardTerminate>         true          </AllowHardTerminate>
-        <StartWhenAvailable>         false         </StartWhenAvailable>
-        <RunOnlyIfNetworkAvailable>  false         </RunOnlyIfNetworkAvailable>
-        <IdleSettings>
-          <StopOnIdleEnd>     true    </StopOnIdleEnd>
-          <RestartOnIdle>     false   </RestartOnIdle>
-          <WaitTimeout>       PT1H    </WaitTimeout>
-          <Duration>          PT1M    </Duration>
+        <MultipleInstancesPolicy>          IgnoreNew                 </MultipleInstancesPolicy>
+        <DisallowStartIfOnBatteries>       true                      </DisallowStartIfOnBatteries>
+        <StopIfGoingOnBatteries>           true                      </StopIfGoingOnBatteries>
+        <AllowHardTerminate>               true                      </AllowHardTerminate>
+        <StartWhenAvailable>               false                     </StartWhenAvailable>
+        <RunOnlyIfNetworkAvailable>        false                     </RunOnlyIfNetworkAvailable>
+        <IdleSettings>      
+          <StopOnIdleEnd>                  true                      </StopOnIdleEnd>
+          <RestartOnIdle>                  false                     </RestartOnIdle>
+          <WaitTimeout>                    PT1H                      </WaitTimeout>
+          <Duration>                       PT1M                      </Duration>
         </IdleSettings>
-        <AllowStartOnDemand>                    true                      </AllowStartOnDemand>
-        <Enabled>                               true                      </Enabled>
-        <Hidden>                                false                     </Hidden>
-        <RunOnlyIfIdle>                         false                     </RunOnlyIfIdle>
-        <DisallowStartOnRemoteAppSession>       false                     </DisallowStartOnRemoteAppSession>
-        <UseUnifiedSchedulingEngine>            true                      </UseUnifiedSchedulingEngine>
-        <WakeToRun>                             true                      </WakeToRun>
-        <ExecutionTimeLimit>                    $execution_time_limit     </ExecutionTimeLimit>
-        <Priority>                              7                         </Priority>
+        <AllowStartOnDemand>               true                      </AllowStartOnDemand>
+        <Enabled>                          true                      </Enabled>
+        <Hidden>                           false                     </Hidden>
+        <RunOnlyIfIdle>                    false                     </RunOnlyIfIdle>
+        <DisallowStartOnRemoteAppSession>  false                     </DisallowStartOnRemoteAppSession>
+        <UseUnifiedSchedulingEngine>       true                      </UseUnifiedSchedulingEngine>
+        <WakeToRun>                        true                      </WakeToRun>
+        <ExecutionTimeLimit>               $task_execution_time_limit</ExecutionTimeLimit>
+        <Priority>                         7                         </Priority>
       </Settings>
       <Actions Context="Author">
         <Exec>
