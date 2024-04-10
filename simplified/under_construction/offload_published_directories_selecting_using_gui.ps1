@@ -194,7 +194,7 @@ $Move_Directory = {
                 ,   move_reason
                 ) 
                 VALUES(
-                    CURRENT_TIMESTAMP                                             /* Transaction start time above) */
+                    TRANSACTION_TIMESTAMP()                                       /* Transaction start time above) */
                 ,   $sizeOfSourceDirectory                                        /* How much space we're freeing up */
                 ,   $sourceDirectory_prepped_for_sql    
                 ,   $sourceBaseDirectory_prepped_for_sql
