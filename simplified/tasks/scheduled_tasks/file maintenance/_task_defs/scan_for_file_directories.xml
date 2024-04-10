@@ -3,7 +3,7 @@
       <RegistrationInfo>
         <Version>             1                                                                        </Version>
         <Source>              back_up_unbackedup_published_media                                                      </Source>
-        <Date>                2024-03-31T19:23:53.1116217                                                         </Date>
+        <Date>                2024-04-04T14:03:58.8742243                                                         </Date>
         <Author>              DSKTP-HOME-JEFF\jeffers                                                  </Author>
         <Description>         Part of FilmCab, a scan loop of search_paths (data) for new or changed directories. Takes about 2 minutes. MUST run before files scanned, since only changed directories are scanned. . # 13</Description>
         <URI>                 \FilmCab\file maintenance\scan_for_file_directories                                                                     </URI>
@@ -29,20 +29,20 @@
         <StartWhenAvailable>         false         </StartWhenAvailable>
         <RunOnlyIfNetworkAvailable>  false         </RunOnlyIfNetworkAvailable>
         <IdleSettings>
-          <StopOnIdleEnd>     true    </StopOnIdleEnd>
-          <RestartOnIdle>     false   </RestartOnIdle>
-          <WaitTimeout>       PT1H    </WaitTimeout>
-          <Duration>          PT1M    </Duration>
+          <StopOnIdleEnd>            true          </StopOnIdleEnd>
+          <RestartOnIdle>            false         </RestartOnIdle>
+          <WaitTimeout>              PT1H          </WaitTimeout>
+          <Duration>                 PT1M          </Duration>
         </IdleSettings>
-        <AllowStartOnDemand>                    true                      </AllowStartOnDemand>
-        <Enabled>                               true                      </Enabled>
-        <Hidden>                                false                     </Hidden>
-        <RunOnlyIfIdle>                         false                     </RunOnlyIfIdle>
-        <DisallowStartOnRemoteAppSession>       false                     </DisallowStartOnRemoteAppSession>
-        <UseUnifiedSchedulingEngine>            true                      </UseUnifiedSchedulingEngine>
-        <WakeToRun>                             true                      </WakeToRun>
-        <ExecutionTimeLimit>                    PT2H     </ExecutionTimeLimit>
-        <Priority>                              7                         </Priority>
+        <AllowStartOnDemand>               true                      </AllowStartOnDemand>
+        <Enabled>                          true                      </Enabled>
+        <Hidden>                           false                     </Hidden>
+        <RunOnlyIfIdle>                    false                     </RunOnlyIfIdle>
+        <DisallowStartOnRemoteAppSession>  false                     </DisallowStartOnRemoteAppSession>
+        <UseUnifiedSchedulingEngine>       true                      </UseUnifiedSchedulingEngine>
+        <WakeToRun>                        true                      </WakeToRun>
+        <ExecutionTimeLimit>               PT2H     </ExecutionTimeLimit>
+        <Priority>                         7                         </Priority>
       </Settings>
       <Actions Context="Author">
         <Exec>

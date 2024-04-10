@@ -1,10 +1,11 @@
 <#
     Tied/Paired with _dot_include_standard_header.ps1. Won't work if header not included.
 #>                                                                                       
-        
+
+try {
 Write-AllPlaces
 
-if ($Script:WriteCounts.Count -gt 0) {
+if ((Test-Path variable:script:WriteCounts) -and $Script:WriteCounts.Count -gt 0) {
     $MaxLengthLabel = 0
     $MaxNumber = 0
                                  
@@ -33,10 +34,15 @@ if ($Script:WriteCounts.Count -gt 0) {
 
 Format-Humanize $scriptTimer
 
-Log-ScriptCompleted
+$elapsedTime = $scriptTimer.Elapsed
+$secondsRan  = $elapsedTime.TotalSeconds
+Log-Line "Stopping Normally after $secondsRan Second(s)"
 
-#End-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName -batch_run_session_task_id $Script:active_batch_run_session_task_id
-
+End-BatchRunSessionTaskEntry
+      
+} catch {
+    Show-Error "Untrapped exception in footer" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+}                                            
 
 try {Stop-Transcript}catch{}
 

@@ -179,32 +179,32 @@ While ($reader.Read()) {
                      # OOOOR, the entire thing. we pass in prefix "_on_fs", target table name, it pulls columns and matches to variables. Wow. Way over the top.
                     Invoke-Sql "
                         INSERT INTO 
-                        files_v(
-                            file_hash,
-                            directory_hash,
-                            file_name_no_ext,
-                            final_extension,
-                            file_size,
-                            file_date,
-                            file_is_symbolic_link,
-                            file_is_hard_link,
-                            linked_path,
-                            file_is_broken_link,                                 
-                            file_deleted
-                        )              
-                        VALUES (
-                        /*  file_hash              */'$on_fs_file_hash'::bytea,     /* IDEA: `$(Format-ForSql (variable) returns NULL or 'x' or x::bytea or ::TIMESTAMPTZ or (escaped text)) */
-                        /*  directory_hash         */ md5_hash_path('$directory_escaped'),
-                        /*  file_name_no_ext       */'$on_fs_file_name_no_ext_escaped',
-                        /*  final_extension        */'$on_fs_final_extension_escaped',   
-                        /*  file_size              */ $on_fs_file_size,
-                        /*  file_date              */'$on_fs_file_date_formatted'::TIMESTAMPTZ,
-                        /*  file_is_symbolic_link  */ $on_fs_file_is_symbolic_link,
-                        /*  file_is_hard_link      */ $on_fs_file_is_hard_link,
-                        /*  linked_path            */ $on_fs_file_link_path_escaped,
-                        /*  file_is_broken_link    */ $on_fs_file_is_broken_link,
-                        /*  file_deleted           */ False
-                        )
+                            files_v(
+                                file_hash
+                            ,   directory_hash
+                            ,   file_name_no_ext
+                            ,   final_extension
+                            ,   file_size
+                            ,   file_date
+                            ,   file_is_symbolic_link
+                            ,   file_is_hard_link
+                            ,   linked_path
+                            ,   file_is_broken_link                                
+                            ,   file_deleted
+                            )              
+                            VALUES (
+                             /* file_hash              */'$on_fs_file_hash'::bytea     /* IDEA: `$(Format-ForSql (variable) returns NULL or 'x' or x::bytea or ::TIMESTAMPTZ or (escaped text)) */
+                            ,/* directory_hash         */ md5_hash_path('$directory_escaped')
+                            ,/* file_name_no_ext       */'$on_fs_file_name_no_ext_escaped'
+                            ,/* final_extension        */'$on_fs_final_extension_escaped'
+                            ,/* file_size              */ $on_fs_file_size
+                            ,/* file_date              */'$on_fs_file_date_formatted'::TIMESTAMPTZ
+                            ,/* file_is_symbolic_link  */ $on_fs_file_is_symbolic_link
+                            ,/* file_is_hard_link      */ $on_fs_file_is_hard_link
+                            ,/* linked_path            */ $on_fs_file_link_path_escaped
+                            ,/* file_is_broken_link    */ $on_fs_file_is_broken_link
+                            ,/* file_deleted           */ False
+                            )
                     "|Out-Null   
                     _TICK_New_Object_Instantiated
                     if ($on_fs_file_is_symbolic_link) { $howManyNewSymbolicLinks}

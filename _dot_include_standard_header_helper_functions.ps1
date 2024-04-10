@@ -88,11 +88,11 @@ Function Convert-SidToUser {
     }
 }
 
-Function Convert-ByteArrayToHexString ([byte[]] $bytearray) {
-    if ($null -eq $bytearray) {return $null}
-    return @($bytearray|Format-Hex|Select ascii).Ascii -join ''
-}
-
+# Function Convert-ByteArrayToHexString ([byte[]] $bytearray) {
+#     if ($null -eq $bytearray) {return $null}
+#     return @($bytearray|Format-Hex|Select ascii).Ascii -join ''
+# }
+  
 Function Convert-HexStringToByteArray {
     ################################################################
     #.Synopsis
