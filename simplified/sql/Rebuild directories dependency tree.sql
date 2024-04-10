@@ -24,7 +24,11 @@ SELECT
     d.search_directory_id         AS search_directory_id,
     d.move_id,
     d.moved_in,
-    d.moved_out
+    d.moved_out,
+    d.moved_to_directory_hash,
+    d.moved_to_volume_id,
+    d.moved_from_directory_hash,
+    d.moved_from_volume_id
 FROM simplified.directories d 
 ;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -34,16 +38,16 @@ CREATE OR REPLACE VIEW simplified.directories_ext_v
 AS WITH base AS (
          SELECT 
             d.directory_id,
-            d.directory_path                                                        AS directory_path,                                                                     /* SUPPORTS_OLD_STYLE */
+            d.directory_path                                                        AS directory_path,                                                  /* SUPPORTS_OLD_STYLE */
             d.directory_path                                                        AS directory,
             REPLACE(d.directory_path::TEXT, '''', '''''')                           AS directory_escaped,
             d.directory_hash                                                        AS directory_hash,
-            d.parent_directory_hash,
+            d.parent_directory_hash                                                 AS parent_directory_hash,
             d.directory_date                                                        AS directory_date,
             Left(d.directory_path, length(d.directory_path)-(length(d.folder)+1))   AS parent_directory,
-            sd.search_directory                                                     AS search_path,                                                                /* SUPPORTS_OLD_STYLE */
+            sd.search_directory                                                     AS search_path,                                                     /* SUPPORTS_OLD_STYLE */
             sd.search_directory                                                     AS search_directory,
-            replace(sd.search_directory::TEXT, '''', '''''')                        AS escaped_search_path,           /* SUPPORTS_OLD_STYLE */
+            replace(sd.search_directory::TEXT, '''', '''''')                        AS escaped_search_path,                                             /* SUPPORTS_OLD_STYLE */
             replace(sd.search_directory::TEXT, '''', '''''')                        AS search_directory_escaped,
             sd.tag                                                                  AS search_path_tag,                                                 /* SUPPORTS_OLD_STYLE */
             sd.tag                                                                  AS search_directory_tag,
@@ -62,7 +66,11 @@ AS WITH base AS (
             sd.skip_hash_generation                                                 AS skip_hash_generation,
     d.move_id,
     d.moved_in,
-    d.moved_out
+    d.moved_out,
+    d.moved_to_directory_hash,
+    d.moved_to_volume_id,
+    d.moved_from_directory_hash,
+    d.moved_from_volume_id
 
         FROM 
             directories d
@@ -72,8 +80,8 @@ AS WITH base AS (
             d.deleted IS DISTINCT FROM TRUE
         )
  , add_layer_1 AS (SELECT base.*,
-        CASE WHEN starts_with(base.directory_path, base.escaped_search_path) THEN TRUE ELSE FALSE END                                                                    AS search_path_contained,
-        CASE WHEN starts_with(base.directory_path, base.escaped_search_path) THEN "substring"(base.directory_path, length(base.search_path::text) + 2) ELSE ''::text END AS useful_part_of_directory_path /* SUPPORTS_OLD_STYLE */
+        CASE WHEN starts_with(base.directory_path, base.search_path) THEN TRUE ELSE FALSE END                                                                    AS search_path_contained,
+        CASE WHEN starts_with(base.directory_path, base.search_path) THEN "substring"(base.directory_path, length(base.search_path::text) + 2) ELSE ''::text END AS useful_part_of_directory_path /* SUPPORTS_OLD_STYLE */
    FROM base)
 SELECT 
     *, 
