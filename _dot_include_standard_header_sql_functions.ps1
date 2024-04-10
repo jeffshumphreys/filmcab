@@ -115,7 +115,7 @@ Function Invoke-Sql {
         elseif ($OneOrMore -and $howManyRowsAffected -lt 1) { throw [Exception]"Failed one or more requirement: $howManyRowsAffected"}
         return $howManyRowsAffected
     } catch {   
-        Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
+        Show-Error $sql -exitcode 111 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh. UNLESS THERES a real result.
         throw # Force caller to deal with
     }
 }
