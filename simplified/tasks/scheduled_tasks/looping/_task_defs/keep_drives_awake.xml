@@ -3,15 +3,20 @@
       <RegistrationInfo>
         <Version>             1                                                                        </Version>
         <Source>              N/A                                                      </Source>
-        <Date>                2024-03-31T19:23:53.1116217                                                         </Date>
+        <Date>                2024-04-04T14:35:12.7981795                                                         </Date>
         <Author>              DSKTP-HOME-JEFF\jeffers                                                  </Author>
         <Description>         Part of FilmCab, Trying to keep external drives from spinning down, which causes errors in video players . # 23</Description>
         <URI>                 \FilmCab\looping\keep_drives_awake                                                                     </URI>
       </RegistrationInfo>
       <Triggers>
                   <CalendarTrigger id="start_batch_run_session_on_time">
-          <StartBoundary>         4047-06-29T19:23:55.2432717    </StartBoundary>
-          <ExecutionTimeLimit>    PT72H                 </ExecutionTimeLimit>
+                         <Repetition>
+                     <Interval>PT1H</Interval>
+                     <Duration>P1D</Duration>  
+                     <StopAtDurationEnd>false</StopAtDurationEnd>
+                 </Repetition>
+          <StartBoundary>         2024-04-04T00:14:00.0000000    </StartBoundary>
+          <ExecutionTimeLimit>    PT30M                 </ExecutionTimeLimit>
           <Enabled>               true                  </Enabled>
           <ScheduleByDay>
             <DaysInterval> 1 </DaysInterval>
@@ -33,20 +38,20 @@
         <StartWhenAvailable>         false         </StartWhenAvailable>
         <RunOnlyIfNetworkAvailable>  false         </RunOnlyIfNetworkAvailable>
         <IdleSettings>
-          <StopOnIdleEnd>     true    </StopOnIdleEnd>
-          <RestartOnIdle>     false   </RestartOnIdle>
-          <WaitTimeout>       PT1H    </WaitTimeout>
-          <Duration>          PT1M    </Duration>
+          <StopOnIdleEnd>            true          </StopOnIdleEnd>
+          <RestartOnIdle>            false         </RestartOnIdle>
+          <WaitTimeout>              PT1H          </WaitTimeout>
+          <Duration>                 PT1M          </Duration>
         </IdleSettings>
-        <AllowStartOnDemand>                    true                      </AllowStartOnDemand>
-        <Enabled>                               true                      </Enabled>
-        <Hidden>                                false                     </Hidden>
-        <RunOnlyIfIdle>                         false                     </RunOnlyIfIdle>
-        <DisallowStartOnRemoteAppSession>       false                     </DisallowStartOnRemoteAppSession>
-        <UseUnifiedSchedulingEngine>            true                      </UseUnifiedSchedulingEngine>
-        <WakeToRun>                             true                      </WakeToRun>
-        <ExecutionTimeLimit>                    PT1M     </ExecutionTimeLimit>
-        <Priority>                              7                         </Priority>
+        <AllowStartOnDemand>               true                      </AllowStartOnDemand>
+        <Enabled>                          true                      </Enabled>
+        <Hidden>                           false                     </Hidden>
+        <RunOnlyIfIdle>                    false                     </RunOnlyIfIdle>
+        <DisallowStartOnRemoteAppSession>  false                     </DisallowStartOnRemoteAppSession>
+        <UseUnifiedSchedulingEngine>       true                      </UseUnifiedSchedulingEngine>
+        <WakeToRun>                        true                      </WakeToRun>
+        <ExecutionTimeLimit>               P1D     </ExecutionTimeLimit>
+        <Priority>                         7                         </Priority>
       </Settings>
       <Actions Context="Author">
         <Exec>

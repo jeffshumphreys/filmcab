@@ -3,7 +3,7 @@
       <RegistrationInfo>
         <Version>             1                                                                        </Version>
         <Source>              _start_new_batch_run_session                                                      </Source>
-        <Date>                2024-03-31T19:23:53.1116217                                                         </Date>
+        <Date>                2024-04-04T14:03:58.8742243                                                         </Date>
         <Author>              DSKTP-HOME-JEFF\jeffers                                                  </Author>
         <Description>         Part of FilmCab, a first very basic task to back up any files I published. This creates three copies of a movie: The downloaded copy that must remain untouched in order to seed, The published and normalized file name to a proper title and folder, and then a backup of that version to a physically separate drive. Ideally an additional copy would go to a networked device, then the cloud. . # 4</Description>
         <URI>                 \FilmCab\file maintenance\back_up_unbackedup_published_media                                                                     </URI>
@@ -29,20 +29,20 @@
         <StartWhenAvailable>         false         </StartWhenAvailable>
         <RunOnlyIfNetworkAvailable>  false         </RunOnlyIfNetworkAvailable>
         <IdleSettings>
-          <StopOnIdleEnd>     true    </StopOnIdleEnd>
-          <RestartOnIdle>     false   </RestartOnIdle>
-          <WaitTimeout>       PT1H    </WaitTimeout>
-          <Duration>          PT1M    </Duration>
+          <StopOnIdleEnd>            true          </StopOnIdleEnd>
+          <RestartOnIdle>            false         </RestartOnIdle>
+          <WaitTimeout>              PT1H          </WaitTimeout>
+          <Duration>                 PT1M          </Duration>
         </IdleSettings>
-        <AllowStartOnDemand>                    true                      </AllowStartOnDemand>
-        <Enabled>                               true                      </Enabled>
-        <Hidden>                                false                     </Hidden>
-        <RunOnlyIfIdle>                         false                     </RunOnlyIfIdle>
-        <DisallowStartOnRemoteAppSession>       false                     </DisallowStartOnRemoteAppSession>
-        <UseUnifiedSchedulingEngine>            true                      </UseUnifiedSchedulingEngine>
-        <WakeToRun>                             true                      </WakeToRun>
-        <ExecutionTimeLimit>                    PT3H     </ExecutionTimeLimit>
-        <Priority>                              7                         </Priority>
+        <AllowStartOnDemand>               true                      </AllowStartOnDemand>
+        <Enabled>                          true                      </Enabled>
+        <Hidden>                           false                     </Hidden>
+        <RunOnlyIfIdle>                    false                     </RunOnlyIfIdle>
+        <DisallowStartOnRemoteAppSession>  false                     </DisallowStartOnRemoteAppSession>
+        <UseUnifiedSchedulingEngine>       true                      </UseUnifiedSchedulingEngine>
+        <WakeToRun>                        true                      </WakeToRun>
+        <ExecutionTimeLimit>               PT3H     </ExecutionTimeLimit>
+        <Priority>                         7                         </Priority>
       </Settings>
       <Actions Context="Author">
         <Exec>

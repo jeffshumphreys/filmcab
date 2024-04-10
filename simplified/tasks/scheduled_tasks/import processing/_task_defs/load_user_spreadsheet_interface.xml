@@ -3,14 +3,15 @@
       <RegistrationInfo>
         <Version>             1                                                                        </Version>
         <Source>              N/A                                                      </Source>
-        <Date>                2024-03-31T19:23:53.1116217                                                         </Date>
+        <Date>                2024-04-04T14:03:58.8742243                                                         </Date>
         <Author>              DSKTP-HOME-JEFF\jeffers                                                  </Author>
         <Description>         Part of FilmCab, loads a specific user-facing spreadsheet into a table for matching to what we have and are downloading. Eventually a GUI will probably do this. . # 8</Description>
         <URI>                 \FilmCab\import processing\load_user_spreadsheet_interface                                                                     </URI>
       </RegistrationInfo>
       <Triggers>
                   <CalendarTrigger id="start_batch_run_session_on_time">
-          <StartBoundary>         2024-03-31T00:21:00.0000000    </StartBoundary>
+          
+          <StartBoundary>         2024-04-04T00:21:00.0000000    </StartBoundary>
           <ExecutionTimeLimit>    PT72H                 </ExecutionTimeLimit>
           <Enabled>               true                  </Enabled>
           <ScheduleByDay>
@@ -33,20 +34,20 @@
         <StartWhenAvailable>         false         </StartWhenAvailable>
         <RunOnlyIfNetworkAvailable>  false         </RunOnlyIfNetworkAvailable>
         <IdleSettings>
-          <StopOnIdleEnd>     true    </StopOnIdleEnd>
-          <RestartOnIdle>     false   </RestartOnIdle>
-          <WaitTimeout>       PT1H    </WaitTimeout>
-          <Duration>          PT1M    </Duration>
+          <StopOnIdleEnd>            true          </StopOnIdleEnd>
+          <RestartOnIdle>            false         </RestartOnIdle>
+          <WaitTimeout>              PT1H          </WaitTimeout>
+          <Duration>                 PT1M          </Duration>
         </IdleSettings>
-        <AllowStartOnDemand>                    true                      </AllowStartOnDemand>
-        <Enabled>                               true                      </Enabled>
-        <Hidden>                                false                     </Hidden>
-        <RunOnlyIfIdle>                         false                     </RunOnlyIfIdle>
-        <DisallowStartOnRemoteAppSession>       false                     </DisallowStartOnRemoteAppSession>
-        <UseUnifiedSchedulingEngine>            true                      </UseUnifiedSchedulingEngine>
-        <WakeToRun>                             true                      </WakeToRun>
-        <ExecutionTimeLimit>                    PT2H     </ExecutionTimeLimit>
-        <Priority>                              7                         </Priority>
+        <AllowStartOnDemand>               true                      </AllowStartOnDemand>
+        <Enabled>                          true                      </Enabled>
+        <Hidden>                           false                     </Hidden>
+        <RunOnlyIfIdle>                    false                     </RunOnlyIfIdle>
+        <DisallowStartOnRemoteAppSession>  false                     </DisallowStartOnRemoteAppSession>
+        <UseUnifiedSchedulingEngine>       true                      </UseUnifiedSchedulingEngine>
+        <WakeToRun>                        true                      </WakeToRun>
+        <ExecutionTimeLimit>               PT2H     </ExecutionTimeLimit>
+        <Priority>                         7                         </Priority>
       </Settings>
       <Actions Context="Author">
         <Exec>
