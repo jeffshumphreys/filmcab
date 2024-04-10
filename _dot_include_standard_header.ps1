@@ -314,7 +314,7 @@ Function Show-Error {
             Write-AllPlaces "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
         }                                                                                                                          
         
-        if ($null -ne $HResult -and $HResult -ne 0 -and $exitcode -ne 1)
+        if ($null -ne $HResult -and $HResult -ne 0 -and $exitcode -ne 1) # One is the default.
         {
             # You set a value on calling, and we have an hresult from an actual exception, then that's the code we'll use
             Write-AllPlaces "LASTEXITCODE to real exception HRESULT"
@@ -330,7 +330,7 @@ Function Show-Error {
     Write-AllPlaces "Exiting all code with LASTEXITCODE of $exitcode"
     if (-not $DontExit) {    
         Write-VolumeCache D # BAD DESIGN: So that log stuff gets written out in case of fatal crash                                                          # Double-negative. Meh.
-        exit $exitcode # These SEEM to be getting back to Task Scheduler 
+        #exit $exitcode # These SEEM to be getting back to Task Scheduler 
     }
     return $exitcode
 }
