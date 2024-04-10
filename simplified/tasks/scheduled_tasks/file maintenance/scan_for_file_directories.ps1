@@ -258,7 +258,7 @@ While ($searchDirectories.Read()) {
                     /*     search_directory_id         */ $search_directory_id,
                     /*     folder                      */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1]),
                     /*     parent_folder               */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2]),
-                    /*     grantparent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
+                    /*     grandparent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
                     /*     directory_deleted           */ False
                 )
             "
