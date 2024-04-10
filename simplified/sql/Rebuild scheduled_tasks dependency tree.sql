@@ -18,9 +18,14 @@ SELECT
     CASE WHEN st.script_path_to_run IS NULL THEN 
         'D:\qt_projects\' || st.scheduled_task_root_directory|| '\simplified\tasks\scheduled_tasks\' || strs.scheduled_task_run_set_name || '\' || st.scheduled_task_name ||'.ps1' ELSE st.script_path_to_run END AS script_path_to_run,
         CASE WHEN st.script_path_to_run IS NOT NULL AND st.script_path_to_run !~~ (('%'::text || st.scheduled_task_name) || '.ps1'::text) THEN 'WARNING: Name mismatch'::TEXT ELSE ''::TEXT END                 AS warning,
-    st.execution_time_limit                                                                                                                                                                                     AS execution_time_limit,
+    st.execution_time_limit                                                                                                                                                                                     AS task_execution_time_limit,
+    st.trigger_execution_limit                                                                                                                                                                                  AS trigger_execution_time_limit,
     MIN(st.order_in_set) OVER()                                                                                                                                                                                 AS min_order_in_set,
     MAX(st.order_in_set) OVER()                                                                                                                                                                                 AS max_order_in_set
+    ,   repeat
+    ,   repeat_interval
+    ,   repeat_duration
+    ,   stop_when_repeat_duration_reached
     
    FROM scheduled_tasks st
      JOIN scheduled_task_run_sets strs USING (scheduled_task_run_set_id)
