@@ -116,6 +116,7 @@ Function Invoke-Sql {
         return $howManyRowsAffected
     } catch {   
         Show-Error $sql -exitcode 1 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh.
+        throw # Force caller to deal with
     }
 }
                                                                                                           
