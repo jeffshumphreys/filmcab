@@ -53,9 +53,9 @@ $form.CancelButton         = $CancelButton
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($CancelButton)<#~~~~~~~~~~~~~~~~~~~~#>
 
 ########################################################################################################################################################################################################
+$treeViewOfPublishedDirectories                                          = New-Object System.Windows.Forms.TreeView
 $columnWidth1                                                            = 344
 $treeViewWidth                                                           = $columnWidth1
-$treeViewOfPublishedDirectories                                          = New-Object System.Windows.Forms.TreeView
 $System_Drawing_Size                                                     = New-Object System.Drawing.Size
 $System_Drawing_Size.Width                                               = $treeViewWidth
 $System_Drawing_Size.Height                                              = $ScreenHeight
@@ -71,9 +71,9 @@ $treeViewOfPublishedDirectories.TabIndex                                 = 0
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($treeViewOfPublishedDirectories)<#~~~~~~~~~~~~~~~~~~~~#>
 
 ########################################################################################################################################################################################################
+$selectedSourceDirectoryToMove                 = New-Object System.Windows.Forms.TextBox
 $maxObjectWidth2                               = 280
 $columnWidth2                                  = $maxObjectWidth2 + ($HORIZONTAL_SPACER*2)
-$selectedSourceDirectoryToMove                 = New-Object System.Windows.Forms.TextBox
 $selectedSourceDirectoryToMove.ReadOnly        = $true
 $selectedSourceDirectoryToMove.PlaceholderText = "selected directory goes here"
 $selectedSourceDirectoryToMove.Location        = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), $BUTTON_HEIGHT)
@@ -82,9 +82,9 @@ $selectedSourceDirectoryToMove.Size            = New-Object System.Drawing.Size(
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($selectedSourceDirectoryToMove)<#~~~~~~~~~~~~~~~~~~~~#>
 
 ########################################################################################################################################################################################################
+$currentActivity          = New-Object System.Windows.Forms.Label
 $maxObjectWidth3          = 680
 $columnWidth3             = $maxObjectWidth3 + ($HORIZONTAL_SPACER*2)
-$currentActivity          = New-Object System.Windows.Forms.Label
 $currentActivity.Location = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2), $BUTTON_HEIGHT)
 $currentActivity.Size     = New-Object System.Drawing.Size($columnWidth3, $BUTTON_WIDTH)
 $currentActivity.Text     = "...."
@@ -139,7 +139,7 @@ $treeViewOfPublishedDirectories.add_AfterSelect({
 # Action taken when we click the move button
 ###########################################################################################################################################################################################
 $Move_Directory = {
-    $currentActivity.Text                ="moving ..."
+    $currentActivity.Text                ="moving directory..."
     $sourceDirectory                     = $treeViewOfPublishedDirectories.SelectedNode.Name
     $sourceBaseDirectory                 = $Script:sourceBaseDirectory
     $sourceBaseDirectory_prepped_for_sql = PrepForSql $sourceBaseDirectory
@@ -166,7 +166,7 @@ $Move_Directory = {
     # NOTE: move_id is a sequence. rollbacks do not restore used ids. SQL Standard.
 
     try {
-        $Script:ActiveTransaction   = $DatabaseConnection.BeginTransaction([System.Data.IsolationLevel]::ReadUncommitted)
+        $Script:ActiveTransaction   = $DatabaseConnection.BeginTransaction([System.Data.IsolationLevel]::ReadUncommitted) #PostgreSQL's Read Uncommitted mode behaves like Read Committed
        
         $source_driveletter         = Left $sourceDirectory
         $sourceVolumeId             = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$source_driveletter'"
@@ -246,7 +246,7 @@ $Move_Directory = {
                 x.directory_hash = y.directory_hash
         " |Out-Null
         
-        # Step (5) Migrate the directory records over, altering as needed.
+        # Step (5) Migrate the directory records over, altering them according to the new base directory.
 
         Invoke-Sql "
             WITH RECURSIVE nodes AS (
@@ -256,53 +256,53 @@ $Move_Directory = {
                 SELECT dev.*, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory      AS new_directory 
                 FROM directories_ext_v dev JOIN nodes ON dev.parent_directory_hash = nodes.directory_hash
             )
-            , newstuff1 AS (
-                SELECT *,  
-                /*     folder                      */ reverse((string_to_array(reverse(new_directory), '\'))[1]) AS new_folder,
-                /*     parent_folder               */ reverse((string_to_array(reverse(new_directory), '\'))[2]) AS new_parent_folder,
-                /*     grantparent_folder          */ reverse((string_to_array(reverse(new_directory), '\'))[3]) AS new_grandparent_folder
-                FROM nodes
-            )
-            , newstuff2 AS (  
-                SELECT *,
-                    md5_hash_path(new_directory)                            AS new_directory_hash
-                ,   Left(directory, length(directory)-(length(folder)+1))   AS new_parent_directory
-                FROM newstuff1
+            , recalc_folders AS (
+                SELECT 
+                    *
+                ,   reverse((string_to_array(reverse(new_directory), '\'))[1])                                 AS new_folder
+                ,   reverse((string_to_array(reverse(new_directory), '\'))[2])                                 AS new_parent_folder
+                ,   reverse((string_to_array(reverse(new_directory), '\'))[3])                                 AS new_grandparent_folder
+                ,   Left(directory, length(directory)-(length(folder)+1))                                      AS new_parent_directory
+                ,   md5_hash_path(new_directory)                                                               AS new_directory_hash
+                FROM 
+                    nodes
             )
             INSERT INTO 
                 directories_v(
-                    directory_hash, 
-                    directory,
-                    parent_directory_hash, 
-                    directory_date, 
-                    volume_id, 
-                    search_directory_id,
-                    folder,
-                    parent_folder,
-                    grandparent_folder,
-                    directory_deleted,
-                    move_id
+                    directory_hash
+                ,   directory
+                ,   parent_directory_hash
+                ,   directory_date
+                ,   volume_id
+                ,   search_directory_id
+                ,   folder
+                ,   parent_folder
+                ,   grandparent_folder
+                ,   directory_deleted
+                ,   move_id
                 ,   moved_in
                 ,   moved_from_directory_hash
                 ,   moved_from_volume_id
+                ,   moved_from_directory_id
                 )
-            SELECT 
-                new_directory_hash                     AS directory_hash, 
-                new_directory                          AS directory,
-                md5_hash_path(new_parent_directory)    AS parent_directory_hash, 
-                directory_date                         AS directory_date,           /* Should be same? */
-                $targetVolumeId                        AS volume_id, 
-                $target_search_directory_id            AS search_directory_id,
-                new_folder                             AS folder,
-                new_parent_folder                      AS parent_folder,
-                new_grandparent_folder                 AS grandparent_folder,
-                directory_deleted                      AS directory_deleted,
-                $move_id                               AS move_id,
-                True                                   AS moved_in,
-                directory_hash                         AS moved_from_directory_hash,
-                $sourceVolumeId                        AS moved_from_volume_id
-            FROM 
-                newstuff2
+                SELECT 
+                    new_directory_hash                     AS directory_hash
+                ,   new_directory                          AS directory
+                ,   md5_hash_path(new_parent_directory)    AS parent_directory_hash
+                ,   directory_date                         AS directory_date           /* Should be same as original? Or when it copied did it change? `"Move: You are physically moving the original file to some place else, just like keeping the flower vase in next room, which means, you have not created anything new- but just moved it to another place. So only access stamps needs change, created and modified remains same. `"*/
+                ,   $targetVolumeId                        AS volume_id 
+                ,   $target_search_directory_id            AS search_directory_id
+                ,   new_folder                             AS folder
+                ,   new_parent_folder                      AS parent_folder
+                ,   new_grandparent_folder                 AS grandparent_folder
+                ,   directory_deleted                      AS directory_deleted
+                ,   $move_id                               AS move_id
+                ,   True                                   AS moved_in
+                ,   directory_hash                         AS moved_from_directory_hash
+                ,   $sourceVolumeId                        AS moved_from_volume_id
+                ,   directory_id                           AS moved_from_directory_id
+                FROM 
+                    recalc_folders
         "                                                                                                                             
 
         # Step (6) Mark all the moved files as moved and to where.
@@ -321,15 +321,14 @@ $Move_Directory = {
             UPDATE
                 files_v x
             SET
-                x.move_id = $move_id
-            ,   x.moved_out = $true  
+                x.move_id                 = $move_id
+            ,   x.moved_out               = $true
             ,   x.moved_to_directory_hash = md5_from_path(y.new_directory)
             )
             FROM 
                 all_files y
             WHERE
                 x.file_id = y.file_id
-            
         "                                                                                                                             
        
         # Step (7) Copy the file records over, altering as needed.
@@ -358,31 +357,31 @@ $Move_Directory = {
                 ,   file_is_hard_link
                 ,   file_is_broken_link
                 ,   linked_path
-                ,   file_ntfs_id /* probably wrong */
+                ,   file_ntfs_id 
                 ,   scan_file_for_ntfs_id
                 ,   move_id
                 ,   moved_in                         
                 ,   moved_from_file_id
                 )
-            SELECT  
-                file_hash
-            ,   md5_hash_path(new_directory)   AS directory_hash
-            ,   file_name_no_ext
-            ,   final_extension
-            ,   file_size
-            ,   file_date
-            ,   file_deleted
-            ,   file_is_symbolic_link
-            ,   file_is_hard_link
-            ,   file_is_broken_link
-            ,   linked_path
-            ,   $null                          AS file_ntfs_id
-            ,   $true                          AS scan_file_for_ntfs_id
-            ,   $move_id                       AS move_id
-            ,   True                           AS moved_in         
-            ,   file_id                        AS moved_from_file_id                           
-            FROM 
-                all_files   
+                SELECT  
+                    file_hash
+                ,   md5_hash_path(new_directory)   AS directory_hash
+                ,   file_name_no_ext
+                ,   final_extension
+                ,   file_size
+                ,   file_date
+                ,   file_deleted
+                ,   file_is_symbolic_link
+                ,   file_is_hard_link
+                ,   file_is_broken_link
+                ,   linked_path                                                      /* No way this is valid. Probably should update */
+                ,   $null                          AS file_ntfs_id
+                ,   $true                          AS scan_file_for_ntfs_id
+                ,   $move_id                       AS move_id
+                ,   True                           AS moved_in         
+                ,   file_id                        AS moved_from_file_id                           
+                FROM 
+                    all_files   
         "                                                                                                                             
 
         $treeViewOfPublishedDirectories.SelectedNode.Remove()               
@@ -396,7 +395,7 @@ $Move_Directory = {
     finally {
         if ((Test-Path variable:ActiveTransaction) -and $null -ne $ActiveTransaction -and $null -ne $ActiveTransaction.Connection) {
             $Script:ActiveTransaction.Commit()
-            $Script:ActiveTransaction.Dispose($true)
+            $Script:ActiveTransaction.Dispose()
             $Script:ActiveTransaction = $null
             $currentActivity.Text                = ""
         }
@@ -508,8 +507,8 @@ $result = $form.ShowDialog()
 
 if ($result -eq [System.Windows.Forms.DialogResult]::OK)
 {
-    $x = $listBox.SelectedItem
-    $x
+    #$x = $listBox.SelectedItem
+    #$x
 }
 
 }
