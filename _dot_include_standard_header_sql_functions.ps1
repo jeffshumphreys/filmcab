@@ -1,3 +1,5 @@
+$Script:ActiveTransaction = $null
+
 <#
  #    FilmCab Daily morning batch run process: Second do inclusion from _dot_include_standard_header
  #    Included from from _dot_include_standard_header
@@ -98,6 +100,9 @@ Function Invoke-Sql {
     )
     try {
         $Script:DatabaseCommand = [System.Data.Odbc.OdbcCommand]$DatabaseConnection.CreateCommand() # Must be visible to including script.
+        if ($null -ne $Script:ActiveTransaction) {
+            $Script:DatabaseCommand.Transaction = $Script:ActiveTransaction
+        }
         $Script:DatabaseCommand.CommandTimeout = 0
         $Script:DatabaseCommand.CommandText = $sql                # Worry: is dbcmd set? Set in main. Below.
         if ($LogSqlToHost) {
@@ -464,6 +469,9 @@ Function Get-SqlValue {
     )
     try {
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
+        if ($null -ne $Script:ActiveTransaction) {
+            $DatabaseCommand.Transaction = $Script:ActiveTransaction
+        }                                                           
         $DatabaseCommand.CommandText = $sql
         if ($LogSqlToHost) {
             Write-Host $sql
