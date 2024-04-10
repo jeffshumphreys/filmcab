@@ -28,7 +28,9 @@ SELECT
     d.moved_to_directory_hash,
     d.moved_to_volume_id,
     d.moved_from_directory_hash,
-    d.moved_from_volume_id
+    d.moved_from_volume_id,
+    d.moved_from_directory_id
+    
 FROM simplified.directories d 
 ;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,7 +72,8 @@ AS WITH base AS (
     d.moved_to_directory_hash,
     d.moved_to_volume_id,
     d.moved_from_directory_hash,
-    d.moved_from_volume_id
+    d.moved_from_volume_id,
+    d.moved_from_directory_id
 
         FROM 
             directories d
@@ -132,8 +135,10 @@ AS WITH base AS (SELECT
     NULLIF(f.linked_path, '')                                                                                                                                AS file_linked_path,
     d.directory_is_symbolic_link                                                                                                                             AS directory_is_symbolic_link,
     d.directory_is_junction_link                                                                                                                             AS directory_is_junction_link,
-    d.move_id AS directory_move_id,
-    f.move_id AS file_move_id
+    d.move_id                                                                                                                                                AS directory_move_id,
+    f.move_id                                                                                                                                                AS move_id,
+    f.moved_in,
+    f.moved_from_file_id                                                                                                                                     AS moved_from_file_id
    FROM files f
      JOIN directories_ext_v d USING (directory_hash)
      JOIN search_directories sd USING (search_directory_id)
@@ -186,6 +191,7 @@ AS SELECT files.file_id,
     files.scan_for_ntfs_id AS scan_file_for_ntfs_id,
     files.move_id,
     files.moved_out,
-    files.moved_in
+    files.moved_in,
+    files.moved_from_file_id
    FROM files;
    SELECT count(*) FROM simplified.files_ext_v WHERE is_real_file
