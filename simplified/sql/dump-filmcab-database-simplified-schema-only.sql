@@ -891,7 +891,11 @@ CREATE TABLE simplified.directories (
     move_id integer,
     directory_id integer NOT NULL,
     moved_out boolean,
-    moved_in boolean
+    moved_in boolean,
+    moved_to_directory_hash bytea,
+    moved_to_volume_id smallint,
+    moved_from_directory_hash bytea,
+    moved_from_volume_id smallint
 );
 
 
@@ -1038,6 +1042,20 @@ COMMENT ON COLUMN simplified.directories.moved_in IS 'Arrived in offloaded, so w
 
 
 --
+-- Name: COLUMN directories.moved_to_directory_hash; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.directories.moved_to_directory_hash IS 'So, when it''s time to migrate files, we know which came from where?';
+
+
+--
+-- Name: COLUMN directories.moved_from_directory_hash; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.directories.moved_from_directory_hash IS 'So, when it''s time to migrate files, we know which came from where?';
+
+
+--
 -- Name: directories_directory_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
 --
 
@@ -1076,7 +1094,7 @@ ALTER TABLE simplified.search_directories OWNER TO postgres;
 -- Name: TABLE search_directories; Type: COMMENT; Schema: simplified; Owner: postgres
 --
 
-COMMENT ON TABLE simplified.search_directories IS 'paths used in scan_for_new_directories. By adding entries here, you don''t have to edit the strings in the script.';
+COMMENT ON TABLE simplified.search_directories IS 'paths used in scan_for_new_directories. By adding entries here, you don''t have to edit the strings in the script. Bit of a misnomer as I''m using it for move management. source to target I have to deconstruct paths from one to the other by subtracting out part and injecting another.';
 
 
 --
@@ -1191,7 +1209,11 @@ CREATE VIEW simplified.directories_ext_v AS
             sd.skip_hash_generation,
             d.move_id,
             d.moved_in,
-            d.moved_out
+            d.moved_out,
+            d.moved_to_directory_hash,
+            d.moved_to_volume_id,
+            d.moved_from_directory_hash,
+            d.moved_from_volume_id
            FROM (simplified.directories d
              JOIN simplified.search_directories sd USING (search_directory_id))
           WHERE (d.deleted IS DISTINCT FROM true)
@@ -1226,12 +1248,16 @@ CREATE VIEW simplified.directories_ext_v AS
             base.move_id,
             base.moved_in,
             base.moved_out,
+            base.moved_to_directory_hash,
+            base.moved_to_volume_id,
+            base.moved_from_directory_hash,
+            base.moved_from_volume_id,
                 CASE
-                    WHEN starts_with(base.directory_path, base.escaped_search_path) THEN true
+                    WHEN starts_with(base.directory_path, (base.search_path)::text) THEN true
                     ELSE false
                 END AS search_path_contained,
                 CASE
-                    WHEN starts_with(base.directory_path, base.escaped_search_path) THEN "substring"(base.directory_path, (length((base.search_path)::text) + 2))
+                    WHEN starts_with(base.directory_path, (base.search_path)::text) THEN "substring"(base.directory_path, (length((base.search_path)::text) + 2))
                     ELSE ''::text
                 END AS useful_part_of_directory_path
            FROM base
@@ -1266,6 +1292,10 @@ CREATE VIEW simplified.directories_ext_v AS
     add_layer_1.move_id,
     add_layer_1.moved_in,
     add_layer_1.moved_out,
+    add_layer_1.moved_to_directory_hash,
+    add_layer_1.moved_to_volume_id,
+    add_layer_1.moved_from_directory_hash,
+    add_layer_1.moved_from_volume_id,
     add_layer_1.search_path_contained,
     add_layer_1.useful_part_of_directory_path,
     add_layer_1.useful_part_of_directory_path AS useful_part_of_directory,
@@ -1310,7 +1340,11 @@ CREATE VIEW simplified.directories_v AS
     d.search_directory_id,
     d.move_id,
     d.moved_in,
-    d.moved_out
+    d.moved_out,
+    d.moved_to_directory_hash,
+    d.moved_to_volume_id,
+    d.moved_from_directory_hash,
+    d.moved_from_volume_id
    FROM simplified.directories d;
 
 
@@ -1422,7 +1456,12 @@ CREATE TABLE simplified.files (
     scan_for_ntfs_id boolean DEFAULT false,
     move_id integer,
     moved_out boolean,
-    moved_in boolean
+    moved_in boolean,
+    moved_to_directory_hash bytea,
+    moved_to_volume_id smallint,
+    moved_from_directory_hash bytea,
+    moved_from_volume_id smallint,
+    moved_from_file_id integer
 );
 
 
@@ -1539,6 +1578,20 @@ COMMENT ON COLUMN simplified.files.moved_out IS 'Mark true if this is the source
 --
 
 COMMENT ON COLUMN simplified.files.moved_in IS 'Arrived in offloaded, so we DO expect files to exist.';
+
+
+--
+-- Name: COLUMN files.moved_to_directory_hash; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files.moved_to_directory_hash IS 'So, when it''s time to migrate files, we know which came from where?';
+
+
+--
+-- Name: COLUMN files.moved_from_directory_hash; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files.moved_from_directory_hash IS 'So, when it''s time to migrate files, we know which came from where?';
 
 
 --
@@ -1734,7 +1787,7 @@ CREATE VIEW simplified.files_linked_across_search_directories_v AS
             files.file_date,
             search_directories.tag
            FROM ((simplified.files
-             JOIN simplified.directories directories(directory_hash, directory_path, folder, parent_directory_hash, parent_folder, grandparent_folder, root_genre, sub_genre, directory_date, volume_id, is_symbolic_link, is_junction_link, linked_path, link_directory_still_exists, scan_directory, deleted, search_path_id, move_id, directory_id, moved_out, moved_in) USING (directory_hash))
+             JOIN simplified.directories directories(directory_hash, directory_path, folder, parent_directory_hash, parent_folder, grandparent_folder, root_genre, sub_genre, directory_date, volume_id, is_symbolic_link, is_junction_link, linked_path, link_directory_still_exists, scan_directory, deleted, search_path_id, move_id, directory_id, moved_out, moved_in, moved_to_directory_hash, moved_to_volume_id, moved_from_directory_hash, moved_from_volume_id) USING (directory_hash))
              JOIN simplified.search_directories search_directories(search_path_id, search_directory, extensions_to_grab, primary_function_of_entry, file_names_can_be_changed, tag, volume_id, directly_deletable, size_of_drive_in_bytes, space_left_on_drive_in_bytes, skip_hash_generation) USING (search_path_id))
         ), payload_files AS (
          SELECT base.file_id,
@@ -2074,7 +2127,13 @@ CREATE TABLE simplified.moves (
     from_directory text NOT NULL,
     to_directory text NOT NULL,
     files_moved integer,
-    move_reason text NOT NULL
+    move_reason text NOT NULL,
+    from_base_directory character varying,
+    from_volume_id smallint,
+    from_search_directory_id integer,
+    to_base_directory character varying,
+    to_volume_id smallint,
+    to_search_directory_id integer
 );
 
 
@@ -2165,7 +2224,7 @@ ALTER SEQUENCE simplified.network_adapters_network_adapter_id_seq OWNED BY simpl
 CREATE TABLE simplified.scheduled_task_run_sets (
     scheduled_task_run_set_id integer NOT NULL,
     scheduled_task_run_set_name text NOT NULL,
-    run_start_time time without time zone,
+    run_start_time time without time zone DEFAULT '00:00:00'::time without time zone NOT NULL,
     reason_why text,
     last_generated timestamp with time zone,
     last_run timestamp with time zone
@@ -2179,6 +2238,13 @@ ALTER TABLE simplified.scheduled_task_run_sets OWNER TO postgres;
 --
 
 COMMENT ON TABLE simplified.scheduled_task_run_sets IS 'Use these to generate all the tasks. These are the Windows Task Scheduler folders and the set of tasks that it flows through, from some start time (daily) to the next.';
+
+
+--
+-- Name: COLUMN scheduled_task_run_sets.run_start_time; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.scheduled_task_run_sets.run_start_time IS 'If null, time start defaults to 2047';
 
 
 --
@@ -2219,7 +2285,11 @@ CREATE TABLE simplified.scheduled_tasks (
     append_argument_string text,
     scheduled_task_short_description text,
     execution_time_limit character varying DEFAULT 'PT2H'::character varying,
-    repeat boolean
+    repeat boolean,
+    repeat_interval character varying,
+    repeat_duration character varying,
+    stop_when_repeat_duration_reached boolean,
+    trigger_execution_limit character varying
 );
 
 
@@ -2310,6 +2380,20 @@ COMMENT ON COLUMN simplified.scheduled_tasks.repeat IS 'Repeat this task after s
 
 
 --
+-- Name: COLUMN scheduled_tasks.repeat_interval; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.scheduled_tasks.repeat_interval IS '"PT1H", for example, every hour after triggered BY SCHEDULE. note that trigger by user does not start the repetitions.';
+
+
+--
+-- Name: COLUMN scheduled_tasks.repeat_duration; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.scheduled_tasks.repeat_duration IS '"P1D", so stop after a day, so very common.';
+
+
+--
 -- Name: scheduled_tasks_ext_v; Type: VIEW; Schema: simplified; Owner: postgres
 --
 
@@ -2335,9 +2419,14 @@ CREATE VIEW simplified.scheduled_tasks_ext_v AS
                     WHEN ((st.script_path_to_run IS NOT NULL) AND (st.script_path_to_run !~~ (('%'::text || st.scheduled_task_name) || '.ps1'::text))) THEN 'WARNING: Name mismatch'::text
                     ELSE ''::text
                 END AS warning,
-            st.execution_time_limit,
+            st.execution_time_limit AS task_execution_time_limit,
+            st.trigger_execution_limit AS trigger_execution_time_limit,
             min(st.order_in_set) OVER () AS min_order_in_set,
-            max(st.order_in_set) OVER () AS max_order_in_set
+            max(st.order_in_set) OVER () AS max_order_in_set,
+            st.repeat,
+            st.repeat_interval,
+            st.repeat_duration,
+            st.stop_when_repeat_duration_reached
            FROM (simplified.scheduled_tasks st
              JOIN simplified.scheduled_task_run_sets strs USING (scheduled_task_run_set_id))
         )
@@ -2355,9 +2444,14 @@ CREATE VIEW simplified.scheduled_tasks_ext_v AS
     base.scheduled_task_short_description,
     base.script_path_to_run,
     base.warning,
-    base.execution_time_limit,
+    base.task_execution_time_limit,
+    base.trigger_execution_time_limit,
     base.min_order_in_set,
     base.max_order_in_set,
+    base.repeat,
+    base.repeat_interval,
+    base.repeat_duration,
+    base.stop_when_repeat_duration_reached,
         CASE
             WHEN (base.min_order_in_set = base.max_order_in_set) THEN 'Starting-Ending'::text
             WHEN (base.order_in_set = base.min_order_in_set) THEN 'Starting'::text
