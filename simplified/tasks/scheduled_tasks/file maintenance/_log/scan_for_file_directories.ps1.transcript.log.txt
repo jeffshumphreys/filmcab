@@ -1,0 +1,64 @@
+**********************
+PowerShell transcript start
+Start time: 20240411000123
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7-preview\pwsh.dll -ExecutionPolicy Bypass -Command . 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\scan_for_file_directories.ps1'; exit $LASTEXITCODE
+Process ID: 10096
+PSVersion: 7.5.0-preview.2
+PSEdition: Core
+GitCommitId: 7.5.0-preview.2
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\_log\scan_for_file_directories.ps1.transcript.log.txt
+Exiting standard_header (sql functions)
+
+                INSERT INTO 
+                    batch_run_session_tasks_v(
+                        batch_run_session_id,
+                        script_changed,
+                        script_name,
+                        triggered_by_login,
+                        trigger_type,
+                        trigger_id,
+                        is_testscheduledriventaskdetection
+                    )
+                    VALUES(
+                        311,
+                        '2024-04-10 20:21:15.806951 -06:00'::TIMESTAMPTZ,
+                        'scan_for_file_directories.ps1'
+                    ,   ''
+                    ,   'event'
+                    ,   '108'                      
+                    ,   NULL
+                    )
+                    RETURNING batch_run_session_task_id
+Starting search of search_directory D:\qBittorrent Downloads\Video
+Starting search of search_directory O:\Video AllInOne
+Starting search of search_directory G:\Video AllInOne Backup
+Starting search of search_directory D:\qBittorrent Downloads\_torrent files
+Starting search of search_directory D:\qBittorrent Downloads\_finished_download_torrent_files
+Starting search of search_directory C:\Users\jeffs\Downloads
+Starting search of search_directory D:\qBittorrent Downloads\temp
+Starting search of search_directory N:\Video AllInOne Seen
+Starting search of search_directory I:\Video AllInOne Corrupt
+Starting search of search_directory K:\Video AllInOne Won't Watch
+Starting search of search_directory K:\Video AllInOne Corrupt
+Starting search of search_directory K:\Video AllInOne Poor Quality
+Starting search of search_directory K:\Video AllInOne Copyright Audio
+Finally
+
+
+2 Minutes
+1
+**********************
+PowerShell transcript end
+End time: 20240411000339
+**********************

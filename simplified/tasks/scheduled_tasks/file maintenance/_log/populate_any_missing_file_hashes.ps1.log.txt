@@ -1,16 +1,7 @@
-Starting Log 03/28/2024 00:09:56 on Thursday DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\populate_any_missing_file_hashes.ps1'; exit $LASTEXITCODE"
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Attempting to get triggering event for populate_any_missing_file_hashes for run set name \file maintenance in root directory \FilmCab
-Got following event back: Task triggered on event
-@{Message=Task Scheduler launched "{3b1bfba8-b11d-450a-b112-fc5b230ee85a}"  instance of task "\FilmCab\file maintenance\populate_any_missing_file_hashes"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:09:54; RecordId=202603; ActivityId=3b1bfba8-b11d-450a-b112-fc5b230ee85a; ThreadId=3016; ResultCode=; UserContext=; UserName=; Id=108}
-Finished Scanning for caller details
-active_batch_run_session_id # = 93
-Exiting standard_header
+Starting Log 04/11/2024 00:07:12 on Thursday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\populate_any_missing_file_hashes.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+Exiting standard_header v2
 Finally
 *** empty string
 *** empty string
-How Many Updated Files    :   0
-Stopping Normally after 1.0822464 Second(s)
+Stopping Normally after 1.9864345 Second(s)

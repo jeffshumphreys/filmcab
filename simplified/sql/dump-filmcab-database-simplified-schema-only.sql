@@ -895,7 +895,8 @@ CREATE TABLE simplified.directories (
     moved_to_directory_hash bytea,
     moved_to_volume_id smallint,
     moved_from_directory_hash bytea,
-    moved_from_volume_id smallint
+    moved_from_volume_id smallint,
+    moved_from_directory_id integer
 );
 
 
@@ -1028,6 +1029,13 @@ COMMENT ON COLUMN simplified.directories.search_directory_id IS 'What search pat
 
 
 --
+-- Name: COLUMN directories.move_id; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.directories.move_id IS 'This directory was moved as part of this move set, along with files and subdirectories.';
+
+
+--
 -- Name: COLUMN directories.moved_out; Type: COMMENT; Schema: simplified; Owner: postgres
 --
 
@@ -1053,6 +1061,13 @@ COMMENT ON COLUMN simplified.directories.moved_to_directory_hash IS 'So, when it
 --
 
 COMMENT ON COLUMN simplified.directories.moved_from_directory_hash IS 'So, when it''s time to migrate files, we know which came from where?';
+
+
+--
+-- Name: COLUMN directories.moved_from_directory_id; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.directories.moved_from_directory_id IS 'Hash should do it, but dammit, I like ids.';
 
 
 --
@@ -1213,7 +1228,8 @@ CREATE VIEW simplified.directories_ext_v AS
             d.moved_to_directory_hash,
             d.moved_to_volume_id,
             d.moved_from_directory_hash,
-            d.moved_from_volume_id
+            d.moved_from_volume_id,
+            d.moved_from_directory_id
            FROM (simplified.directories d
              JOIN simplified.search_directories sd USING (search_directory_id))
           WHERE (d.deleted IS DISTINCT FROM true)
@@ -1252,6 +1268,7 @@ CREATE VIEW simplified.directories_ext_v AS
             base.moved_to_volume_id,
             base.moved_from_directory_hash,
             base.moved_from_volume_id,
+            base.moved_from_directory_id,
                 CASE
                     WHEN starts_with(base.directory_path, (base.search_path)::text) THEN true
                     ELSE false
@@ -1296,6 +1313,7 @@ CREATE VIEW simplified.directories_ext_v AS
     add_layer_1.moved_to_volume_id,
     add_layer_1.moved_from_directory_hash,
     add_layer_1.moved_from_volume_id,
+    add_layer_1.moved_from_directory_id,
     add_layer_1.search_path_contained,
     add_layer_1.useful_part_of_directory_path,
     add_layer_1.useful_part_of_directory_path AS useful_part_of_directory,
@@ -1344,7 +1362,8 @@ CREATE VIEW simplified.directories_v AS
     d.moved_to_directory_hash,
     d.moved_to_volume_id,
     d.moved_from_directory_hash,
-    d.moved_from_volume_id
+    d.moved_from_volume_id,
+    d.moved_from_directory_id
    FROM simplified.directories d;
 
 
@@ -1475,6 +1494,13 @@ COMMENT ON TABLE simplified.files IS 'All the files in our interested directorie
 
 
 --
+-- Name: COLUMN files.file_id; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files.file_id IS 'Traces down to media_file_id, video_file_id';
+
+
+--
 -- Name: COLUMN files.file_hash; Type: COMMENT; Schema: simplified; Owner: postgres
 --
 
@@ -1567,10 +1593,17 @@ COMMENT ON COLUMN simplified.files.scan_for_ntfs_id IS 'Set to true from scan_fo
 
 
 --
+-- Name: COLUMN files.move_id; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files.move_id IS 'This file was moved in a set. See moves table for details on the nature of the move, reason, from to, containing directories, search base folders, and space freed, spindles migrated';
+
+
+--
 -- Name: COLUMN files.moved_out; Type: COMMENT; Schema: simplified; Owner: postgres
 --
 
-COMMENT ON COLUMN simplified.files.moved_out IS 'Mark true if this is the source, and so we DO NOT expect files to exist.';
+COMMENT ON COLUMN simplified.files.moved_out IS 'Mark true if this is the source, and so we DO NOT expect this file to exist, or else what was the point? No space saved, only lost across volumes!';
 
 
 --
@@ -1642,11 +1675,15 @@ CREATE VIEW simplified.files_ext_v AS
             d.root_genre,
             COALESCE(f.is_symbolic_link, false) AS file_is_symbolic_link,
             COALESCE(f.is_hard_link, false) AS file_is_hard_link,
+            COALESCE(f.broken_link, false) AS file_is_broken_link,
             NULLIF(f.linked_path, ''::text) AS file_linked_path,
             d.directory_is_symbolic_link,
             d.directory_is_junction_link,
             d.move_id AS directory_move_id,
-            f.move_id AS file_move_id
+            f.move_id,
+            f.moved_in,
+            f.moved_from_file_id,
+            f.moved_to_directory_hash
            FROM ((simplified.files f
              JOIN simplified.directories_ext_v d USING (directory_hash))
              JOIN simplified.search_directories sd USING (search_directory_id))
@@ -1681,11 +1718,15 @@ CREATE VIEW simplified.files_ext_v AS
             base.root_genre,
             base.file_is_symbolic_link,
             base.file_is_hard_link,
+            base.file_is_broken_link,
             base.file_linked_path,
             base.directory_is_symbolic_link,
             base.directory_is_junction_link,
             base.directory_move_id,
-            base.file_move_id,
+            base.move_id,
+            base.moved_in,
+            base.moved_from_file_id,
+            base.moved_to_directory_hash,
                 CASE
                     WHEN ((NOT base.directory_deleted) AND (NOT base.directory_is_symbolic_link) AND (NOT base.directory_is_junction_link) AND (NOT base.file_deleted) AND (NOT base.file_is_symbolic_link) AND (NOT base.file_is_hard_link)) THEN true
                     ELSE false
@@ -1722,11 +1763,15 @@ CREATE VIEW simplified.files_ext_v AS
     add_reduced_user_logic.root_genre,
     add_reduced_user_logic.file_is_symbolic_link,
     add_reduced_user_logic.file_is_hard_link,
+    add_reduced_user_logic.file_is_broken_link,
     add_reduced_user_logic.file_linked_path,
     add_reduced_user_logic.directory_is_symbolic_link,
     add_reduced_user_logic.directory_is_junction_link,
     add_reduced_user_logic.directory_move_id,
-    add_reduced_user_logic.file_move_id,
+    add_reduced_user_logic.move_id,
+    add_reduced_user_logic.moved_in,
+    add_reduced_user_logic.moved_from_file_id,
+    add_reduced_user_logic.moved_to_directory_hash,
     add_reduced_user_logic.is_real_file,
     count(*) OVER () AS how_many_files,
     count(
@@ -1787,7 +1832,7 @@ CREATE VIEW simplified.files_linked_across_search_directories_v AS
             files.file_date,
             search_directories.tag
            FROM ((simplified.files
-             JOIN simplified.directories directories(directory_hash, directory_path, folder, parent_directory_hash, parent_folder, grandparent_folder, root_genre, sub_genre, directory_date, volume_id, is_symbolic_link, is_junction_link, linked_path, link_directory_still_exists, scan_directory, deleted, search_path_id, move_id, directory_id, moved_out, moved_in, moved_to_directory_hash, moved_to_volume_id, moved_from_directory_hash, moved_from_volume_id) USING (directory_hash))
+             JOIN simplified.directories directories(directory_hash, directory_path, folder, parent_directory_hash, parent_folder, grandparent_folder, root_genre, sub_genre, directory_date, volume_id, is_symbolic_link, is_junction_link, linked_path, link_directory_still_exists, scan_directory, deleted, search_path_id, move_id, directory_id, moved_out, moved_in, moved_to_directory_hash, moved_to_volume_id, moved_from_directory_hash, moved_from_volume_id, moved_from_directory_id) USING (directory_hash))
              JOIN simplified.search_directories search_directories(search_path_id, search_directory, extensions_to_grab, primary_function_of_entry, file_names_can_be_changed, tag, volume_id, directly_deletable, size_of_drive_in_bytes, space_left_on_drive_in_bytes, skip_hash_generation) USING (search_path_id))
         ), payload_files AS (
          SELECT base.file_id,
@@ -1896,7 +1941,12 @@ CREATE VIEW simplified.files_v AS
     files.scan_for_ntfs_id AS scan_file_for_ntfs_id,
     files.move_id,
     files.moved_out,
-    files.moved_in
+    files.moved_in,
+    files.moved_from_file_id,
+    files.moved_from_directory_hash,
+    files.moved_to_volume_id,
+    files.moved_to_directory_hash,
+    files.moved_from_volume_id
    FROM simplified.files;
 
 

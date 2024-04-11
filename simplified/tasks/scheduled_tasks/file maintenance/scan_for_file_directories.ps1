@@ -166,11 +166,11 @@ While ($searchDirectories.Read()) {
 
             $reader = WhileReadSql "
                 SELECT 
-                  directory_date               AS   in_db_directory_date                  /* Feeble attempt to detect downstream changes                                                                       */
-                , directory_is_symbolic_link   AS   in_db_directory_is_symbolic_link      /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
-                , directory_is_junction_link   AS   in_db_directory_is_junction_link      /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
-                , linked_directory             AS   in_db_linked_directory                /* Verify this exists. Haven't tested.                                                                               */
-                , directory_deleted            AS   in_db_directory_deleted
+                    directory_date               AS   in_db_directory_date                  /* Feeble attempt to detect downstream changes                                                                       */
+                ,   directory_is_symbolic_link   AS   in_db_directory_is_symbolic_link      /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
+                ,   directory_is_junction_link   AS   in_db_directory_is_junction_link      /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
+                ,   linked_directory             AS   in_db_linked_directory                /* Verify this exists. Haven't tested.                                                                               */
+                ,   directory_deleted            AS   in_db_directory_deleted
                 FROM 
                     directories_ext_v
                 WHERE
@@ -228,39 +228,39 @@ While ($searchDirectories.Read()) {
                 Write-AllPlaces "New Directory found: $on_fs_directory on $on_fs_driveletter drive" 
 
                 $rowsInserted = Invoke-Sql "
-                INSERT INTO 
-                    directories_v(
-                           directory_hash, 
-                           directory,
-                           parent_directory_hash, 
-                           directory_date, 
-                           volume_id, 
-                           scan_directory, 
-                           directory_is_symbolic_link, 
-                           directory_is_junction_link, 
-                           linked_directory,
-                           search_directory_id,
-                           folder,
-                           parent_folder,
-                           grandparent_folder,
-                           directory_deleted
+                    INSERT INTO 
+                        directories_v(
+                            directory_hash
+                        ,   directory
+                        ,   parent_directory_hash
+                        ,   directory_date 
+                        ,   volume_id 
+                        ,   scan_directory 
+                        ,   directory_is_symbolic_link 
+                        ,   directory_is_junction_link 
+                        ,   linked_directory
+                        ,   search_directory_id
+                        ,   folder
+                        ,   parent_folder
+                        ,   grandparent_folder
+                        ,   directory_deleted
+                        )
+                    VALUES(
+                    /*     directory_hash              */     md5_hash_path('$on_fs_directory_escaped')
+                    /*     directory                   */,    REPLACE('$on_fs_directory_escaped', '/', '\')
+                    /*     parent_directory_hash       */,    md5_hash_path('$on_fs_parent_directory_escaped')
+                    /*     directory_date              */,   '$on_fs_directory_date_formatted'::TIMESTAMPTZ
+                    /*     volume_id                   */,   (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
+                    /*     scan_directory              */,   $scan_directory
+                    /*     directory_is_symbolic_link  */,   $on_fs_directory_is_symbolic_link
+                    /*     directory_is_junction_link  */,   $on_fs_directory_is_junction_link
+                    /*     linked_directory            */,   $on_fs_linked_directory_escaped
+                    /*     search_directory_id         */,   $search_directory_id
+                    /*     folder                      */,   reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1])
+                    /*     parent_folder               */,   reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2])
+                    /*     grandparent_folder          */,   reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3])
+                    /*     directory_deleted           */,   False
                     )
-                VALUES(
-                    /*     directory_hash              */  md5_hash_path('$on_fs_directory_escaped'),
-                    /*     directory                   */  REPLACE('$on_fs_directory_escaped', '/', '\'),
-                    /*     parent_directory_hash       */  md5_hash_path('$on_fs_parent_directory_escaped'),
-                    /*     directory_date              */ '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
-                    /*     volume_id                   */ (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
-                    /*     scan_directory              */ $scan_directory,
-                    /*     directory_is_symbolic_link  */ $on_fs_directory_is_symbolic_link,
-                    /*     directory_is_junction_link  */ $on_fs_directory_is_junction_link,
-                    /*     linked_directory            */ $on_fs_linked_directory_escaped,
-                    /*     search_directory_id         */ $search_directory_id,
-                    /*     folder                      */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[1]),
-                    /*     parent_folder               */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[2]),
-                    /*     grandparent_folder          */ reverse((string_to_array(reverse('$on_fs_directory_escaped'), '\'))[3]),
-                    /*     directory_deleted           */ False
-                )
             "
                 _TICK_New_Object_Instantiated
                 $howManyRowsInserted+= $rowsInserted # One, hopefully
@@ -272,14 +272,14 @@ While ($searchDirectories.Read()) {
                     UPDATE 
                         directories_v
                     SET
-                        scan_directory             = $scan_directory,
-                        directory_date             = '$on_fs_directory_date_formatted'::TIMESTAMPTZ,
-                        parent_directory_hash      = md5_hash_path('$on_fs_parent_directory_escaped'),
-                        directory_is_symbolic_link = $on_fs_directory_is_symbolic_link,
-                        directory_is_junction_link = $on_fs_directory_is_junction_link,
-                        linked_directory           = $on_fs_linked_directory_escaped,
-                        volume_id                  = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter'),
-                        directory_deleted          = False
+                        scan_directory             = $scan_directory
+                    ,   directory_date             = '$on_fs_directory_date_formatted'::TIMESTAMPTZ
+                    ,   parent_directory_hash      = md5_hash_path('$on_fs_parent_directory_escaped')
+                    ,   directory_is_symbolic_link = $on_fs_directory_is_symbolic_link
+                    ,   directory_is_junction_link = $on_fs_directory_is_junction_link
+                    ,   linked_directory           = $on_fs_linked_directory_escaped
+                    ,   volume_id                  = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
+                    ,   directory_deleted          = False
                     WHERE           
                         directory_hash             = md5_hash_path('$on_fs_directory_escaped')
                 "

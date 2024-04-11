@@ -1,15 +1,9 @@
-Starting Log 03/28/2024 00:13:23 on Thursday DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_definitions.ps1'; exit $LASTEXITCODE"
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Attempting to get triggering event for pull_scheduled_task_definitions for run set name \schedule maintenance in root directory \FilmCab
-Got following event back: Task triggered on scheduler
-@{Message=Task Scheduler launched "{1bb3c86f-347c-4f8f-b01c-cd4f0def6099}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions" due to a time trigger condition.; TaskDisplayName=Task triggered on scheduler; TimeCreated=03/28/2024 00:13:21; RecordId=202626; ActivityId=1bb3c86f-347c-4f8f-b01c-cd4f0def6099; ThreadId=1976; ResultCode=; UserContext=; UserName=; Id=107}
-Finished Scanning for caller details
-active_batch_run_session_id # = 93
-Exiting standard_header
+Starting Log 04/11/2024 00:13:22 on Thursday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_definitions.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = 'pull_scheduled_task_definitions.ps1', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running
+UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = 312
+Exiting standard_header v2
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 3.6412379 Second(s)
+Stopping Normally after 10.3212379 Second(s)

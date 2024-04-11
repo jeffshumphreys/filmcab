@@ -1,8 +1,64 @@
-Starting Log 04/11/2024 00:21:02 on Thursday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\import processing\load_user_spreadsheet_interface.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = 314
-Exiting standard_header v2
-TRUNCATE TABLE user_spreadsheet_interface RESTART IDENTITY
+**********************
+PowerShell transcript start
+Start time: 20240411002102
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7-preview\pwsh.dll -ExecutionPolicy Bypass -Command . 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\import processing\load_user_spreadsheet_interface.ps1'; exit $LASTEXITCODE
+Process ID: 16408
+PSVersion: 7.5.0-preview.2
+PSEdition: Core
+GitCommitId: 7.5.0-preview.2
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\import processing\_log\load_user_spreadsheet_interface.ps1.transcript.log.txt
+Exiting standard_header (sql functions)
+
+            INSERT INTO batch_run_sessions_v(
+                last_script_ran
+            ,   session_starting_script
+            ,   caller_starting                        
+            ,   triggered_by_login
+            ,   trigger_type
+            ,   trigger_id
+            ) VALUES(
+                'load_user_spreadsheet_interface.ps1'
+            ,   'load_user_spreadsheet_interface.ps1'
+            ,   'Windows Task Scheduler'
+            ,   ''
+            ,   'schedule'
+            ,   '107'
+            )
+            RETURNING batch_run_session_id
+
+        INSERT INTO 
+            batch_run_session_tasks_v(
+                batch_run_session_id,
+                script_changed,
+                script_name,
+                triggered_by_login,
+                trigger_type,
+                trigger_id
+            )
+            VALUES(
+                314,
+                '2024-03-25 19:22:55.175403 -06:00'::TIMESTAMPTZ,
+                'load_user_spreadsheet_interface.ps1'
+            ,   ''
+            ,   'schedule'
+            ,   '107'
+                    )
+            RETURNING batch_run_session_task_id
+convert D:\qt_projects\filmcab\simplified\_data\user_spreadsheet_interface.ods as a Calc document -> D:\qt_projects\film
+cab\simplified\_data\user_spreadsheet_interface.csv using filter : Text - txt - csv (StarCalc)
+Overwriting: D:\qt_projects\filmcab\simplified\_data\user_spreadsheet_interface.csv
+0
 COPY user_spreadsheet_interface(
      seen                    ,
      have                    ,
@@ -35,37 +91,12 @@ COPY user_spreadsheet_interface(
      creation_date           )
 FROM 'D:\qt_projects\filmcab\simplified\_data\user_spreadsheet_interface.csv' CSV HEADER;
 
-COPY user_spreadsheet_interface(
-     seen                    ,
-     have                    ,
-     manually_corrected_title,
-     year_of_season          ,
-     season                  ,
-     episode                 ,
-     genres_csv_list         ,
-     ended_with_right_paren  ,
-     type_of_media           ,
-     source_of_item          ,
-     who_csv_list            ,
-     aka_slsh_list           ,
-     characters_csv_list     ,
-     video_wrapper           ,
-     series_in               ,
-     imdb_id                 ,
-     imdb_added_to_list_on   ,
-     imdb_changed_on_list_on ,
-     release_year            ,
-     imdb_rating             ,
-     runtime_in_minutes      ,
-     votes                   ,
-     released_on             ,
-     directors_csv_list      ,
-     imdb_my_rating          ,
-     imdb_my_rating_made_on  ,
-     date_watched            ,
-     last_save_time          ,
-     creation_date           )
-FROM 'D:\qt_projects\filmcab\simplified\_data\user_spreadsheet_interface.csv' CSV HEADER;
+Command                             Arguments
+-------                             ---------                                                                          
+Show-Error                          {exitcode=111, scriptWhichProducedError=COPY user_spreadsheet_interface(…
+Invoke-Sql                          {LogSqlToHost=True, sql=COPY user_spreadsheet_interface(…
+load_user_spreadsheet_interface.ps1 {}
+<ScriptBlock>                       {}
 
 Message: Exception calling "ExecuteNonQuery" with "0" argument(s): "ERROR [23505] ERROR: duplicate key value violates unique constraint "ak_title_release_year"
 DETAIL: Key (manually_corrected_title)=(No Offence (2015)) already exists.;
@@ -77,7 +108,6 @@ StackTrace:    at System.Management.Automation.ExceptionHandlingOps.CheckActionP
 Failed on line #: 113
 of Script: D:\qt_projects\filmcab\_dot_include_standard_header_sql_functions.ps1
 in line:         [Int32] $howManyRowsAffected = $Script:DatabaseCommand.ExecuteNonQuery();
-
 in statement: [Int32] $howManyRowsAffected = $Script:DatabaseCommand.ExecuteNonQuery()
 Error Record= Exception calling "ExecuteNonQuery" with "0" argument(s): "ERROR [23505] ERROR: duplicate key value violates unique constraint "ak_title_release_year"
 DETAIL: Key (manually_corrected_title)=(No Offence (2015)) already exists.;
@@ -85,6 +115,12 @@ Error while executing the query"
 Exception.ErrorRecord.FullyQualifiedErrorId = OdbcException
 LASTEXITCODE to real exception HRESULT
 Exiting all code with LASTEXITCODE of -2146232009
+**********************
+Command start time: 20240411002115
+**********************
+PS>TerminatingError(): "Exception calling "ExecuteNonQuery" with "0" argument(s): "ERROR [23505] ERROR: duplicate key value violates unique constraint "ak_title_release_year"
+DETAIL: Key (manually_corrected_title)=(No Offence (2015)) already exists.;
+Error while executing the query""
 COPY user_spreadsheet_interface(
      seen                    ,
      have                    ,
@@ -117,6 +153,20 @@ COPY user_spreadsheet_interface(
      creation_date           )
 FROM 'D:\qt_projects\filmcab\simplified\_data\user_spreadsheet_interface.csv' CSV HEADER;
 
+Command                             Arguments
+-------                             ---------                                                                          
+Show-Error                          {exitcode=2, scriptWhichProducedError=COPY user_spreadsheet_interface(…
+load_user_spreadsheet_interface.ps1 {}
+<ScriptBlock>                       {}
+
+Exception: D:\qt_projects\filmcab\_dot_include_standard_header_sql_functions.ps1:113
+Line |
+ 113 |          [Int32] $howManyRowsAffected = $Script:DatabaseCommand.Execut …
+     |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Exception calling "ExecuteNonQuery" with "0" argument(s): "ERROR [23505] ERROR: duplicate key value violates
+     | unique constraint "ak_title_release_year" DETAIL: Key (manually_corrected_title)=(No Offence (2015)) already
+     | exists.; Error while executing the query"
+
 Message: Exception calling "ExecuteNonQuery" with "0" argument(s): "ERROR [23505] ERROR: duplicate key value violates unique constraint "ak_title_release_year"
 DETAIL: Key (manually_corrected_title)=(No Offence (2015)) already exists.;
 Error while executing the query"
@@ -127,7 +177,6 @@ StackTrace:    at System.Management.Automation.ExceptionHandlingOps.CheckActionP
 Failed on line #: 113
 of Script: D:\qt_projects\filmcab\_dot_include_standard_header_sql_functions.ps1
 in line:         [Int32] $howManyRowsAffected = $Script:DatabaseCommand.ExecuteNonQuery();
-
 in statement: [Int32] $howManyRowsAffected = $Script:DatabaseCommand.ExecuteNonQuery()
 Error Record= Exception calling "ExecuteNonQuery" with "0" argument(s): "ERROR [23505] ERROR: duplicate key value violates unique constraint "ak_title_release_year"
 DETAIL: Key (manually_corrected_title)=(No Offence (2015)) already exists.;
@@ -135,7 +184,13 @@ Error while executing the query"
 Exception.ErrorRecord.FullyQualifiedErrorId = OdbcException
 LASTEXITCODE to real exception HRESULT
 Exiting all code with LASTEXITCODE of -2146232009
+-2146232009
 Finally
-*** empty string
-*** empty string
-Stopping Normally after 14.1401344 Second(s)
+
+
+14 Seconds
+1
+**********************
+PowerShell transcript end
+End time: 20240411002116
+**********************

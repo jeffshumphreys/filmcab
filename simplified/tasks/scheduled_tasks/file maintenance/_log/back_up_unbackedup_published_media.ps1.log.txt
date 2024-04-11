@@ -1,17 +1,9 @@
-Starting Log 03/28/2024 00:01:15 on Thursday DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\back_up_unbackedup_published_media.ps1'; exit $LASTEXITCODE"
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Attempting to get triggering event for back_up_unbackedup_published_media for run set name \file maintenance in root directory \FilmCab
-Got following event back: Task triggered on event
-@{Message=Task Scheduler launched "{f946a754-599e-4fa4-a6b8-53365fb1fd29}"  instance of task "\FilmCab\file maintenance\back_up_unbackedup_published_media"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:01:13; RecordId=202559; ActivityId=f946a754-599e-4fa4-a6b8-53365fb1fd29; ThreadId=12168; ResultCode=; UserContext=; UserName=; Id=108}
-Finished Scanning for caller details
-active_batch_run_session_id # = 93
-Exiting standard_header
+Starting Log 04/11/2024 00:01:13 on Thursday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\back_up_unbackedup_published_media.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+Exiting standard_header v2
 Starting Robocopy
 Finished Robocopy
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 5.9043196 Second(s)
+Stopping Normally after 7.4434564 Second(s)

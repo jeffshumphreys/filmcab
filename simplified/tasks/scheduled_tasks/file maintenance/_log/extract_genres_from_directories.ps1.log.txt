@@ -1,313 +1,209 @@
-Starting Log 03/28/2024 00:10:02 on Thursday DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\extract_genres_from_directories.ps1'; exit $LASTEXITCODE"
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Attempting to get triggering event for extract_genres_from_directories for run set name \file maintenance in root directory \FilmCab
-Got following event back: Task triggered on event
-@{Message=Task Scheduler launched "{0e1126ec-5623-407f-9dec-8a0cb222f7df}"  instance of task "\FilmCab\file maintenance\extract_genres_from_directories"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:10:01; RecordId=202615; ActivityId=0e1126ec-5623-407f-9dec-8a0cb222f7df; ThreadId=3016; ResultCode=; UserContext=; UserName=; Id=108}
-Finished Scanning for caller details
-active_batch_run_session_id # = 93
-Exiting standard_header
-Genre: _Fantasy*** empty string
-  Sub-genre: _Apocalypse    Grand-sub-genre: _Infection*** empty string
+Starting Log 04/11/2024 00:07:20 on Thursday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\extract_genres_from_directories.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+Exiting standard_header v2
 Genre: _Panel Shows*** empty string
-Genre: _Reality*** empty string
-Genre: _Historical*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Camp*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Documentaries*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
 Genre: _Classics*** empty string
-Genre: _Classics  Sub-genre: _Silent*** empty string
-  Sub-genre: _Post Apocalypse*** empty string
-Genre: _Super Heroes*** empty string
+Genre: _Historical*** empty string
+Genre: _Panel Shows*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Camp*** empty string
-Genre: _Fantasy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Reality*** empty string
+Genre: _Spy*** empty string
+Genre: _Classics  Sub-genre: _Christmas*** empty string
+Genre: _Reality*** empty string
+Genre: _Reality*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Spy*** empty string
 Genre: _Super Heroes*** empty string
+Genre: _Spy*** empty string
 Genre: _Super Heroes*** empty string
+Genre: _Camp*** empty string
 Genre: _Terrorism*** empty string
 Genre: _Panel Shows*** empty string
-    Grand-sub-genre: _Corrupt*** empty string
-    Grand-sub-genre: _Corrupt*** empty string
 Genre: _Reality*** empty string
-Genre: _Reality*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Musicals*** empty string
 Genre: _Super Heroes*** empty string
+Genre: _Spy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Camp*** empty string
 Genre: _Classics  Sub-genre: _Silent*** empty string
+Genre: _Spy*** empty string
+Genre: _Existentialism*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Super Heroes*** empty string
-Genre: _Invasion*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Spy*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Reality*** empty string
-Genre: _Reality*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Reality*** empty string
-Genre: _Reality*** empty string
-Genre: _Toxic Masculinity*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Spy*** empty string
-Genre: _Musicals*** empty string
-Genre: _Musicals*** empty string
 Genre: _Fantasy*** empty string
+Genre: _Spy*** empty string
+Genre: _Spy*** empty string
+  Sub-genre: _Post Apocalypse*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Reality*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+  Sub-genre: _Apocalypse    Grand-sub-genre: _Infection*** empty string
+Genre: _Super Heroes*** empty string
+    Grand-sub-genre: _Corrupt*** empty string
+    Grand-sub-genre: _Corrupt*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Classics*** empty string
 Genre: _Family*** empty string
 Genre: _Documentaries*** empty string
-Genre: _Existentialism*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Classics  Sub-genre: _Christmas*** empty string
-Genre: _Adventure  Sub-genre: _Western*** empty string
-Genre: _Camp  Sub-genre: _Commercials*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Reality*** empty string
-Genre: _Reality*** empty string
-Genre: _Reality*** empty string
-Genre: _Classics*** empty string
-Genre: _Spy*** empty string
-Genre: _Spy*** empty string
-Genre: _Toxic Masculinity*** empty string
-Genre: _Reality*** empty string
-Genre: _Terrorism*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Musicals*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Existentialism*** empty string
-Genre: _Documentaries*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
-Genre: _Adventure  Sub-genre: _Bank Heist*** empty string
-Genre: _Classics  Sub-genre: _Christmas*** empty string
-Genre: _Camp  Sub-genre: _Commercials*** empty string
-Genre: _Adventure  Sub-genre: _Western*** empty string
-Genre: _Classics*** empty string
+Genre: _Invasion*** empty string
 Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Camp*** empty string
-Genre: _Toxic Masculinity*** empty string
-Genre: _Spy*** empty string
-Genre: _Spy*** empty string
-Genre: _Horror*** empty string
-Genre: _AI*** empty string
 Genre: _Historical*** empty string
 Genre: _Documentaries*** empty string
 Genre: _Camp*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
 Genre: _Noir*** empty string
-Genre: _Camp*** empty string
-Genre: _Reality*** empty string
 Genre: _Fantasy*** empty string
 Genre: _Musicals*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Reality*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Horror*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Fantasy*** empty string
+Genre: _Reality*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Fantasy*** empty string
 Genre: _Invasion*** empty string
+Genre: _Communism*** empty string
+Genre: _Holocaust*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Holocaust*** empty string
+Genre: _Reality*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Reality*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Spy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Camp*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Classics*** empty string
+Genre: _Camp*** empty string
+Genre: _Noir*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Camp*** empty string
+Genre: _Reality*** empty string
+Genre: _Reality*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Invasion*** empty string
+Genre: _Spy*** empty string
+Genre: _Camp*** empty string
+Genre: _Horror*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Reality*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Reality*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Horror*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Reality*** empty string
+Genre: _Camp*** empty string
+Genre: _Panel Shows*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Communism*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Holocaust*** empty string
-Genre: _Classics*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Holocaust*** empty string
-Genre: _Reality*** empty string
-Genre: _Spy*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Reality*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-  Sub-genre: _Apocalypse    Grand-sub-genre: _Infection*** empty string
-Genre: _Camp*** empty string
-Genre: _Camp*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Reality*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Classics*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Fascism*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Noir*** empty string
-Genre: _Documentaries*** empty string
-Genre: _Camp*** empty string
-Genre: _Reality*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Reality*** empty string
-Genre: _Horror*** empty string
-Genre: _Invasion*** empty string
-Genre: _Spy*** empty string
-Genre: _Camp*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Reality*** empty string
-Genre: _Toxic Masculinity*** empty string
-Genre: _Documentaries*** empty string
-Genre: _Reality*** empty string
-Genre: _Reality*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Reality*** empty string
-Genre: _Horror*** empty string
-Genre: _Classics*** empty string
-Genre: _Camp*** empty string
-Genre: _Panel Shows*** empty string
 Genre: _War*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Communism*** empty string
-Genre: _Camp*** empty string
-Genre: _Camp*** empty string
-Genre: _Noir*** empty string
 Genre: _Fantasy*** empty string
 Genre: _Camp*** empty string
 Genre: _Camp*** empty string
+Genre: _Noir*** empty string
 Genre: _Camp*** empty string
 Genre: _Adventure*** empty string
+Genre: _Camp*** empty string
+Genre: _Documentaries*** empty string
 Genre: _Reality*** empty string
   Sub-genre: _Post Apocalypse*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Dystopia  Sub-genre: _Police State*** empty string
-Genre: _Documentaries*** empty string
 Genre: _Super Heroes*** empty string
+Genre: _Dystopia  Sub-genre: _Police State*** empty string
+Genre: _Panel Shows*** empty string
 Genre: _Reality*** empty string
-Genre: _Camp*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Invasion*** empty string
 Genre: _Toxic Masculinity*** empty string
 Genre: _Panel Shows*** empty string
+Genre: _Invasion*** empty string
+Genre: _Panel Shows*** empty string
 Genre: _Super Heroes*** empty string
   Sub-genre: _Apocalypse*** empty string
-  Sub-genre: _Post Apocalypse*** empty string
-Genre: _Reality*** empty string
-Genre: _Fantasy*** empty string
 Genre: _Camp*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Camp*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _War*** empty string
-Genre: _Camp*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Horror*** empty string
-  Sub-genre: _End of the World*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Documentaries*** empty string
 Genre: _Invasion*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Camp*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Panel Shows*** empty string
 Genre: _Documentaries*** empty string
+Genre: _Camp*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Invasion*** empty string
 Genre: _Classics*** empty string
+Genre: _Fantasy*** empty string
 Genre: _Camp*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Fantasy*** empty string
-Genre: _Documentaries*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Documentaries*** empty string
 Genre: _Horror*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Reality*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Documentaries*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Fantasy*** empty string
+Genre: _Super Heroes*** empty string
 Genre: _Dystopia*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Camp*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Reality*** empty string
 Genre: _Fascism*** empty string
-Genre: _Panel Shows*** empty string
 Genre: _Reality*** empty string
+Genre: _Reality*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Fantasy*** empty string
 Genre: _Invasion*** empty string
-Genre: _Documentaries*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Camp*** empty string
-Genre: _Camp*** empty string
   Sub-genre: _End of the World*** empty string
-Genre: _Fantasy*** empty string
+Genre: _Camp*** empty string
+Genre: _Camp*** empty string
 Genre: _Horror*** empty string
 Genre: _Classics*** empty string
-Genre: _Camp*** empty string
-Genre: _Panel Shows*** empty string
 Genre: _Dystopia  Sub-genre: _Police State*** empty string
 Genre: _Super Heroes*** empty string
-Genre: _Reality*** empty string
-Genre: _Fantasy*** empty string
-  Sub-genre: _Apocalypse*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Invasion*** empty string
 Genre: _Reality*** empty string
 Genre: _Invasion*** empty string
-Genre: _Panel Shows*** empty string
 Genre: _Noir*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Classics*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Invasion*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Invasion*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Documentaries*** empty string
 Genre: _Invasion*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Super Heroes*** empty string
-Genre: _Dystopia*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Camp*** empty string
-Genre: _Invasion*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Camp*** empty string
+Genre: _Super Heroes*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Camp*** empty string
 Genre: _Musicals*** empty string
@@ -316,8 +212,6 @@ Genre: _Documentaries*** empty string
 Genre: _Reality*** empty string
 Genre: _Toxic Masculinity*** empty string
 Genre: _Fantasy*** empty string
-Genre: _Invasion*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Documentaries*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Documentaries*** empty string
@@ -325,98 +219,196 @@ Genre: _Super Heroes*** empty string
 Genre: _Adventure*** empty string
 Genre: _Reality*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Fantasy*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Invasion*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Dystopia*** empty string
 Genre: _Super Heroes*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Camp*** empty string
+Genre: _Invasion*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Camp*** empty string
 Genre: _Super Heroes*** empty string
-Genre: _Spy*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
-Genre: _AI*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
-Genre: _Family*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
 Genre: _Spy*** empty string
 Genre: _Panel Shows*** empty string
-Genre: _Spy*** empty string
-Genre: _Existentialism*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
-Genre: _Reality*** empty string
-Genre: _Musicals*** empty string
-Genre: _Adventure  Sub-genre: _Bank Heist*** empty string
 Genre: _Documentaries*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Documentaries*** empty string
 Genre: _Fantasy*** empty string
 Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Fantasy*** empty string
-Genre: _Fantasy*** empty string
 Genre: _Classics*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Reality*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Documentaries*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Panel Shows*** empty string
 Genre: _Classics*** empty string
 Genre: _Camp*** empty string
 Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Existentialism*** empty string
-Genre: _Super Heroes*** empty string
 Genre: _Fantasy*** empty string
-Genre: _Spy*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Documentaries*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Existentialism*** empty string
 Genre: _Documentaries*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Family  Sub-genre: _Cartoons*** empty string
-Genre: _Spy*** empty string
-Genre: _Spy*** empty string
-Genre: _Camp*** empty string
-Genre: _Family  Sub-genre: _Cartoons*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Panel Shows*** empty string
-Genre: _Reality*** empty string
   Sub-genre: _Post Apocalypse*** empty string
-Genre: _Spy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Camp*** empty string
+Genre: _AI*** empty string
+Genre: _Reality*** empty string
+Genre: _Family  Sub-genre: _Cartoons*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Classics  Sub-genre: _Silent*** empty string
+Genre: _Classics*** empty string
+Genre: _Reality*** empty string
+Genre: _Family*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Existentialism*** empty string
+Genre: _AI*** empty string
+Genre: _Fascism*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Family  Sub-genre: _Cartoons*** empty string
+Genre: _Reality*** empty string
+Genre: _Reality*** empty string
+  Sub-genre: _Apocalypse    Grand-sub-genre: _Infection*** empty string
+Genre: _Panel Shows*** empty string
+  Sub-genre: _Post Apocalypse*** empty string
+Genre: _Reality*** empty string
+Genre: _Toxic Masculinity*** empty string
+Genre: _Camp*** empty string
+Genre: _Reality*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Camp*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Classics  Sub-genre: _Christmas*** empty string
+Genre: _Classics*** empty string
+Genre: _Camp*** empty string
+Genre: _Toxic Masculinity*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Classics*** empty string
+Genre: _Reality*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Documentaries*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Camp*** empty string
+Genre: _Fantasy*** empty string
 Genre: _Documentaries*** empty string
 Genre: _Camp*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Reality*** empty string
+  Sub-genre: _Apocalypse*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Classics*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Spy*** empty string
+Genre: _Camp*** empty string
+Genre: _Camp*** empty string
+Genre: _Panel Shows*** empty string
+  Sub-genre: _End of the World*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Family  Sub-genre: _Cartoons*** empty string
+Genre: _Reality*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Reality*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Spy*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Adventure  Sub-genre: _Western*** empty string
+Genre: _Camp  Sub-genre: _Commercials*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Reality*** empty string
+Genre: _Reality*** empty string
+Genre: _Terrorism*** empty string
+Genre: _Camp  Sub-genre: _Commercials*** empty string
+Genre: _Adventure  Sub-genre: _Western*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Spy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Invasion*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Invasion*** empty string
+Genre: _Spy*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Fantasy    Grand-sub-genre: _T & A*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Adventure  Sub-genre: _Bank Heist*** empty string
+Genre: _Spy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Camp*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Super Heroes*** empty string
 Genre: _Family  Sub-genre: _Cartoons*** empty string
-Genre: _Family  Sub-genre: _Cartoons*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Camp*** empty string
-Genre: _Camp*** empty string
 Genre: _Camp*** empty string
 Genre: _Spy*** empty string
 Genre: _Spy*** empty string
-Genre: _Family  Sub-genre: _Cartoons*** empty string
+Genre: _Reality*** empty string
+Genre: _Fantasy*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Toxic Masculinity*** empty string
+Genre: _Musicals*** empty string
+Genre: _Existentialism*** empty string
+Genre: _Panel Shows*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Adventure  Sub-genre: _Bank Heist*** empty string
+Genre: _Super Heroes*** empty string
 Genre: _Spy*** empty string
+Genre: _Camp*** empty string
 Genre: _Super Heroes*** empty string
+Genre: _Camp*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Super Heroes*** empty string
+Genre: _Musicals*** empty string
+Genre: _Toxic Masculinity*** empty string
+Genre: _Musicals*** empty string
 Genre: _Family  Sub-genre: _Cartoons*** empty string
-Genre: _Super Heroes*** empty string
-Genre: _Super Heroes*** empty string
+Genre: _Family  Sub-genre: _Cartoons*** empty string
 Finally
 *** empty string
 *** empty string
-How Many Genre Folders Were Found              :   391
-How Many Sub Genre Folders Were Found          :    28
-How Many Grand Sub Genre Folders Were Found    :    12
-How Many New Genre Were Found                  :     0
-Stopping Normally after 27.6160438 Second(s)
+Stopping Normally after 27.6866807 Second(s)

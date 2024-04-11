@@ -1,16 +1,10 @@
-Starting Log 03/28/2024 00:22:00 on Thursday DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\zzz_end_batch_run_session.ps1'; exit $LASTEXITCODE"
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Attempting to get triggering event for zzz_end_batch_run_session for run set name \file maintenance in root directory \FilmCab
-Got following event back: Task triggered on event
-@{Message=Task Scheduler launched "{cfa3b4dd-75f3-41b5-96e2-4b7bb99bd96a}"  instance of task "\FilmCab\file maintenance\zzz_end_batch_run_session"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:21:59; RecordId=202661; ActivityId=cfa3b4dd-75f3-41b5-96e2-4b7bb99bd96a; ThreadId=18348; ResultCode=; UserContext=; UserName=; Id=108}
-Finished Scanning for caller details
-active_batch_run_session_id # = 93
-Exiting standard_header
-SELECT batch_run_session_id, started FROM batch_run_sessions_v WHERE running
+Starting Log 04/11/2024 00:19:50 on Thursday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\zzz_end_batch_run_session.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = 'zzz_end_batch_run_session.ps1', ended = CURRENT_TIMESTAMP WHERE running
+UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = 'zzz_end_batch_run_session.ps1', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = 313
+DELETE FROM batch_run_session_active_running_values_ext_v
+Exiting standard_header v2
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 6.978632 Second(s)
+Stopping Normally after 11.3059625 Second(s)

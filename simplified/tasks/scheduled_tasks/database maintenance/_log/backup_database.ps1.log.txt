@@ -1,15 +1,8 @@
-Starting Log 03/27/2024 22:30:10 on Wednesday DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\database maintenance\backup_database.ps1'; exit $LASTEXITCODE"
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Attempting to get triggering event for backup_database for run set name \database maintenance in root directory \FilmCab
-Got following event back: Task triggered on event
-@{Message=Task Scheduler launched "{08a45ed8-d941-49c4-8ba9-57cfbddf4003}"  instance of task "\FilmCab\database maintenance\backup_database"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/27/2024 22:30:09; RecordId=202470; ActivityId=08a45ed8-d941-49c4-8ba9-57cfbddf4003; ThreadId=3108; ResultCode=; UserContext=; UserName=; Id=108}
-Finished Scanning for caller details
-active_batch_run_session_id # = 
-Exiting standard_header
-base to all backups: C:\FilmCab Backups/dump-filmcab-database-data-simplified-schema.Wednesday, March 27, 2024 10 30 11 PM.sql
+Starting Log 04/10/2024 22:30:12 on Wednesday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\database maintenance\backup_database.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+Exiting standard_header v2
+base to all backups: C:\FilmCab Backups/dump-filmcab-database-data-simplified-schema.Wednesday, April 10, 2024 10 30 14 PM.sql
+(1) pg_dump to C:\FilmCab Backups/dump-filmcab-database-data-simplified-schema.Wednesday, April 10, 2024 10 30 14 PM.sql-compressed.sql completed
 [01mpg_dump: [0mlast built-in OID is 16383
 [01mpg_dump: [0mreading extensions
 [01mpg_dump: [0midentifying extension members
@@ -62,8 +55,8 @@ base to all backups: C:\FilmCab Backups/dump-filmcab-database-data-simplified-sc
 [01mpg_dump: [0msaving database definition
 [01mpg_dump: [0mdumping contents of table "simplified.apps"
 [01mpg_dump: [0mdumping contents of table "simplified.batch_run_session_active_running_values"
+[01mpg_dump: [0mdumping contents of table "simplified.batch_run_session_tasks"
 [01mpg_dump: [0mdumping contents of table "simplified.batch_run_sessions"
-[01mpg_dump: [0mdumping contents of table "simplified.batch_run_sessions_tasks"
 [01mpg_dump: [0mdumping contents of table "simplified.codecs"
 [01mpg_dump: [0mdumping contents of table "simplified.computers"
 [01mpg_dump: [0mdumping contents of table "simplified.directories"
@@ -74,6 +67,7 @@ base to all backups: C:\FilmCab Backups/dump-filmcab-database-data-simplified-sc
 [01mpg_dump: [0mdumping contents of table "simplified.internet_service_providers"
 [01mpg_dump: [0mdumping contents of table "simplified.local_networks"
 [01mpg_dump: [0mdumping contents of table "simplified.media_files"
+[01mpg_dump: [0mdumping contents of table "simplified.moves"
 [01mpg_dump: [0mdumping contents of table "simplified.network_adapters"
 [01mpg_dump: [0mdumping contents of table "simplified.scheduled_task_run_sets"
 [01mpg_dump: [0mdumping contents of table "simplified.scheduled_tasks"
@@ -84,8 +78,13 @@ base to all backups: C:\FilmCab Backups/dump-filmcab-database-data-simplified-sc
 [01mpg_dump: [0mdumping contents of table "simplified.videos"
 [01mpg_dump: [0mdumping contents of table "simplified.videos_to_video_files"
 [01mpg_dump: [0mdumping contents of table "simplified.volumes"
+(2) pg_dump to C:\FilmCab Backups/dump-filmcab-database-data-simplified-schema.Wednesday, April 10, 2024 10 30 14 PM.sql-in_text.sql completed
+(3) pg_dump to C:\FilmCab Backups/dump-filmcab-database-data-simplified-schema.Wednesday, April 10, 2024 10 30 14 PM.sql-table-files-in_text.sql completed
+(4) pg_dump to C:\FilmCab Backups/dump-filmcab-database-simplified-schema-only.Wednesday, April 10, 2024 10 30 14 PM.sql-in_text.sql completed
+$file_name_in_codebase               = D:\qt_projects\filmcab\simplified/sql/dump-filmcab-database-simplified-schema-only.sql
+$file_name_in_codebase_previous_copy = D:\qt_projects\filmcab\simplified/sql/dump-filmcab-database-simplified-schema-only.prev.sql
 Difference between new and last DDL detected.
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 5.2718178 Second(s)
+Stopping Normally after 6.4007715 Second(s)

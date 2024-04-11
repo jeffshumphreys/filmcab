@@ -1,6 +1,45 @@
-Starting Log 04/11/2024 00:06:58 on Thursday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\scan_file_directories_for_files.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-Exiting standard_header v2
+**********************
+PowerShell transcript start
+Start time: 20240411000658
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7-preview\pwsh.dll -ExecutionPolicy Bypass -Command . 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\scan_file_directories_for_files.ps1'; exit $LASTEXITCODE
+Process ID: 17232
+PSVersion: 7.5.0-preview.2
+PSEdition: Core
+GitCommitId: 7.5.0-preview.2
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\_log\scan_file_directories_for_files.ps1.transcript.log.txt
+Exiting standard_header (sql functions)
+
+                INSERT INTO 
+                    batch_run_session_tasks_v(
+                        batch_run_session_id,
+                        script_changed,
+                        script_name,
+                        triggered_by_login,
+                        trigger_type,
+                        trigger_id,
+                        is_testscheduledriventaskdetection
+                    )
+                    VALUES(
+                        311,
+                        '2024-04-10 13:34:53.021100 -06:00'::TIMESTAMPTZ,
+                        'scan_file_directories_for_files.ps1'
+                    ,   ''
+                    ,   'event'
+                    ,   '108'                      
+                    ,   NULL
+                    )
+                    RETURNING batch_run_session_task_id
 Scanning N:\Video AllInOne Seen\_Mystery
 Scanning K:\Video AllInOne Won't Watch\_Mystery
 Scanning K:\Video AllInOne Won't Watch\_Mystery\Annika (2021-)
@@ -166,7 +205,12 @@ Scanning G:\Video AllInOne Backup\_Mystery\The Lives of Others (2006).m4v
 Scanning G:\Video AllInOne Backup\_Mystery\The Lives of Others (2006).srt
 Scanning G:\Video AllInOne Backup\_Mystery\The Triumph Of Sherlock Holmes (1935).mkv
 Finally
-*** empty string
-*** empty string
+
+
 How Many Scan Directory Triggers Disabled    :   1
-Stopping Normally after 11.8728283 Second(s)
+12 Seconds
+1
+**********************
+PowerShell transcript end
+End time: 20240411000710
+**********************

@@ -1,0 +1,29 @@
+**********************
+PowerShell transcript start
+Start time: 20240411001950
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7-preview\pwsh.dll -ExecutionPolicy Bypass -Command . 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\zzz_end_batch_run_session.ps1'; exit $LASTEXITCODE
+Process ID: 16220
+PSVersion: 7.5.0-preview.2
+PSEdition: Core
+GitCommitId: 7.5.0-preview.2
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\_log\zzz_end_batch_run_session.ps1.transcript.log.txt
+Exiting standard_header (sql functions)
+Finally
+
+
+11 Seconds
+**********************
+PowerShell transcript end
+End time: 20240411002001
+**********************

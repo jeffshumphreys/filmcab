@@ -1,0 +1,66 @@
+**********************
+PowerShell transcript start
+Start time: 20240411001322
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7-preview\pwsh.dll -ExecutionPolicy Bypass -Command . 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_definitions.ps1'; exit $LASTEXITCODE
+Process ID: 11304
+PSVersion: 7.5.0-preview.2
+PSEdition: Core
+GitCommitId: 7.5.0-preview.2
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\_log\pull_scheduled_task_definitions.ps1.transcript.log.txt
+Exiting standard_header (sql functions)
+
+            INSERT INTO batch_run_sessions_v(
+                last_script_ran
+            ,   session_starting_script
+            ,   caller_starting                        
+            ,   triggered_by_login
+            ,   trigger_type
+            ,   trigger_id
+            ) VALUES(
+                'pull_scheduled_task_definitions.ps1'
+            ,   'pull_scheduled_task_definitions.ps1'
+            ,   'Windows Task Scheduler'
+            ,   ''
+            ,   'schedule'
+            ,   '107'
+            )
+            RETURNING batch_run_session_id
+
+        INSERT INTO 
+            batch_run_session_tasks_v(
+                batch_run_session_id,
+                script_changed,
+                script_name,
+                triggered_by_login,
+                trigger_type,
+                trigger_id
+            )
+            VALUES(
+                312,
+                '2024-03-18 17:05:36.068564 -06:00'::TIMESTAMPTZ,
+                'pull_scheduled_task_definitions.ps1'
+            ,   ''
+            ,   'schedule'
+            ,   '107'
+                    )
+            RETURNING batch_run_session_task_id
+Finally
+
+
+10 Seconds
+1
+**********************
+PowerShell transcript end
+End time: 20240411001333
+**********************

@@ -1,8 +1,60 @@
-Starting Log 04/10/2024 22:30:02 on Wednesday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\database maintenance\vacuum_database.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = 'vacuum_database.ps1', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running
-UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = 309
-Exiting standard_header v2
+**********************
+PowerShell transcript start
+Start time: 20240410223002
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7-preview\pwsh.dll -ExecutionPolicy Bypass -Command . 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\database maintenance\vacuum_database.ps1'; exit $LASTEXITCODE
+Process ID: 9964
+PSVersion: 7.5.0-preview.2
+PSEdition: Core
+GitCommitId: 7.5.0-preview.2
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\database maintenance\_log\vacuum_database.ps1.transcript.log.txt
+Exiting standard_header (sql functions)
+
+            INSERT INTO batch_run_sessions_v(
+                last_script_ran
+            ,   session_starting_script
+            ,   caller_starting                        
+            ,   triggered_by_login
+            ,   trigger_type
+            ,   trigger_id
+            ) VALUES(
+                'vacuum_database.ps1'
+            ,   'vacuum_database.ps1'
+            ,   'Windows Task Scheduler'
+            ,   ''
+            ,   'schedule'
+            ,   '107'
+            )
+            RETURNING batch_run_session_id
+
+        INSERT INTO 
+            batch_run_session_tasks_v(
+                batch_run_session_id,
+                script_changed,
+                script_name,
+                triggered_by_login,
+                trigger_type,
+                trigger_id
+            )
+            VALUES(
+                309,
+                '2024-03-18 17:05:07.759880 -06:00'::TIMESTAMPTZ,
+                'vacuum_database.ps1'
+            ,   ''
+            ,   'schedule'
+            ,   '107'
+                    )
+            RETURNING batch_run_session_task_id
 Starting Vacuum
 INFO: vacuuming "filmcab.simplified.apps";INFO: finished vacuuming "filmcab.simplified.apps": index scans: 0
 pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
@@ -37,6 +89,7 @@ avg read rate: 0.000 MB/s, avg write rate: 25.121 MB/s
 buffer usage: 21 hits, 0 misses, 1 dirtied
 WAL usage: 1 records, 1 full page images, 7457 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.batch_run_session_active_running_values";INFO: finished vacuuming "filmcab.simplified.batch_run_session_active_running_values": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 28 removed, 1 remain, 0 are dead but not yet removable
@@ -47,6 +100,7 @@ avg read rate: 0.000 MB/s, avg write rate: 15.688 MB/s
 buffer usage: 8 hits, 0 misses, 2 dirtied
 WAL usage: 4 records, 2 full page images, 16005 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.batch_run_session_tasks";INFO: finished vacuuming "filmcab.simplified.batch_run_session_tasks": index scans: 1
 pages: 0 removed, 9 remain, 9 scanned (100.00% of total)
 tuples: 10 removed, 541 remain, 0 are dead but not yet removable
@@ -79,6 +133,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.batch_run_sessions";INFO: finished vacuuming "filmcab.simplified.batch_run_sessions": index scans: 1
 pages: 0 removed, 10 remain, 10 scanned (100.00% of total)
 tuples: 6 removed, 309 remain, 0 are dead but not yet removable
@@ -111,6 +166,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.codecs";INFO: finished vacuuming "filmcab.simplified.codecs": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 10 remain, 0 are dead but not yet removable
@@ -144,6 +200,7 @@ avg read rate: 0.000 MB/s, avg write rate: 30.164 MB/s
 buffer usage: 19 hits, 0 misses, 1 dirtied
 WAL usage: 1 records, 1 full page images, 7493 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.computers";INFO: finished vacuuming "filmcab.simplified.computers": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 1 remain, 0 are dead but not yet removable
@@ -176,6 +233,7 @@ avg read rate: 0.000 MB/s, avg write rate: 31.250 MB/s
 buffer usage: 19 hits, 0 misses, 1 dirtied
 WAL usage: 1 records, 1 full page images, 7757 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.directories";INFO: launched 1 parallel vacuum worker for index vacuuming (planned: 1);INFO: finished vacuuming "filmcab.simplified.directories": index scans: 1
 pages: 0 removed, 321 remain, 321 scanned (100.00% of total)
 tuples: 515 removed, 6377 remain, 0 are dead but not yet removable
@@ -209,6 +267,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.file_extensions";INFO: finished vacuuming "filmcab.simplified.file_extensions": index scans: 0
 pages: 0 removed, 8 remain, 8 scanned (100.00% of total)
 tuples: 0 removed, 589 remain, 0 are dead but not yet removable
@@ -242,6 +301,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.file_links_across_search_paths";INFO: finished vacuuming "filmcab.simplified.file_links_across_search_paths": index scans: 0
 pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
 tuples: 0 removed, 0 remain, 0 are dead but not yet removable
@@ -274,6 +334,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.files";INFO: launched 1 parallel vacuum worker for index vacuuming (planned: 1);INFO: finished vacuuming "filmcab.simplified.files": index scans: 1
 pages: 0 removed, 1215 remain, 400 scanned (32.92% of total)
 tuples: 36 removed, 45695 remain, 0 are dead but not yet removable
@@ -305,6 +366,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.genres";INFO: finished vacuuming "filmcab.simplified.genres": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 41 remain, 0 are dead but not yet removable
@@ -337,6 +399,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.internet_service_providers";INFO: finished vacuuming "filmcab.simplified.internet_service_providers": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 1 remain, 0 are dead but not yet removable
@@ -369,6 +432,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.local_networks";INFO: finished vacuuming "filmcab.simplified.local_networks": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 1 remain, 0 are dead but not yet removable
@@ -402,6 +466,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.media_files";INFO: finished vacuuming "filmcab.simplified.media_files": index scans: 0
 pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
 tuples: 0 removed, 0 remain, 0 are dead but not yet removable
@@ -435,6 +500,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.moves";INFO: finished vacuuming "filmcab.simplified.moves": index scans: 1
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 14 removed, 6 remain, 0 are dead but not yet removable
@@ -469,6 +535,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.network_adapters";INFO: finished vacuuming "filmcab.simplified.network_adapters": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 1 remain, 0 are dead but not yet removable
@@ -502,6 +569,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.scheduled_task_run_sets";INFO: finished vacuuming "filmcab.simplified.scheduled_task_run_sets": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 5 remain, 0 are dead but not yet removable
@@ -533,6 +601,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.scheduled_tasks";INFO: finished vacuuming "filmcab.simplified.scheduled_tasks": index scans: 0
 pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
 tuples: 0 removed, 18 remain, 0 are dead but not yet removable
@@ -565,6 +634,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.search_directories";INFO: finished vacuuming "filmcab.simplified.search_directories": index scans: 0
 pages: 0 removed, 2 remain, 2 scanned (100.00% of total)
 tuples: 0 removed, 13 remain, 0 are dead but not yet removable
@@ -596,6 +666,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.search_terms";INFO: finished vacuuming "filmcab.simplified.search_terms": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 17 remain, 0 are dead but not yet removable
@@ -629,6 +700,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.user_spreadsheet_interface";INFO: finished vacuuming "filmcab.simplified.user_spreadsheet_interface": index scans: 0
 pages: 0 removed, 148 remain, 1 scanned (0.68% of total)
 tuples: 0 removed, 5094 remain, 0 are dead but not yet removable
@@ -660,6 +732,7 @@ avg read rate: 0.675 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 18 hits, 1 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.01 s
+0
 INFO: vacuuming "filmcab.simplified.video_files";INFO: finished vacuuming "filmcab.simplified.video_files": index scans: 0
 pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
 tuples: 0 removed, 0 remain, 0 are dead but not yet removable
@@ -693,6 +766,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.videos";INFO: finished vacuuming "filmcab.simplified.videos": index scans: 0
 pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
 tuples: 0 removed, 0 remain, 0 are dead but not yet removable
@@ -726,6 +800,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.videos_to_video_files";INFO: finished vacuuming "filmcab.simplified.videos_to_video_files": index scans: 0
 pages: 0 removed, 0 remain, 0 scanned (100.00% of total)
 tuples: 0 removed, 0 remain, 0 are dead but not yet removable
@@ -736,6 +811,7 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 16 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 INFO: vacuuming "filmcab.simplified.volumes";INFO: finished vacuuming "filmcab.simplified.volumes": index scans: 0
 pages: 0 removed, 1 remain, 1 scanned (100.00% of total)
 tuples: 0 removed, 9 remain, 0 are dead but not yet removable
@@ -768,8 +844,14 @@ avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
 buffer usage: 19 hits, 0 misses, 0 dirtied
 WAL usage: 1 records, 0 full page images, 188 bytes
 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+0
 Done Vacuuming
 Finally
-*** empty string
-*** empty string
-Stopping Normally after 8.4545842 Second(s)
+
+
+8 Seconds
+1
+**********************
+PowerShell transcript end
+End time: 20240410223010
+**********************

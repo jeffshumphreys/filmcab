@@ -1,0 +1,15 @@
+Starting Log 04/11/2024 10:59:07 on Thursday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\filmcab\simplified\tasks\manual_tasks\calculate_space_in_search_directories.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+Exiting standard_header v2
+C: TotalSize=1,023,563,341,824, Free=850,542,780,416
+D: TotalSize=16,000,239,005,696, Free=3,674,288,918,528
+G: TotalSize=22,000,934,313,984, Free=14,130,194,464,768
+I: TotalSize=6,001,039,241,216, Free=4,462,769,041,408
+N: TotalSize=12,000,102,969,344, Free=9,915,341,148,160
+O: TotalSize=8,001,560,768,512, Free=1,497,951,961,088
+K: TotalSize=12,000,119,742,464, Free=11,978,916,872,192
+Finally
+*** empty string
+*** empty string
+How Much Space Left    :   46,510,005,186,560
+Stopping Normally after 0.5505944 Second(s)

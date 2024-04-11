@@ -1,0 +1,924 @@
+**********************
+PowerShell transcript start
+Start time: 20240411000720
+Username: DSKTP-HOME-JEFF\jeffs
+RunAs User: DSKTP-HOME-JEFF\jeffs
+Configuration Name: 
+Machine: DSKTP-HOME-JEFF (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7-preview\pwsh.dll -ExecutionPolicy Bypass -Command . 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\extract_genres_from_directories.ps1'; exit $LASTEXITCODE
+Process ID: 14544
+PSVersion: 7.5.0-preview.2
+PSEdition: Core
+GitCommitId: 7.5.0-preview.2
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\_log\extract_genres_from_directories.ps1.transcript.log.txt
+Exiting standard_header (sql functions)
+
+                INSERT INTO 
+                    batch_run_session_tasks_v(
+                        batch_run_session_id,
+                        script_changed,
+                        script_name,
+                        triggered_by_login,
+                        trigger_type,
+                        trigger_id,
+                        is_testscheduledriventaskdetection
+                    )
+                    VALUES(
+                        311,
+                        '2024-03-18 17:03:23.891253 -06:00'::TIMESTAMPTZ,
+                        'extract_genres_from_directories.ps1'
+                    ,   ''
+                    ,   'event'
+                    ,   '108'                      
+                    ,   NULL
+                    )
+                    RETURNING batch_run_session_task_id
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Classics
+
+Genre: _Historical
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Camp
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Reality
+
+Genre: _Spy
+
+Genre: _Classics
+  Sub-genre: _Christmas
+
+Genre: _Reality
+
+Genre: _Reality
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Spy
+
+Genre: _Super Heroes
+
+Genre: _Spy
+
+Genre: _Super Heroes
+
+Genre: _Camp
+
+Genre: _Terrorism
+
+Genre: _Panel Shows
+
+Genre: _Reality
+
+Genre: _Documentaries
+
+Genre: _Musicals
+
+Genre: _Super Heroes
+
+Genre: _Spy
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+Genre: _Camp
+
+Genre: _Classics
+  Sub-genre: _Silent
+
+Genre: _Spy
+
+Genre: _Existentialism
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Reality
+
+Genre: _Fantasy
+
+Genre: _Spy
+
+Genre: _Spy
+
+  Sub-genre: _Post Apocalypse
+
+Genre: _Super Heroes
+
+Genre: _Reality
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+  Sub-genre: _Apocalypse
+    Grand-sub-genre: _Infection
+
+Genre: _Super Heroes
+
+    Grand-sub-genre: _Corrupt
+
+    Grand-sub-genre: _Corrupt
+
+Genre: _Super Heroes
+
+Genre: _Classics
+
+Genre: _Family
+
+Genre: _Documentaries
+
+Genre: _Panel Shows
+
+Genre: _Invasion
+
+Genre: _Super Heroes
+
+Genre: _Historical
+
+Genre: _Documentaries
+
+Genre: _Camp
+
+Genre: _Noir
+
+Genre: _Fantasy
+
+Genre: _Musicals
+
+Genre: _Panel Shows
+
+Genre: _Horror
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+
+Genre: _Reality
+
+Genre: _Fantasy
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+
+Genre: _Invasion
+
+Genre: _Communism
+
+Genre: _Holocaust
+
+Genre: _Super Heroes
+
+Genre: _Holocaust
+
+Genre: _Reality
+
+Genre: _Panel Shows
+
+Genre: _Reality
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Spy
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Camp
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Classics
+
+Genre: _Camp
+
+Genre: _Noir
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Camp
+
+Genre: _Reality
+
+Genre: _Reality
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+
+Genre: _Invasion
+
+Genre: _Spy
+
+Genre: _Camp
+
+Genre: _Horror
+
+Genre: _Super Heroes
+
+Genre: _Reality
+
+Genre: _Fantasy
+
+Genre: _Documentaries
+
+Genre: _Reality
+
+Genre: _Super Heroes
+
+Genre: _Horror
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Reality
+
+Genre: _Camp
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Communism
+
+Genre: _War
+
+Genre: _Fantasy
+
+Genre: _Camp
+
+Genre: _Camp
+
+Genre: _Noir
+
+Genre: _Camp
+
+Genre: _Adventure
+
+Genre: _Camp
+
+Genre: _Documentaries
+
+Genre: _Reality
+
+  Sub-genre: _Post Apocalypse
+
+Genre: _Super Heroes
+
+Genre: _Dystopia
+  Sub-genre: _Police State
+
+Genre: _Panel Shows
+
+Genre: _Reality
+
+Genre: _Toxic Masculinity
+
+Genre: _Panel Shows
+
+Genre: _Invasion
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+  Sub-genre: _Apocalypse
+
+Genre: _Camp
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _War
+
+Genre: _Panel Shows
+
+Genre: _Horror
+
+Genre: _Invasion
+
+Genre: _Documentaries
+
+Genre: _Camp
+
+Genre: _Panel Shows
+
+Genre: _Invasion
+
+Genre: _Classics
+
+Genre: _Fantasy
+
+Genre: _Camp
+
+Genre: _Fantasy
+
+Genre: _Horror
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Reality
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Super Heroes
+
+Genre: _Dystopia
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Fascism
+
+Genre: _Reality
+
+Genre: _Reality
+
+Genre: _Panel Shows
+
+Genre: _Fantasy
+
+Genre: _Invasion
+
+  Sub-genre: _End of the World
+
+Genre: _Camp
+
+Genre: _Camp
+
+Genre: _Horror
+
+Genre: _Classics
+
+Genre: _Dystopia
+  Sub-genre: _Police State
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Invasion
+
+Genre: _Reality
+
+Genre: _Invasion
+
+Genre: _Noir
+
+Genre: _Invasion
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Camp
+
+Genre: _Musicals
+
+Genre: _Fantasy
+
+Genre: _Documentaries
+
+Genre: _Reality
+
+Genre: _Toxic Masculinity
+
+Genre: _Fantasy
+
+Genre: _Documentaries
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Super Heroes
+
+Genre: _Adventure
+
+Genre: _Reality
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Invasion
+
+Genre: _Panel Shows
+
+Genre: _Dystopia
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Camp
+
+Genre: _Invasion
+
+Genre: _Panel Shows
+
+Genre: _Camp
+
+Genre: _Super Heroes
+
+Genre: _Spy
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Fantasy
+
+Genre: _Fantasy
+
+Genre: _Fantasy
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Fantasy
+
+Genre: _Super Heroes
+
+Genre: _Classics
+
+Genre: _Reality
+
+Genre: _Panel Shows
+
+Genre: _Classics
+
+Genre: _Camp
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+
+Genre: _Super Heroes
+
+Genre: _Documentaries
+
+Genre: _Existentialism
+
+Genre: _Documentaries
+
+  Sub-genre: _Post Apocalypse
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Fantasy
+
+Genre: _Camp
+
+Genre: _AI
+
+Genre: _Reality
+
+Genre: _Family
+  Sub-genre: _Cartoons
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Panel Shows
+
+Genre: _Fantasy
+
+Genre: _Classics
+  Sub-genre: _Silent
+
+Genre: _Classics
+
+Genre: _Reality
+
+Genre: _Family
+
+Genre: _Panel Shows
+
+Genre: _Existentialism
+
+Genre: _AI
+
+Genre: _Fascism
+
+Genre: _Super Heroes
+
+Genre: _Family
+  Sub-genre: _Cartoons
+
+Genre: _Reality
+
+Genre: _Reality
+
+  Sub-genre: _Apocalypse
+    Grand-sub-genre: _Infection
+
+Genre: _Panel Shows
+
+  Sub-genre: _Post Apocalypse
+
+Genre: _Reality
+
+Genre: _Toxic Masculinity
+
+Genre: _Camp
+
+Genre: _Reality
+
+Genre: _Fantasy
+
+Genre: _Camp
+
+Genre: _Super Heroes
+
+Genre: _Classics
+  Sub-genre: _Christmas
+
+Genre: _Classics
+
+Genre: _Camp
+
+Genre: _Toxic Masculinity
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Classics
+
+Genre: _Reality
+
+Genre: _Fantasy
+
+Genre: _Fantasy
+
+Genre: _Documentaries
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Documentaries
+
+Genre: _Documentaries
+
+Genre: _Fantasy
+
+Genre: _Panel Shows
+
+Genre: _Fantasy
+
+Genre: _Panel Shows
+
+Genre: _Camp
+
+Genre: _Fantasy
+
+Genre: _Documentaries
+
+Genre: _Camp
+
+Genre: _Fantasy
+
+Genre: _Panel Shows
+
+Genre: _Reality
+
+  Sub-genre: _Apocalypse
+
+Genre: _Fantasy
+
+Genre: _Panel Shows
+
+Genre: _Classics
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+
+Genre: _Super Heroes
+
+Genre: _Spy
+
+Genre: _Camp
+
+Genre: _Camp
+
+Genre: _Panel Shows
+
+  Sub-genre: _End of the World
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Family
+  Sub-genre: _Cartoons
+
+Genre: _Reality
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+Genre: _Reality
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+Genre: _Spy
+
+Genre: _Panel Shows
+
+Genre: _Adventure
+  Sub-genre: _Western
+
+Genre: _Camp
+  Sub-genre: _Commercials
+
+Genre: _Panel Shows
+
+Genre: _Reality
+
+Genre: _Reality
+
+Genre: _Terrorism
+
+Genre: _Camp
+  Sub-genre: _Commercials
+
+Genre: _Adventure
+  Sub-genre: _Western
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+Genre: _Spy
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Invasion
+
+Genre: _Super Heroes
+
+Genre: _Invasion
+
+Genre: _Spy
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+Genre: _Fantasy
+    Grand-sub-genre: _T & A
+
+Genre: _Super Heroes
+
+Genre: _Adventure
+  Sub-genre: _Bank Heist
+
+Genre: _Spy
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Camp
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Family
+  Sub-genre: _Cartoons
+
+Genre: _Camp
+
+Genre: _Spy
+
+Genre: _Spy
+
+Genre: _Reality
+
+Genre: _Fantasy
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Toxic Masculinity
+
+Genre: _Musicals
+
+Genre: _Existentialism
+
+Genre: _Panel Shows
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Adventure
+  Sub-genre: _Bank Heist
+
+Genre: _Super Heroes
+
+Genre: _Spy
+
+Genre: _Camp
+
+Genre: _Super Heroes
+
+Genre: _Camp
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Super Heroes
+
+Genre: _Musicals
+
+Genre: _Toxic Masculinity
+
+Genre: _Musicals
+
+Genre: _Family
+  Sub-genre: _Cartoons
+
+Genre: _Family
+  Sub-genre: _Cartoons
+
+
+Key                Value
+---                -----
+_Adventure             6
+_AI                    2
+_Camp                 36
+_Classics             15
+_Comedy              241
+_Communism             2
+_Documentaries        22
+_Dystopia              4
+_Existentialism        4
+_Family                8
+_Fantasy              38
+_Fascism               2
+_Historical            2
+_Holocaust             2
+_Horror                6
+_Invasion             14
+_Musicals              6
+_Mystery             688
+_Noir                  4
+_Panel Shows          72
+_Reality              36
+_Sci Fi              749
+_Spy                  18
+_Super Heroes         86
+_Terrorism             2
+_Toxic Masculinity     6
+_War                   2
+
+Finally
+
+
+28 Seconds
+1
+**********************
+PowerShell transcript end
+End time: 20240411000748
+**********************

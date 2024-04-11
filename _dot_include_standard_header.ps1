@@ -1017,6 +1017,11 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
                 $pluralLabel = $singularLabel + 's'                             # Cat => Cats
             }
         }
+        $Script:WriteCounts+= [PSCustomObject]@{
+            CountLabel = $countLabel;
+            Count      = $number;
+            Tag        = $pluralLabel;
+        }
     }
 }
  
@@ -1057,6 +1062,9 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
     }
 }
     
+Function HumanizeCount([Int64]$i) {
+    return [string]::Format('{0:N0}', $i)
+}
 
 
 Log-Line "Exiting standard_header v2"

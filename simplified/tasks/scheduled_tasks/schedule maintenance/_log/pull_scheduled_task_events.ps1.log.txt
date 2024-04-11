@@ -1,17 +1,9 @@
-Starting Log 03/28/2024 00:13:28 on Thursday DST in March, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\_dot_include_standard_header.ps1, $PSVersion = 7.5.0-preview.2, $PEdition = Core, $CommandOrigin = Internal, Current Function = Start-Log
-"C:\Program Files\PowerShell\7-preview\pwsh.exe" -ExecutionPolicy Bypass -Command ". 'D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_events.ps1'; exit $LASTEXITCODE"
-processtree 1 CommandLine is not null: C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
-Called from Windows Task Scheduler
-Attempting to get triggering event for pull_scheduled_task_events for run set name \schedule maintenance in root directory \FilmCab
-Got following event back: Task triggered on event
-@{Message=Task Scheduler launched "{0025d329-871b-4f0a-b859-5897ffb84f0a}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_events"  according to an event trigger.; TaskDisplayName=Task triggered on event; TimeCreated=03/28/2024 00:13:27; RecordId=202632; ActivityId=0025d329-871b-4f0a-b859-5897ffb84f0a; ThreadId=308; ResultCode=; UserContext=; UserName=; Id=108}
-Finished Scanning for caller details
-active_batch_run_session_id # = 93
-Exiting standard_header
+Starting Log 04/11/2024 00:13:34 on Thursday DST in April, by Windows User <jeffs>
+$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_events.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
+Exiting standard_header v2
 Completed pull from API
-Wrote to xml file, 507 new events
+Wrote to xml file, 252 new events
 Finally
 *** empty string
 *** empty string
-Stopping Normally after 45.0190118 Second(s)
+Stopping Normally after 60.7480447 Second(s)

@@ -14,13 +14,23 @@ $howMuchSpaceLeft   = [Int64]0
 # Fetch a string array of paths to search.
                            
 # TODO: Extend O to include I, N, F, and E. Split those to share with D, too, the download drive.
-# I: 5.4 TB free
-# N: 11 TB free
-# F: 4.5 TB free
-# E: 3.6 TB free
-# O: 1.7 TB free
-# D: 3.7 TB free
-# K: 10.9 TB free
+# C:  0.8 TB free
+# D:  3.6 TB free
+# E:  3.6 TB free
+# F:  4.5 TB free
+# G: 14.1 TB free
+# H:
+# I:  5.4 TB free
+# J:
+# K: 11.9 TB free
+# L:
+# M:
+# N:  9.9 TB free
+# O:  1.5 TB free
+# P:
+# Q:
+# Free letters: 15!  How many USB ports? hmmmmmm.  Any room for internal drives?  Pull lid? Insert high card? May not be enough power supply. Move board to big case?????????????????
+# Total space left: 46.5 TB
 
 ###### Tue Mar 5 15:47:32 MST 2024 Bought Avolusion HDDGear Pro X 12TB USB 3.0 External Gaming Hard Drive. Reformat as NTFS
 
@@ -29,6 +39,8 @@ $volumesForSearchDirectories = WhileReadSql 'SELECT DISTINCT volume_id, drive_le
 $volumes = Get-Volume|Where DriveLetter -ne ''|Select DriveLetter, Size, SizeRemaining
 
 # Search down each search path for directories that are different or missing from our data store.
+    
+[Int64]$howMuchSpaceLeft = 0
 
 while ($volumesForSearchDirectories.Read()) {                                                                                 
     $totalSize      = ($volumes|Where DriveLetter -eq $drive_letter|Select Size).Size
@@ -39,7 +51,7 @@ while ($volumesForSearchDirectories.Read()) {
     $howMuchSpaceLeft+= $spaceRemaining
 }
 
-Write-Count howMuchSpaceLeft Files                            
+Write-Count howMuchSpaceLeft Byte
 
 }
 catch {
