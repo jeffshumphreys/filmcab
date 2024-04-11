@@ -1,9 +1,0 @@
-Starting Log 04/11/2024 00:13:34 on Thursday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\schedule maintenance\pull_scheduled_task_events.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-Exiting standard_header v2
-Completed pull from API
-Wrote to xml file, 252 new events
-Finally
-*** empty string
-*** empty string
-Stopping Normally after 60.7480447 Second(s)

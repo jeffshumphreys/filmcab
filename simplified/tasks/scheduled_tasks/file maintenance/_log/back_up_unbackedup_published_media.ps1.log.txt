@@ -1,9 +1,0 @@
-Starting Log 04/11/2024 00:01:13 on Thursday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\back_up_unbackedup_published_media.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-Exiting standard_header v2
-Starting Robocopy
-Finished Robocopy
-Finally
-*** empty string
-*** empty string
-Stopping Normally after 7.4434564 Second(s)

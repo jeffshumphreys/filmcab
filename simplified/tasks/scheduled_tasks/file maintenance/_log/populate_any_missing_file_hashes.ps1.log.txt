@@ -1,7 +1,0 @@
-Starting Log 04/11/2024 00:07:12 on Thursday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\populate_any_missing_file_hashes.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-Exiting standard_header v2
-Finally
-*** empty string
-*** empty string
-Stopping Normally after 1.9864345 Second(s)

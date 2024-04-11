@@ -1,9 +1,0 @@
-Starting Log 04/11/2024 00:01:02 on Thursday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\FilmCab\simplified\tasks\scheduled_tasks\file maintenance\_start_new_batch_run_session.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '_start_new_batch_run_session.ps1', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running
-UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = 311
-Exiting standard_header v2
-Finally
-*** empty string
-*** empty string
-Stopping Normally after 8.9925764 Second(s)

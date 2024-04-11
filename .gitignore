@@ -46,6 +46,7 @@ General/
 */_log/*.log
 */_log/*.log.txt
 */_log/*.ps1.log.txt
+simplified/tasks/manual_tasks/_log/*.ps1.log.txt
 */_log/*.ps1.transcript.log.txt
 */_data/*.xml
 */_data/*.xlsx
