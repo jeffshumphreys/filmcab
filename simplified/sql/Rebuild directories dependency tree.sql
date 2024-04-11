@@ -132,13 +132,15 @@ AS WITH base AS (SELECT
     d.root_genre                                                                                                                                             AS root_genre,
     COALESCE(f.is_symbolic_link, FALSE)                                                                                                                      AS file_is_symbolic_link,
     COALESCE(f.is_hard_link, FALSE)                                                                                                                          AS file_is_hard_link,
+    COALESCE(f.broken_link, FALSE)                                                                                                                   AS file_is_broken_link,
     NULLIF(f.linked_path, '')                                                                                                                                AS file_linked_path,
     d.directory_is_symbolic_link                                                                                                                             AS directory_is_symbolic_link,
     d.directory_is_junction_link                                                                                                                             AS directory_is_junction_link,
     d.move_id                                                                                                                                                AS directory_move_id,
     f.move_id                                                                                                                                                AS move_id,
     f.moved_in,
-    f.moved_from_file_id                                                                                                                                     AS moved_from_file_id
+    f.moved_from_file_id                                                                                                                                     AS moved_from_file_id,
+    f.moved_to_directory_hash
    FROM files f
      JOIN directories_ext_v d USING (directory_hash)
      JOIN search_directories sd USING (search_directory_id)
@@ -192,6 +194,10 @@ AS SELECT files.file_id,
     files.move_id,
     files.moved_out,
     files.moved_in,
-    files.moved_from_file_id
+    files.moved_from_file_id,
+    files.moved_from_directory_hash,
+    files.moved_to_volume_id,
+    files.moved_to_directory_hash,
+    files.moved_from_volume_id 
    FROM files;
    SELECT count(*) FROM simplified.files_ext_v WHERE is_real_file
