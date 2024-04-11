@@ -235,6 +235,8 @@ $Move_Directory = {
     $sourcePartOfPath                    = $treeViewOfPublishedDirectories.SelectedNode.Tag
     $moveReason                          = $selectedmoveReasonComboBox.Text
     $moveReason_prepped_for_sql          = PrepForSql $moveReason
+    $whyMove                             = $whyThisMoveReasonText.Text
+    $whyMove_prepped_for_sql             = PrepForSql $whyMove
     $targetBaseDirectory                 = "N:\Video AllInOne Seen"
     
     if ($moveReason -ne "Seen") {
@@ -254,15 +256,15 @@ $Move_Directory = {
     # NOTE: move_id is a sequence. rollbacks do not restore used ids. SQL Standard.
 
     try {
-        $Script:ActiveTransaction   = $DatabaseConnection.BeginTransaction([System.Data.IsolationLevel]::ReadCommitted) #PostgreSQL's Read Uncommitted mode behaves like Read Committed
+        $Script:ActiveTransaction        = $DatabaseConnection.BeginTransaction([System.Data.IsolationLevel]::ReadCommitted) #PostgreSQL's Read Uncommitted mode behaves like Read Committed
        
-        $source_driveletter         = Left $sourceDirectory
-        $sourceVolumeId             = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$source_driveletter'"
-        $source_search_directory_id = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $sourceBaseDirectory_prepped_for_sql"
+        $source_driveletter              = Left $sourceDirectory
+        $sourceVolumeId                  = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$source_driveletter'"
+        $source_search_directory_id      = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $sourceBaseDirectory_prepped_for_sql"
        
-        $target_driveletter         = Left $targetDirectory
-        $targetVolumeId             = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$target_driveletter'"
-        $target_search_directory_id = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $targetBaseDirectory_prepped_for_sql"
+        $target_driveletter              = Left $targetDirectory
+        $targetVolumeId                  = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$target_driveletter'"
+        $target_search_directory_id      = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $targetBaseDirectory_prepped_for_sql"
 
         # Step (1) Get a move transaction record and it's id
         
@@ -280,6 +282,7 @@ $Move_Directory = {
                 ,   to_volume_id            
                 ,   to_search_directory_id
                 ,   move_reason
+                ,   description_why_reason_applies
                 ) 
                 VALUES(
                     TRANSACTION_TIMESTAMP()                                       /* Transaction start time above) */
@@ -293,8 +296,10 @@ $Move_Directory = {
                 ,   $targetVolumeId                     
                 ,   $target_search_directory_id         
                 ,   $moveReason_prepped_for_sql         
+                ,   $whyMove_prepped_for_sql
                 ) 
                 RETURNING move_id"
+
         $currentActivity.Text = "Move Id # $move_id"
         $currentActivity.Refresh()
         
@@ -520,14 +525,16 @@ $Move_Directory = {
             $Script:ActiveTransaction            = $null
 
             # Following will only be set IF it didn't have a catch, which rolled back the data, and so never gets past above if.
-
+                                   
             $currentActivity.Text                = "MOVE COMPLETED SUCCESSFULLY"
             $currentActivity.ForeColor           = $Green
             $currentActivity.Font                = $BoldFont
             }
 
     }
-    $form.Cursor                         = [System.Windows.Forms.Cursors]::Default    
+    $form.Cursor                                 = [System.Windows.Forms.Cursors]::Default    
+    $selectedmoveReasonComboBox.SelectedItem     = ""
+    $whyThisMoveReasonText.Text                  = ""
 
 }
 
