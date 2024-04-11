@@ -32,23 +32,23 @@ $BUTTON_WIDTH          = 75
 $BUTTON_HEIGHT         = 23
 $HORIZONTAL_SPACER     = 5
 
-########################################################################################################################################################################################################
-$OKButton              = New-Object System.Windows.Forms.Button
-$OKButton.Location     = New-Object System.Drawing.Point(($ScreenWidth -  $BUTTON_WIDTH - $HORIZONTAL_SPACER - $BUTTON_WIDTH),($ScreenHeight - $BUTTON_HEIGHT))
-$OKButton.Size         = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
-$OKButton.Text         = "OK"
-$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-$form.AcceptButton     = $OKButton
+# ########################################################################################################################################################################################################
+# $OKButton              = New-Object System.Windows.Forms.Button
+# $OKButton.Location     = New-Object System.Drawing.Point(($ScreenWidth -  $BUTTON_WIDTH - $HORIZONTAL_SPACER - $BUTTON_WIDTH),($ScreenHeight - $BUTTON_HEIGHT))
+# $OKButton.Size         = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
+# $OKButton.Text         = "OK"
+# $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+# $form.AcceptButton     = $OKButton
 
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($OKButton)<#~~~~~~~~~~~~~~~~~~~~#>
+# <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($OKButton)<#~~~~~~~~~~~~~~~~~~~~#>
 
-########################################################################################################################################################################################################
-$CancelButton              = New-Object System.Windows.Forms.Button
-$CancelButton.Location     = New-Object System.Drawing.Point(($ScreenWidth - $BUTTON_WIDTH),($ScreenHeight - $BUTTON_HEIGHT))
-$CancelButton.Size         = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
-$CancelButton.Text         = "Cancel"
-$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-$form.CancelButton         = $CancelButton
+# ########################################################################################################################################################################################################
+# $CancelButton              = New-Object System.Windows.Forms.Button
+# $CancelButton.Location     = New-Object System.Drawing.Point(($ScreenWidth - $BUTTON_WIDTH),($ScreenHeight - $BUTTON_HEIGHT))
+# $CancelButton.Size         = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
+# $CancelButton.Text         = "Cancel"
+# $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+# $form.CancelButton         = $CancelButton
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($CancelButton)<#~~~~~~~~~~~~~~~~~~~~#>
 
@@ -131,20 +131,33 @@ $treeViewOfPublishedDirectories.add_AfterSelect({
         $Script:next_directory_path     = $this.SelectedNode.NextNode.Name
     } catch {
         $Script:next_directory_path     = $null
-    }                                            
-    $MoveFilesButton.Enabled            = $true
+    }      
+    if ($this.SelectedNode.Text.StartsWith('_') -or $this.SelectedNode.Level -eq 0) {
+        $MoveFilesButton.Enabled        = $false
+    }
+    else {
+        $MoveFilesButton.Enabled        = $true
+    }
 })
+
+$BoldFont = [System.Drawing.Font]::new("Microsoft Sans Serif", 10, [System.Drawing.FontStyle]::Bold)
+$NormalFont = [System.Drawing.Font]::new("Microsoft Sans Serif", 10)
 
 ###########################################################################################################################################################################################
 # Action taken when we click the move button
 ###########################################################################################################################################################################################
 $Move_Directory = {
+    $currentActivity.ForeColor           = $Black  
+    $currentActivity.Font                = $NormalFont
     $currentActivity.Text                ="moving directory..."
     $sourceDirectory                     = $treeViewOfPublishedDirectories.SelectedNode.Name
     $sourceBaseDirectory                 = $Script:sourceBaseDirectory
     $sourceBaseDirectory_prepped_for_sql = PrepForSql $sourceBaseDirectory
     $sourceDirectory_prepped_for_sql     = PrepForSql $sourceDirectory
-    $sizeOfSourceDirectory               = ((gci –force -LiteralPath $sourceDirectory –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+    $sizeOfSourceDirectory = 0
+    try {
+        $sizeOfSourceDirectory               = ((gci –force -LiteralPath $sourceDirectory –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+    } catch {}
     $sourcePartOfPath                    = $treeViewOfPublishedDirectories.SelectedNode.Tag
     $moveReason                          = $selectedmoveReasonComboBox.Text
     $moveReason_prepped_for_sql          = PrepForSql $moveReason
@@ -211,7 +224,16 @@ $Move_Directory = {
         # Step (2) Move the files over. This can't get rolled back
 
         #Copy-Item -LiteralPath $sourceDirectory -Destination $targetDirectory -Force -Recurse
-        #Move-Item -LiteralPath $sourceDirectory -Destination $targetDirectory -Force -Recurse
+        ###############################################################################################################################################################################################################################################################
+        ###############################################################################################################################################################################################################################################################
+        $movedFilesYet = $false
+        try {
+            Move-Item -LiteralPath $sourceDirectory -Destination $targetDirectory -Force
+        } catch {}
+        $movedFilesYet = $true                                                                                                                                                                                                                                         
+        ###############################################################################################################################################################################################################################################################
+        ###############################################################################################################################################################################################################################################################
+        ###############################################################################################################################################################################################################################################################
 
         # Step (3) Stamp the duration of the move, and which direction the data was moving, into the table/folder, or out of the table and folders.
         
@@ -316,19 +338,18 @@ $Move_Directory = {
                 FROM directories_ext_v dev JOIN nodes ON dev.parent_directory_hash = nodes.directory_hash
             ),
             all_files AS (
-                SELECT f.* FROM files_ext_v f JOIN nodes USING(directory_hash)
-            ),
-            UPDATE
-                files_v x
-            SET
-                x.move_id                 = $move_id
-            ,   x.moved_out               = $true
-            ,   x.moved_to_directory_hash = md5_from_path(y.new_directory)
+                SELECT f.*, nodes.new_directory FROM files_ext_v f JOIN nodes USING(directory_hash)
             )
+            UPDATE
+                files_v
+            SET
+                move_id                 = $move_id
+            ,   moved_out               = $true
+            ,   moved_to_directory_hash = md5_hash_path(y.new_directory)
             FROM 
                 all_files y
             WHERE
-                x.file_id = y.file_id
+                files_v.file_id = y.file_id
         "                                                                                                                             
        
         # Step (7) Copy the file records over, altering as needed.
@@ -342,8 +363,8 @@ $Move_Directory = {
                 FROM directories_ext_v dev JOIN nodes ON dev.parent_directory_hash = nodes.directory_hash
             ),
             all_files AS (
-                SELECT f.* FROM files_ext_v f JOIN nodes USING(directory_hash)
-            ),
+                SELECT f.*, nodes.new_directory FROM files_ext_v f JOIN nodes USING(directory_hash)
+            )
             INSERT INTO
                 files_v(
                     file_hash
@@ -374,8 +395,8 @@ $Move_Directory = {
                 ,   file_is_symbolic_link
                 ,   file_is_hard_link
                 ,   file_is_broken_link
-                ,   linked_path                                                      /* No way this is valid. Probably should update */
-                ,   $null                          AS file_ntfs_id
+                ,   file_linked_path                                                      /* No way this is valid. Probably should update */
+                ,   NULL                           AS file_ntfs_id
                 ,   $true                          AS scan_file_for_ntfs_id
                 ,   $move_id                       AS move_id
                 ,   True                           AS moved_in         
@@ -385,22 +406,33 @@ $Move_Directory = {
         "                                                                                                                             
 
         $treeViewOfPublishedDirectories.SelectedNode.Remove()               
+
+        $currentActivity.Text      = "MOVE COMPLETED SUCCESSFULLY"
+        $currentActivity.ForeColor = $Green
+        $currentActivity.Font      = $BoldFont
+    
     }                        
     catch {
+        # Warning: Any crashes here will auto-commit!!!!!!
         if ((Test-Path variable:ActiveTransaction) -and $null -ne $ActiveTransaction -and $null -ne $ActiveTransaction.Connection) {
             $Script:ActiveTransaction.Rollback()
             $Script:ActiveTransaction.Dispose()
+            $currentActivity.Text ="Move CANCELLED"
+            $currentActivity.ForeColor = $Red
+            $currentActivity.Font = $BoldFont
         }                                             
     }
     finally {
         if ((Test-Path variable:ActiveTransaction) -and $null -ne $ActiveTransaction -and $null -ne $ActiveTransaction.Connection) {
             $Script:ActiveTransaction.Commit()
             $Script:ActiveTransaction.Dispose()
-            $Script:ActiveTransaction = $null
+            $Script:ActiveTransaction            = $null
             $currentActivity.Text                = ""
         }
 
     }
+    
+
 }
 
 $MoveFilesButton.add_click($Move_Directory)
@@ -475,7 +507,7 @@ $treeViewOfPublishedDirectories.EndUpdate()
 
 # Set our place in the tree where we were last, or very near there.
 
-if (Test-Path variable:Script:directory_path) {
+if ((Test-Path variable:Script:directory_path) -and -not [string]::IsNullOrWhiteSpace($Script:directory_path)) {
 [array]$treeNodesForThatDirectory = $treeViewOfPublishedDirectories.Nodes.Find($Script:directory_path, $true)
 # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
 if ($treeNodesForThatDirectory.Count -ge 1) {
