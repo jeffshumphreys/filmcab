@@ -45,9 +45,8 @@ General/
 # https://git-scm.com/docs/gitignore#_pattern_format
 */_log/*.log
 */_log/*.log.txt
-*/_log/*.ps1.log.txt
-simplified/tasks/manual_tasks/_log/*.ps1.log.txt
-*/_log/*.ps1.transcript.log.txt
+**/_log/*.ps1.log.txt
+**/_log/*.ps1.transcript.log.txt
 */_data/*.xml
 */_data/*.xlsx
 */_data/*.csv
@@ -68,3 +67,6 @@ user_spreadsheet_interface.csv
 simplified/_data/.~lock.user_spreadsheet_interface.ods#
 simplified/packages/Humanizer.2.14.1.nupkg
 simplified/doc/nuget packages installed.md
+simplified/tasks/manual_tasks/_log/calculate_space_in_search_directories.ps1.log.txt
+simplified/tasks/manual_tasks/_log/calculate_space_in_search_directories.ps1.transcript.log.txt
+simplified/tasks/scheduled_tasks/file maintenance/_log/delete_missing_directory_entries.ps1.transcript.log.txt

@@ -1,6 +1,0 @@
-Starting Log 04/10/2024 21:31:25 on Wednesday DST in April, by Windows User <jeffs>
-$ScriptFullPath: D:\qt_projects\filmcab\simplified\under_construction\offload_published_directories_selecting_using_gui.ps1, $PSVersion = 7.5.0-preview.2, $PSEdition = Core, $CommandOrigin = Internal, Current Function = _dot_include_standard_header.ps1
-Exiting standard_header v2
-Finally
-*** empty string
-*** empty string
