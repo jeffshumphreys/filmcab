@@ -5,12 +5,20 @@
 #>
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+                                         
+# https://learn.microsoft.com/en-us/dotnet/api/system.drawing.color?view=net-8.0
 
-$slateBlue = [System.Drawing.Color]::FromName("SlateBlue")
-$Red = [System.Drawing.Color]::FromName("Red")    
-$Green = [System.Drawing.Color]::FromName("Green")    
-$Yellow = [System.Drawing.Color]::FromName("Yellow")
-$Black = [System.Drawing.Color]::FromName("Black")
+$slateBlue  = [System.Drawing.Color]::FromName("SlateBlue")
+$Red        = [System.Drawing.Color]::FromName("Red")
+$Green      = [System.Drawing.Color]::FromName("Green")
+$Yellow     = [System.Drawing.Color]::FromName("Yellow")
+$DarkYellow = [System.Drawing.Color]::FromName("DarkGoldenrod")
+$Black      = [System.Drawing.Color]::FromName("Black")      
+
+$BoldFont   = [System.Drawing.Font]::new("Microsoft Sans Serif", 10, [System.Drawing.FontStyle]::Bold)
+$ItalicFont = [System.Drawing.Font]::new("Microsoft Sans Serif", 10, [System.Drawing.FontStyle]::Italic)
+$NormalFont = [System.Drawing.Font]::new("Microsoft Sans Serif", 10)
+
 function Get-TaskBarDimensions {
     param (
         [System.Windows.Forms.Screen]$Screen = [System.Windows.Forms.Screen]::PrimaryScreen
