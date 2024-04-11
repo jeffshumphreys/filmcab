@@ -6,6 +6,11 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+$slateBlue = [System.Drawing.Color]::FromName("SlateBlue")
+$Red = [System.Drawing.Color]::FromName("Red")    
+$Green = [System.Drawing.Color]::FromName("Green")    
+$Yellow = [System.Drawing.Color]::FromName("Yellow")
+$Black = [System.Drawing.Color]::FromName("Black")
 function Get-TaskBarDimensions {
     param (
         [System.Windows.Forms.Screen]$Screen = [System.Windows.Forms.Screen]::PrimaryScreen
