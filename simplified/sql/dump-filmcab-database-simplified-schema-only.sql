@@ -2183,7 +2183,8 @@ CREATE TABLE simplified.moves (
     from_search_directory_id integer,
     to_base_directory character varying,
     to_volume_id smallint,
-    to_search_directory_id integer
+    to_search_directory_id integer,
+    description_why_reason_applies character varying
 );
 
 
@@ -2194,6 +2195,13 @@ ALTER TABLE simplified.moves OWNER TO postgres;
 --
 
 COMMENT ON TABLE simplified.moves IS 'Track all the meta about amove of a directory off one volume to another, especially why.';
+
+
+--
+-- Name: COLUMN moves.description_why_reason_applies; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.moves.description_why_reason_applies IS 'So for "Won''t Watch", why won''t we watch. Woke? Breaks 4th wall? Fembots?';
 
 
 --
