@@ -139,6 +139,7 @@ AS WITH base AS (SELECT
     d.move_id                                                                                                                                                AS directory_move_id,
     f.move_id                                                                                                                                                AS move_id,
     f.moved_in,
+    f.moved_out,
     f.moved_from_file_id                                                                                                                                     AS moved_from_file_id,
     f.moved_to_directory_hash
    FROM files f
