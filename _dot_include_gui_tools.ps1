@@ -13,17 +13,21 @@ $Red        = [System.Drawing.Color]::FromName("Red")
 $Green      = [System.Drawing.Color]::FromName("Green")
 $Yellow     = [System.Drawing.Color]::FromName("Yellow")
 $DarkYellow = [System.Drawing.Color]::FromName("DarkGoldenrod")
-$Black      = [System.Drawing.Color]::FromName("Black")      
-
+$Black      = [System.Drawing.Color]::FromName("Black")
+       
 $BoldFont   = [System.Drawing.Font]::new("Microsoft Sans Serif", 10, [System.Drawing.FontStyle]::Bold)
 $ItalicFont = [System.Drawing.Font]::new("Microsoft Sans Serif", 10, [System.Drawing.FontStyle]::Italic)
 $NormalFont = [System.Drawing.Font]::new("Microsoft Sans Serif", 10)
 
+$StartingColor = $DarkYellow
+$SuccessColor = $Green
+$FailColor = $Red
+
 function Get-TaskBarDimensions {
     param (
         [System.Windows.Forms.Screen]$Screen = [System.Windows.Forms.Screen]::PrimaryScreen
-    )        
-
+    )
+    
     $device = ($Screen.DeviceName -split '\\')[-1]
     if ($Screen.Primary) { $device += ' (Primary Screen)' }
 
