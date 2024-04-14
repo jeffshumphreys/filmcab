@@ -1065,6 +1065,59 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
 Function HumanizeCount([Int64]$i) {
     return [string]::Format('{0:N0}', $i)
 }
+ 
+$ScriptBlockAsyncMoveFilesAndDirectories = {
+    $SourcePath = $args[0]
+    $TargetPath = $args[1]
+    #$SourceFilesAndDirectories = Get-ChildItem -File -Recurse -Path "$($SourcePath)\$($Filename)" -ErrorAction SilentlyContinue
+    Write-Host "`$SourcePath = $SourcePath"
+    Write-Host "`$TargetPath = $TargetPath"
+    $SourceFilesAndDirectories = Get-ChildItem -Recurse -LiteralPath "$SourcePath" -ErrorAction SilentlyContinue
 
+    foreach ($fileOrDirectory in $SourceFilesAndDirectories) {                      
+        $MeaningfulPartOfSourcePath = ($fileOrDirectory.FullName.Substring($SourcePath.Length).Trim("\"))
+        Write-Host "`$MeaningfulPartOfSourcePath = $MeaningfulPartOfSourcePath"     
+        $NewlyConstructedTargetPath = "$($TargetPath)\$($MeaningfulPartOfSourcePath)"
+        if ((Test-Path -LiteralPath $fileOrDirectory.FullName -PathType Container)) {
+            # For cases where directories are empty, we still want to move them over.
+            Write-Host "Creating directory: $NewlyConstructedTargetPath"
+            New-Item -Path $NewlyConstructedTargetPath -ItemType Directory -Force|Out-Null
+        } else {
+            Write-Host "Copying file to: $NewlyConstructedTargetPath"
+            # We want to use Move-Item because of space concerns when moving to the same spindle.  Huge moves of many files and directories could run out of space with Copy-Item
+            Move-Item -LiteralPath $fileOrDirectory.FullName -Destination $NewlyConstructedTargetPath -Force|Out-Null
+        }
+    }
+    Write-Host "`$SourcePath = $SourcePath"
+ 
+    # This deletes the source
+    Remove-Item -LiteralPath $SourcePath -Force -Recurse -ErrorAction SilentlyContinue|Out-Null
+}
 
+# Version (untested) with progress bars.
+# Question: What is a PSDrive?
+Function Copy-File {
+    param( [string]$from, [string]$to)
+    $ffile = [io.file]::OpenRead($from)
+    #$tofile = [io.file]::OpenWrite($to)
+    $tofile = [io.file]::Create($to)
+    Write-Progress -Activity "Copying file" -status "$from -> $to" -PercentComplete 0
+    try {                
+        [byte[]]$buff = new-object byte[] 4096
+        [long]$total = [int]$count = 0
+        do {
+            $count = $ffile.Read($buff, 0, $buff.Length)
+            $tofile.Write($buff, 0, $count)
+            $total += $count
+            if ($total % 1mb -eq 0) {
+                Write-Progress -Activity "Copying file" -status "$from -> $to" -PercentComplete ([long]($total * 100 / $ffile.Length))
+            }
+        } while ($count -gt 0)
+    }
+    finally {
+        $ffile.Dispose()
+        $tofile.Dispose()
+        Write-Progress -Activity "Copying file" -Status "Ready" -Completed
+    }
+}
 Log-Line "Exiting standard_header v2"
