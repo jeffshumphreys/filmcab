@@ -1682,6 +1682,7 @@ CREATE VIEW simplified.files_ext_v AS
             d.move_id AS directory_move_id,
             f.move_id,
             f.moved_in,
+            f.moved_out,
             f.moved_from_file_id,
             f.moved_to_directory_hash
            FROM ((simplified.files f
@@ -1725,6 +1726,7 @@ CREATE VIEW simplified.files_ext_v AS
             base.directory_move_id,
             base.move_id,
             base.moved_in,
+            base.moved_out,
             base.moved_from_file_id,
             base.moved_to_directory_hash,
                 CASE
@@ -1770,6 +1772,7 @@ CREATE VIEW simplified.files_ext_v AS
     add_reduced_user_logic.directory_move_id,
     add_reduced_user_logic.move_id,
     add_reduced_user_logic.moved_in,
+    add_reduced_user_logic.moved_out,
     add_reduced_user_logic.moved_from_file_id,
     add_reduced_user_logic.moved_to_directory_hash,
     add_reduced_user_logic.is_real_file,
