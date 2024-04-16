@@ -86,9 +86,11 @@ $selectedmoveReasonComboBox.Items.AddRange("Seen", "Won't Watch", "Won't Finish"
 
 ########################################################################################################################################################################################################
 $whyThisMoveReasonText                   = New-Object System.Windows.Forms.TextBox
+$whyThisMoveReasonText.AutoSize          = $false
 $whyThisMoveReasonText.Location          = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 4))
 $whyThisMoveReasonText.Size              = New-Object System.Drawing.Size(($columnWidth2), ($BUTTON_HEIGHT*3))
 $whyThisMoveReasonText.PlaceholderText   = "Explain why this move reason"
+$whyThisMoveReasonText.Multiline         = $true
 $whyThisMoveReasonText.WordWrap          = $true
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($whyThisMoveReasonText)<#~~~~~~~~~~~~~~~~~~~~#>
@@ -102,12 +104,21 @@ $maxObjectWidth3b                        = 100
 $columnWidth3b                           = $maxObjectWidth3b + ($HORIZONTAL_SPACER)
 
 ########################################################################################################################################################################################################
-$RunningActivityLog                   = New-Object System.Windows.Forms.RichTextBox
-$RunningActivityLog.Location          = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 7 + $VERTICAL_SPACER))
-$RunningActivityLog.Size              = New-Object System.Drawing.Size(($columnWidth2+$columnWidth3), ($BUTTON_HEIGHT*10))
-$RunningActivityLog.ReadOnly          = $true
-$RunningActivityLog.AutoScrollOffset  = 100
-$RunningActivityLog.Text              = ""
+
+# $activityAnimation                       = New-Object System.Windows.Forms.PictureBox
+# $activityAnimation.Location              = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2), ($BUTTON_HEIGHT * 4))
+# $activityAnimation.Size                  = New-Object System.Drawing.Size(($columnWidth2), ($BUTTON_HEIGHT*3))
+# $activityAnimation.SizeMode              = 'StretchImage'
+
+# <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($activityAnimation)<#~~~~~~~~~~~~~~~~~~~~#>
+
+########################################################################################################################################################################################################
+$RunningActivityLog                      = New-Object System.Windows.Forms.RichTextBox
+$RunningActivityLog.Location             = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 7 + $VERTICAL_SPACER))
+$RunningActivityLog.Size                 = New-Object System.Drawing.Size(($columnWidth2+$columnWidth3), ($BUTTON_HEIGHT*10))
+$RunningActivityLog.ReadOnly             = $true
+$RunningActivityLog.AutoScrollOffset     = 100
+$RunningActivityLog.Text                 = ""
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($RunningActivityLog)<#~~~~~~~~~~~~~~~~~~~~#>
 
@@ -262,9 +273,10 @@ Function LogMoveActivityLine($msg, [System.Drawing.Color]$textColor) {
     if ($null -eq $textColor) {
         $textColor = $Black
     }
-    $RunningActivityLog.SelectionStart = $RunningActivityLog.TextLength
+    $RunningActivityLog.SelectionStart  = $RunningActivityLog.TextLength
     $RunningActivityLog.SelectionLength = 0
-    $RunningActivityLog.SelectionColor = $textColor
+    $RunningActivityLog.SelectionColor  = $textColor
+    $RunningActivityLog.SelectionFont   = $BoldFont
     $RunningActivityLog.AppendText("$logtimestr`:$msg$([System.Environment]::NewLine)")
     $RunningActivityLog.ScrollToCaret()
     $RunningActivityLog.Refresh()
@@ -304,6 +316,7 @@ $Move_Directory = {
     $targetDirectory                     = (Get-Item $targetDirectory).Parent.FullName
     $targetDirectory_prepped_for_sql     = PrepForSql $targetDirectory
     LogMoveActivityLine "Moving $sourceDirectory to $targetDirectory..." -textColor $StartingColor
+    # ERROR: Can't run during single large -MoveItem and even between moves. No update. $activityAnimation.Load("D:\qt_projects\filmcab\simplified\images\animations\running.homer.silly.gif")
 
     # So much table change, we need to transact it. Else it leaves stuff during partial testing
     # NOTE: move_id is a sequence. rollbacks do not restore used ids. SQL Standard.
@@ -558,8 +571,10 @@ $Move_Directory = {
 
         # Complete. Silently remove item from tree.
 
-        $sequenceControlIgnoreNext_afterSelectTreeview = $true                       
+        $sequenceControlIgnoreNext_afterSelectTreeview = $true
         $treeViewOfPublishedDirectories.SelectedNode.Remove()
+        [Console]::Beep(500,300);[Console]::Beep(500,300)
+
     }
     catch {
         # Warning: Any crashes here will auto-commit!!!!!!
@@ -568,29 +583,29 @@ $Move_Directory = {
             $Script:ActiveTransaction.Dispose()
             $currentActivity.Text                = "Move CANCELLED"
             $currentActivity.ForeColor           = $Red
-            $currentActivity.Font                = $BoldFont                          
+            $currentActivity.Font                = $BoldFont
             LogMoveActivityLine "Failed to move $sourceDirectory to $targetDirectory" -textColor $FailColor
-        }                                                                                                         
-    }                                                                                                             
-    finally {                                                                                                     
+        }
+    }
+    finally {
         if ((Test-Path variable:ActiveTransaction) -and $null -ne $ActiveTransaction -and $null -ne $ActiveTransaction.Connection) {
-            $Script:ActiveTransaction.Commit()                                                                    
-            $Script:ActiveTransaction.Dispose()                                                                   
-            $Script:ActiveTransaction            = $null                                                          
-                                                                                                                  
+            $Script:ActiveTransaction.Commit()
+            $Script:ActiveTransaction.Dispose()
+            $Script:ActiveTransaction            = $null
+
             # Following will only be set IF it didn't have a catch, which rolled back the data, and so never gets past above if.
-                                                                                                                  
-            $currentActivity.Text                = "MOVE COMPLETED SUCCESSFULLY"                                  
-            $currentActivity.ForeColor           = $Green                                                         
-            $currentActivity.Font                = $BoldFont                                                      
+
+            $currentActivity.Text                = "MOVE COMPLETED SUCCESSFULLY"
+            $currentActivity.ForeColor           = $Green
+            $currentActivity.Font                = $BoldFont
             LogMoveActivityLine "Successfully moved $sourceDirectory to $targetDirectory" -textColor $SuccessColor
-        }                                            
-    }                                                
+        }
+    }
     $form.Cursor                                 = [System.Windows.Forms.Cursors]::Default
     $selectedmoveReasonComboBox.Text             = ""
     $whyThisMoveReasonText.Text                  = ""
     $sourceDirectorySize.Text                    = ""
-}                                                                                     
+}
 
 $MoveFilesButton.add_click($Move_Directory)
 
@@ -707,3 +722,57 @@ finally {
 Write-AllPlaces "Finally"
 . .\_dot_include_standard_footer.ps1
 }
+
+<#
+
+https://www.systanddeploy.com/2019/11/powershell-and-wpf-how-to-use-animated.html
+
+https://github.com/XamlAnimatedGif/WpfAnimatedGif
+A simple library to display animated GIF images in WPF, usable in XAML or in code.
+var image = new BitmapImage();
+image.BeginInit();
+image.UriSource = new Uri(fileName);
+image.EndInit();
+ImageBehavior.SetAnimatedSource(img, image);
+https://www.nuget.org/packages/WpfAnimatedGif
+
+#>
+
+<#
+
+
+https://stackoverflow.com/questions/165735/how-do-you-show-animated-gifs-on-a-windows-form-c
+  private void button1_Click(object sender, EventArgs e)
+  {
+   ThreadStart myThreadStart = new ThreadStart(Show);
+   Thread myThread = new Thread(myThreadStart);
+   myThread.Start();
+  }
+
+Show activity on this post.
+
+Note that in Windows, you traditionally don't use animated Gifs, but little AVI animations: there is a Windows native control just to display them. There are even tools to convert animated Gifs to AVI (and vice-versa).
+
+https://learn.microsoft.com/en-us/windows/win32/controls/animation-control-overview
+
+
+https://learn.microsoft.com/en-us/dotnet/api/system.windows.media.animation.animatable?view=windowsdesktop-8.0
+
+Animatable Class
+System.Windows.Media.Animation
+public abstract class Animatable : System.Windows.Freezable, System.Windows.Media.Animation.IAnimatable
+
+CAnimateCtrl m_avi;this is placed in your .h file.
+https://www.codeproject.com/Articles/159/CAnimateCtrl-Example
+
+Function ShowProgressGifDelegate {
+    $animatedGif.Visible = $true
+}
+Function ShowAnimation()
+{
+ $this.Invoke(ShowProgressGifDelegate);
+ #//your long running process
+ #System.Threading.Thread.Sleep(5000);
+ #this.Invoke(this.HideProgressGifDelegate);
+}
+#>
