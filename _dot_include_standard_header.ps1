@@ -2,7 +2,7 @@
 Import-Module PowerShellHumanizer
 Import-Module DellBIOSProvider                                      
 
-Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptName, LogDirectory -Scope Script -ErrorAction Continue -Verbose
+Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptName, LogDirectory -Scope Script -ErrorAction Ignore -Verbose
 
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 1 - Set environment control
@@ -471,8 +471,8 @@ if ($Script:Caller -eq 'Windows Task Scheduler') {
                                                                                         
     $xmlToFilterGetWinEventsInvolvingTrigger = @"
     <QueryList><Query Id="0"><Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name="TaskName"]="$fullScheduledTaskPath"]]</Select></Query></QueryList>
-"@          
-    $lastEventWhileRunningIs = Get-WinEvent -FilterXml $xmlToFilterGetWinEventsInvolvingTrigger -MaxEvents 100 -ErrorAction Ignore|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, ProcessId, 
+"@
+    $lastEventsWhileRunningIs = Get-WinEvent -FilterXml $xmlToFilterGetWinEventsInvolvingTrigger -MaxEvents 100 -ErrorAction Ignore|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, ProcessId,
     @{Name='ResultCode'; Expression = {
             if ($_.Id -in @(203,716,201,715,714,305,713,316,315,717,202,718,105,205,104,712,103,306,204,101,307,311,331,403,711,702,126,303,703,130,704,705,706,707,708,709,413,412,113,146,410,408,401,115,116,710,404,409,151,150,406,407,148,405,701)) {
                         if ($_.Id -in @(716,715,717,718,712,702,703,704,705,413,412,410,408,115,710,409,406,407,405,701) -and $_.Version -eq 0) {
@@ -509,17 +509,17 @@ if ($Script:Caller -eq 'Windows Task Scheduler') {
             $_.Properties[2].Value
             }
             }
-        }}, 
+        }},
     ID|
-    Where-Object {$_.ID -in 
+    Where-Object {$_.ID -in
         107, <# Triggered on Scheduler (Message ends with "due to a time trigger condition")#>
         108, <# Triggered on Event #>
-        109, <# Triggered by Registration #> 
+        109, <# Triggered by Registration #>
         110, <# Triggered by User #>
         117, <# Triggered on Idle #>
         118, <# Triggered by Computer startup #>
-        119, <# Triggered on logon #>              
-        120, <# Triggered on local console connect#>    
+        119, <# Triggered on logon #>
+        120, <# Triggered on local console connect#>
         121, <# Triggered on #>
         122, <# Triggered on #>
         123, <# Triggered on #>
@@ -528,45 +528,123 @@ if ($Script:Caller -eq 'Windows Task Scheduler') {
         126, <# Triggered on #>
         127, <# Restarted On failure (Rejected) #>
         145  <# Triggered by coming out of suspend mode #>
-    }|Select -First 1 
+    }|Select -First 1
 
-    if ($null -ne $lastEventWhileRunningIs) {
-        $Script:WindowsSchedulerTaskTriggeringEvent = $lastEventWhileRunningIs
-    }                                              
+    if ($null -ne $lastEventsWhileRunningIs) {
+        $Script:WindowsSchedulerTaskTriggeringEvent = $lastEventsWhileRunningIs
+    }
     else {
         $Script:WindowsSchedulerTaskTriggeringEvent = $null
     }
 }
 
+Function Get-LastEventsForTask ($fullScheduledTaskPath, $howManyEvents = 1, [Switch]$LastRunOnly) {
+    $xmlToFilterGetWinEventsInvolvingTrigger = @"
+    <QueryList><Query Id="0"><Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name="TaskName"]="$fullScheduledTaskPath"]]</Select></Query></QueryList>
+"@
+    $lastEventsWhileRunningIs = Get-WinEvent -FilterXml $xmlToFilterGetWinEventsInvolvingTrigger -MaxEvents 100 -ErrorAction Ignore|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, ProcessId,
+    @{Name='ResultCode'; Expression = {
+            if ($_.Id -in @(203,716,201,715,714,305,713,316,315,717,202,718,105,205,104,712,103,306,204,101,307,311,331,403,711,702,126,303,703,130,704,705,706,707,708,709,413,412,113,146,410,408,401,115,116,710,404,409,151,150,406,407,148,405,701)) {
+                        if ($_.Id -in @(716,715,717,718,712,702,703,704,705,413,412,410,408,115,710,409,406,407,405,701) -and $_.Version -eq 0) {
+            $_.Properties[0].Value     
+            }          elseif ($_.Id -in @(714,713,316,315,105,205,306,204,307,403,711,126,130,707,709,113,146,401,116,404,150,148) -and $_.Version -eq 0) {
+            $_.Properties[1].Value     
+            }          elseif ($_.Id -in @(305,104,101,331,303,706,708,151) -and $_.Version -eq 0) {
+            $_.Properties[2].Value     
+            }          elseif ($_.Id -in @(203,202,103,311) -and $_.Version -eq 0) {
+            $_.Properties[3].Value     
+            }          elseif ($_.Id -in @(201,202) -and $_.Version -eq 1) {
+            $_.Properties[3].Value     
+            }          elseif ($_.Id -in @(201) -and $_.Version -eq 2) {
+            $_.Properties[3].Value     
+            }                          
+            }                          
+        }},                            
+        @{Name='UserContext'; Expression = {
+            if ($_.Id -in @(110,100,101,106,330,102,103)) {
+                        if ($_.Id -in @(100,101,106,102) -and $_.Version -eq 0) {
+            $_.Properties[1].Value     
+            }          elseif ($_.Id -in @(110,330,103) -and $_.Version -eq 0) {
+            $_.Properties[2].Value     
+            }                          
+            }                          
+        }},                            
+        @{Name='UserName'; Expression = {
+            if ($_.Id -in @(124,134,119,133,141,121,142,104,122,120,123,125,332,140)) {
+                        if ($_.Id -in @(104) -and $_.Version -eq 0) {
+            $_.Properties[0].Value     
+            }          elseif ($_.Id -in @(124,134,119,141,121,142,122,120,123,125,332,140) -and $_.Version -eq 0) {
+            $_.Properties[1].Value     
+            }          elseif ($_.Id -in @(133) -and $_.Version -eq 0) {
+            $_.Properties[2].Value     
+            }                          
+            }                          
+        }},                            
+    ID|                                
+    Where-Object {$_.ID -in            
+        107, <# Triggered on Scheduler (Message ends with "due to a time trigger condition")#>
+        108, <# Triggered on Event #>  
+        109, <# Triggered by Registration #>
+        110, <# Triggered by User #>   
+        117, <# Triggered on Idle #>
+        118, <# Triggered by Computer startup #>
+        119, <# Triggered on logon #>  
+        120, <# Triggered on local console connect#>
+        121, <# Triggered on #>
+        122, <# Triggered on #>
+        123, <# Triggered on #>
+        124, <# Triggered on Locking workstation #>
+        125, <# Triggered on #>
+        126, <# Triggered on #>        
+        127, <# Restarted On failure (Rejected) #>
+        145,  <# Triggered by coming out of suspend mode #>
+        100, <# Task Started #>        
+        101, <# Task Start failed #>   
+        102, <# Task Completed #>      
+        200, <# Action started #>      
+        203, <# Action Start failed #> 
+        201, <# Action completed #>    
+        111 <# Task terminated #>                                
+    }|Select -First $howManyEvents|                              
+    Sort RecordId -Descending
+
+    if ($null -ne $lastEventsWhileRunningIs) {
+        if ($LastRunOnly) {
+            $lastActivityId =$lastEventsWhileRunningIs[0].ActivityId
+            $lastEventsWhileRunningIs = ($lastEventsWhileRunningIs|Where ActivityId -eq $lastActivityId)
+        }
+    }
+    return [array]$lastEventsWhileRunningIs
+}
 #####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 8 - Persist Batch Run Session Detail
+# Bootstrap Ordered Stage 8 - Persist Batch Run Session Detail   
 # Dependencies: scheduledTaskForProject, WindowsSchedulerTaskTriggeringEvent, ScriptName, ScriptNameWithoutExtension, Caller
 #####################################################################################################################################################################################################################################################
-
+                                                                 
 if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeringEvent) {
     Set-StrictMode -Off # Critical to avoid not found errors on following attributes
     $triggers = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|
-    SELECT -expandProperty Triggers|
-    % {
-        $trigger = [PSCustomObject]@{ 
+    SELECT -expandProperty Triggers|                             
+    % {                                                          
+        $trigger = [PSCustomObject]@{                            
             Id                          = $_.Id # Only set if I generated the script in generate_clean_project_scheduled_tasks.ps1
-            TriggerType                 = (($_.pstypenames[0])-split '/')[-1] 
-            TaskName                    = $_.TaskName
-            Enabled                     = $_.Enabled
-            StartBoundary               = $_.StartBoundary
-            EndBoundary                 = $_.EndBoundary
-            DaysInterval                = $_.DaysInterval
-            WeeksInterval               = $_.WeeksInterval
-            Weeks                       = $_.Weeks
+            TriggerType                 = (($_.pstypenames[0])-split '/')[-1]
+            TaskName                    = $_.TaskName            
+            Enabled                     = $_.Enabled             
+            StartBoundary               = $_.StartBoundary       
+            EndBoundary                 = $_.EndBoundary         
+            DaysInterval                = $_.DaysInterval        
+            WeeksInterval               = $_.WeeksInterval       
+            Weeks                       = $_.Weeks               
             DaysOfWeek                  = $_.DaysOfWeek                    # uint16
-            Months                      = $_.Months
-            MonthOfYear                 = $_.MonthOfYear
-            DaysOfMonth                 = $_.DaysOfMonth
+            Months                      = $_.Months              
+            MonthOfYear                 = $_.MonthOfYear         
+            DaysOfMonth                 = $_.DaysOfMonth         
             RunOnLastWeekOfMonth        = $_.RunOnLastWeekOfMonth
             WeeksOfMonth                = $_.WeeksOfMonth
             ExecutionTimeLimit          = $_.ExecutionTimeLimit
-            RepetitionInterval          = $_.Repetition.Interval            # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S 
-            RepetitionDuration          = $_.Repetition.Duration 
+            RepetitionInterval          = $_.Repetition.Interval            # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S
+            RepetitionDuration          = $_.Repetition.Duration
             RepetitionStopAtDurationEnd = $_.Repetition.Duration            # PT4H
             RandomDelay                 = $_.RandomDelay
             Delay                       = $_.Delay                          # PT15S
@@ -590,15 +668,15 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
         ##############################################################################################################################################################################################################
         "Task triggered by user" {         # If a non-lead task triggered by user, then do not attach it to whatever random floating id in active_run_session.
             $triggerType = 'user'
-            $triggered_by_login = $lastEventWhileRunningIs.UserContext
+            $triggered_by_login = $lastEventsWhileRunningIs.UserContext
         }
         ##############################################################################################################################################################################################################
         "Task triggered on scheduler" {
-            $triggerType = 'schedule'                
+            $triggerType = 'schedule'
             $triggers = $triggers|Where TriggerType -match 'Daily|Weekly|Monthly|Time'
             #TODO: If more than one, which one is closest as to trigger time? Which one was for today? This week? Was there a random delay? Month??  Ugh.
             $triggersWithSameStartTime = @()
-         
+
             # Loop all we found and pull out ones with nearly same schedule time and actually started time
 
             $triggers| % {
@@ -608,7 +686,7 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                     if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {                       
                         if ($null -ne $_.DaysOfWeek) {
 
-                        }   
+                        }
                         if ($null -ne $_.DaysOfMonth) {
 
                         }   
@@ -728,7 +806,7 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
             }
         }    
-        . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'                                                                                                                                                             
+        . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
         Invoke-Sql "DELETE FROM batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
     ############################################################################################################################
     } elseif ($script_position_in_lineup -eq 'In-Between') {
@@ -824,7 +902,7 @@ Function Least([array]$things) {
 Function Right([string]$val, [int32]$howManyChars = 1) {
     if ([String]::IsNullOrEmpty($val)) { 
         return $null
-    }               
+    }
     $actualLengthWeWillGet = Least $howManyChars  $val.Length
     
     return $val.Substring($val.Length - $actualLengthWeWillGet)           
