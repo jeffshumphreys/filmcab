@@ -2484,7 +2484,7 @@ CREATE VIEW simplified.scheduled_tasks_ext_v AS
             st.trigger_execution_limit AS trigger_execution_time_limit,
             min(st.order_in_set) OVER () AS min_order_in_set,
             max(st.order_in_set) OVER () AS max_order_in_set,
-            st.repeat,
+            COALESCE(st.repeat, false) AS repeat,
             st.repeat_interval,
             st.repeat_duration,
             st.stop_when_repeat_duration_reached

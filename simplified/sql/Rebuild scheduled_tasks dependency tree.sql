@@ -22,7 +22,7 @@ SELECT
     st.trigger_execution_limit                                                                                                                                                                                  AS trigger_execution_time_limit,
     MIN(st.order_in_set) OVER()                                                                                                                                                                                 AS min_order_in_set,
     MAX(st.order_in_set) OVER()                                                                                                                                                                                 AS max_order_in_set
-    ,   repeat
+    ,   COALESCE(repeat, FALSE)                                                                                                                                                                                 AS repeat
     ,   repeat_interval
     ,   repeat_duration
     ,   stop_when_repeat_duration_reached
