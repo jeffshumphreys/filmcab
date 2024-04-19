@@ -28,8 +28,8 @@ if (-not (Test-Path $powershellInstance)) {
 }
 
 $ScheduledTaskDefsInSetOrder = WhileReadSql "
-    SELECT 
-        scheduled_task_id                                          
+    SELECT
+        scheduled_task_id
     ,   scheduled_task_name
     ,   scheduled_task_directory
     ,   scheduled_task_run_set_name
@@ -39,39 +39,39 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
     ,   previous_task_name
     ,   previous_uri
     ,   task_execution_time_limit
-    ,   script_path_to_run                 
+    ,   script_path_to_run
     ,   repeat
     ,   repeat_interval
     ,   repeat_duration
     ,   stop_when_repeat_duration_reached
     ,   trigger_execution_time_limit
-    FROM 
-        scheduled_tasks_ext_v where repeat
-    ORDER BY 
+    FROM
+        scheduled_tasks_ext_v
+    ORDER BY
         scheduled_task_run_set_id
     ,   order_in_set
-  " 
-                        
+  "
+
   While ($ScheduledTaskDefsInSetOrder.Read()) {
     if ($null -eq $run_start_time) {
       $run_start_time = Get-Date # Just grab something since not one set.  This is common for loopings.
     }
     $RunStartTimestamp = (Get-Date).ToString('yyyy-MM-dd').ToDateTime($null).AddTicks($run_start_time.Ticks).ToString($DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML)
-      
+
     # Build the trigger portion, either a scheduled (timed) start, or an event trigger from the previous task in set.
 
     $triggerScript = ""
     $repeatScript = ""
-    
+
      if ($null -eq $trigger_execution_time_limit) {
          $trigger_execution_time_limit = 'P1D'
-     }                                       
-    
-    
+     }
+
+
     if ($repeat) {
          $repeatScript = "               <Repetition>
                      <Interval>$repeat_interval</Interval>
-                     <Duration>$repeat_duration</Duration>  
+                     <Duration>$repeat_duration</Duration>
                      <StopAtDurationEnd>$($stop_when_repeat_duration_reached.ToString().ToLower())</StopAtDurationEnd>
                  </Repetition>"
 
@@ -88,10 +88,10 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
           </ScheduleByDay>
         </CalendarTrigger>
 "@
-      }                            
+      }
 else {
             $triggerScript = @"
-            <EventTrigger id="previous_task_completed_successfully">    
+            <EventTrigger id="previous_task_completed_successfully">
             <Enabled> true </Enabled>
             <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-TaskScheduler/Operational"&gt;&lt;Select Path="Microsoft-Windows-TaskScheduler/Operational"&gt;*[EventData[@Name='ActionSuccess'][Data [@Name='TaskName']='$previous_uri']] and *[EventData[@Name='ActionSuccess'][Data [@Name='ResultCode']='0']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
           </EventTrigger>
@@ -100,10 +100,10 @@ else {
 
     # Build XML to import into scheduler
     # https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-schema
-                              
+
     if ([string]::IsNullOrWhiteSpace($previous_task_name)) {
         $previous_task_name = "N/A"
-    }                             
+    }
 
     $taskXMLTemplate = @"
 <?xml version="1.0" encoding="UTF-16"?>
@@ -123,7 +123,7 @@ else {
         <Principal id="Author">
           <UserId>                         S-1-5-21-260979430-3554011381-420227292-1001</UserId>
           <LogonType>                      Password                                    </LogonType>
-          <RunLevel>                       HighestAvailable                            </RunLevel>                
+          <RunLevel>                       HighestAvailable                            </RunLevel>
         </Principal>
       </Principals>
       <Settings>
@@ -133,7 +133,7 @@ else {
         <AllowHardTerminate>               true                      </AllowHardTerminate>
         <StartWhenAvailable>               false                     </StartWhenAvailable>
         <RunOnlyIfNetworkAvailable>        false                     </RunOnlyIfNetworkAvailable>
-        <IdleSettings>      
+        <IdleSettings>
           <StopOnIdleEnd>                  true                      </StopOnIdleEnd>
           <RestartOnIdle>                  false                     </RestartOnIdle>
           <WaitTimeout>                    PT1H                      </WaitTimeout>
@@ -156,9 +156,9 @@ else {
           <WorkingDirectory>D:\qt_projects\filmcab</WorkingDirectory>
         </Exec>
       </Actions>
-    </Task>    
+    </Task>
 "@
-           
+
 if (-not (Test-Path $script_path_to_run)) {
   throw [Exception]"Path <$script_path_to_run> Does not exist! Fix!"
 }
@@ -173,7 +173,7 @@ $taskXMLTemplate | Out-File $path_to_XML -Force
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally"
     . .\_dot_include_standard_footer.ps1

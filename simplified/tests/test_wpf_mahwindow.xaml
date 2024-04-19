@@ -6,8 +6,8 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-                 mc:Ignorable="d"                                              
-                 Title="Scheduled Tasks Active, Recent, or Next Up"            
+                 mc:Ignorable="d"
+                 Title="Scheduled Tasks Active, Recent, or Next Up"
                  Height="800"
                  Width="800"
                  WindowStartupLocation="CenterScreen"
@@ -47,23 +47,24 @@
                 <TextBlock Foreground="Gray" FontStyle="Italic">[Various]</TextBlock>
             </StackPanel>
         </Button>
-        <ComboBox x:Name="comboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="196" IsEditable="True">
+        <ComboBox x:Name="comboBox"                                  HorizontalAlignment="Left"                              VerticalAlignment="Top" Width="196" IsEditable="True">
           <ComboBoxItem>
                 <StackPanel Orientation="Horizontal">
                     <!-- <Image Source="/WpfTutorialSamples;component/Images/bullet_red.png" />                          -->
                     <TextBlock Foreground="Red">Red</TextBlock>
-                </StackPanel>           
+                </StackPanel>
             </ComboBoxItem>
         </ComboBox>
-        <ToggleButton x:Name="toggleButton" Content="Toggle Button"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="75"/>
-        <Label        x:Name="label"        Content="Label"          HorizontalAlignment="Left" VerticalAlignment="Top" Width="53"/>
-        <RadioButton  x:Name="radioButton"  Content="Radio Button"   HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <RadioButton  x:Name="radioButton2" Content="Radio Button 2" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <ToggleButton x:Name="toggleButton" Content="Toggle Button"  HorizontalAlignment="Left"                           VerticalAlignment="Top" Width="75"/>
+        <Label        x:Name="label"        Content="Label"          HorizontalAlignment="Left"                           VerticalAlignment="Top" Width="53"/>
+        <RadioButton  x:Name="radioButton"  Content="Radio Button"   HorizontalAlignment="Left"                           VerticalAlignment="Top"/>
+        <RadioButton  x:Name="radioButton2" Content="Radio Button 2" HorizontalAlignment="Left"                           VerticalAlignment="Top"/>
         <Rectangle    x:Name="rectangle"                             HorizontalAlignment="Left" Height="6" Stroke="Black" VerticalAlignment="Top" Width="63"/>
-        <TextBlock    x:Name="textBlock"    Text="Text Block"        HorizontalAlignment="Left" TextWrapping="Wrap"       VerticalAlignment="Top" Width="118"/>
-        <CheckBox     x:Name="checkBox"     Content="Check Box"      HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <Slider       x:Name="slider"                                HorizontalAlignment="Left"  VerticalAlignment="Top" Width="146"/>
-        <ScrollBar    x:Name="scrollBar"                             HorizontalAlignment="Left" VerticalAlignment="Top" Height="134" Width="13"/>
+        <Ellipse      x:Name="ellipse"                               HorizontalAlignment="Left" Height="45" Margin="217,56,0,0" Stroke="Black" VerticalAlignment="Top" Width="103"/>
+        <TextBlock    x:Name="textBlock"    Text="Text Block"        HorizontalAlignment="Left" TextWrapping="Wrap"            VerticalAlignment="Top" Width="118"/>
+        <CheckBox     x:Name="checkBox"     Content="Check Box"      HorizontalAlignment="Left"                                VerticalAlignment="Top"/>
+        <Slider       x:Name="slider"                                HorizontalAlignment="Left"                                VerticalAlignment="Top" Width="146"/>
+        <ScrollBar    x:Name="scrollBar"                             HorizontalAlignment="Left"                                VerticalAlignment="Top" Height="134" Width="13"/>
         <TabControl   x:Name="tabControl"                            HorizontalAlignment="Left" Height="100" Margin="17,8,0,0" VerticalAlignment="Top" Width="218">
             <TabItem Header="Tab1">
                 <Grid Background="#FFE5E5E5" Height="68" RenderTransformOrigin="0.5,0.5" Width="211">
@@ -92,7 +93,19 @@
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
         </TabControl>
-    </StackPanel> 
+        <RichTextBox x:Name="richTextBox" HorizontalAlignment="Left" Height="55" Margin="1,4,0,0" VerticalAlignment="Top" Width="218">
+            <FlowDocument>
+                <Paragraph>
+                    <Run FontFamily="Segoe UI" Text="This is "/>
+                    <Run Foreground="#FFF00C0C" FontFamily="Segoe UI" Text="Line 1"/>
+                </Paragraph>
+                <Paragraph>
+                    <Run FontFamily="Segoe UI" Text="This is "/>
+                    <Run Foreground="#FF3E8B8B" FontFamily="Segoe UI" Text="Line 2"/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+    </StackPanel>
         <StatusBar    x:Name="statusBar"                             HorizontalAlignment="Stretch"  VerticalAlignment="Bottom">
             <StatusBarItem Content="Item 1" Width="75"/>
             <StatusBarItem Content="Item 2" Width="112" />
@@ -113,5 +126,68 @@
         <!-- TODO: RichTextBox -->
         <!-- TODO: GroupBox -->
         <!-- TODO: Image -->
-  </Grid>         
+        <!-- TODO: TreeView? -->
+        <!-- TODO: ListBox -->
+        <!-- <Button Content="_New"></Button> -->
+        <!--
+            <Grid.ColumnDefinitions>
+			<ColumnDefinition Width="2*" />
+			<ColumnDefinition Width="1*" />
+			<ColumnDefinition Width="1*" />
+		</Grid.ColumnDefinitions>
+
+            WPF doesn't come with a built-in Ribbon control, but Microsoft has released one that you can download and use for free, as long as you promise to follow their implementation guide when using it. You can read much more about it at MSDN, where you'll also find a download link for the Ribbon control.
+
+             <Button.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Menu item 1" />
+                    <MenuItem Header="Menu item 2" />
+                    <Separator />
+        -->
+
+        <!--
+            http://vcloud-lab.com/entries/powershell/powershell-and-wpf-build-gui-applications-tutorial
+
+            <DataGrid Name="ResultDataGrid" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Height="257" Width="417"/>
+            function Get-RestartEventLogs {
+                $event | Select-Object UserName, TimeWritten, MachineName, ...
+            $Events = Get-RestartEventLogs
+            $RestartEventList = New-Object System.Collections.ArrayList
+            $RestartEventList.AddRange($Events)
+            $ResultDataGrid.ItemsSource=@($RestartEventList)
+
+            http://vcloud-lab.com/entries/powershell/part-3-create-shorter-microsoft-powershell-wpf-automated-clean-script
+
+         -->
+        <!--   <Menu DockPanel.Dock="Top"> -->
+
+        <!-- The UniformGrid is just like the Grid,  -->
+        <!--   <WindowsFormsHost Name="wfhSample"> -->
+        <!-- <WrapPanel> -->
+        <!--    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" /> -->
+        <!-- <Viewbox Stretch="Fill" StretchDirection="UpOnly"> -->
+        <!-- Calendar      <Calendar SelectionMode="SingleRange" />  -->
+        <!-- <Calendar.BlackoutDates> -->
+        <!-- <Calendar DisplayMode="Year" /> -->
+        <!-- https://wpf-tutorial.com/treeview-control/introduction/ -->
+        <!--  <Button ToolTip="Click here and something will happen!">Click here!</Button> -->
+        <!--  <ToolBar DockPanel.Dock="Top"> -->
+        <!-- <Button ToolTip="Create a new file" ToolTipService.ShowDuration="5000" Content="Open" /> -->
+        <!--  <FlowDocumentScrollViewer> -->
+        <!-- <FlowDocumentReader> -->
+        <!-- <FlowDocumentPageViewer> -->
+        <!-- <BlockUIContainer> -->
+        <!--  <ListView BorderThickness="0" ItemsSource="{StaticResource UserArray}"> -->
+        <!-- ListView.View> -->
+        <!-- <GridView> -->
+        <!-- <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150" /> -->
+        <!-- TODO: Using Styles: What do they do? -->
+        <!-- <DockPanel> -->
+        <!--  Canvas -->
+         <!--RenderTransformOrigin="2,1.227"  -->
+         <!-- $Datagrid.ItemsSource = Get-Service | Select-Object Name, Status, StartType -First 5 -->
+         <!-- $ComboBox1.ItemsSource =  @('Item1','Item2','Item3') -->
+         <!-- $ListBox.ItemsSource =  @('Item1','Item2','Item3') -->
+
+  </Grid>
 </mah:MetroWindow>

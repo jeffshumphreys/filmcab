@@ -6,7 +6,7 @@
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #
  #    All logging to file functions. Also writes to host (terminal)
- #>                                                                                                
+ #>
 
 <#
 .SYNOPSIS
@@ -36,15 +36,15 @@ function Log-Line {
     )
     #$mtx = New-Object System.Threading.Mutex($false, 'FileMtx')
     #[void] $mtx.WaitOne()
-    
+
     if ($null -eq $Text) {
-        Write-LogLineToFile "*** null string" 
+        Write-LogLineToFile "*** null string"
     }
     elseif ( '' -eq $Text) {
-        Write-LogLineToFile "*** empty string" 
-    } 
+        Write-LogLineToFile "*** empty string"
+    }
     else {
-        
+
         try{
             $HashArguments = @{}
             if ($Restart) {
@@ -52,7 +52,7 @@ function Log-Line {
             } else {
                 $HashArguments = @{Append = $true}
 
-            }    
+            }
             if ($NoNewLine) {
                 $HashArguments+= @{NoNewLine = $true}
             }
@@ -63,16 +63,16 @@ function Log-Line {
             $HashArguments = @{}
             $err = $_.Exception.Message
             Write-LogLineToFile "Catching"
-            Write-LogLineToFile "$err" 
+            Write-LogLineToFile "$err"
         }finally{
             #[void] $mtx.ReleaseMutex()
             #$mtx.Dispose()
             #$HashArguments = @{}
-           
+
         }
     }
 }
-<#            
+<#
 .SYNOPSIS
 Yet another layer, but keeping the file name path, encoding, even that it's out to a file, that helps reduce code.
 
@@ -96,7 +96,7 @@ function Write-LogLineToFile {
     #"HERE"| Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
     if ($null -eq $text) {
         "NULL"|  Out-File "$Script:LogFilePath" -Encoding utf8 -Append
-    } 
+    }
 
     if ($null -eq $arguments) {
         $text | Out-File "$Script:LogFilePath" -Encoding utf8 -Append
@@ -189,21 +189,21 @@ function Start-Log {
         # Runspace = The command was submitted via a runspace.
 
     $Script:DSTTag = If ((Get-Date).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up ordering.
-    
+
     # Header Line 1
     Log-Line "Starting Log $(Get-Date) on $((Get-Date).DayOfWeek) $DSTTag in $((Get-Date).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
-    
+
     $PSVersion       = $PSVersionTable.PSVersion
     $PEdition        = $PSVersionTable.PSEdition
     $ScriptFullPath  = $MyInvocation.ScriptName
     $CommandOrigin   = $MyInvocation.CommandOrigin
     $CurrentFunction = $MyInvocation.MyCommand
 
-    # Header Line 2   
+    # Header Line 2
     Log-Line "`$ScriptFullPath: $ScriptFullPath, `$PSVersion = $PSVersion, `$PEdition = $PEdition, `$CommandOrigin = $CommandOrigin, Current Function = $CurrentFunction"
 
     # Get all our parent processes to detect (try) what started us
-    
+
     $p = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $PID"
     $processtree = @()
 
@@ -215,35 +215,35 @@ function Start-Log {
     # If being run inside Visual Code editor: Explorer.exe -> Code.exe -> Code.exe ->powershell.exe
     # If being run from Scheduler: wininit.exe -> services.exe -> svchost.exe -> powershell.exe
     # cmd  /K "chcp 1252"
-        
+
     $Script:Caller = ''
-    
+
     # HACK: Cannot test runs from scheduler since uh well were running from the scheduler and not the debugger
     if ($TestScheduleDrivenTaskDetection) {
         $Script:Caller = "Windows Task Scheduler"
         ## Override so that test_detect_who_starrted_scheduled_task.ps1 can simulate a scheduled run so we can debug!!!!
         $Script:ScriptNameWithoutExtension = $Script:PretendMyFileNameWithoutExtensionIs
-    } 
+    }
     elseif ($processtree.Count -ge 2) {
         $cmdlineofstartargs = $processtree[0].CommandLine
         Log-Line $cmdlineofstartargs
         $determinorOfCaller = $processtree[1]
-        if ($null -eq $determinorOfCaller.CommandLine) { 
+        if ($null -eq $determinorOfCaller.CommandLine) {
             Log-Line "processtree 1 CommandLine is null"
         } else {
             Log-Line "processtree 1 CommandLine is not null: $($determinorOfCaller.CommandLine)" # C:\WINDOWS\system32\svchost.exe -k netsvcs -p -s Schedule
         }
-                                                        
+
         $partofcmdline = $determinorOfCaller.CommandLine
 
         if ($partofcmdline.Length -gt 100) {$partofcmdline = $determinorOfCaller.CommandLine.SubString(0,100)}
-     
+
         # Called from Windows Task Scheduler?
 
         if ($determinorOfCaller.Name -eq 'svchost.exe' -and $determinorOfCaller.CommandLine -ilike "*schedule*") {
             Log-Line "Called from Windows Task Scheduler"
             $Script:Caller = 'Windows Task Scheduler'
-           
+
         } elseif ($determinorOfCaller.Name -eq 'Code.exe') {
             Log-Line "Called whilest in Visual Code Editor"
             $Script:Caller = 'Visual Code Editor'
@@ -252,7 +252,7 @@ function Start-Log {
             Log-Line "Called whilest in Visual Code Editor (Preview)"
             $Script:Caller = 'Visual Code Editor'
 
-        } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {  
+        } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {
             Log-Line "Called whilest in Command Line"
             $Script:Caller = 'Command Line'
 
@@ -271,16 +271,16 @@ function Start-Log {
     if ($Script:Caller -eq 'Windows Task Scheduler') {
         # Get a list of all defined tasks on this machine. We want to match our execute and arguments to 1 or more tasks' actions.
             # Hopefully we can guess at which one called us.
-            
+
         $reader = WhileReadSql "
-            SELECT 
+            SELECT
                 scheduled_task_root_directory
             ,   scheduled_task_run_set_name
-            FROM 
-                scheduled_tasks_ext_v 
-            WHERE 
-                scheduled_task_name = '$($ScriptNameWithoutExtension)'" -prereadfirstrow 
-        
+            FROM
+                scheduled_tasks_ext_v
+            WHERE
+                scheduled_task_name = '$($ScriptNameWithoutExtension)'" -prereadfirstrow
+
         $fullTaskPath = "?"
         $sep = "\"
         # For some reason , first "row" is a boolean, and is $false if no rows found, even though 2 rows are always returned.
@@ -293,8 +293,8 @@ function Start-Log {
             $scheduled_task_root_directory = ""
             $fullTaskPath = (Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|Select URI).URI
         }
-                                                                                                                                                                                                 
-        
+
+
         $xmlfilter = @"
             <QueryList>
             <Query Id="0">
@@ -302,28 +302,28 @@ function Start-Log {
             </Select>
             </Query>
             </QueryList>
-"@          
+"@
         # Get-WinEvent -ComputerName DS1 -LogName Security -FilterXPath "*[System[EventID=4670 and TimeCreated[timediff(@SystemTime) <= 86400000]] and EventData[Data[@Name='ObjectType']='File']]"  | fl
         Log-Line "Attempting to get triggering event for $($Script:ScriptNameWithoutExtension) for run set name $scheduled_task_run_set_name in root directory $scheduled_task_root_directory"
         <#
             If from task scheduler but triggered by user, it will be:
-            Message = Task Scheduler launched "{1104927b-4d03-4388-b221-58ba3f2c3abd}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions"  for user "jeffs" .	
-            TaskDisplayName = Task triggered by user	
-            TimeCreated = 3/25/2024 7:30:46 PM	
+            Message = Task Scheduler launched "{1104927b-4d03-4388-b221-58ba3f2c3abd}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions"  for user "jeffs" .
+            TaskDisplayName = Task triggered by user
+            TimeCreated = 3/25/2024 7:30:46 PM
             RecordId = 196741
             ProcessId =	1932
-            ThreadId =	17308	
+            ThreadId =	17308
 
             If from scheduled calendar, (Warning: not last event, but a few back)
-            Message = Task Scheduler launched "{a9ea3af0-60a2-42e0-b0e2-a6325e71c252}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions" due to a time trigger condition.	
-            TaskDisplayName = Task triggered on scheduler	
-            Time... 3/25/2024 12:13:21 AM	195195	1932	4408	
+            Message = Task Scheduler launched "{a9ea3af0-60a2-42e0-b0e2-a6325e71c252}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions" due to a time trigger condition.
+            TaskDisplayName = Task triggered on scheduler
+            Time... 3/25/2024 12:13:21 AM	195195	1932	4408
 
-        #>                                                                                                                                                       
+        #>
 
         <#
-            A chain of events is all linked by either ThreadId and/or ActivityId. 
-            1) Grab all recordids where ActivityId same, min and max. 
+            A chain of events is all linked by either ThreadId and/or ActivityId.
+            1) Grab all recordids where ActivityId same, min and max.
             2) Grab their threadIds. any record ids between min and max and have no activity id, but share a threadid, include that in activity id.
         #>
 
@@ -364,17 +364,17 @@ function Start-Log {
                 $_.Properties[2].Value
                 }
                 }
-             }}, 
+             }},
         ID|
-        Where-Object {$_.ID -in 
+        Where-Object {$_.ID -in
             107, <# Triggered on Scheduler (Message ends with "due to a time trigger condition")#>
             108, <# Triggered on Event #>
-            109, <# Triggered by Registration #> 
+            109, <# Triggered by Registration #>
             110, <# Triggered by User #>
             117, <# Triggered on Idle #>
             118, <# Triggered by Computer startup #>
-            119, <# Triggered on logon #>              
-            120, <# Triggered on local console connect#>    
+            119, <# Triggered on logon #>
+            120, <# Triggered on local console connect#>
             121, <# Triggered on #>
             122, <# Triggered on #>
             123, <# Triggered on #>
@@ -383,11 +383,11 @@ function Start-Log {
             126, <# Triggered on #>
             127, <# Restarted On failure (Rejected) #>
             145  <# Triggered by coming out of suspend mode #>
-        }|Select -First 1 
-        
+        }|Select -First 1
+
         if ($null -ne $lastEventWhileRunningIs) {
             # get definition
-            
+
             $Script:WindowsSchedulerTaskTriggeringEvent = $lastEventWhileRunningIs
             # If scheduler, which calendar trigger? Details of trigger?
             # If event, what are details of event trigger?
@@ -415,10 +415,10 @@ function Start-Log {
             $targetTable           = "batch_run_sessions"
             $targetTableIdCol      = "batch_run_session_id"
             $targetTableIdColValue = $Script:active_batch_run_session_id
-            
+
             if ($Script:ScriptNameWithoutExtension -ne '_start_new_batch_run_session') {
                 $targetTable           = "batch_run_session_tasks"
-                $targetTableIdCol      = "batch_run_session_task_id"                      
+                $targetTableIdCol      = "batch_run_session_task_id"
                 # Doesn't really get created until Much later
                 if (-not(Test-Path Script:active_batch_run_session_task_id) -or $null -eq $Script:active_batch_run_session_task_id -or $Script:active_batch_run_session_task_id -eq -1) {
                     $Script:active_batch_run_session_task_id = Create-BatchRunSessionTaskEntry -batch_run_session_id $Script:active_batch_run_session_id -script_name $ScriptName
@@ -431,9 +431,9 @@ function Start-Log {
                 $triggers = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|
                 SELECT -expandProperty Triggers|
                 % {
-                    $trigger = [PSCustomObject]@{ 
+                    $trigger = [PSCustomObject]@{
                         Id                          = $_.Id # Never set :(
-                        TriggerType                 = (($_.pstypenames[0])-split '/')[-1] 
+                        TriggerType                 = (($_.pstypenames[0])-split '/')[-1]
                         TaskName                    = $_.TaskName
                         Enabled                     = $_.Enabled
                         StartBoundary               = $_.StartBoundary
@@ -448,8 +448,8 @@ function Start-Log {
                         RunOnLastWeekOfMonth        = $_.RunOnLastWeekOfMonth
                         WeeksOfMonth                = $_.WeeksOfMonth
                         ExecutionTimeLimit          = $_.ExecutionTimeLimit
-                        RepetitionInterval          = $_.Repetition.Interval # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S 
-                        RepetitionDuration          = $_.Repetition.Duration 
+                        RepetitionInterval          = $_.Repetition.Interval # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S
+                        RepetitionDuration          = $_.Repetition.Duration
                         RepetitionStopAtDurationEnd = $_.Repetition.Duration            # PT4H
                         RandomDelay                 = $_.RandomDelay
                         Delay                       = $_.Delay                                          # PT15S
@@ -478,36 +478,36 @@ function Start-Log {
                     }
                     ##############################################################################################################################################################################################################
                     "Task triggered on scheduler" {
-                        $triggerType = 'schedule'                
+                        $triggerType = 'schedule'
                         $triggers = $triggers|Where TriggerType -match 'Daily|Weekly|Monthly|Time'
                         #TODO: If more than one, which one is closest as to trigger time? Which one was for today? This week? Was there a random delay? Month??  Ugh.
                         $triggersWithSameStartTime = @()
-                     
+
                         # Loop all we found and pull out ones with nearly same schedule time and actually started time
 
                         $triggers| % {
                             if ($null -ne $_.StartBoundary) {
-                                $scheduledStartTime = [DateTime]$_.StartBoundary                                                             
+                                $scheduledStartTime = [DateTime]$_.StartBoundary
                                 $nearnessOfRunStartToScheduledStart = $timeTaskTriggered.TimeOfDay - $scheduledStartTime.TimeOfDay
-                                if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {                       
+                                if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {
                                     if ($null -ne $_.DaysOfWeek) {
 
-                                    }   
+                                    }
                                     if ($null -ne $_.DaysOfMonth) {
 
-                                    }   
+                                    }
                                     if ($null -ne $_.WeeksOfMonth) {
 
-                                    }   
+                                    }
                                     if ($null -ne $_.RunOnLastWeekOfMonth) {
 
-                                    }   
+                                    }
                                     if ($null -ne $_.MonthOfYear) {
                                         #if ($scheduledStartTime.Month -eq $timeTaskTriggered.Month)
                                     }
                                     # WARNING: Needs to check DaysOfWeek set and if it would include the day of week. Same for WeeksOfMonth, MonthsOfYear
                                     # This is the event? unless two are set
-                                    
+
                                     $triggersWithSameStartTime+= $_
                                 } else {
                                     # are we in the random delay period?
@@ -515,18 +515,18 @@ function Start-Log {
                                     # YIKES, the complexity - but only if more than one time trigger.
                                 }
                             }
-                        }                                          
+                        }
 
                         if ($triggersWithSameStartTime.Count -eq 0) {
                             # Ooops! How started with schedule? RandomDelay?
                         }
                         if ($triggersWithSameStartTime.Count -gt 1) {
                             # Hmmm, possible issue?
-                        }                          
+                        }
                         else {
                             # Just the one.  We need the "ID" or at least an index of which trigger it was.  Somehow categorize which trigger definition it is.
                         }
-                                                                            
+
                         # Lots of parsing to figure out time if it's a complex trigger def
                         # Get time, match to task trigger definition
                         # Was there a delay, or randomdelay?
@@ -540,13 +540,13 @@ function Start-Log {
                         if ($triggers.Count -eq 1 -and $triggers[0].TriggerType -eq 'MSFT_TaskIdleTrigger') {
                             $triggerType = "Idle"
                         }
-                            # Get time, match to task trigger definition                  
+                            # Get time, match to task trigger definition
                         # match Event or Idle. Manually test since MSFT_TaskIdleTrigger comes in log as an event trigger.
                         # Which Event if there are several???
                     }
                     ##############################################################################################################################################################################################################
-                    "Task triggered on logon" {                                    
-                        $triggers = $triggers|Where TriggerType -match 'Logon'     
+                    "Task triggered on logon" {
+                        $triggers = $triggers|Where TriggerType -match 'Logon'
                         if ($triggers.Count -eq 1 -and $null -ne $triggers[0].UserId) {
                             $triggered_by_login = $triggers[0].UserId
                         }
@@ -555,16 +555,16 @@ function Start-Log {
                     }
                 }
                 Invoke-Sql "
-                    UPDATE 
-                        $targetTable 
-                    SET 
+                    UPDATE
+                        $targetTable
+                    SET
                         trigger_type       = '$triggerType',
                         triggered_by_login = '$triggered_by_login',
                         thread_id          = $taskThreadId,
                         process_id         = $taskProcessId,
                         activity_uuid      = '$taskActivityUUID',
                         trigger_id         = '$triggerId'
-                    WHERE 
+                    WHERE
                         $targetTableIdCol = $targetTableIdColValue"
             }
 

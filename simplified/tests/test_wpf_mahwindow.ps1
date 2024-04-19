@@ -55,7 +55,7 @@ $inputXML = $inputXML -replace 'mc:Ignorable="d"', '' -replace "x:N", 'N' -repla
 
 $reader = (New-Object System.Xml.XmlNodeReader $xaml)
 try {
-    $window = [Windows.Markup.XamlReader]::Load( $reader )
+            $window = [Windows.Markup.XamlReader]::Load( $reader )
 }
 catch {
     Write-Warning $_.Exception
@@ -71,7 +71,7 @@ $xaml.SelectNodes("//*[@Name]") | ForEach-Object {
         Set-Variable -Name "var_$($_.Name)" -Value $window.FindName($_.Name) -ErrorAction Stop
     } catch {
         throw
-    }        
+    }
 }
 
 Get-Variable var_*
@@ -81,5 +81,5 @@ Get-Variable var_*
 #$var_textBox.BorderBrush = "red"
 #$var_comboBox.AddText("Test")
 $var_comboBox.Text = 'Red'
-                         
+
 $Null = $window.ShowDialog()

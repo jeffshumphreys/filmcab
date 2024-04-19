@@ -39,17 +39,17 @@
     Idea:
         Flush log for speed after we get it to file and/or database
 #>
-  
+
 try {
-. .\_dot_include_standard_header.ps1 # 
+. .\_dot_include_standard_header.ps1 #
 
 $newtaskSchedulerEvents      = @()
 $oldtaskSchedulerEvents      = @()
 
-                                        
+
 $TaskSchedulerEventsFileName = 'D:\qt_projects\filmcab\simplified\_data\scheduled-task-events.xml'
 
-<# 
+<#
     Force full reload: Warning: YOU WILL LOSE ALL HISTORY!!!!!!! Warning
     Remove-Item -Path "$TaskSchedulerEventsFileName" -Force   # Rebuilds all new, removed attributes.
 #>
@@ -93,11 +93,11 @@ $xmlfilter = @"
 </Suppress>
 </Query>
 </QueryList>
-"@       
+"@
 $newtaskSchedulerEvents =
-    Get-WinEvent -FilterXml $xmlfilter|                                         
-Where TimeCreated -ge $lastSavedEventCreatedDate|                   
-Where Id -NotIn @(800, 808)|                                               
+    Get-WinEvent -FilterXml $xmlfilter|
+Where TimeCreated -ge $lastSavedEventCreatedDate|
+Where Id -NotIn @(800, 808)|
 Select @{Name = 'event_type_id'      ; Expression = {$_.Id}}            ,
     @{Name = 'event_type_name'       ; Expression={$_.TaskDisplayName}},   # is it taskdisplay? event code? event id?
     @{Name = 'event_version'         ; Expression= {$_.Version}},          # I think this is the task version?
@@ -523,7 +523,7 @@ Select @{Name = 'event_type_id'      ; Expression = {$_.Id}}            ,
 
 Write-AllPlaces "Completed pull from API"
 $scriptTimer.Elapsed.TotalSeconds
- 
+
 $taskSchedulerEvents = @()
 
 $howManyOldEvents = @($oldtaskSchedulerEvents).Count
@@ -541,26 +541,26 @@ if ($howManyNewEvents -ne 0) {
         $taskSchedulerEvents = $newtaskSchedulerEvents
     }
     $taskSchedulerEvents|Export-Clixml -Path $TaskSchedulerEventsFileName
-    Write-AllPlaces "Wrote to xml file, $howManyNewEvents new events"                                      
-    
+    Write-AllPlaces "Wrote to xml file, $howManyNewEvents new events"
+
     # Set the file date to the event date, thereby having an easy metadata value without creating other stores.
-    
-    $file = Get-Item $TaskSchedulerEventsFileName          
+
+    $file = Get-Item $TaskSchedulerEventsFileName
     $Script:latestEventCreatedDate = ($taskSchedulerEvents|Select event_created).event_created|Sort -Descending|Select -first 1
     $file.CreationTime = $Script:latestEventCreatedDate
 }
 
 # Scan our pile for any new task creations or deletions, or updates
-                                                        
+
 $taskSchedulerEvents|
 Select *|
 Where event_type_id -in @(113, 106, 116, 140, 141, 115, 142, 107, 100, 102, 129)|
-Select  record_id, 
-        event_type_name, 
-        event_created,                                   
-        @{Name='task_full_path'                       ; Expression={$_.TaskName}}, 
+Select  record_id,
+        event_type_name,
+        event_created,
+        @{Name='task_full_path'                       ; Expression={$_.TaskName}},
         @{Name='event_created_as_sortable_str_with_ms'; Expression={$_.event_created.ToString('yyyy-MM-dd HH:mm:ss:ffffff')}},  # The default output of datetime is only to seconds, and many of these related events are within milliseconds of each other, so ordering and understanding is improved when we can see which came first, and not depend on record_id
-        @{Name='UserName'                             ; Expression={if($_.UserName -eq '') { $null } else { $_.UserName.Replace($computer + '\', '')}}}, 
+        @{Name='UserName'                             ; Expression={if($_.UserName -eq '') { $null } else { $_.UserName.Replace($computer + '\', '')}}},
         @{Name='UserContext'                          ; Expression={if($_.UserContext -eq '') { $null } else { $_.UserContext.Replace($computer + '\', '')}}}|
         Select *,
         @{Name='merged_user_id'                       ; Expression={if($_.UserName -ne $null) {$_.UserName} else {$_.UserContext}}} -ExcludeProperty user_id |
@@ -581,7 +581,7 @@ Select  record_id,
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1

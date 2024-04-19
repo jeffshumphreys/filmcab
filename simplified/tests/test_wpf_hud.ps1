@@ -16,10 +16,10 @@ try {
         #    Write-Host "Assembly $($Assembly.Name)"
         #    [System.Reflection.Assembly]::LoadFrom($Assembly.fullName) | out-null
         #}
-  
+
 #Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms, System.Drawing
 Add-Type -AssemblyName PresentationFramework
-                                                               
+
 #$mainWindowXAMLText = BuildBaseXAML $STANDARD_MAH_WINDOW_BASE  "Scheduled Tasks Active, Recent, or Next Up"
 $mainWindowXAMLText = BuildBaseXAML $STANDARD_WPF_WINDOW_BASE  "Scheduled Tasks Active, Recent, or Next Up"
 #$mainWindowXAMLText
@@ -28,9 +28,9 @@ $mainWindowXAMLText = BuildBaseXAML $STANDARD_WPF_WINDOW_BASE  "Scheduled Tasks 
 
 $mainWindowXAMLText = $mainWindowXAMLText.Replace('%%PRESENTATION_XAML%%', @"
     <ListView Name="listView" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-        <ListView.View>                          
+        <ListView.View>
             <GridView AllowsColumnReorder="true">
-                <GridViewColumn>                 
+                <GridViewColumn>
                     <GridViewColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding TaskName}" Foreground="Black"/></DataTemplate>
                     </GridViewColumn.CellTemplate>
                         <GridViewColumnHeader ToolTip="Wha">Task Name
@@ -77,11 +77,11 @@ $ScheduledTaskDefsInSetOrder = WhileReadSql "
     FROM
         scheduled_tasks_ext_v
     WHERE
-        NOT repeat         
-    ORDER BY               
+        NOT repeat
+    ORDER BY
         scheduled_task_run_set_id
-    ,   order_in_set       
-"                          
+    ,   order_in_set
+"
 
 While ($ScheduledTaskDefsInSetOrder.Read()) {
     $taskRunDetail  = Get-ScheduledTaskInfo -TaskName "$scheduled_task_path"
@@ -104,12 +104,12 @@ While ($ScheduledTaskDefsInSetOrder.Read()) {
     } elseif ($lastRunTime -ge $Script:SnapshotMasterRunDate.Date.AddHours(-3) -and $lastRunTime -le $Script:SnapshotMasterRunDate.Date) {
         $lastRunTimeMessage = "Last Night"
     }
-    
-    [array]$lastTaskEvents = Get-LastEventsForTask "$scheduled_task_path" -howManyEvents 100 -LastRunOnly
 
+    [array]$lastTaskEvents = Get-LastEventsForTask "$scheduled_task_path" -howManyEvents 100 -LastRunOnly
+    # Task started/completed
     $var_listView.items.Add([pscustomobject]@{'TaskName'="$scheduled_task_name";Status="Pending";LastRan="$lastRunTimeMessage"; LastResult="$lastTaskResultMessage";NextRun="Tomorrow"})|Out-Null
 }
-    
+
 $Null = $mainWindow.ShowDialog()
 
 }
