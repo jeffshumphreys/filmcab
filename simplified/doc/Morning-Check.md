@@ -3,14 +3,14 @@
 ## Open Office Door
 
 1. Turn on light.
-2. Did the computer reboot into a locked state and so didn't restart qBitTorrent? Login and restart.
-3. Look at computer screens.&#x20;
+1. Sit at desk.
+1. Look at computer screens.
    1. Probably should leave Task Scheduler Open on screen #1 (last night I mean)
    2. qBitTorrent on Screen 2 on Status = All,
    3. Visual Code on Screen 3 on a piece of code or output that will trigger me.
    4. Or shouldn't GitHub Issues be there??
-4. Sit.
-5. Look. This warms the cockles. Probably touching the keyboard helps too.
+1. Look. This warms the cockles. Probably touching the keyboard helps too.
+1. Did the computer reboot into a locked state and so didn't restart qBitTorrent? Login and restart.
 
 ## Check Download Status
 
@@ -20,10 +20,16 @@
 
 ## Add New Payloads to Download
 
-1. Are there no active downloads? Then find something.
+1. Are there no active downloads? Then find something, anything.
 2. Is there some massive 100GB payload and I want it to finish, then don't add any new stuff. I speculate that overly long running a single-source download can end up incomplete or stopped due to algorithm suspecting you are not active.
 3. Waiting for stalled or Getting metadata to run, hoping no active downloads means they might run, is fruitless.
-4. Check keep list for things written down yesterday as interesting. Chances are they're not.
+4. Check keep lists for things written down yesterday as interesting. Chances are they're not.
+    1. _MEDIA TV to Get
+    1. _MEDIA Movies to Get
+    1. _MEDIA Add to Spreadsheet
+1. Check any open browsers on archive.com for more movies to download. Pull archive movies WHEN FOUND. WAIT AND THEY'RE GONE!
+1. Check rarefilmm for new movies.
+
 
 ## Check Windows Task Scheduler
 
@@ -35,10 +41,12 @@
 1. Is the file there from last night?
 2. How big is the database backup file? Do we need to roll off some crap backups?
 
-## Check Keep List
+## Check Keep Lists
 
-1. Anything I want to search for or remove?
-2. Update excel spreadsheet from Keep list movies marked as watched.
+1. Anything I want to search for or remove? (_MEDIA TV to Get, _MEDIA Movies to Get)
+2. Update excel spreadsheet from Keep list movies marked as watched. (_MEDIA Add to Spreadsheet)
+3. What are things I listed as (at some point) wanting to watch? Maybe pop up on a spare monitor?
+4. What are things I'm watching, when I forget and don't finish a movie or series and lose my place?
 
 ## Edit User Excel Interface Spreadsheet
 
