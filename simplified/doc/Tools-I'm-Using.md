@@ -24,15 +24,18 @@ description: >-
 
 * Better Align 1.4.2
 * GitHub 0.0.1
-* Inline Values support for PowerShell 0.0.7
+* Inline Values support for PowerShell 0.0.7 (_Best tool_)
 * Insert Time Stamp 1.1.3 Preview
 * PowerShell 2024.3.1
 * TODO Highlight 1.0.5
-* WakaTime 24.4.0
+* WakaTime 24.4.0 (_Very awesome_)
 * Draw.io Integration 1.6.6
-* fake-virtual-space 0.1.3
+* ~~fake-virtual-space 0.1.3~~ (_too much fake change constant churn in github pushes_)
 * Hide Gitignored 1.1.0
-  
+* AutoTrim (_I think it's working_)
+* Batch Runner (_No need for it since no batch files like crap job at City of Boise_)
+* Bracket Lens (_Works except sometimes disappear_)
+
 **NuGet Packages**
 
 * ~~Humanizer (trying to install. May fail. Over 20 minutes.)~~
@@ -46,17 +49,19 @@ description: >-
   * unaccent extension (_works!_)
 * pgAdmin 4.7.8 (_latest always) (2023) (for not table work, just types, enums, ddl creation, most can be done in DBeaver_)
 * pg\_dump for DDL (_only tool that works_)
-* DBeaver 23.3.4 Community (_latest always, Oct 2023, for browsing data, DDL extract, adding columns, scripting._)
+* DBeaver 24.0.2 Community (_latest always, Oct 2023, for browsing data, DDL extract, adding columns, scripting._)
 
 #### File Gathering
 
-* qBitTorrent 4.6.3 (_for I2P - GNU General Public License, version 3 or GPLv3+ \* Qt 6.4.2 \* libtorrent-rasterbar 1.2.19.0 \* Boost 1.83.0 \* OpenSSL 1.1.1w \* zlib 1.3_)
+* qBitTorrent 4.6.4 (_for I2P - GNU General Public License, version 3 or GPLv3+ \* Qt 6.4.2 \* libtorrent-rasterbar 1.2.19.0 \* Boost 1.83.0 \* OpenSSL 1.1.1w \* zlib 1.3_)
+* Video DownloadHelper 8.2.2.8 ($28 permanent) (_Works good, though quality so far of downloads is limited.  Source of last resort_)
 
 #### Video Play
 
-* VLC 3.0.20 (_latest always_)
-* X-plore (FireTV) 4.32 ($6) (_almost dead, buggy as hell, getting WORSE_)
-* MX Player (_linux (firetv) only, can't play protected DSL Audio_)
+* ~~VLC 3.0.20~~ (_latest always_)
+* ~~X-plore (FireTV) 4.32 ($6)~~ (_almost dead, buggy as hell, getting WORSE_)
+* MX Player (_linux (firetv) only, can't play protected DSL Audio_ EAC)
+* MPC-HC (64-bit) 2.2.0 (_only way to get subtitles and plays more than MX Player)
 
 #### Scheduling
 
@@ -76,7 +81,7 @@ description: >-
 #### Design
 
 * draw.io v22.1.2 (_for flowcharting the bigger picture, all the different tasks, logging files found, downloaded, starting downloads, renaming, publishing, pulling TMDB and IMDB metadata and loading and splitting json into columns, etc._)
-* Navicat Premium 16.1.2 (_Works. Iffy with round-trip gen, but works if I'm delicate. And it pushes to PostgreSQL 15._)
+* ~~Navicat Premium 16.1.2~~ (_Works. Iffy with round-trip gen, but works if I'm delicate. And it pushes to PostgreSQL 15._)
 
 ## Tools Will Not Be Using
 
@@ -88,7 +93,7 @@ description: >-
 * GitHub Copilot
 * Hey Code voice command
 * Amazon voice commands
-* FileBot ($6) _Bought. Fakes you out that you can use it for free, but it won't fix a name til you buy. And the output is COMPLETELY UNCONFIGURABLE._
+* ~~FileBot ($6)~~ _Bought. Fakes you out that you can use it for free, but it won't fix a name til you buy. And the output is COMPLETELY UNCONFIGURABLE._
 * gcc, mingw, Qt _Too hard for me. Too many errors were slipping by because I couldn't wrap my head around the complexity._
 
 ## Tools Tried Using but Failed
