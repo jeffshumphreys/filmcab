@@ -1,6 +1,6 @@
 [Net.ServicePointManager]::SecurityProtocol       = [Net.SecurityProtocolType]::Tls12;   # More to do with PowerShellGet issues, not Imports.
 Import-Module PowerShellHumanizer
-Import-Module DellBIOSProvider                                      
+Import-Module DellBIOSProvider
 
 Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptName, LogDirectory -Scope Script -ErrorAction Ignore -Verbose
 
@@ -12,9 +12,9 @@ Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptN
 # Set-PSDebug -Trace 2
 # Set-PSDebug -Off
 Set-StrictMode -Version Latest
-$ErrorActionPreference                            = 'Stop'            
+$ErrorActionPreference                            = 'Stop'
 $Script:OutputEncoding                            = [System.Text.Encoding]::UTF8
-$Script:scriptTimer                               = [Diagnostics.Stopwatch]::StartNew() 
+$Script:scriptTimer                               = [Diagnostics.Stopwatch]::StartNew()
 $Script:SnapshotMasterRunDate                     = Get-Date
 $Script:DEFAULT_POWERSHELL_TIMESTAMP_FORMAT       = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    Restrict to ONLY 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6, which then causes mismatches between timestamps in database with timestamps on files. They were always off by 4 100ths nanoseconds, and caused massive thrashing.
 $Script:pretest_assuming_true                     = $true
@@ -550,7 +550,7 @@ Function Get-LastEventsForTask ($fullScheduledTaskPath, $howManyEvents = 1, [Swi
             }          elseif ($_.Id -in @(714,713,316,315,105,205,306,204,307,403,711,126,130,707,709,113,146,401,116,404,150,148) -and $_.Version -eq 0) {
             $_.Properties[1].Value     
             }          elseif ($_.Id -in @(305,104,101,331,303,706,708,151) -and $_.Version -eq 0) {
-            $_.Properties[2].Value     
+            $_.Properties[2].Value
             }          elseif ($_.Id -in @(203,202,103,311) -and $_.Version -eq 0) {
             $_.Properties[3].Value     
             }          elseif ($_.Id -in @(201,202) -and $_.Version -eq 1) {
@@ -1172,6 +1172,26 @@ $ScriptBlockAsyncMoveFilesAndDirectories = {
     Remove-Item -LiteralPath $SourcePath -Force -Recurse -ErrorAction SilentlyContinue|Out-Null
 }
 
+Function EllipseString($string, $cutoff) {
+    if ($string.Length -lt $cutoff) {
+        return $string
+    }
+
+    return "$($string.Substring(0, $cutoff-3))..."
+}
+
+Function ReplaceAll($string, $what, $with) {
+    if ([string]::IsNullOrEmpty($what)) {return $string}
+    if ($null -eq $with) {return $string}
+    if ($with -contains $what) {return $string}
+
+    $newstring = $string
+    while ($newstring -contains $what) {
+        $newstring = $newstring -replace $what, $with
+    }
+
+    return $newstring
+}
 # Version (untested) with progress bars.
 # Question: What is a PSDrive?
 Function Copy-File {
@@ -1180,7 +1200,7 @@ Function Copy-File {
     #$tofile = [io.file]::OpenWrite($to)
     $tofile = [io.file]::Create($to)
     Write-Progress -Activity "Copying file" -status "$from -> $to" -PercentComplete 0
-    try {                
+    try {
         [byte[]]$buff = new-object byte[] 4096
         [long]$total = [int]$count = 0
         do {
