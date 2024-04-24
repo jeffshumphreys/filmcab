@@ -105,7 +105,7 @@ AS WITH base AS (SELECT
     f.file_hash                                                                                                                                              AS file_hash,      
     f.file_ntfs_id                                                                                                                                           AS file_ntfs_id,   
     d.directory_hash                                                                                                                                         AS directory_hash, 
-    d.directory_id,
+    d.directory_id                                                                                                                                           AS directory_id,
     f.file_name_no_ext                                                                                                                                       AS file_name_no_ext,
     f.file_name_no_ext || CASE WHEN f.final_extension <> ''::text THEN '.'::text || f.final_extension ELSE ''::TEXT END                                      AS file_name_with_ext,
     f.final_extension                                                                                                                                        AS final_extension,   
@@ -117,7 +117,7 @@ AS WITH base AS (SELECT
     f.file_date                                                                                                                                              AS file_date,
     COALESCE(d.directory_deleted, false)                                                                                                                     AS directory_deleted,
     COALESCE(f.deleted, FALSE)                                                                                                                               AS file_deleted,
-    f.scan_for_ntfs_id                                                                                                                                       AS scan_file_for_ntfs_id,
+    COALESCE(f.scan_for_ntfs_id, FALSE)                                                                                                                      AS scan_file_for_ntfs_id,
     d.useful_part_of_directory_path                                                                                                                          AS useful_part_of_directory_path,  
     d.useful_part_of_directory                                                                                                                               AS useful_part_of_directory,       
     d.folder                                                                                                                                                 AS folder,                         
@@ -127,21 +127,22 @@ AS WITH base AS (SELECT
     WHEN d.folder ~ '(S[0-90-9]|Season)'::text THEN d.folder ELSE d.parent_folder END                                                                        AS folder_season_name,
     d.search_path_tag                                                                                                                                        AS search_path_tag,        
     d.search_directory_tag                                                                                                                                   AS search_directory_tag,   
-    sd.directly_deletable                                                                                                                                    AS directly_deletable,
-    sd.skip_hash_generation                                                                                                                                  AS skip_hash_generation,
+    COALESCE(sd.directly_deletable, FALSE)                                                                                                                   AS directly_deletable,
+    COALESCE(sd.skip_hash_generation, FALSE)                                                                                                                 AS skip_hash_generation,
     d.root_genre                                                                                                                                             AS root_genre,
     COALESCE(f.is_symbolic_link, FALSE)                                                                                                                      AS file_is_symbolic_link,
     COALESCE(f.is_hard_link, FALSE)                                                                                                                          AS file_is_hard_link,
-    COALESCE(f.broken_link, FALSE)                                                                                                                   AS file_is_broken_link,
+    COALESCE(f.broken_link, FALSE)                                                                                                                           AS file_is_broken_link,
     NULLIF(f.linked_path, '')                                                                                                                                AS file_linked_path,
+    COALESCE(f.has_no_ads, FALSE)                                                                                                                            AS file_has_no_ads,
     d.directory_is_symbolic_link                                                                                                                             AS directory_is_symbolic_link,
     d.directory_is_junction_link                                                                                                                             AS directory_is_junction_link,
     d.move_id                                                                                                                                                AS directory_move_id,
     f.move_id                                                                                                                                                AS move_id,
-    f.moved_in,
-    f.moved_out,
+    COALESCE(f.moved_in, FALSE)                                                                                                                              AS moved_in,
+    COALESCE(f.moved_out, FALSE)                                                                                                                             AS moved_out,
     f.moved_from_file_id                                                                                                                                     AS moved_from_file_id,
-    f.moved_to_directory_hash
+    f.moved_to_directory_hash                                                                                                                                AS moved_to_directory_hash
    FROM files f
      JOIN directories_ext_v d USING (directory_hash)
      JOIN search_directories sd USING (search_directory_id)
@@ -157,6 +158,8 @@ add_reduced_user_logic AS (SELECT
         NOT directory_is_junction_link
     AND                      
         NOT file_deleted
+    AND
+        NOT moved_out
     AND
         NOT file_is_symbolic_link
     AND
@@ -185,20 +188,22 @@ AS SELECT files.file_id,
     files.final_extension,
     files.file_size,
     files.file_date,
-    files.deleted          AS file_deleted,
+    files.deleted         AS file_deleted,
     files.is_symbolic_link AS file_is_symbolic_link,
     files.is_hard_link     AS file_is_hard_link,
     files.broken_link      AS file_is_broken_link,
     files.linked_path,
     files.file_ntfs_id,
     files.scan_for_ntfs_id AS scan_file_for_ntfs_id,
+    files.has_no_ads, 
     files.move_id,
-    files.moved_out,
-    files.moved_in,
+    files.moved_out, 
+    files.moved_in, 
+    files.moved_from_volume_id, 
     files.moved_from_file_id,
     files.moved_from_directory_hash,
     files.moved_to_volume_id,
-    files.moved_to_directory_hash,
-    files.moved_from_volume_id 
+    files.moved_to_directory_hash
    FROM files;
-   SELECT count(*) FROM simplified.files_ext_v WHERE is_real_file
+   SELECT count(*) FROM simplified.files_ext_v WHERE is_real_file;
+   SELECT count(*) FROM simplified.files_ext_v WHERE NOT file_has_no_ads  ;
