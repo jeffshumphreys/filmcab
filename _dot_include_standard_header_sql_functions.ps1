@@ -442,15 +442,15 @@ Function Out-SqlToDataset {
     try {
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
         $DatabaseCommand.CommandText = $sql
-        $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand 
+        $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand
         $dataset = New-Object System.Data.DataSet
         $adapter.Fill($dataSet) | out-null
         if (-not $DontWriteSqlToConsole) {
             # Looks like Write-Output gets returned as a row?????
             Write-AllPlaces $sql
             $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
-        }                 
-        
+        }
+
         # INCREDIBLY HARD TO GET A SINGLE ROW RETURNED AS AN ARRAY!!!!!!!!!!
         if ($dataset.Tables[0].Rows.Count -eq 1) {
             [array]$arr = $dataset.Tables[0].Rows
