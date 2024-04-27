@@ -50,17 +50,17 @@ if ($null -eq $Script:ScriptRoot) {
 }
 $Script:LogDirectory                              = "$Script:ScriptRoot\_log"
 New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
-$Script:LogFileName                               = $Script:ScriptName + '.log.txt' 
+$Script:LogFileName                               = $Script:ScriptName + '.log.txt'
 $Script:LogFilePath                               = $Script:LogDirectory + '\' + $Script:LogFileName
 
 #####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 4 - Start Transcript 
+# Bootstrap Ordered Stage 4 - Start Transcript
 # Dependent on: ScriptName, LogDirectory
 #####################################################################################################################################################################################################################################################
 
-$Script:TranscriptFileName                        = $Script:ScriptName + '.transcript.log.txt' 
+$Script:TranscriptFileName                        = $Script:ScriptName + '.transcript.log.txt'
 $Script:TranscriptFilePath                        = $Script:LogDirectory + '\' + $Script:TranscriptFileName
-                                                                                  
+
 Remove-Item -Path $Script:TranscriptFilePath -Force -ErrorAction Ignore # Otherwise, in Core it will just keep appending. Bug? Or an issue when in VS Code?
 
 $tryToStartTranscriptAttempts                     = 0
@@ -84,7 +84,7 @@ Function Write-LogLineToFile {
     #"HERE"| Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
     if ($null -eq $text) {
         "NULL"|  Out-File "$Script:LogFilePath" -Encoding utf8 -Append
-    } 
+    }
 
     if ($null -eq $arguments) {
         $text | Out-File "$Script:LogFilePath" -Encoding utf8 -Append
@@ -1132,7 +1132,7 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
     if ($sourceob -is [String] -or $sourceob -is [Int32] -or $sourceob -is [datetime]) {
         $targetob.$prop = $sourceob.ToString()
     }                             
-    else {                
+    else {
         $propval = $null
 
         if(@($sourceob.PSObject.Properties.Name -eq "$prop").Count -eq 1) {$propval = $sourceob.$prop } else { $propval= ''}
