@@ -266,6 +266,63 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: acronyms; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.acronyms (
+    acronym_id integer NOT NULL,
+    acronym character varying NOT NULL,
+    expansion character varying,
+    definition character varying
+);
+
+
+ALTER TABLE simplified.acronyms OWNER TO postgres;
+
+--
+-- Name: TABLE acronyms; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON TABLE simplified.acronyms IS 'I lose track of these. What''s AVC, AAC, LC, MPEG? CABAC?';
+
+
+--
+-- Name: COLUMN acronyms.acronym; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.acronyms.acronym IS 'Try a new name: no "_name" suffix!';
+
+
+--
+-- Name: COLUMN acronyms.expansion; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.acronyms.expansion IS 'So en = English';
+
+
+--
+-- Name: acronyms_acronym_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.acronyms_acronym_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.acronyms_acronym_id_seq OWNER TO postgres;
+
+--
+-- Name: acronyms_acronym_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.acronyms_acronym_id_seq OWNED BY simplified.acronyms.acronym_id;
+
+
+--
 -- Name: apps; Type: TABLE; Schema: simplified; Owner: postgres
 --
 
@@ -768,49 +825,6 @@ CREATE VIEW simplified.batch_run_sessions_v_last_10_days_v AS
 
 
 ALTER TABLE simplified.batch_run_sessions_v_last_10_days_v OWNER TO postgres;
-
---
--- Name: codecs; Type: TABLE; Schema: simplified; Owner: postgres
---
-
-CREATE TABLE simplified.codecs (
-    codec_id smallint NOT NULL,
-    codec simplified.ntext NOT NULL,
-    codec_name text,
-    codec_notes text
-);
-
-
-ALTER TABLE simplified.codecs OWNER TO postgres;
-
---
--- Name: TABLE codecs; Type: COMMENT; Schema: simplified; Owner: postgres
---
-
-COMMENT ON TABLE simplified.codecs IS 'These tie heavily to file formats and those implied by extensions. Could be "file_codecs"?';
-
-
---
--- Name: codecs_codec_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
---
-
-CREATE SEQUENCE simplified.codecs_codec_id_seq
-    AS smallint
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE simplified.codecs_codec_id_seq OWNER TO postgres;
-
---
--- Name: codecs_codec_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
---
-
-ALTER SEQUENCE simplified.codecs_codec_id_seq OWNED BY simplified.codecs.codec_id;
-
 
 --
 -- Name: computers; Type: TABLE; Schema: simplified; Owner: postgres
@@ -1419,14 +1433,46 @@ ALTER SEQUENCE simplified.file_attributes_file_attribute_id_seq OWNED BY simplif
 
 CREATE TABLE simplified.file_extensions (
     file_extension_id smallint NOT NULL,
-    file_extension simplified.ntext NOT NULL,
+    file_extension public.citext NOT NULL,
     file_extension_name text,
     file_extension_notes text,
-    can_contain_subtitles boolean,
     file_is_media_content boolean,
     file_is_video_content boolean,
     file_is_audio_content boolean,
-    file_is_print_content boolean
+    file_is_print_content boolean,
+    file_is_subtitles boolean,
+    file_is_archive boolean,
+    is_lossless boolean,
+    is_image_file boolean,
+    file_is_structured_text boolean,
+    is_game_file boolean,
+    is_compiled_code boolean,
+    is_script boolean,
+    is_code boolean,
+    developed_by character varying,
+    requires_reader boolean,
+    file_supports_media_file boolean,
+    is_pointer_to_file boolean,
+    file_is_generic boolean,
+    file_is_application boolean,
+    is_control_file boolean,
+    file_is_spreadsheet boolean,
+    is_database_file boolean,
+    is_encoded_file boolean,
+    is_raster_image boolean,
+    is_camera_raw_image boolean,
+    is_vector_image boolean,
+    is_3d_image boolean,
+    is_page_layout_file boolean,
+    is_web_file boolean,
+    is_developer_file boolean,
+    is_system_file boolean,
+    is_plugin boolean,
+    is_font boolean,
+    is_backup_file boolean,
+    is_support_data_for_app boolean,
+    is_gis_file boolean,
+    is_cad_file boolean
 );
 
 
@@ -1437,6 +1483,90 @@ ALTER TABLE simplified.file_extensions OWNER TO postgres;
 --
 
 COMMENT ON TABLE simplified.file_extensions IS 'I need to start (much delayed) understanding what these videos are as opposed to just hoping VLC plays them. Now I use MX Player or Windows Media Player, and pretty much everything works, except some audio codecs.';
+
+
+--
+-- Name: COLUMN file_extensions.file_extension; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.file_extension IS 'extensions on all OSs are case-insensitive.';
+
+
+--
+-- Name: COLUMN file_extensions.file_is_archive; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.file_is_archive IS 'zip, rar, xz, etc. So can''t possibly know if it''s media.';
+
+
+--
+-- Name: COLUMN file_extensions.is_lossless; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.is_lossless IS 'Like gifs, for instance.';
+
+
+--
+-- Name: COLUMN file_extensions.is_image_file; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.is_image_file IS 'Is a gif an image? sort of more a video. webp is an image.';
+
+
+--
+-- Name: COLUMN file_extensions.file_is_structured_text; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.file_is_structured_text IS 'yml, config, cfg, yaml, ini, etc.';
+
+
+--
+-- Name: COLUMN file_extensions.is_game_file; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.is_game_file IS 'An NDS for example.';
+
+
+--
+-- Name: COLUMN file_extensions.requires_reader; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.requires_reader IS 'Like mobis for instant. Can''t just open in text viewer.';
+
+
+--
+-- Name: COLUMN file_extensions.is_pointer_to_file; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.is_pointer_to_file IS '.torrent, magnet, lnk, etc.';
+
+
+--
+-- Name: COLUMN file_extensions.file_is_generic; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.file_is_generic IS 'like log, it''s not specific format or owned by anyone.';
+
+
+--
+-- Name: COLUMN file_extensions.file_is_application; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.file_is_application IS 'So not batch scripts? not sure. exe.';
+
+
+--
+-- Name: COLUMN file_extensions.is_control_file; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.is_control_file IS 'cfg, config, editorconfig, ini, etc.';
+
+
+--
+-- Name: COLUMN file_extensions.is_encoded_file; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.file_extensions.is_encoded_file IS 'Something from fileinfo. No idea.';
 
 
 --
@@ -1525,7 +1655,8 @@ CREATE TABLE simplified.files (
     moved_from_directory_hash bytea,
     moved_from_volume_id smallint,
     moved_from_file_id integer,
-    has_no_ads boolean
+    has_no_ads boolean,
+    file_name_broken_cant_change_ro boolean
 );
 
 
@@ -2303,11 +2434,326 @@ ALTER TABLE simplified.files_linked_across_search_directories_v OWNER TO postgre
 --
 
 CREATE TABLE simplified.files_media_info (
-    file_id integer NOT NULL
+    file_id integer NOT NULL,
+    general_video_format_list text,
+    general_audio_codec_list text,
+    general_text_format_list text,
+    general_text_codec_list text,
+    general_filenameextension text,
+    general_format text,
+    general_format_string text,
+    general_format_extensions text,
+    general_duration text,
+    general_duration_string1 text,
+    general_overallbitrate_string text,
+    general_framerate_string text,
+    general_title text,
+    general_encoded_date text,
+    general_file_created_date text,
+    general_encoded_application text,
+    general_encoded_library_string text,
+    video_format text,
+    video_format_string text,
+    video_format_info text,
+    video_format_commercial text,
+    video_format_profile text,
+    video_internetmediatype text,
+    video_codecid text,
+    video_duration_string1 text,
+    video_bitrate_string text,
+    video_width text,
+    video_height text,
+    video_displayaspectratio text,
+    video_framerate_mode text,
+    video_framerate_mode_original text,
+    video_framerate_string text,
+    video_encoded_library_string text,
+    video_encoded_library_name text,
+    video_encoded_library_version text,
+    video_language text,
+    audio_format text,
+    audio_format_string text,
+    audio_format_info text,
+    audio_format_commercial text,
+    audio_codecid text,
+    audio_bitrate_mode_string text,
+    audio_channel_s text,
+    audio_channelpositions text,
+    audio_channelpositions_string2 text,
+    audio_channellayout text,
+    audio_delay text,
+    audio_language text,
+    audio_dialog_normalization text,
+    audio_dialog_normalization_str text,
+    audio_dsurmod text,
+    audio_dialnorm_average text,
+    text_format text,
+    text_format_commercial text,
+    text_codecid_info text,
+    text_language text,
+    text_default text,
+    text_forced text,
+    general_format_profile text,
+    general_internetmediatype text,
+    general_codecid text,
+    general_codecid_string text,
+    general_codecid_compatible text,
+    general_overallbitrate_mode_string text,
+    general_tagged_date text,
+    video_codecid_info text,
+    video_bitrate_maximum_string text,
+    video_encoded_date text,
+    video_tagged_date text,
+    video_codecconfigurationbox text,
+    general_format_info text,
+    general_istruncated text,
+    video_format_settings_matrix_string text,
+    video_codecid_hint text,
+    audio_dynrng_average text,
+    audio_dynrng_minimum text,
+    audio_dynrng_maximum text,
+    video_muxingmode text,
+    video_stored_height text,
+    video_title text,
+    text_title text,
+    audio_title text,
+    audio_encoded_library_string text,
+    text_muxingmode text,
+    video_stored_width text,
+    video_delay_string text,
+    audio_format_version text,
+    audio_format_profile text,
+    audio_format_settings_mode text,
+    audio_format_settings_modeextension text,
+    audio_internetmediatype text,
+    audio_codecid_hint text,
+    audio_interleave_preload_string text,
+    audio_encoded_library_settings text,
+    audio_delay_string text,
+    general_album text,
+    video_bitrate_mode_string text,
+    video_pixelaspectratio_original text,
+    video_displayaspectratio_original text,
+    video_buffersize text,
+    general_collection text,
+    general_season text,
+    general_part text,
+    general_track text,
+    general_performer text,
+    general_director text,
+    general_screenplayby text,
+    general_genre text,
+    general_contenttype text,
+    general_description text,
+    general_recorded_date text,
+    general_tvnetworkname text,
+    general_part_id text,
+    general_longdescription text,
+    video_standard text,
+    video_format_version text,
+    video_scanorder_string text,
+    video_originalsourcemedium text,
+    audio_complexityindex text,
+    general_movie_encoder text,
+    text_encoded_library_string text,
+    general_crc_error_pos text,
+    general_summary text,
+    general_codirector text,
+    general_productionstudio text,
+    general_audio text,
+    general_cc text,
+    general_chapters text,
+    general_encoded_by text,
+    general_released_date text,
+    general_artist text,
+    general_languages text,
+    general_subtitles text,
+    general_writing_frontend text,
+    audio_channel_s_original_string text,
+    audio_channelpositions_original text,
+    audio_channellayout_original text,
+    general_language text,
+    general_subtitle text,
+    audio_originalsourcemedium text,
+    general_composer text,
+    general_synopsis text,
+    general_wm_mediacredits text,
+    general_wm_mediaisdelay text,
+    general_wm_mediaisfinale text,
+    general_wm_mediaislive text,
+    general_wm_mediaismovie text,
+    general_wm_mediaispremiere text,
+    general_wm_mediaisrepeat text,
+    general_wm_mediaissap text,
+    general_wm_mediaissport text,
+    general_wm_mediaisstereo text,
+    general_wm_mediaissubtitled text,
+    general_wm_mediaistape text,
+    general_wm_medianetworkaffiliation text,
+    general_wm_mediaoriginalbroadcastdatetim text,
+    general_wm_mediaoriginalchannel text,
+    general_wm_mediaoriginalruntime text,
+    general_wm_parentalrating text,
+    general_wm_provider text,
+    general_wm_subtitledescription text,
+    general_wm_wmrvseriesuid text,
+    general_wm_wmrvwatched text,
+    audio_encoded_library_name text,
+    audio_encoded_library_version text,
+    video_source_delay text,
+    general_codecid_version text,
+    general_encoded_library_version text,
+    general_named_chapters text,
+    general_rating text,
+    general_overallbitrate_maximum_string text,
+    general_copyright text,
+    video_codecid_description text,
+    audio_codecid_info text,
+    audio_codecid_description text,
+    general_lawrating text,
+    general_album_performer text,
+    general_author text,
+    audio_encoded_application_string text,
+    general_encodedby text,
+    general_actor text,
+    general_date_recorded text,
+    general_law_rating text,
+    general_producer text,
+    general_production_studio text,
+    text_originalsourcemedium text,
+    video_hdr_format_string text,
+    general_orig text,
+    video_height_original_string text,
+    general_date_encoded text,
+    general_date_released text,
+    general_imdb text,
+    general_original_media_type text,
+    general_screenplay_by text,
+    general_subject text,
+    general_other_format_list text,
+    general_other_codec_list text,
+    general_com_apple_quicktime_keywords text,
+    general_com_apple_quicktime_author text,
+    general_com_apple_quicktime_title text,
+    text_delay text,
+    text_video_delay text,
+    text_captionservicename text,
+    other_type text,
+    other_format_string text,
+    other_format_commercial text,
+    other_duration_string text,
+    general_tool text,
+    general_album_artist text,
+    general_date text,
+    general_contentrating text,
+    general_episode_id text,
+    general_episode_sort text,
+    general_grouping text,
+    general_lyrics text,
+    general_network text,
+    general_season_number text,
+    general_show text,
+    general_written_by text,
+    general_purchasedate text,
+    text_delay_string text,
+    general_title_more text,
+    general_keyword text,
+    video_activeformatdescription_string text,
+    general_track_sort text,
+    general_part_of_a_set text,
+    general_publisher text,
+    general_originalsourcemedium text,
+    general_originalsourceform text,
+    general_performer_sort text,
+    general_title_sort text,
+    general_delay text,
+    general_delay_string text,
+    general_overallbitrate_precision_min text,
+    general_overallbitrate_precision_max text,
+    audio_format_identifier text,
+    audio_replaygain_gain text,
+    audio_replaygain_gain_string text,
+    audio_replaygain_peak text,
+    audio_mp3gain_min_max text,
+    general_commissionedby text,
+    video_codec_configuration_box text,
+    general_wmfsdkversion text
 );
 
 
 ALTER TABLE simplified.files_media_info OWNER TO postgres;
+
+--
+-- Name: files_media_info_v; Type: VIEW; Schema: simplified; Owner: postgres
+--
+
+CREATE VIEW simplified.files_media_info_v AS
+ SELECT files_media_info.file_id,
+    files.final_extension,
+    files.file_path,
+    files_media_info.general_title,
+    files_media_info.general_filenameextension,
+    files_media_info.general_encoded_date,
+    files_media_info.general_file_created_date,
+    files_media_info.general_duration AS duration_in_ms,
+    files_media_info.general_duration_string1 AS duration_long_display,
+    files_media_info.video_language,
+    files_media_info.audio_language,
+    files_media_info.general_audio,
+    files_media_info.text_language,
+    files_media_info.audio_channel_s AS audio_channels,
+    files_media_info.audio_channelpositions,
+    files_media_info.audio_channelpositions_string2,
+    files_media_info.audio_channellayout,
+    files_media_info.audio_dsurmod,
+    files_media_info.video_width,
+    files_media_info.video_height,
+    files_media_info.video_displayaspectratio,
+    files_media_info.general_format,
+    files_media_info.general_format_string,
+    files_media_info.general_video_format_list,
+    files_media_info.video_format,
+    files_media_info.video_format_string,
+    files_media_info.video_format_commercial,
+    files_media_info.video_format_info,
+    files_media_info.video_codecid,
+    files_media_info.video_format_profile,
+    files_media_info.video_internetmediatype,
+    files_media_info.video_encoded_library_string,
+    files_media_info.video_encoded_library_name,
+    files_media_info.video_bitrate_string,
+    files_media_info.general_overallbitrate_string,
+    files_media_info.general_framerate_string,
+    files_media_info.video_framerate_string,
+    files_media_info.video_framerate_mode,
+    files_media_info.video_framerate_mode_original,
+    files_media_info.general_format_extensions,
+    files_media_info.general_audio_codec_list,
+    files_media_info.audio_format,
+    files_media_info.audio_format_commercial,
+    files_media_info.audio_format_string,
+    files_media_info.audio_codecid,
+    files_media_info.audio_format_info,
+    files_media_info.audio_bitrate_mode_string,
+    files_media_info.general_text_format_list,
+    files_media_info.general_text_codec_list,
+    files_media_info.text_format,
+    files_media_info.text_format_commercial,
+    files_media_info.text_codecid_info,
+    files_media_info.text_default,
+    files_media_info.text_forced,
+    files_media_info.general_encoded_application,
+    files_media_info.general_encoded_library_string,
+    files_media_info.video_encoded_library_version,
+    files_media_info.audio_delay,
+    files_media_info.audio_dialog_normalization,
+    files_media_info.audio_dialog_normalization_str,
+    files_media_info.audio_dialnorm_average
+   FROM (simplified.files_media_info
+     JOIN simplified.files_ext_v files USING (file_id));
+
+
+ALTER TABLE simplified.files_media_info_v OWNER TO postgres;
 
 --
 -- Name: files_v; Type: VIEW; Schema: simplified; Owner: postgres
@@ -3446,17 +3892,17 @@ ALTER SEQUENCE simplified.volumes_volume_id_seq OWNED BY simplified.volumes.volu
 
 
 --
+-- Name: acronyms acronym_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.acronyms ALTER COLUMN acronym_id SET DEFAULT nextval('simplified.acronyms_acronym_id_seq'::regclass);
+
+
+--
 -- Name: apps app_id; Type: DEFAULT; Schema: simplified; Owner: postgres
 --
 
 ALTER TABLE ONLY simplified.apps ALTER COLUMN app_id SET DEFAULT nextval('simplified.apps_app_id_seq'::regclass);
-
-
---
--- Name: codecs codec_id; Type: DEFAULT; Schema: simplified; Owner: postgres
---
-
-ALTER TABLE ONLY simplified.codecs ALTER COLUMN codec_id SET DEFAULT nextval('simplified.codecs_codec_id_seq'::regclass);
 
 
 --
@@ -3541,6 +3987,22 @@ ALTER TABLE ONLY simplified.videos ALTER COLUMN video_id SET DEFAULT nextval('si
 --
 
 ALTER TABLE ONLY simplified.volumes ALTER COLUMN volume_id SET DEFAULT nextval('simplified.volumes_volume_id_seq'::regclass);
+
+
+--
+-- Name: acronyms acronyms_pk; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.acronyms
+    ADD CONSTRAINT acronyms_pk PRIMARY KEY (acronym_id);
+
+
+--
+-- Name: acronyms acronyms_unique; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.acronyms
+    ADD CONSTRAINT acronyms_unique UNIQUE (acronym);
 
 
 --
@@ -3634,22 +4096,6 @@ ALTER TABLE ONLY simplified.batch_run_session_tasks
 
 ALTER TABLE ONLY simplified.batch_run_sessions
     ADD CONSTRAINT batch_run_sessions_pk PRIMARY KEY (batch_run_session_id);
-
-
---
--- Name: codecs codecs_ak; Type: CONSTRAINT; Schema: simplified; Owner: postgres
---
-
-ALTER TABLE ONLY simplified.codecs
-    ADD CONSTRAINT codecs_ak UNIQUE NULLS NOT DISTINCT (codec);
-
-
---
--- Name: codecs codecs_pkey; Type: CONSTRAINT; Schema: simplified; Owner: postgres
---
-
-ALTER TABLE ONLY simplified.codecs
-    ADD CONSTRAINT codecs_pkey PRIMARY KEY (codec_id);
 
 
 --
