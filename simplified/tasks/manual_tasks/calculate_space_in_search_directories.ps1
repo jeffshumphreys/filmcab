@@ -12,7 +12,7 @@ try {
 $howMuchSpaceLeft   = [Int64]0
 
 # Fetch a string array of paths to search.
-                           
+
 # TODO: Extend O to include I, N, F, and E. Split those to share with D, too, the download drive.
 # C:  0.8 TB free
 # D:  3.6 TB free
@@ -35,11 +35,11 @@ $howMuchSpaceLeft   = [Int64]0
 ###### Tue Mar 5 15:47:32 MST 2024 Bought Avolusion HDDGear Pro X 12TB USB 3.0 External Gaming Hard Drive. Reformat as NTFS
 
 $volumesForSearchDirectories = WhileReadSql 'SELECT DISTINCT volume_id, drive_letter from search_directories_ext_v ORDER BY 1' # All the directories across my volumes that I think have some sort of movie stuff in them.
-    
+
 $volumes = Get-Volume|Where DriveLetter -ne ''|Select DriveLetter, Size, SizeRemaining
 
 # Search down each search path for directories that are different or missing from our data store.
-    
+
 [Int64]$howMuchSpaceLeft = 0
 
 while ($volumesForSearchDirectories.Read()) {                                                                                 
