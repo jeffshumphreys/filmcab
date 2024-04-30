@@ -34,9 +34,9 @@ $Script:Config                                    = (Get-Content -Path $Script:P
 #####################################################################################################################################################################################################################################################
 
 $Script:MasterScriptPath                          = $MyInvocation.ScriptName                               # This is null if you are running this dot include directly.
-if ([String]::IsNullOrEmpty($MasterScriptPath)) {                                                                
+if ([String]::IsNullOrEmpty($MasterScriptPath)) {
     $Script:MasterScriptPath                      = $MyInvocation.Line
-}                                          
+}
 $Script:MasterScriptPath                          = if ($Script:MasterScriptPath.StartsWith(". .\")) { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
 $Script:MasterScriptPath                          = if ($Script:MasterScriptPath.StartsWith(". '"))  { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
 $Script:MasterScriptPath                          = $Script:MasterScriptPath.Trim("'")
@@ -73,7 +73,7 @@ while ($tryToStartTranscriptAttempts -lt 3) {
     catch [System.IO.IOException] {
         try { Stop-Transcript} catch {}
         Start-Sleep -Milliseconds 10.0
-    }                                  
+    }
 }
 
 #####################################################################################################################################################################################################################################################
@@ -103,13 +103,13 @@ Function Log-Line {
     )
     #$mtx = New-Object System.Threading.Mutex($false, 'FileMtx')
     #[void] $mtx.WaitOne()
-    
+
     if ($null -eq $Text) {
-        Write-LogLineToFile "*** null string" 
+        Write-LogLineToFile "*** null string"
     }
     elseif ( '' -eq $Text) {
-        Write-LogLineToFile "*** empty string" 
-    } 
+        Write-LogLineToFile "*** empty string"
+    }
     else {
         try{
             $HashArguments = @{}
@@ -118,7 +118,7 @@ Function Log-Line {
             } else {
                 $HashArguments = @{Append = $true}
 
-            }    
+            }
             if ($NoNewLine) {
                 $HashArguments+= @{NoNewLine = $true}
             }
@@ -129,7 +129,7 @@ Function Log-Line {
             $HashArguments = @{}
             $err = $_.Exception.Message
             Write-LogLineToFile "Catching"
-            Write-LogLineToFile "$err" 
+            Write-LogLineToFile "$err"
         }
     }
 }
@@ -140,19 +140,19 @@ $Script:PS_Edition                                          = $PSVersionTable.PS
 $Script:CommandOrigin                                       = $MyInvocation.CommandOrigin                     # Internal
 $Script:CurrentFunction                                     = $MyInvocation.MyCommand                         # _dot_include_standard_header.v2.ps1
 $Script:InvokationName                                      = $MyInvocation.InvocationName                    # always "." when included or ran direct.
-    
+
 Log-Line "Starting Log $($Script:SnapshotMasterRunDate) on $(($Script:SnapshotMasterRunDate).DayOfWeek) $($Script:DSTTag) in $(($Script:SnapshotMasterRunDate).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
 Log-Line "`$ScriptFullPath: $Script:MasterScriptPath, `$PSVersion = $($Script:PSVersion), `$PSEdition = $($Script:PSEdition), `$CommandOrigin = $($Script:CommandOrigin), Current Function = $($Script:CurrentFunction)"
 
-$basePath                                                   = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' 
+$basePath                                                   = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
 $Script:amRunningAsAdmin                                    = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
-if(-not (Test-Path $basePath)) {     
-    $null = New-Item $basePath -Force     
+if(-not (Test-Path $basePath)) {
+    $null = New-Item $basePath -Force
     New-ItemProperty $basePath -Name "EnableScriptBlockLogging" -PropertyType Dword
     New-ItemProperty $basePath -Name "EnableInvocationHeader" -PropertyType Dword
     New-ItemProperty $basePath -Name "OutputDirectory" -PropertyType String
-} 
+}
 
 if ($amRunningAsAdmin) {
     Set-ItemProperty $basePath -Name "EnableScriptBlockLogging" -Value "1"
@@ -165,17 +165,17 @@ $Script:CurrentXPosInTerminal = 0
 Function Write-AllPlaces {
     param(
     [string]$s,
-    [switch]$NoNewLine, [switch]$ForceStartOnNewLine, 
+    [switch]$NoNewLine, [switch]$ForceStartOnNewLine,
     [switch]$NoLog <# For purely visual "I'm active" live viewing of the terminal, we don't need in the log#>
     )
-                                                    
+
     if ($ForceStartOnNewLine) {
         if ($Script:CurrentXPosInTerminal -gt 0) {
-            Write-Host            
+            Write-Host
             $Script:CurrentXPosInTerminal = 0 # Reset cursor tracking
         }
-    }   
-    
+    }
+
     if ($NoNewLine) {
         Write-Host $s -NoNewline # To operator
         if (-Not $NoLog) {Log-Line $s -NoNewLine}
@@ -250,16 +250,16 @@ Function Get-CRC32 {
 
 $_EXITCODE_UNTRAPPED_EXCEPTION           = 4001
 $_EXITCODE_GENERIC_AND_USELESS_EXCEPTION = -2146233087
-$_EXITCODE_VARIABLE_NOT_FOUND            = 15631964        # Get-CRC32 -shr 8                                                                                                                                                                              
+$_EXITCODE_VARIABLE_NOT_FOUND            = 15631964        # Get-CRC32 -shr 8
 $_EXITCODE_SCRIPT_NOT_FOUND              = 4479237
 
 Function Show-Error {
     param(
-        [Parameter(Position=0,mandatory=$false)]        [string]$scriptWhichProducedError,    
+        [Parameter(Position=0,mandatory=$false)]        [string]$scriptWhichProducedError,
         [Parameter(Position=1,mandatory=$false)]        [int32] $exitcode = 1, # non-zero generally means failure in executable world
         [string] $message="",
         [switch]$DontExit # switches always default to false. I forget that sometimes.
-    )                                                                        
+    )
 
     # WARNING: DONT use Write-Error. The code will stop. It's really "Write-then-Error"
     Write-AllPlaces $scriptWhichProducedError
@@ -267,9 +267,9 @@ Function Show-Error {
     {
         Write-AllPlaces $message -ForceStartOnNewLine
     }
-    
+
     Get-PSCallStack -Verbose|Out-Host
-                               
+
     $WasAnException        = $pretest_assuming_true
     $FullyQualifiedErrorId = "na"
 
@@ -279,11 +279,11 @@ Function Show-Error {
     catch {
         # There is no exception
         $WasAnException = $false
-    }                           
+    }
     if ($WasAnException) {
-        Write-AllPlaces "Message: $($_.Exception.Message)"                 
-        Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"           
-        Write-AllPlaces "Failed on line #: $($_.InvocationInfo.ScriptLineNumber)" 
+        Write-AllPlaces "Message: $($_.Exception.Message)"
+        Write-AllPlaces "StackTrace: $($_.Exception.StackTrace)"
+        Write-AllPlaces "Failed on line #: $($_.InvocationInfo.ScriptLineNumber)"
         Write-AllPlaces "of Script: $($_.InvocationInfo.ScriptName)"        # Critical, or else we have to guess where the error occurred
         Write-AllPlaces "in line: $($_.InvocationInfo.Line)"                # Partial. For multiline commands, only the line where the bug is
         Write-AllPlaces "in statement: $($_.InvocationInfo.Statement)"      # Not super valuable
@@ -296,13 +296,13 @@ Function Show-Error {
                 $WasThrownFromThrowStatement = $_.Exception.WasThrownFromThrowStatement # An interesting property
                 if ($WasThrownFromThrowStatement) { Write-AllPlaces "This exception was from a throw statement"}
             }
-            
+
             if ($null -ne $Exception.InnerException) {
-                $HResult = $Exception.InnerException.HResult # 
+                $HResult = $Exception.InnerException.HResult #
             } else {
                 $HResult = $Exception.HResult
-            }                              
-            if ($Exception.PSObject.Properties.Name -match 'ErrorRecord') { 
+            }
+            if ($Exception.PSObject.Properties.Name -match 'ErrorRecord') {
                 Write-AllPlaces "Error Record= $($Exception.ErrorRecord)"
                 # HResult is STUPID GENERIC!!!!!
                 $FullyQualifiedErrorId = $Exception.ErrorRecord.FullyQualifiedErrorId
@@ -312,8 +312,8 @@ Function Show-Error {
 
         if (Has-Property  $_.Exception LoaderExceptions) {
             Write-AllPlaces "LoaderExceptions: $($_.Exception.LoaderExceptions)"   # Some exceptions don't have a loader exception.
-        }                                                                                                                          
-        
+        }
+
         if ($null -ne $HResult -and $HResult -ne 0 -and $exitcode -ne 1) # One is the default.
         {
             # You set a value on calling, and we have an hresult from an actual exception, then that's the code we'll use
@@ -321,16 +321,16 @@ Function Show-Error {
             $exitcode = $HResult
         }
     }
-    
+
     if ($exitcode -eq $_EXITCODE_GENERIC_AND_USELESS_EXCEPTION -and $FullyQualifiedErrorId -ne 'na') {
-        Write-AllPlaces "Generating a specific code from CRC32 since PowerShell giving us useless HResult" # Make a hash 
+        Write-AllPlaces "Generating a specific code from CRC32 since PowerShell giving us useless HResult" # Make a hash
         $exitcode64 = [System.Text.Encoding]::ASCII.GetBytes($FullyQualifiedErrorId) | Get-CRC32
         $exitcode = ($exitcode64 -shr 8)
     }
     Write-AllPlaces "Exiting all code with LASTEXITCODE of $exitcode"
-    if (-not $DontExit) {    
+    if (-not $DontExit) {
         Write-VolumeCache D # BAD DESIGN: So that log stuff gets written out in case of fatal crash                                                          # Double-negative. Meh.
-        #exit $exitcode # These SEEM to be getting back to Task Scheduler 
+        exit $exitcode # These SEEM to be getting back to Task Scheduler
     }
     return $exitcode
 }
@@ -346,11 +346,11 @@ Function Assert-MeaningfulString([string]$s, $varname = 'string') {
         $true
     }
 }
-                      
+
 Function Has-Property ($sourceob, $prop) {
     return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
-                                                       
+
 . .\_dot_include_standard_header_sql_functions.ps1
 
 #####################################################################################################################################################################################################################################################
@@ -362,7 +362,7 @@ $MyDatabaseServer        = "$($Config.database_server_ip_address)";
 $MyDatabaseServerPort    = "$($Config.database_server_port)";
 $MyDatabaseName          = "$($Config.database)";
 $MyDatabaseUserName      = "$($Config.database_user)";
-$MyDatabaseUsersPassword = "$($Config.database_password)"     
+$MyDatabaseUsersPassword = "$($Config.database_password)"
 $MyDatabaseSchema        = "$($Config.database_schema)"
 
 $DatabaseConnectionString = "
@@ -375,12 +375,12 @@ $DatabaseConnectionString = "
     Parse=True;
     OptionalErrors=True;
     BoolsAsChar=False;
-    "                  
+    "
 $Script:DatabaseConnection                   = New-Object System.Data.Odbc.OdbcConnection
-$Script:DatabaseConnection.ConnectionString  = $DatabaseConnectionString                                                                      
+$Script:DatabaseConnection.ConnectionString  = $DatabaseConnectionString
 $Script:DatabaseConnection.ConnectionTimeout = 10
-    
-$informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-AllPlaces $event.Message } 
+
+$informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-AllPlaces $event.Message }
 $Script:DatabaseConnection.add_InfoMessage($informationalmessagehandler)
 
 $Script:AttemptedToConnectToDatabase = $false
@@ -391,7 +391,7 @@ try {
 } catch {
     Show-Error -exitcode 3 -DontExit # dot includer can decide if having no db connection is bad or not.
     $Script:DatabaseConnectionIsOpen = $false
-}               
+}
 $Script:AttemptedToConnectToDatabase = $true
 
 if ($Script:DatabaseConnectionIsOpen) {
@@ -402,7 +402,7 @@ if ($Script:DatabaseConnectionIsOpen) {
 }
 
 #####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 7 - Detect Caller                              
+# Bootstrap Ordered Stage 7 - Detect Caller
 # Dependencies: PID
 #####################################################################################################################################################################################################################################################
 
@@ -426,7 +426,7 @@ if ((Test-Path variable:Script:TestScheduleDrivenTaskDetection) -and $Script:Tes
         $Script:Caller  = 'Visual Code Editor'
     } elseif ($determinorOfCaller.Name -eq 'Code - Insiders.exe') {
         $Script:Caller  = 'Visual Code Editor'
-    } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {  
+    } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {
         $Script:Caller  = 'Command Line'
     } else {
         $Script:Caller  = ($determinorOfCaller.CommandLine)
@@ -447,13 +447,13 @@ if ($Script:Caller -eq 'Windows Task Scheduler') {
     $scheduledTaskForProject = $pretest_assuming_true
 
     $getScheduledTaskDetailIfFound = WhileReadSql "
-        SELECT 
+        SELECT
             scheduled_task_root_directory
         ,   scheduled_task_run_set_name
         ,   script_position_in_lineup
-        FROM 
-            scheduled_tasks_ext_v 
-        WHERE 
+        FROM
+            scheduled_tasks_ext_v
+        WHERE
             scheduled_task_name = '$($Script:ScriptNameWithoutExtension)'" -PreReadFirstRow
 
     $fullScheduledTaskPath = "?"
@@ -468,7 +468,7 @@ if ($Script:Caller -eq 'Windows Task Scheduler') {
         $fullScheduledTaskPath         = (Get-ScheduledTask -TaskName $Script:ScriptNameWithoutExtension|Select URI).URI
         $scheduledTaskForProject       = $false
     }
-                                                                                        
+
     $xmlToFilterGetWinEventsInvolvingTrigger = @"
     <QueryList><Query Id="0"><Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name="TaskName"]="$fullScheduledTaskPath"]]</Select></Query></QueryList>
 "@
@@ -546,66 +546,66 @@ Function Get-LastEventsForTask ($fullScheduledTaskPath, $howManyEvents = 1, [Swi
     @{Name='ResultCode'; Expression = {
             if ($_.Id -in @(203,716,201,715,714,305,713,316,315,717,202,718,105,205,104,712,103,306,204,101,307,311,331,403,711,702,126,303,703,130,704,705,706,707,708,709,413,412,113,146,410,408,401,115,116,710,404,409,151,150,406,407,148,405,701)) {
                         if ($_.Id -in @(716,715,717,718,712,702,703,704,705,413,412,410,408,115,710,409,406,407,405,701) -and $_.Version -eq 0) {
-            $_.Properties[0].Value     
+            $_.Properties[0].Value
             }          elseif ($_.Id -in @(714,713,316,315,105,205,306,204,307,403,711,126,130,707,709,113,146,401,116,404,150,148) -and $_.Version -eq 0) {
-            $_.Properties[1].Value     
+            $_.Properties[1].Value
             }          elseif ($_.Id -in @(305,104,101,331,303,706,708,151) -and $_.Version -eq 0) {
             $_.Properties[2].Value
             }          elseif ($_.Id -in @(203,202,103,311) -and $_.Version -eq 0) {
-            $_.Properties[3].Value     
+            $_.Properties[3].Value
             }          elseif ($_.Id -in @(201,202) -and $_.Version -eq 1) {
-            $_.Properties[3].Value     
+            $_.Properties[3].Value
             }          elseif ($_.Id -in @(201) -and $_.Version -eq 2) {
-            $_.Properties[3].Value     
-            }                          
-            }                          
-        }},                            
+            $_.Properties[3].Value
+            }
+            }
+        }},
         @{Name='UserContext'; Expression = {
             if ($_.Id -in @(110,100,101,106,330,102,103)) {
                         if ($_.Id -in @(100,101,106,102) -and $_.Version -eq 0) {
-            $_.Properties[1].Value     
+            $_.Properties[1].Value
             }          elseif ($_.Id -in @(110,330,103) -and $_.Version -eq 0) {
-            $_.Properties[2].Value     
-            }                          
-            }                          
-        }},                            
+            $_.Properties[2].Value
+            }
+            }
+        }},
         @{Name='UserName'; Expression = {
             if ($_.Id -in @(124,134,119,133,141,121,142,104,122,120,123,125,332,140)) {
                         if ($_.Id -in @(104) -and $_.Version -eq 0) {
-            $_.Properties[0].Value     
+            $_.Properties[0].Value
             }          elseif ($_.Id -in @(124,134,119,141,121,142,122,120,123,125,332,140) -and $_.Version -eq 0) {
-            $_.Properties[1].Value     
+            $_.Properties[1].Value
             }          elseif ($_.Id -in @(133) -and $_.Version -eq 0) {
-            $_.Properties[2].Value     
-            }                          
-            }                          
-        }},                            
-    ID|                                
-    Where-Object {$_.ID -in            
+            $_.Properties[2].Value
+            }
+            }
+        }},
+    ID|
+    Where-Object {$_.ID -in
         107, <# Triggered on Scheduler (Message ends with "due to a time trigger condition")#>
-        108, <# Triggered on Event #>  
+        108, <# Triggered on Event #>
         109, <# Triggered by Registration #>
-        110, <# Triggered by User #>   
+        110, <# Triggered by User #>
         117, <# Triggered on Idle #>
         118, <# Triggered by Computer startup #>
-        119, <# Triggered on logon #>  
+        119, <# Triggered on logon #>
         120, <# Triggered on local console connect#>
         121, <# Triggered on #>
         122, <# Triggered on #>
         123, <# Triggered on #>
         124, <# Triggered on Locking workstation #>
         125, <# Triggered on #>
-        126, <# Triggered on #>        
+        126, <# Triggered on #>
         127, <# Restarted On failure (Rejected) #>
         145,  <# Triggered by coming out of suspend mode #>
-        100, <# Task Started #>        
-        101, <# Task Start failed #>   
-        102, <# Task Completed #>      
-        200, <# Action started #>      
-        203, <# Action Start failed #> 
-        201, <# Action completed #>    
-        111 <# Task terminated #>                                
-    }|Select -First $howManyEvents|                              
+        100, <# Task Started #>
+        101, <# Task Start failed #>
+        102, <# Task Completed #>
+        200, <# Action started #>
+        203, <# Action Start failed #>
+        201, <# Action completed #>
+        111 <# Task terminated #>
+    }|Select -First $howManyEvents|
     Sort RecordId -Descending
 
     if ($null -ne $lastEventsWhileRunningIs) {
@@ -617,29 +617,29 @@ Function Get-LastEventsForTask ($fullScheduledTaskPath, $howManyEvents = 1, [Swi
     return [array]$lastEventsWhileRunningIs
 }
 #####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 8 - Persist Batch Run Session Detail   
+# Bootstrap Ordered Stage 8 - Persist Batch Run Session Detail
 # Dependencies: scheduledTaskForProject, WindowsSchedulerTaskTriggeringEvent, ScriptName, ScriptNameWithoutExtension, Caller
 #####################################################################################################################################################################################################################################################
-                                                                 
+
 if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeringEvent) {
     Set-StrictMode -Off # Critical to avoid not found errors on following attributes
     $triggers = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|
-    SELECT -expandProperty Triggers|                             
-    % {                                                          
-        $trigger = [PSCustomObject]@{                            
+    SELECT -expandProperty Triggers|
+    % {
+        $trigger = [PSCustomObject]@{
             Id                          = $_.Id # Only set if I generated the script in generate_clean_project_scheduled_tasks.ps1
             TriggerType                 = (($_.pstypenames[0])-split '/')[-1]
-            TaskName                    = $_.TaskName            
-            Enabled                     = $_.Enabled             
-            StartBoundary               = $_.StartBoundary       
-            EndBoundary                 = $_.EndBoundary         
-            DaysInterval                = $_.DaysInterval        
-            WeeksInterval               = $_.WeeksInterval       
-            Weeks                       = $_.Weeks               
+            TaskName                    = $_.TaskName
+            Enabled                     = $_.Enabled
+            StartBoundary               = $_.StartBoundary
+            EndBoundary                 = $_.EndBoundary
+            DaysInterval                = $_.DaysInterval
+            WeeksInterval               = $_.WeeksInterval
+            Weeks                       = $_.Weeks
             DaysOfWeek                  = $_.DaysOfWeek                    # uint16
-            Months                      = $_.Months              
-            MonthOfYear                 = $_.MonthOfYear         
-            DaysOfMonth                 = $_.DaysOfMonth         
+            Months                      = $_.Months
+            MonthOfYear                 = $_.MonthOfYear
+            DaysOfMonth                 = $_.DaysOfMonth
             RunOnLastWeekOfMonth        = $_.RunOnLastWeekOfMonth
             WeeksOfMonth                = $_.WeeksOfMonth
             ExecutionTimeLimit          = $_.ExecutionTimeLimit
@@ -681,27 +681,27 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
 
             $triggers| % {
                 if ($null -ne $_.StartBoundary) {
-                    $scheduledStartTime = [DateTime]$_.StartBoundary                                                             
+                    $scheduledStartTime = [DateTime]$_.StartBoundary
                     $nearnessOfRunStartToScheduledStart = $timeTaskTriggered.TimeOfDay - $scheduledStartTime.TimeOfDay
-                    if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {                       
+                    if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {
                         if ($null -ne $_.DaysOfWeek) {
 
                         }
                         if ($null -ne $_.DaysOfMonth) {
 
-                        }   
+                        }
                         if ($null -ne $_.WeeksOfMonth) {
 
-                        }   
+                        }
                         if ($null -ne $_.RunOnLastWeekOfMonth) {
 
-                        }   
+                        }
                         if ($null -ne $_.MonthOfYear) {
                             #if ($scheduledStartTime.Month -eq $timeTaskTriggered.Month)
                         }
                         # WARNING: Needs to check DaysOfWeek set and if it would include the day of week. Same for WeeksOfMonth, MonthsOfYear
                         # This is the event? unless two are set
-                        
+
                         $triggersWithSameStartTime+= $_
                     } else {
                         # are we in the random delay period?
@@ -709,18 +709,18 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                         # YIKES, the complexity - but only if more than one time trigger.
                     }
                 }
-            }                                          
+            }
 
             if ($triggersWithSameStartTime.Count -eq 0) {
                 # Ooops! How started with schedule? RandomDelay?
             }
             if ($triggersWithSameStartTime.Count -gt 1) {
                 # Hmmm, possible issue?
-            }                          
+            }
             else {
                 # Just the one.  We need the "ID" or at least an index of which trigger it was.  Somehow categorize which trigger definition it is.
             }
-                                                                
+
             # Lots of parsing to figure out time if it's a complex trigger def
             # Get time, match to task trigger definition
             # Was there a delay, or randomdelay?
@@ -736,8 +736,8 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
             }
         }
         ##############################################################################################################################################################################################################
-        "Task triggered on logon" {                                    
-            $triggers = $triggers|Where TriggerType -match 'Logon'     
+        "Task triggered on logon" {
+            $triggers = $triggers|Where TriggerType -match 'Logon'
             if ($triggers.Count -eq 1 -and $null -ne $triggers[0].UserId) {
                 $triggered_by_login = $triggers[0].UserId
             }
@@ -747,14 +747,14 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
             Show-Error -message "Unprocessed task type $($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName)" -exitcode 99
         }
     }
-            
+
     $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
             $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
             $script_name_prepped_for_sql           = PrepForSql $Script:ScriptName
 
     ############################################################################################################################
     if ($script_position_in_lineup -in 'Starting', 'Starting-Ending') {
-        .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'        
+        .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
         if ($null -ne $Script:active_batch_run_session_id) {
             Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
         }
@@ -762,7 +762,7 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
             INSERT INTO batch_run_sessions_v(
                 last_script_ran
             ,   session_starting_script
-            ,   caller_starting                        
+            ,   caller_starting
             ,   triggered_by_login
             ,   trigger_type
             ,   trigger_id
@@ -778,7 +778,7 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
             " -LogSqlToHost
         Invoke-Sql "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null # Flush active session regardless of how this script was run.
         $Script:batch_run_session_task_id      = Get-SqlValue("
-        INSERT INTO 
+        INSERT INTO
             batch_run_session_tasks_v(
                 batch_run_session_id,
                 script_changed,
@@ -805,21 +805,21 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                 # For safety, in case using the "running" flag fails.
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
             }
-        }    
+        }
         . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
         Invoke-Sql "DELETE FROM batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
     ############################################################################################################################
     } elseif ($script_position_in_lineup -eq 'In-Between') {
         # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
         # if there is not an active session??????? Crash?????
-        if ($triggerType -eq 'Event') {   
+        if ($triggerType -eq 'Event') {
             if (-not (Test-Path variable:Script:TestScheduleDrivenTaskDetection)) {
                 $Script:TestScheduleDrivenTaskDetection = 'NULL'
             }
-            # UPDATE open (previous) task log 
+            # UPDATE open (previous) task log
             $Script:active_batch_run_session_id    = Get-SqlValue("SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v")
             $Script:batch_run_session_task_id      = Get-SqlValue("
-                INSERT INTO 
+                INSERT INTO
                     batch_run_session_tasks_v(
                         batch_run_session_id,
                         script_changed,
@@ -835,33 +835,33 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
                         $script_name_prepped_for_sql
                     ,   '$triggered_by_login'
                     ,   '$triggerType'
-                    ,   '$triggerId'                      
+                    ,   '$triggerId'
                     ,   $($Script:TestScheduleDrivenTaskDetection)
                     )
                     RETURNING batch_run_session_task_id
                 ") -LogSqlToHost
         }
     }
-}   
+}
 
 Function End-BatchRunSessionTaskEntry() {
     if ((Test-Path variable:Script:batch_run_session_task_id) -and
         (Test-Path variable:script:active_batch_run_session_id)) {
         $tied_batch_run_session_task = Get-SqlValue "
-            SELECT batch_run_session_task_id 
-            FROM batch_run_session_tasks_v 
+            SELECT batch_run_session_task_id
+            FROM batch_run_session_tasks_v
             WHERE batch_run_session_task_id = $($Script:batch_run_session_task_id)
             AND batch_run_session_id        = $($Script:active_batch_run_session_id)
             AND running
             "
         if ($null -eq $tied_batch_run_session_task) {
             Show-Error -message "ERROR trying to find task log record that goes with this session. batch_run_session_task_id = $($Script:batch_run_session_task_id), batch_run_session_id = $($Script:active_batch_run_session_id)"
-        }                                                                                                                                                                                                                          
+        }
 
         Invoke-Sql "
-            UPDATE 
-                batch_run_session_tasks_v 
-            SET 
+            UPDATE
+                batch_run_session_tasks_v
+            SET
               running = false
             , ended   = CURRENT_TIMESTAMP
             WHERE
@@ -888,31 +888,31 @@ $Script:CurrentDebugSessionNo                               = $MyInvocation.Hist
 #####################################################################################################################################################################################################################################################
 # Bootstrap Final steps, interdependent on each other. Helper functions for includers.
 #####################################################################################################################################################################################################################################################
- 
+
 Function TrimToMicroseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
 {
     # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
     [DateTime]::ParseExact($date.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "yyyy-MM-dd HH:mm:ss.ffffff", $null)
-}                                
-                                                   
+}
+
 Function Least([array]$things) {
     return ($things|Measure -Minimum).Minimum
-}                                            
+}
 
 Function Right([string]$val, [int32]$howManyChars = 1) {
-    if ([String]::IsNullOrEmpty($val)) { 
+    if ([String]::IsNullOrEmpty($val)) {
         return $null
     }
     $actualLengthWeWillGet = Least $howManyChars  $val.Length
-    
-    return $val.Substring($val.Length - $actualLengthWeWillGet)           
+
+    return $val.Substring($val.Length - $actualLengthWeWillGet)
 }
 
 Function Left([string]$val, [int32]$howManyChars = 1) {
-    if ([String]::IsNullOrEmpty($val)) { 
+    if ([String]::IsNullOrEmpty($val)) {
         # Made up rule: Empty doesn't have a Leftmost character. $null should break the caller.  Returning an empty string as "leftmost character" is a fudge, and causes problems.
         return $null
-    }               
+    }
     $actualLengthWeWillGet = Least $howManyChars  $val.Length
     return $val.Substring(0,$actualLengthWeWillGet)
 }
@@ -921,7 +921,7 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
     $ct = ""
 
     if ($null -ne $variableName -and -not [string]::IsNullOrWhiteSpace($variableName)) {
-        
+
         $ct+= $variableName.Humanize() + ": "
         $number = Get-Variable -Name $variableName -Scope Global -Value
         $includeCount = $true
@@ -930,7 +930,7 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
 
     if ($includeCount) {
         $ct+= $number.ToString() + " "
-    }   
+    }
 
     if ($number -eq 1) {return ($ct + $singularLabel)}
     If ([String]::IsNullOrEmpty($pluralLabel)) {
@@ -940,51 +940,51 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
 
         $Irregulars     = @{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
         $NonCount= @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
-        $OnlyS = @('photo', 'halo', 'piano')                                                                                                                
-        $ExceptionsToFE = @('chef', 'roof')      
-           
+        $OnlyS = @('photo', 'halo', 'piano')
+        $ExceptionsToFE = @('chef', 'roof')
+
         if ($singularLabel -in $NonCount) {
-            $plurallabel = $singularLabel 
-        }                                                                        
+            $plurallabel = $singularLabel
+        }
         elseif ($singularLabel -in $Irregulars.Keys) {
             $plurallabel = $Irregulars[$singularLabel]
         }
         elseif ($singularLabel -in $OnlyS -or $singularLabel -in $ExceptionsToFE) {
             $plurallabel = $singularLabel + 's'
         }
-        elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) { 
+        elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) {
             $pluralLabel = $singularLabel + 'es'
-        }  
-        elseif ($Last2Characters -in @('f', 'fe')) { 
+        }
+        elseif ($Last2Characters -in @('f', 'fe')) {
             $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'ves' # Wife => Wives
-        }  
-        elseif ($LastCharacter -in @('f', 'fe')) { 
+        }
+        elseif ($LastCharacter -in @('f', 'fe')) {
             $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ves'   # Calf => Calves
-        }  
-        elseif ($Last2Characters -in @('us')) {  
+        }
+        elseif ($Last2Characters -in @('us')) {
             $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'i'   # Cactus => Cacti
-        }  
-        elseif ($Last2Characters -in @('is')) {  
+        }
+        elseif ($Last2Characters -in @('is')) {
             $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'es'   # Analysis => analyses
-        }  
-        elseif ($Last2Characters -in @('on')) {  
+        }
+        elseif ($Last2Characters -in @('on')) {
             $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'a'   # Phenomenon => Phenomena
-        }  
-        elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) { 
+        }
+        elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) {
             $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ies' # City => Cities
-        }  
+        }
         else {
             $pluralLabel = $singularLabel + 's'                             # Cat => Cats
         }
-    }   
+    }
 
     if ($number -ge 2 -or $number -eq 0) { return ($ct + $pluralLabel)}
     return ($ct + $singularLabel)
-}   
-                                                                                   
+}
+
 Function Format-Humanize([Diagnostics.Stopwatch]$ob) {
     [timespan]$elapsed = $ob.Elapsed
-    
+
     if ($elapsed.TotalDays -ge 1) {
             Format-Plural 'Day' $($elapsed.TotalDays) -includeCount
     }
@@ -1006,13 +1006,13 @@ Function Format-Humanize([Diagnostics.Stopwatch]$ob) {
     elseif ($elapsed.Ticks-gt 0) {
         Format-Plural 'Tick' $($elapsed.Ticks) -includeCount
     }
-}                                    
+}
 
 Function NullIf([string]$val, [string]$ifthis = '') {
     if ($null -eq $val -or $val.Trim() -eq $ifthis) {return $null}
     return $val
-}                        
-                                     
+}
+
 Function __TICK ($tick_emoji) {
     # Only write to terminal if not a scheduled task run
     if ($Script:Caller -ne 'Windows Task Scheduler') {
@@ -1025,16 +1025,16 @@ $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE = '🥱'; Function _TICK_Found_Existing_Obj
 $EXISTING_OBJECT_EDITED              = '📝'; Function _TICK_Existing_Object_Edited              {__TICK $EXISTING_OBJECT_EDITED}
 $EXISTING_OBJECT_ACTUALLY_CHANGED    = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed    {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED} # Warning: Comes out different in terminal than editor. fonts. Geez.
 $OBJECT_MARKED_DELETED               = '❌'; Function _TICK_Object_Marked_Deleted               {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
-$SCAN_OBJECTS                        = '👓'; Function _TICK_Scan_Objects                        {__TICK $SCAN_OBJECTS} 
+$SCAN_OBJECTS                        = '👓'; Function _TICK_Scan_Objects                        {__TICK $SCAN_OBJECTS}
 $SOUGHT_OBJECT_NOT_FOUND             = '😱'; Function _TICK_Sought_Object_Not_Found             {__TICK $SOUGHT_OBJECT_NOT_FOUND}  # As in database says it's there but it's not physically on file.
 $UPDATE_OBJECT_STATUS                = '🚩'; Function _TICK_Update_Object_Status                {__TICK $UPDATE_OBJECT_STATUS}
 $IMPOSSIBLE_OUTCOME                  = '🤷‍♂️'; Function _TICK_Impossible_Outcome                  {__TICK $IMPOSSIBLE_OUTCOME}
-                                     
+
 $Script:WriteCounts = @([PSCustomObject]@{
     CountLabel = '';
     Count      = 0;
     Tag        = 'x';
-})             
+})
 
 Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [string]$pluralLabel = $null) {
     $countLabel = ""
@@ -1048,7 +1048,7 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
             Count      = $number;
             Tag        = $singularLabel;
         }
-        return 
+        return
     } else {
         # FIX: This code duplicated from Format-Plural!
         If ([String]::IsNullOrEmpty($pluralLabel)) {
@@ -1058,39 +1058,39 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
 
             $Irregulars     = @{Man = 'Men'; Foot='Feet';Mouse='Mice';Person='People';Child='Children';'Goose'='Geese';Ox='Oxen';Woman='Women';Genus='Genera';Index='Indices';Datum='Data'}
             $NonCount= @('Moose', 'Fish', 'Species', 'Deer', 'Aircraft', 'Series', 'Salmon', 'Trout', 'Swine', 'Sheep')
-            $OnlyS = @('photo', 'halo', 'piano')                                                                                                                
-            $ExceptionsToFE = @('chef', 'roof')      
-            
+            $OnlyS = @('photo', 'halo', 'piano')
+            $ExceptionsToFE = @('chef', 'roof')
+
             if ($singularLabel -in $NonCount) {
-                $plurallabel = $singularLabel 
-            }                                                                        
+                $plurallabel = $singularLabel
+            }
             elseif ($singularLabel -in $Irregulars.Keys) {
                 $plurallabel = $Irregulars[$singularLabel]
             }
             elseif ($singularLabel -in $OnlyS -or $singularLabel -in $ExceptionsToFE) {
                 $plurallabel = $singularLabel + 's'
             }
-            elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) { 
+            elseif ($LastCharacter -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z') -or $Last2Characters -in @('s', 'ss', 'ch', 'x', 'sh', 'o', 'z')) {
                 $pluralLabel = $singularLabel + 'es'
-            }  
-            elseif ($Last2Characters -in @('f', 'fe')) { 
+            }
+            elseif ($Last2Characters -in @('f', 'fe')) {
                 $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'ves' # Wife => Wives
-            }  
-            elseif ($LastCharacter -in @('f', 'fe')) { 
+            }
+            elseif ($LastCharacter -in @('f', 'fe')) {
                 $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ves'   # Calf => Calves
-            }  
-            elseif ($Last2Characters -in @('us')) {  
+            }
+            elseif ($Last2Characters -in @('us')) {
                 $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'i'   # Cactus => Cacti
-            }  
-            elseif ($Last2Characters -in @('is')) {  
+            }
+            elseif ($Last2Characters -in @('is')) {
                 $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'es'   # Analysis => analyses
-            }  
-            elseif ($Last2Characters -in @('on')) {  
+            }
+            elseif ($Last2Characters -in @('on')) {
                 $pluralLabel = $singularLabel.TrimEnd($Last2Characters) + 'a'   # Phenomenon => Phenomena
-            }  
-            elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) { 
+            }
+            elseif ($LastCharacter -in @('y') -and $SecondLastCharacter -notin @('a','e','i','o','u')) {
                 $pluralLabel = $singularLabel.TrimEnd($LastCharacter) + 'ies' # City => Cities
-            }  
+            }
             else {
                 $pluralLabel = $singularLabel + 's'                             # Cat => Cats
             }
@@ -1102,7 +1102,7 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
         }
     }
 }
- 
+
 Function Convert-SidToUser {
     param($sidString)
     try {
@@ -1124,14 +1124,14 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
     # TODO: take in an array of properties all at once!!!!
     # IDEA: Could just move all properties over???
     $propAlreadyInTarget = @($targetob.PSObject.Properties|Where Name -eq "$prop").Count
-                                
+
     if (-not $propAlreadyInTarget) {
         $targetob | Add-Member -MemberType NoteProperty -Name $prop -Value ''
     }
-    
+
     if ($sourceob -is [String] -or $sourceob -is [Int32] -or $sourceob -is [datetime]) {
         $targetob.$prop = $sourceob.ToString()
-    }                             
+    }
     else {
         $propval = $null
 
@@ -1139,11 +1139,11 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
         $targetob.$prop = $propval
     }
 }
-    
+
 Function HumanizeCount([Int64]$i) {
     return [string]::Format('{0:N0}', $i)
 }
- 
+
 $ScriptBlockAsyncMoveFilesAndDirectories = {
     $SourcePath = $args[0]
     $TargetPath = $args[1]
@@ -1152,9 +1152,9 @@ $ScriptBlockAsyncMoveFilesAndDirectories = {
     Write-Host "`$TargetPath = $TargetPath"
     $SourceFilesAndDirectories = Get-ChildItem -Recurse -LiteralPath "$SourcePath" -ErrorAction SilentlyContinue
 
-    foreach ($fileOrDirectory in $SourceFilesAndDirectories) {                      
+    foreach ($fileOrDirectory in $SourceFilesAndDirectories) {
         $MeaningfulPartOfSourcePath = ($fileOrDirectory.FullName.Substring($SourcePath.Length).Trim("\"))
-        Write-Host "`$MeaningfulPartOfSourcePath = $MeaningfulPartOfSourcePath"     
+        Write-Host "`$MeaningfulPartOfSourcePath = $MeaningfulPartOfSourcePath"
         $NewlyConstructedTargetPath = "$($TargetPath)\$($MeaningfulPartOfSourcePath)"
         if ((Test-Path -LiteralPath $fileOrDirectory.FullName -PathType Container)) {
             # For cases where directories are empty, we still want to move them over.
@@ -1167,7 +1167,7 @@ $ScriptBlockAsyncMoveFilesAndDirectories = {
         }
     }
     Write-Host "`$SourcePath = $SourcePath"
- 
+
     # This deletes the source
     Remove-Item -LiteralPath $SourcePath -Force -Recurse -ErrorAction SilentlyContinue|Out-Null
 }
