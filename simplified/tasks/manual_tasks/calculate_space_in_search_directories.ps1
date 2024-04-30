@@ -34,29 +34,58 @@ $howMuchSpaceLeft   = [Int64]0
 
 ###### Tue Mar 5 15:47:32 MST 2024 Bought Avolusion HDDGear Pro X 12TB USB 3.0 External Gaming Hard Drive. Reformat as NTFS
 
-$volumesForSearchDirectories = WhileReadSql 'SELECT DISTINCT volume_id, drive_letter from search_directories_ext_v ORDER BY 1' # All the directories across my volumes that I think have some sort of movie stuff in them.
+$volumesForSearchDirectories = WhileReadSql "
+    SELECT
+        volume_id
+    ,   drive_letter
+    ,   max(tag) as tag
+    FROM
+        search_directories_ext_v
+    GROUP BY
+        volume_id
+    ,   drive_letter
+    ORDER BY
+        1
+    " # All the directories across my volumes that I think have some sort of movie stuff in them.
 
 $volumes = Get-Volume|Where DriveLetter -ne ''|Select DriveLetter, Size, SizeRemaining
 
 # Search down each search path for directories that are different or missing from our data store.
 
-[Int64]$howMuchSpaceLeft = 0
+[Int64]$howMuchSpaceLeft       = 0
+[Int64]$smallestRemainingSpace = 0
+[Int64]$spaceLeftOnPublished   = 0
 
-while ($volumesForSearchDirectories.Read()) {                                                                                 
-    $totalSize      = ($volumes|Where DriveLetter -eq $drive_letter|Select Size).Size
-    $spaceRemaining = ($volumes|Where DriveLetter -eq $drive_letter|Select SizeRemaining).SizeRemaining
-    Write-AllPlaces "$drive_letter`: TotalSize=$(HumanizeCount($totalSize)), Free=$(HumanizeCount($spaceRemaining))"
-    
-    Invoke-Sql "UPDATE search_directories_v SET size_of_drive_in_bytes = $totalSize, space_left_on_drive_in_bytes = $spaceRemaining WHERE volume_id = $volume_id" -OneOrMore |Out-Null # Many paths on same volume
-    $howMuchSpaceLeft+= $spaceRemaining
+while ($volumesForSearchDirectories.Read()) {
+    $totalSizeOfDrive      = ($volumes|Where DriveLetter -eq $drive_letter|Select Size).Size
+    $spaceRemainingOnDrive = ($volumes|Where DriveLetter -eq $drive_letter|Select SizeRemaining).SizeRemaining
+    if ($tag -eq 'Published') {
+        $spaceLeftOnPublished = $spaceRemainingOnDrive
+    }
+
+    Write-AllPlaces "$drive_letter`: TotalSize=$(HumanizeCount($totalSizeOfDrive)), Free=$(HumanizeCount($spaceRemainingOnDrive))"
+
+    Invoke-Sql "UPDATE search_directories_v SET size_of_drive_in_bytes = $totalSizeOfDrive, space_left_on_drive_in_bytes = $spaceRemainingOnDrive WHERE volume_id = $volume_id" -OneOrMore |Out-Null # Many paths on same volume
+    $howMuchSpaceLeft+= $spaceRemainingOnDrive
+    if (0 -eq $smallestRemainingSpace -or $spaceRemainingOnDrive -lt $smallestRemainingSpace) { $smallestRemainingSpace = $spaceRemainingOnDrive}
 }
 
 Write-Count howMuchSpaceLeft Byte
 
+Write-AllPlaces "Free Space (GB) $($howMuchSpaceLeft/1000/1000/1000) GB"
+Write-AllPlaces "Least Free Space (GB) $($smallestRemainingSpace/1000/1000/1000) GB"
+
+if ($false) {
+    [PscustomObject] @{
+        Total_Free_Space_GB = ($howMuchSpaceLeft/1000/1000/1000).ToString()
+        Smallest_Space_GB = ($smallestRemainingSpace/1000/1000/1000).ToString()
+        Free_Space_in_Published_GB = ($spaceLeftOnPublished/1000/1000/1000).ToString()
+    }|Select|Out-GridView
+}
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally"
     . .\_dot_include_standard_footer.ps1
