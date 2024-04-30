@@ -5,11 +5,12 @@
  #    ###### Tue Jan 23 18:23:11 MST 2024
  #    Reviewed and refactored: ###### Sat Feb 17 12:02:04 MST 2024
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
+ #    Last run time: 21 seconds
  #>
 
 try {
 . .\_dot_include_standard_header.ps1
-                                                                             
+
 $targettable     = 'user_spreadsheet_interface'
 $copyfrompath    = "D:\qt_projects\filmcab\simplified\_data\$targettable.ods" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
 $copytodirectory = "D:\qt_projects\filmcab\simplified\_data" # Extension must be xls for ImportExcel to work even though I'm using ods Calc.
@@ -36,23 +37,23 @@ $columns_csv = "
     who_csv_list, 
     aka_slsh_list, 
     characters_csv_list, 
-    video_wrapper, 
-    series_in, 
+    video_wrapper,
+    series_in,
     imdb_id, 
     imdb_added_to_list_on, 
     imdb_changed_on_list_on, 
-    release_year, 
+    release_year,
     imdb_rating, 
     runtime_in_minutes, 
     votes, 
-    released_on, 
-    directors_csv_list, 
+    released_on,
+    directors_csv_list,
     imdb_my_rating, 
-    imdb_my_rating_made_on, 
+    imdb_my_rating_made_on,
     date_watched, 
     last_save_time, 
     creation_date"
-    
+
 $columns = ($columns_csv.Replace("`r`n", ' ') -replace '\s+', ' ').Split(",")
 $widestcolumnname = 0;
 foreach($columnname in $columns) {if ($columnname.Length -gt $widestcolumnname) { $widestcolumnname = $columnname.Length}}
@@ -75,7 +76,7 @@ if ($DatabaseConnectionIsOpen -and $NewExcelCSVFileGenerated) {
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1
