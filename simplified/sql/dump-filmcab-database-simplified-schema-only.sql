@@ -1472,7 +1472,11 @@ CREATE TABLE simplified.file_extensions (
     is_backup_file boolean,
     is_support_data_for_app boolean,
     is_gis_file boolean,
-    is_cad_file boolean
+    is_cad_file boolean,
+    supports_drm boolean,
+    requires_own_codec boolean,
+    partial_file boolean,
+    is_temp_file boolean
 );
 
 
@@ -2754,6 +2758,63 @@ CREATE VIEW simplified.files_media_info_v AS
 
 
 ALTER TABLE simplified.files_media_info_v OWNER TO postgres;
+
+--
+-- Name: files_mysteries; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.files_mysteries (
+    file_id integer NOT NULL,
+    principal_detective character varying,
+    actor_playing_detective character varying,
+    based_on_novel character varying,
+    novel_author character varying
+);
+
+
+ALTER TABLE simplified.files_mysteries OWNER TO postgres;
+
+--
+-- Name: TABLE files_mysteries; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON TABLE simplified.files_mysteries IS 'Attributes specific to mysteries, one of my weaknesses.  I don''t want to add these to files or video_files.';
+
+
+--
+-- Name: COLUMN files_mysteries.file_id; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files_mysteries.file_id IS 'Links back to media? or files? or video?  I suppose I want prints, ebooks, too, and audio books.  But all media.';
+
+
+--
+-- Name: COLUMN files_mysteries.principal_detective; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files_mysteries.principal_detective IS 'Investigator, DI, DS, Seargant.  These are quite how I proceed through a set of mysteries, following one episode, movie, after the other.';
+
+
+--
+-- Name: COLUMN files_mysteries.actor_playing_detective; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files_mysteries.actor_playing_detective IS 'These do change.';
+
+
+--
+-- Name: COLUMN files_mysteries.based_on_novel; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files_mysteries.based_on_novel IS 'or short story';
+
+
+--
+-- Name: COLUMN files_mysteries.novel_author; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.files_mysteries.novel_author IS 'Conan Doyle, Agatha Christie.';
+
 
 --
 -- Name: files_v; Type: VIEW; Schema: simplified; Owner: postgres
@@ -4222,6 +4283,14 @@ ALTER TABLE ONLY simplified.files
 
 ALTER TABLE ONLY simplified.files_media_info
     ADD CONSTRAINT files_media_info_pkey PRIMARY KEY (file_id);
+
+
+--
+-- Name: files_mysteries files_mysteries_pk; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.files_mysteries
+    ADD CONSTRAINT files_mysteries_pk PRIMARY KEY (file_id);
 
 
 --
