@@ -28,20 +28,20 @@ $walkThruAllFilesReader = WhileReadSql <#sql#>"
     WHERE
         is_real_file
 "
-                                                                        
+
 While ($walkThruAllFilesReader.Read()) {
     if ((Test-Path -LiteralPath $file_path)) {
         _TICK_Found_Existing_Object
         $on_fs_file_ntfs_id = (fsutil file queryfileid $file_path).Substring(13) # Trim off annoying lead text
         $in_db_file_ntfs_id = Convert-ByteArrayToHexString ($in_db_file_ntfs_id)
-         
+
         # Must be able to get an id from fsutil.  Either we're on linux or some cases don't return an id.
         if ($null -eq $on_fs_file_ntfs_id) {
             # We weren't able to get an id from the file
             _TICK_Impossible_Outcome
             Show-Error "Unable to get an ntfs_id from fsutil for this file"
         }
-                                                                                          
+
         # Either an id is missing or they've changed. Should track changes to id separately.
 
         if ($null -eq $in_db_file_ntfs_id -or $on_fs_file_ntfs_id -ne $in_db_file_ntfs_id) {
