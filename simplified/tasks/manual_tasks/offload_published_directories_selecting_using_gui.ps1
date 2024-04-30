@@ -48,6 +48,9 @@ $form.CancelButton                       = $CancelButton
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($CancelButton)<#~~~~~~~~~~~~~~~~~~~~#>
 $CancelButton.Hide() # Has to be present so "X" closes.
 
+########################################################################################################################################################################################################
+$nodeContextMenu = New-Object System.Windows.Forms.ContextMenuStrip
+
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # Column 1
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -57,7 +60,7 @@ $treeViewWidth                           = $columnWidth1
 ########################################################################################################################################################################################################
 $treeViewOfPublishedDirectories          = New-Object System.Windows.Forms.TreeView
 $treeViewOfPublishedDirectories.Location = New-Object System.Drawing.Point(0,0)
-$treeViewOfPublishedDirectories.Size     = New-Object System.Drawing.Size($treeViewWidth, $ScreenHeight)
+$treeViewOfPublishedDirectories.Size     = New-Object System.Drawing.Size($treeViewWidth, ($ScreenHeight - 17))
 $treeViewOfPublishedDirectories.TabIndex = 0
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($treeViewOfPublishedDirectories)<#~~~~~~~~~~~~~~~~~~~~#>
@@ -65,7 +68,7 @@ $treeViewOfPublishedDirectories.TabIndex = 0
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # Column 2
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-$maxObjectWidth2                         = 280
+$maxObjectWidth2                         = 400
 $columnWidth2                            = $maxObjectWidth2 + ($HORIZONTAL_SPACER*2)
 
 ########################################################################################################################################################################################################
@@ -195,6 +198,24 @@ $sourceDirectorySize.TextAlign           = [System.Drawing.ContentAlignment]::Mi
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($sourceDirectorySize)<#~~~~~~~~~~~~~~~~~~~~#>
 
+#######################################################################################################################################################################################################
+$statusBarMessage                        = New-Object System.Windows.Forms.ToolStripStatusLabel
+$statusBarMessage.Size                   = New-Object System.Drawing.Size(107, 17)
+$statusBarMessage.Text                   = "Testing........."
+
+#######################################################################################################################################################################################################
+$statusBar                               = New-Object System.Windows.Forms.StatusStrip
+$statusBar.Dock                          = [System.Windows.Forms.DockStyle]::Bottom
+$statusBar.ShowItemToolTips              = $true
+$statusBar.Text                          = "<Doesn't show anywhere>"
+$statusBar.Stretch                       = $true
+$statusBar.SizingGrip                    = $false
+$statusBar.LayoutStyle                   = [System.Windows.Forms.ToolStripLayoutStyle]::HorizontalStackWithOverflow
+
+<#~~~~~~~~~~~~~~~~~~~~#>$statusBar.Items.Add($statusBarMessage)<#~~~~~~~~~~~~~~~~~~~~#>
+<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($statusBar)<#~~~~~~~~~~~~~~~~~~~~#>
+
+
 Function EnableMoveFileButton() {
     if (-not($treeViewOfPublishedDirectories.SelectedNode.Text.StartsWith('_') -or $treeViewOfPublishedDirectories.SelectedNode.Level -eq 0 -or
     [string]::IsNullOrWhiteSpace($selectedmoveReasonComboBox.Text) -or
@@ -229,7 +250,48 @@ $selectedmoveReasonComboBox.add_SelectedIndexChanged({
         $targetDirectoryToMoveTo.Text = ""
     }
     $MoveFilesButton.Enabled            = EnableMoveFileButton
+    $MoveFilesButton.Refresh()
+
 })
+
+# add_BeforeCheck
+# add_AfterCheck
+# add_GiveFeedback
+# add_ItemDrag
+# add_Move
+# add_BeforeSelect
+
+# add_KeyPress
+# add_KeyUp
+# add_PreviewKeyDown
+# add_Leave
+
+# add_DoubleClick
+# add_MouseDoubleClick
+# add_NodeMouseDoubleClick
+#$treeViewOfPublishedDirectories|gm -force
+#################################################################################################################################################################################################
+# Action taken When the user double-clicks on a node.
+#################################################################################################################################################################################################
+$treeViewOfPublishedDirectories.add_NodeMouseDoubleClick({
+    # if a directory, flush any below, and repop with files in directory, coloring links or italicizing
+    # SelectedNode.Name = full path
+    # NOTE: First expands.
+    $fileOrFolderPath = $this.SelectedNode.Name
+    if (Test-Path -LiteralPath $fileOrFolderPath -PathType Container) {
+        # Fetch files
+        Get-ChildItem -LiteralPath $fileOrFolderPath -File|ForEach-Object {
+            $branchNode           = New-Object System.Windows.Forms.TreeNode
+            $branchNode.Name      = $_.FullName
+            $branchNode.Text      = $_.Name
+            $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
+            $this.SelectedNode.Nodes.Add($branchNode)
+            $this.SelectedNode.Expand()
+        }
+    }
+    #$statusBarMessage.Text = "treeViewOfPublishedDirectories.add_NodeMouseDoubleClick"
+})
+
 #################################################################################################################################################################################################
 # Action taken When the user selects a node in the tree, we capture the detail for displaying for the move action
 #################################################################################################################################################################################################
