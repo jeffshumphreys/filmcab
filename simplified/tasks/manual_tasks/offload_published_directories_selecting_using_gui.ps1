@@ -93,10 +93,10 @@ $treeViewOfPublishedDirectories.add_NodeMouseDoubleClick({
 
         while ($filereader.Read()) {
             $branchNode           = New-Object System.Windows.Forms.TreeNode
-            $branchNode.Name      = $file_path
-            $branchNode.Text      = $file_name_with_ext
-            $branchNode.Tag       = $useful_part_of_directory
-            if ($is_link) {
+            $branchNode.Name      = $Script:file_path # Since we're in an expression block called from a separate thread (WinForms), queries won't create any variables in this scope, so reference by Script.
+            $branchNode.Text      = $Script:file_name_with_ext
+            $branchNode.Tag       = $Script:useful_part_of_directory
+            if ($Script:is_link) {
                 $branchNode.ForeColor = '#bdb9b9' # even lighter
                 $branchNode.NodeFont.Italic = $true
             } else {
@@ -184,11 +184,11 @@ $Move_Directory = {
     $currentActivity.Refresh()
     $sourceBaseDirectory_prepped_for_sql = PrepForSql $Script:sourceBaseDirectory
     $sourceDirectory_prepped_for_sql     = PrepForSql $Script:sourcePathToDirectoryOrFile
-    $sizeOfSourceDirectory               = 0
+    $sizeOfSourceDirectoryOrFile         = 0
     try {
-        $sizeOfSourceDirectory           = ((Get-ChildItem –Force -LiteralPath $Script:sourcePathToDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+        $sizeOfSourceDirectoryOrFile     = ((Get-ChildItem –Force -LiteralPath $Script:sourcePathToDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
     } catch {}
-    $sourceDirectorySize.Text            = HumanizeCount $sizeOfSourceDirectory
+    $sourceDirectorySize.Text            = HumanizeCount $sizeOfSourceDirectoryOrFile
     $sourceDirectorySize.Refresh()
     $sourcePartOfPath                    = $treeViewOfPublishedDirectories.SelectedNode.Tag
     $moveReason                          = $selectedmoveReasonComboBox.Text
@@ -196,14 +196,18 @@ $Move_Directory = {
     $whyMove                             = $whyThisMoveReasonText.Text
     $whyMove_prepped_for_sql             = PrepForSql $whyMove
     $targetDirectory                     = "$Script:targetBaseDirectory\$sourcePartOfPath"
-    if ($sizeOfSourceDirectory -eq 0) {
-        $sizeOfSourceDirectory           = ((gci –force -LiteralPath $targetDirectory –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+    if ($sizeOfSourceDirectoryOrFile -eq 0) {
+        $sizeOfSourceDirectoryOrFile           = ((gci –force -LiteralPath $targetDirectory –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
     }
     $currentActivity.Text                = "Moving Files to $targetDirectory"
     $currentActivity.Refresh()
     $targetBaseDirectory_prepped_for_sql = PrepForSql $targetBaseDirectory
     New-Item -ItemType Directory -Force -Path $targetDirectory
-    $targetDirectory                     = (Get-Item $targetDirectory).Parent.FullName
+    if ($isMovingADirectory) {
+        $targetDirectory                     = (Get-Item $targetDirectory).Parent.FullName
+    } else {
+        # $target directory for file is already set?
+    }
     $targetDirectory_prepped_for_sql     = PrepForSql $targetDirectory
     LogMoveActivityLine "Moving $sourcePathToDirectoryOrFile to $targetDirectory..." -textColor $StartingColor
     # ERROR: Can't run during single large -MoveItem and even between moves. No update. $activityAnimation.Load("D:\qt_projects\filmcab\simplified\images\animations\running.homer.silly.gif")
@@ -243,7 +247,7 @@ $Move_Directory = {
                 )
                 VALUES(
                     TRANSACTION_TIMESTAMP()                                       /* Transaction start time above) */
-                ,   $sizeOfSourceDirectory                                        /* How much space we're freeing up */
+                ,   $sizeOfSourceDirectoryOrFile                                        /* How much space we're freeing up */
                 ,   $sourceDirectory_prepped_for_sql
                 ,   $sourceBaseDirectory_prepped_for_sql
                 ,   $sourceVolumeId
@@ -602,8 +606,6 @@ if ((Test-Path variable:Script:directory_path) -and -not [string]::IsNullOrWhite
 }
 
 $selectedmoveReasonComboBox.SelectedItem = ""
-
-$form.Topmost = $True
 
 $form.BringToFront()|Out-Null # Required to get it on top, not just "TopMost"
 $treeViewOfPublishedDirectories.Focus()|Out-Null
