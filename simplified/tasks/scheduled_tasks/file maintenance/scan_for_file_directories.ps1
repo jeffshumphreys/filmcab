@@ -32,12 +32,12 @@
                     - D:\qBittorrent Downloads\Video\Movies\Death Race 3 Inferno 2013 UNRATED BrRip 1080p  x264 Dual-Audio [English 5.1-Hindi 5.1] NimitMak SilverRG\                Wow, this is a doozie
                         {files}
                         Cover.jpg, Poster-1.png, Poster-2.png
-                        SIlverRG NFO Read it.nfo, STPicz.com Free Image Hosting.txt.txt, Torrent downloaded from SilverTorrent.org.txt, Torrent seeded from Secureboxes.net.txt 
+                        SIlverRG NFO Read it.nfo, STPicz.com Free Image Hosting.txt.txt, Torrent downloaded from SilverTorrent.org.txt, Torrent seeded from Secureboxes.net.txt
                         Sample.mkv                                                                                                                                                   Please destroy.
                         Death Race 3 Inferno 2013 BrRip 1080p  x264 Dual-Audio [English 5.1-Hindi 5.1] NimitMak SilverRG_s.jpg                                                       Hindi??? Really?  I need this?
                         Death Race 3 Inferno 2013 UNRATED BrRip 1080p  x264 Dual-Audio [English 5.1-Hindi 5.1] NimitMak SilverRG.mkv
                         Death Race 3 Inferno 2013 UNRATED BrRip 1080p  x264 Dual-Audio [English 5.1-Hindi 5.1] NimitMak SilverRG.srt
-                    
+
                     - D:\qBittorrent Downloads\Video\Movies\Cat.People.1942.RESTORED.1080p.BluRay.H264.AAC-RARBG\Subs
                         2_Eng.srt
                         3_Eng.srt
@@ -79,7 +79,7 @@ try {
 # Found example on Internet that uses a LIFOstack. Changed it to FIFO Queue would pull current search path first and possibly save a little time.
 
 $all_file_objects = New-Object System.Collections.Queue
-                                
+
 # Footer code detects these and prints them out in a formatted way
 
 $howManyNewDirectories           = 0
@@ -97,13 +97,13 @@ $searchDirectories = WhileReadSql "SELECT search_directory, search_directory_id 
 # Search down each search path for directories that are different or missing from our data store.
 
 While ($searchDirectories.Read()) {
-                          
+
     #Load first level of hierarchy
 
     if (-not(Test-Path $search_directory)) {
         Write-AllPlaces "search_directory $search_directory not found; skipping scan." -ForceStartOnNewLine
         #TODO: Update search path.
-        continue 
+        continue
     }
     else {
        Write-AllPlaces "Starting search of search_directory $search_directory" -ForceStartOnNewLine
@@ -111,21 +111,21 @@ While ($searchDirectories.Read()) {
 
     # Stuff the search root search_directory in the all_file_objects so that we can completely shortcut search search_directory if nothing's changed. Has to be a DirectoryInfo object.
     $BaseDirectoryInfoForSearchPath = Get-Item $search_directory
-                      
+
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
         Write-AllPlaces "search_directory $search_directory is not a container; skipping scan." -ForceStartOnNewLine
     }
 
     $all_file_objects.Enqueue($BaseDirectoryInfoForSearchPath)
-    
-    Get-ChildItem -Path $search_directory -Directory | ForEach-Object { 
-        $all_file_objects.Enqueue($_) 
+
+    Get-ChildItem -Path $search_directory -Directory | ForEach-Object {
+        $all_file_objects.Enqueue($_)
     }
-    
+
     # Recurse down the file hierarchy
 
     while($all_file_objects.Count -gt 0 -and ($on_fs_file_object = $all_file_objects.Dequeue())) {
-        
+
         # Only directories aka Containers
 
         if ($on_fs_file_object.PSIsContainer) {
@@ -148,12 +148,12 @@ While ($searchDirectories.Read()) {
                 $on_fs_linked_directory           = NullIf($on_fs_file_object.LinkTarget) # blanks and $nulls never equal each other.
                 $on_fs_directory_is_junction_link = $false
                 $on_fs_is_real_directory          = $false
-            }                                    
+            }
             elseif (-not [String]::IsNullOrWhiteSpace($on_fs_file_object.LinkType)) {
                 throw [Exception]"New unrecognized link type for $on_fs_directory type is $($on_fs_file_object.LinkType)"
             }
             # Note: HardLinks are for files only.
-            else {       
+            else {
                 $on_fs_directory_is_symbolic_link = $false
                 $on_fs_directory_is_junction_link = $false
                 $on_fs_linked_directory           = $null
@@ -165,17 +165,17 @@ While ($searchDirectories.Read()) {
             $on_fs_parent_directory_escaped = $on_fs_parent_directory.Replace("'", "''")
 
             $reader = WhileReadSql "
-                SELECT 
+                SELECT
                     directory_date               AS   in_db_directory_date                  /* Feeble attempt to detect downstream changes                                                                       */
                 ,   directory_is_symbolic_link   AS   in_db_directory_is_symbolic_link      /* None of these should exist since VLC and other media players don't follow symbolic links. either folders or files */
                 ,   directory_is_junction_link   AS   in_db_directory_is_junction_link      /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                 ,   linked_directory             AS   in_db_linked_directory                /* Verify this exists. Haven't tested.                                                                               */
                 ,   directory_deleted            AS   in_db_directory_deleted
-                FROM 
+                FROM
                     directories_ext_v
                 WHERE
                     directory       = '$on_fs_directory_escaped'
-                AND 
+                AND
                     volume_id       = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
             "
 
@@ -187,31 +187,31 @@ While ($searchDirectories.Read()) {
               if ($reader.Read()) { #|Out-Null # Must read in the first row.
                 $foundANewDirectory        = $false
                 $UpdateDirectoryRecord     = $false
-                                   
+
                 if ($in_db_directory_deleted                                                    -or # We know the directory exists on the fs
                     $in_db_directory_date                 -ne $on_fs_directory_date             -or
                     $in_db_directory_is_symbolic_link     -ne $on_fs_directory_is_symbolic_link -or
                     $in_db_directory_is_junction_link     -ne $on_fs_directory_is_junction_link -or
                     $in_db_linked_directory               -ne $on_fs_linked_directory
-                ) { 
+                ) {
                     $UpdateDirectoryRecord = $true
                 }
 
                 # WARNING: postgres can only store to 6 places of milliseconds. File info is stored to 7 places. So they'll never match without trimming file date to 6. Is the 6 place a rounding, though? TEST
 
                 if ($in_db_directory_date                 -ne $on_fs_directory_date) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
-                    $scan_directory        = $true 
+                    $scan_directory        = $true
                 }
             } else {
                 $foundANewDirectory        = $true
                 $scan_directory            = $true
             }
             $reader.Close()
-            
-            if ($on_fs_directory_is_junction_link) { 
+
+            if ($on_fs_directory_is_junction_link) {
                 $scan_directory            = $false # Please do not traverse links. Even if the directory date changed.
             }
-    
+
             if ($scan_directory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
             if ($on_fs_directory_is_symbolic_link -and -not $in_db_directory_is_symbolic_link) {
                 $howManyNewSymbolicLinks++
@@ -219,25 +219,25 @@ While ($searchDirectories.Read()) {
             if ($on_fs_directory_is_junction_link -and -not $in_db_directory_is_junction_link)  {
                 $howManyNewJunctionLinks++
             }
-                
+
             $on_fs_directory_date_formatted = $on_fs_directory_date.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
             $on_fs_linked_directory_escaped = PrepForSql $on_fs_linked_directory
 
             if ($foundANewDirectory) { #even if it's a link, we store it
                 $howManyNewDirectories++
-                Write-AllPlaces "New Directory found: $on_fs_directory on $on_fs_driveletter drive" 
+                Write-AllPlaces "New Directory found: $on_fs_directory on $on_fs_driveletter drive"
 
                 $rowsInserted = Invoke-Sql "
-                    INSERT INTO 
+                    INSERT INTO
                         directories_v(
                             directory_hash
                         ,   directory
                         ,   parent_directory_hash
-                        ,   directory_date 
-                        ,   volume_id 
-                        ,   scan_directory 
-                        ,   directory_is_symbolic_link 
-                        ,   directory_is_junction_link 
+                        ,   directory_date
+                        ,   volume_id
+                        ,   scan_directory
+                        ,   directory_is_symbolic_link
+                        ,   directory_is_junction_link
                         ,   linked_directory
                         ,   search_directory_id
                         ,   folder
@@ -269,7 +269,7 @@ While ($searchDirectories.Read()) {
                 $howManyUpdatedDirectories++
 
                 $rowsUpdated = Invoke-Sql "
-                    UPDATE 
+                    UPDATE
                         directories_v
                     SET
                         scan_directory             = $scan_directory
@@ -280,11 +280,11 @@ While ($searchDirectories.Read()) {
                     ,   linked_directory           = $on_fs_linked_directory_escaped
                     ,   volume_id                  = (SELECT volume_id FROM volumes WHERE drive_letter = '$on_fs_driveletter')
                     ,   directory_deleted          = False
-                    WHERE           
+                    WHERE
                         directory_hash             = md5_hash_path('$on_fs_directory_escaped')
                 "
                 _TICK_Existing_Object_Edited
-                if ($scan_directory) { 
+                if ($scan_directory) {
                     _TICK_Scan_Objects
                 } # Getting a trailing "st"
                 $howManyRowsUpdated+= $rowsUpdated
@@ -294,7 +294,7 @@ While ($searchDirectories.Read()) {
             }
 
             # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
-            # Performance without skip:   2 minutes 
+            # Performance without skip:   2 minutes
             # Performance with skip and no changes: 720 ms (so 60 times faster for empties)
             # DOESNT WORK !!!!! if ($on_fs_is_real_directory -and $walkdownthefilehierarchy ) { # https://stackoverflow.com/questions/1025187/rules-for-date-modified-of-folders-in-windows-explorer
             if ($on_fs_is_real_directory ) { # No way to avoid it as of Windows 10: Must traverse
@@ -315,7 +315,7 @@ Write-Count howManyDirectoriesFlaggedToScan Directory
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1

@@ -2,8 +2,8 @@
  #    FilmCab Daily morning batch run process: Extract all the "_" folders and determine what genre to assign the directory.
  #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
  #    Status: Prepping for addition to schedule.
- 
- #    ###### Tue Jan 23 18:23:11 MST 2024                
+
+ #    ###### Tue Jan 23 18:23:11 MST 2024
 
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #    https://github.com/jeffshumphreys/filmcab/issues/41
@@ -28,20 +28,20 @@ $howManyGenreFoldersWereFound         = 0
 $howManySubGenreFoldersWereFound      = 0
 $howManyGrandSubGenreFoldersWereFound = 0
 $howManyNewGenreWereFound             = 0
-     
+
 $genreFileCounts = @{}
 
 $reader = WhileReadSql "
-    SELECT 
+    SELECT
         directory                      /* What we are going to search for new files     */
     ,   directory_escaped
     ,   useful_part_of_directory       /* Start without the base search_directory to confuse us */
-    FROM 
-        directories_ext_v           
+    FROM
+        directories_ext_v
     WHERE
         NOT directory_deleted
 "
-              
+
 While ($reader.Read()) {
 
     # split it into parts
@@ -60,13 +60,13 @@ While ($reader.Read()) {
         $genre    = $null
         $subgenre = $null
     }
-         
+
     if (-not [string]::IsNullOrWhiteSpace($genre)) {
         # count all non genre movies below.
         $ct = 0
-    
+
         Get-ChildItem $directory -Recurse  |
-            Foreach { 
+            Foreach {
                 $directorylength = $directory.Length
                 $relpath = $_.FullName.Substring($directorylength)
                 if ($relpath -notmatch "\\_") {
@@ -78,7 +78,7 @@ While ($reader.Read()) {
         $currentCount++
         $genreFileCounts.Set_Item($genre, $currentCount)
 
-    }                                      
+    }
 
     if ($directory_folders.Length -ge 2) {
         $subgenre_candidate = $directory_folders[1]
@@ -86,7 +86,7 @@ While ($reader.Read()) {
         {
             $subgenre = $subgenre_candidate
         }
-    }                                      
+    }
 
     if ($directory_folders.Length -ge 3) {
         $grandsubgenre_candidate = $directory_folders[2]
@@ -94,21 +94,21 @@ While ($reader.Read()) {
         {
             $grandsubgenre = $grandsubgenre_candidate
         }
-    }                                      
-              
+    }
+
     $wrote = $pretest_assuming_false
-    
-    if ($null -ne $genre -and 
+
+    if ($null -ne $genre -and
         $genre -notin('_Mystery', '_Comedy', '_Sci Fi'))  # To reduce the dump out to Host, exclude things that are ubiquitous and never going to change.
     {
         Write-AllPlaces "Genre: $genre" -NoNewline
         $wrote = $true
-        $howManyGenreFoldersWereFound++                             
+        $howManyGenreFoldersWereFound++
         $genre = $genre.Substring(1)
         Invoke-Sql "UPDATE directories_v set root_genre = '$genre' where directory = '$directory_escaped'"|Out-Null
         $howManyAdded              = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_example) VALUES('$genre', 'published folders', 1, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
         $howManyNewGenreWereFound += $howManyAdded
-    }                             
+    }
 
     if ($null -ne $subgenre) {
         Write-AllPlaces "  Sub-genre: $subgenre"  -NoNewline
@@ -128,7 +128,7 @@ While ($reader.Read()) {
         $grandsubgenre             = $grandsubgenre.Substring(1)
         $howManyAdded              = Invoke-Sql "INSERT INTO genres(genre, genre_function, genre_level, directory_example) VALUES('$grandsubgenre', 'published folders', 3, '$directory_escaped') ON CONFLICT(genre, genre_function) DO NOTHING"|Out-Null
         $howManyNewGenreWereFound += $howManyAdded
-    }   
+    }
 
     if ($wrote) {
         Write-AllPlaces # Move to next line
@@ -138,7 +138,7 @@ While ($reader.Read()) {
 Write-Count howManyGenreFoldersWereFound           Folder
 Write-Count howManySubGenreFoldersWereFound        Folder
 Write-Count howManyGrandSubGenreFoldersWereFound   Folder
-Write-Count howManyNewGenreWereFound               Genre  
+Write-Count howManyNewGenreWereFound               Genre
 
 $genreFileCounts.GetEnumerator()|Select Key, Value|Sort Key|Out-Host
 
@@ -146,7 +146,7 @@ $genreFileCounts.GetEnumerator()|Select Key, Value|Sort Key|Out-Host
 catch {
     Write-AllPlaces "Catch"
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1

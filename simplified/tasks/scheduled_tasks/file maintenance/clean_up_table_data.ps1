@@ -13,13 +13,13 @@
 $HowManyFoldersPopulated = Invoke-Sql "UPDATE directories SET folder = reverse((string_to_array(reverse(replace(directory_path::text, '\'::text, '\\'::text)), '\'))[1]) WHERE folder IS NULL"
 $HowManyFoldersPopulated += Invoke-Sql "UPDATE directories SET parent_folder = reverse((string_to_array(reverse(replace(directory_path::text, '\'::text, '\\'::text)), '\'))[2]) WHERE parent_folder IS NULL"
 $HowManyFoldersPopulated += Invoke-Sql "UPDATE directories SET grandparent_folder = reverse((string_to_array(reverse(replace(directory_path::text, '\'::text, '\\'::text)), '\'))[3]) WHERE grandparent_folder IS NULL"
-                           
+
 Write-Count HowManyFoldersPopulated Folder
 
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1

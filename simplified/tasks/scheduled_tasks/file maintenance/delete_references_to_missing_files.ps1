@@ -10,7 +10,7 @@
 
 try {
 . .\_dot_include_standard_header.ps1
-             
+
 $HowManyFileEntriesMapToExistingFiles        = 0
 $HowManyFileEntriesNoLongerMapToExistingFile = 0
 $HowManyFileEntriesUpdated                   = 0
@@ -19,38 +19,38 @@ $HowManyFileEntriesUndeleted                 = 0
 
 if ($DatabaseConnectionIsOpen) {
     $reader = WhileReadSql "
-        SELECT 
+        SELECT
             file_path,
             file_deleted,
             file_id
-        FROM 
+        FROM
             files_ext_v
         "
 
     While ($reader.Read()) {
         if (Test-Path -LiteralPath $file_path) {
             _TICK_Found_Existing_Object
-            $HowManyFileEntriesMapToExistingFiles++ 
-            if ($file_deleted) {                                                      
+            $HowManyFileEntriesMapToExistingFiles++
+            if ($file_deleted) {
                 _TICK_Update_Object_Status # Need an undelete tick.
                 Invoke-Sql "UPDATE files_v SET file_deleted = False WHERE file_id = $file_id" | Out-Null
                 $HowManyFileEntriesUpdated++
                 $HowManyFileEntriesUndeleted++
-            }                                    
-        } else {             
+            }
+        } else {
             _TICK_Sought_Object_Not_Found
             $HowManyFileEntriesNoLongerMapToExistingFile++
-            if (-not $file_deleted) {                                                           
+            if (-not $file_deleted) {
                 _TICK_Update_Object_Status
                 Invoke-Sql "UPDATE files_v SET file_deleted = True WHERE file_id = $file_id" | Out-Null
-                $HowManyFileEntriesUpdated++                                                        
+                $HowManyFileEntriesUpdated++
                 $HowManyFileEntriesDeleted++
             }
         }
-    } 
-                                                             
+    }
+
     #TODO: Have footer just grab ANY int variables that start with "HowMany"????? Cray-Cray!
-    
+
     Write-Count  HowManyFileEntriesMapToExistingFiles        File
     Write-Count  HowManyFileEntriesNoLongerMapToExistingFile File
     Write-Count  HowManyFileEntriesUpdated                   File
@@ -62,7 +62,7 @@ if ($DatabaseConnectionIsOpen) {
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1
