@@ -166,7 +166,7 @@ class ForEachRowInQuery {
     $readerObject
     [int]$Actual = 0
     $ResultSetColumnDefinitions
-    
+
     ForEachRowInQuery() {
         throw [Exception] "Please provide a sql"
     }
@@ -187,29 +187,28 @@ class ForEachRowInQuery {
     # }
 
     # [bool] MoveNext() {
-    #     $local_reader = $this.readerObject.Value                             
+    #     $local_reader = $this.readerObject.Value
     #     $anyMoreRecordsToRead = $local_reader.Read()
     #     if ($anyMoreRecordsToRead) {
     #         $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
-    #         foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
+    #         foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {
     #             $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
     #             $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
     #             New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $DatabaseColumnValue -Force -Visibility Public
-    #         }                           
+    #         }
     #     }
     #     return $anyMoreRecordsToRead
     # }
 
     [bool] Read() {
-        $local_reader = $this.readerObject.Value                             
-        $anyMoreRecordsToRead = $local_reader.Read()
+        $anyMoreRecordsToRead = $this.readerObject.Value.Read()
         if ($anyMoreRecordsToRead) {
-            $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
-            foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {             
+            $this.ResultSetColumnDefinitions       = $this.readerObject.Value.GetSchemaTable()
+            foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {
                 $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
                 $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
                 New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $DatabaseColumnValue -Force -Visibility Public
-            }                           
+            }
         }
         return $anyMoreRecordsToRead
     }
@@ -229,7 +228,7 @@ class ForEachRowInQuery {
     # [void] Reset() {
     #     $this.Actual = 0
     # }
-                                               
+
     [void] Close() {
         $this.readerObject.Value.Close()
     }
