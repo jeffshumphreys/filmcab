@@ -203,7 +203,7 @@ class ForEachRowInQuery {
     [bool] Read() {
         $anyMoreRecordsToRead = $this.readerObject.Value.Read()
         if ($anyMoreRecordsToRead) {
-            $this.ResultSetColumnDefinitions       = $this.readerObject.Value.GetSchemaTable()
+            $this.ResultSetColumnDefinitions = $this.readerObject.Value.GetSchemaTable()
             foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {
                 $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
                 $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
