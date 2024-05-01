@@ -9,18 +9,18 @@
  #>
 
 # Bug: Cannot find path 'D:\_dot_include_standard_header.ps1' because it does not exist.
-                     
+
 try {
-. .\_dot_include_standard_header.ps1 
+. .\_dot_include_standard_header.ps1
 
 # /E for copying empty subdirectories
 # /J for copy using unbuffered I/O (recommended for large files).
 # /V :: produce Verbose output, showing skipped files.
-# /NOOFFLOAD Copy files without using the Windows Copy Offload mechanism.        
+# /NOOFFLOAD Copy files without using the Windows Copy Offload mechanism.
 # /R:1 retry once instead of default 1 million
 # /XJ :: eXclude symbolic links (for both files and directories) and Junction points.  (Not doing this, just FYI)
 # Not dating the log; just want the last one for now.
-###### Fri Feb 23 10:48:01 MST 2024 The other day, I went and RENAMED all the subfolders under _Mystery in order to 
+###### Fri Feb 23 10:48:01 MST 2024 The other day, I went and RENAMED all the subfolders under _Mystery in order to
     # 1) Append their other name, either their foreign name, their UK/American Release name, or their rename.
     # 2) Add their first release year
     # 3) Add either their final release year or a "-" if they have not been cancelled yet.
@@ -37,7 +37,7 @@ Log-Line "Finished Robocopy"
 }
 catch {
     Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
-}                                  
+}
 finally {
     Write-AllPlaces "Finally" -ForceStartOnNewLine
     . .\_dot_include_standard_footer.ps1
