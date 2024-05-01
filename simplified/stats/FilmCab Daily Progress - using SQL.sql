@@ -11,7 +11,7 @@ SELECT
   (SELECT COUNT(*)          AS "How many Tables" FROM information_schema.TABLES WHERE table_schema = 'simplified' AND table_type = 'BASE TABLE'),
   (SELECT COUNT(*)          AS "How many Views" FROM information_schema.TABLES WHERE table_schema = 'simplified' AND table_type = 'VIEW'),
   (SELECT COUNT(*)          AS "How many Columns" FROM information_schema.COLUMNS WHERE table_schema = 'simplified'),
-  (SELECT COUNT(*)          AS "Active Tasks" FROM scheduled_tasks WHERE is_enabled)
+  (SELECT COUNT(*)          AS "Enabled Tasks" FROM scheduled_tasks WHERE is_enabled)
 ;
 SELECT * FROM batch_run_sessions_scheduled_and_completed_v brssacv ;
 SELECT * FROM file_extensions fe WHERE file_is_media_content IS null;
