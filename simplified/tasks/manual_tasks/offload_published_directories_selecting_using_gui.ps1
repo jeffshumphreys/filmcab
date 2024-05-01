@@ -22,204 +22,13 @@ try {
 
 Import-Module BitsTransfer
 
-$form                                    = New-Object System.Windows.Forms.Form
-$form.Text                               = "Select a directory to offload"
-$form.StartPosition                      = "CenterScreen"
-$form.WindowState                        = 'Maximized'
-$form.Height                             = $ScreenHeight
-$form.Width                              = $ScreenWidth
-$BUTTON_WIDTH                            = 75
-$BUTTON_HEIGHT                           = 23
-$HORIZONTAL_SPACER                       = 5
-$VERTICAL_SPACER                         = 2
-
-$sequenceControlIgnoreNext_afterSelectTreeview = $false
-
-# <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($OKButton)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$CancelButton                            = New-Object System.Windows.Forms.Button
-#$CancelButton.Location                   = New-Object System.Drawing.Point(($ScreenWidth - $BUTTON_WIDTH),($ScreenHeight - $BUTTON_HEIGHT))
-#$CancelButton.Size                       = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
-#$CancelButton.Text                       = "Cancel"
-$CancelButton.DialogResult               = [System.Windows.Forms.DialogResult]::Cancel
-$form.CancelButton                       = $CancelButton
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($CancelButton)<#~~~~~~~~~~~~~~~~~~~~#>
-$CancelButton.Hide() # Has to be present so "X" closes.
-
-########################################################################################################################################################################################################
-$nodeContextMenu = New-Object System.Windows.Forms.ContextMenuStrip
-
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# Column 1
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-$columnWidth1                            = 344
-$treeViewWidth                           = $columnWidth1
-
-########################################################################################################################################################################################################
-$treeViewOfPublishedDirectories          = New-Object System.Windows.Forms.TreeView
-$treeViewOfPublishedDirectories.Location = New-Object System.Drawing.Point(0,0)
-$treeViewOfPublishedDirectories.Size     = New-Object System.Drawing.Size($treeViewWidth, ($ScreenHeight - 17))
-$treeViewOfPublishedDirectories.TabIndex = 0
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($treeViewOfPublishedDirectories)<#~~~~~~~~~~~~~~~~~~~~#>
-
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# Column 2
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-$maxObjectWidth2                         = 400
-$columnWidth2                            = $maxObjectWidth2 + ($HORIZONTAL_SPACER*2)
-
-########################################################################################################################################################################################################
-$selectedMoveReasonLabel                 = New-Object System.Windows.Forms.Label
-$selectedMoveReasonLabel.Location        = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 2))
-$selectedMoveReasonLabel.Size            = New-Object System.Drawing.Size(($columnWidth2), $BUTTON_HEIGHT)
-$selectedMoveReasonLabel.Text            = "Move Reason"
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($selectedMoveReasonLabel)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$selectedmoveReasonComboBox              = New-Object System.Windows.Forms.ComboBox
-$selectedmoveReasonComboBox.Location     = New-Object System.Drawing.Point(($treeViewWidth+$HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 3))
-$selectedmoveReasonComboBox.Size         = New-Object System.Drawing.Size($maxObjectWidth2, $BUTTON_HEIGHT)
-$selectedmoveReasonComboBox.Items.AddRange("Seen", "Won't Watch", "Won't Finish", "No Subtitles", "Corrupt", "Poor Quality", 'Copyright Audio')|Out-Null
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($selectedmoveReasonComboBox)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$whyThisMoveReasonText                   = New-Object System.Windows.Forms.TextBox
-$whyThisMoveReasonText.AutoSize          = $false
-$whyThisMoveReasonText.Location          = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 4))
-$whyThisMoveReasonText.Size              = New-Object System.Drawing.Size(($columnWidth2), ($BUTTON_HEIGHT*3))
-$whyThisMoveReasonText.PlaceholderText   = "Explain why this move reason"
-$whyThisMoveReasonText.Multiline         = $true
-$whyThisMoveReasonText.WordWrap          = $true
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($whyThisMoveReasonText)<#~~~~~~~~~~~~~~~~~~~~#>
-
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# Column 3
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-$maxObjectWidth3                         = 680
-$columnWidth3                            = $maxObjectWidth3 + ($HORIZONTAL_SPACER*2)
-$maxObjectWidth3b                        = 100
-$columnWidth3b                           = $maxObjectWidth3b + ($HORIZONTAL_SPACER)
-
-########################################################################################################################################################################################################
-
-# $activityAnimation                       = New-Object System.Windows.Forms.PictureBox
-# $activityAnimation.Location              = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2), ($BUTTON_HEIGHT * 4))
-# $activityAnimation.Size                  = New-Object System.Drawing.Size(($columnWidth2), ($BUTTON_HEIGHT*3))
-# $activityAnimation.SizeMode              = 'StretchImage'
-
-# <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($activityAnimation)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$RunningActivityLog                      = New-Object System.Windows.Forms.RichTextBox
-$RunningActivityLog.Location             = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 7 + $VERTICAL_SPACER))
-$RunningActivityLog.Size                 = New-Object System.Drawing.Size(($columnWidth2+$columnWidth3), ($BUTTON_HEIGHT*10))
-$RunningActivityLog.ReadOnly             = $true
-$RunningActivityLog.AutoScrollOffset     = 100
-$RunningActivityLog.Text                 = ""
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($RunningActivityLog)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$MoveFilesButton                         = New-Object System.Windows.Forms.Button
-$MoveFilesButton.Location                = New-Object System.Drawing.Point(($treeViewWidth + $columnWidth2),0)
-$MoveFilesButton.Size                    = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
-$MoveFilesButton.Text                    = "Move Files -->"
-$MoveFilesButton.Enabled                 = $false
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($MoveFilesButton)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$currentActivity                         = New-Object System.Windows.Forms.Label
-$currentActivity.Location                = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2), $BUTTON_HEIGHT)
-$currentActivity.Size                    = New-Object System.Drawing.Size(($columnWidth3), $BUTTON_HEIGHT)
-$currentActivity.Text                    = "...."
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($currentActivity)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$sourceFromLabel                         = New-Object System.Windows.Forms.Label
-$sourceFromLabel.Location                = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2), ($BUTTON_HEIGHT * 2 + $VERTICAL_SPACER))
-$sourceFromLabel.Size                    = New-Object System.Drawing.Size($columnWidth3b, $BUTTON_HEIGHT)
-$sourceFromLabel.Text                    = "move from"
-$sourceFromLabel.BorderStyle             = 'Fixed3D'
-$sourceFromLabel.BackColor               = $Yellow
-$sourceFromLabel.Font                    = $ItalicFont
-$sourceFromLabel.TextAlign               = [System.Drawing.ContentAlignment]::MiddleRight
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($sourceFromLabel)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$targetToLabel                           = New-Object System.Windows.Forms.Label
-$targetToLabel.Location                  = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2), ($BUTTON_HEIGHT * 3 + $VERTICAL_SPACER))
-$targetToLabel.Size                      = New-Object System.Drawing.Size($columnWidth3b, $BUTTON_HEIGHT)
-$targetToLabel.Text                      = "move to"
-$targetToLabel.BorderStyle               = 'Fixed3D'
-$targetToLabel.BackColor                 = $Yellow
-$targetToLabel.Font                      = $ItalicFont
-$targetToLabel.TextAlign                 = [System.Drawing.ContentAlignment]::MiddleRight
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($targetToLabel)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$sourceDirectoryToMoveFrom                 = New-Object System.Windows.Forms.TextBox
-$sourceDirectoryToMoveFrom.Location        = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2 + $HORIZONTAL_SPACER + $columnWidth3b), ($BUTTON_HEIGHT * 2 + $VERTICAL_SPACER))
-$sourceDirectoryToMoveFrom.Size            = New-Object System.Drawing.Size($maxObjectWidth3, $BUTTON_HEIGHT)
-$sourceDirectoryToMoveFrom.ReadOnly        = $true
-$sourceDirectoryToMoveFrom.PlaceholderText = "selected source directory goes here"
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($sourceDirectoryToMoveFrom)<#~~~~~~~~~~~~~~~~~~~~#>
-
-########################################################################################################################################################################################################
-$targetDirectoryToMoveTo                 = New-Object System.Windows.Forms.TextBox
-$targetDirectoryToMoveTo.Location        = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2 + $HORIZONTAL_SPACER + $columnWidth3b), ($BUTTON_HEIGHT * 3 + $VERTICAL_SPACER))
-$targetDirectoryToMoveTo.Size            = New-Object System.Drawing.Size($maxObjectWidth3, $BUTTON_HEIGHT)
-$targetDirectoryToMoveTo.ReadOnly        = $true
-$targetDirectoryToMoveTo.PlaceholderText = "selected target directory goes here"
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($targetDirectoryToMoveTo)<#~~~~~~~~~~~~~~~~~~~~#>
-
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# Column 4
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-$maxObjectWidth4                         = 100
-$columnWidth4                            = $maxObjectWidth4 + ($HORIZONTAL_SPACER*2)
-
-#######################################################################################################################################################################################################
-$sourceDirectorySize                     = New-Object System.Windows.Forms.Label
-$sourceDirectorySize.Location            = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2+ $columnWidth3b+$columnWidth3), ($BUTTON_HEIGHT * 2 + $VERTICAL_SPACER))
-$sourceDirectorySize.Size                = New-Object System.Drawing.Size($columnWidth4, $BUTTON_HEIGHT)
-$sourceDirectorySize.TextAlign           = [System.Drawing.ContentAlignment]::MiddleLeft
-
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($sourceDirectorySize)<#~~~~~~~~~~~~~~~~~~~~#>
-
-#######################################################################################################################################################################################################
-$statusBarMessage                        = New-Object System.Windows.Forms.ToolStripStatusLabel
-$statusBarMessage.Size                   = New-Object System.Drawing.Size(107, 17)
-$statusBarMessage.Text                   = "Testing........."
-
-#######################################################################################################################################################################################################
-$statusBar                               = New-Object System.Windows.Forms.StatusStrip
-$statusBar.Dock                          = [System.Windows.Forms.DockStyle]::Bottom
-$statusBar.ShowItemToolTips              = $true
-$statusBar.Text                          = "<Doesn't show anywhere>"
-$statusBar.Stretch                       = $true
-$statusBar.SizingGrip                    = $false
-$statusBar.LayoutStyle                   = [System.Windows.Forms.ToolStripLayoutStyle]::HorizontalStackWithOverflow
-
-<#~~~~~~~~~~~~~~~~~~~~#>$statusBar.Items.Add($statusBarMessage)<#~~~~~~~~~~~~~~~~~~~~#>
-<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($statusBar)<#~~~~~~~~~~~~~~~~~~~~#>
-
+. .\simplified\tasks\manual_tasks\offload_published_directories_selecting_using_gui.formdef.ps1
 
 Function EnableMoveFileButton() {
-    if (-not($treeViewOfPublishedDirectories.SelectedNode.Text.StartsWith('_') -or $treeViewOfPublishedDirectories.SelectedNode.Level -eq 0 -or
-    [string]::IsNullOrWhiteSpace($selectedmoveReasonComboBox.Text) -or
-    $selectedmoveReasonComboBox.Text -notin $selectedmoveReasonComboBox.Items
+    if (
+        -not($treeViewOfPublishedDirectories.SelectedNode.Text.StartsWith('_') -or $treeViewOfPublishedDirectories.SelectedNode.Level -eq 0 -or
+        [string]::IsNullOrWhiteSpace($selectedmoveReasonComboBox.Text) -or
+        $selectedmoveReasonComboBox.Text -notin $selectedmoveReasonComboBox.Items
     )) {
         # TODO: code this magic.
         if ($selectedmoveReasonComboBox.Text -ne "Seen") {
@@ -231,7 +40,7 @@ Function EnableMoveFileButton() {
 
         $targetBaseDirectory_prepped_for_sql = PrepForSql $Script:targetBaseDirectory
         # Verify all target data set
-        Invoke-Sql "INSERT INTO search_directories_v(search_directory) VALUES($targetBaseDirectory_prepped_for_sql) ON CONFLICT DO NOTHING"
+        Invoke-Sql "INSERT INTO search_directories_v(search_directory) VALUES($targetBaseDirectory_prepped_for_sql) ON CONFLICT DO NOTHING"|Out-Null
         return $true
     }
     return $false
@@ -254,22 +63,6 @@ $selectedmoveReasonComboBox.add_SelectedIndexChanged({
 
 })
 
-# add_BeforeCheck
-# add_AfterCheck
-# add_GiveFeedback
-# add_ItemDrag
-# add_Move
-# add_BeforeSelect
-
-# add_KeyPress
-# add_KeyUp
-# add_PreviewKeyDown
-# add_Leave
-
-# add_DoubleClick
-# add_MouseDoubleClick
-# add_NodeMouseDoubleClick
-#$treeViewOfPublishedDirectories|gm -force
 #################################################################################################################################################################################################
 # Action taken When the user double-clicks on a node.
 #################################################################################################################################################################################################
@@ -277,17 +70,42 @@ $treeViewOfPublishedDirectories.add_NodeMouseDoubleClick({
     # if a directory, flush any below, and repop with files in directory, coloring links or italicizing
     # SelectedNode.Name = full path
     # NOTE: First expands.
+
     $fileOrFolderPath = $this.SelectedNode.Name
+    $fileOrFolderPath_prepped_for_sql = PrepForSql $fileOrFolderPath
     if (Test-Path -LiteralPath $fileOrFolderPath -PathType Container) {
         # Fetch files
-        Get-ChildItem -LiteralPath $fileOrFolderPath -File|ForEach-Object {
+
+        $filereader = WhileReadSql "
+            SELECT
+                file_name_with_ext
+            ,   useful_part_of_directory
+            ,   file_path
+            ,   CASE WHEN file_is_symbolic_link OR file_is_hard_link THEN TRUE ELSE FALSE END AS is_link
+            ,   CASE WHEN moved_out OR file_deleted THEN TRUE ELSE FALSE END AS nothing_here
+            FROM
+                files_ext_v
+            WHERE
+                directory = $fileOrFolderPath_prepped_for_sql
+            AND
+                NOT file_deleted
+            "
+
+        while ($filereader.Read()) {
             $branchNode           = New-Object System.Windows.Forms.TreeNode
-            $branchNode.Name      = $_.FullName
-            $branchNode.Text      = $_.Name
-            $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
-            $this.SelectedNode.Nodes.Add($branchNode)
-            $this.SelectedNode.Expand()
+            $branchNode.Name      = $file_path
+            $branchNode.Text      = $file_name_with_ext
+            $branchNode.Tag       = $useful_part_of_directory
+            if ($is_link) {
+                $branchNode.ForeColor = '#bdb9b9' # even lighter
+                $branchNode.NodeFont.Italic = $true
+            } else {
+                $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
+            }
+            $this.SelectedNode.Nodes.Add($branchNode)|Out-Null
         }
+
+        $this.SelectedNode.Expand()
     }
     #$statusBarMessage.Text = "treeViewOfPublishedDirectories.add_NodeMouseDoubleClick"
 })
@@ -348,17 +166,27 @@ Function LogMoveActivityLine($msg, [System.Drawing.Color]$textColor) {
 ###########################################################################################################################################################################################
 $Move_Directory = {
     $form.Cursor                         = [System.Windows.Forms.Cursors]::WaitCursor
+    $Script:sourcePathToDirectoryOrFile  = $treeViewOfPublishedDirectories.SelectedNode.Name
+    $Script:sourceDirectory              = $Script:sourcePathToDirectoryOrFile
+    $isMovingADirectory                  = (Test-Path -LiteralPath $Script:sourcePathToDirectoryOrFile -PathType Container)
+    if (-not $isMovingADirectory) {
+        $Script:sourceDirectory = (Split-Path $Script:sourcePathToDirectoryOrFile -Parent)
+    }
     $currentActivity.ForeColor           = $Black
     $currentActivity.Font                = $NormalFont
-    $currentActivity.Text                ="moving directory..."
+
+    if ($isMovingADirectory) {
+        $currentActivity.Text                ="moving directory..."
+    } else {
+        $currentActivity.Text                ="moving file..."
+    }
+
     $currentActivity.Refresh()
-    $sourceDirectory                     = $treeViewOfPublishedDirectories.SelectedNode.Name
-    $sourceBaseDirectory                 = $Script:sourceBaseDirectory
-    $sourceBaseDirectory_prepped_for_sql = PrepForSql $sourceBaseDirectory
-    $sourceDirectory_prepped_for_sql     = PrepForSql $sourceDirectory
+    $sourceBaseDirectory_prepped_for_sql = PrepForSql $Script:sourceBaseDirectory
+    $sourceDirectory_prepped_for_sql     = PrepForSql $Script:sourcePathToDirectoryOrFile
     $sizeOfSourceDirectory               = 0
     try {
-        $sizeOfSourceDirectory           = ((gci –force -LiteralPath $sourceDirectory –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+        $sizeOfSourceDirectory           = ((Get-ChildItem –Force -LiteralPath $Script:sourcePathToDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
     } catch {}
     $sourceDirectorySize.Text            = HumanizeCount $sizeOfSourceDirectory
     $sourceDirectorySize.Refresh()
@@ -377,7 +205,7 @@ $Move_Directory = {
     New-Item -ItemType Directory -Force -Path $targetDirectory
     $targetDirectory                     = (Get-Item $targetDirectory).Parent.FullName
     $targetDirectory_prepped_for_sql     = PrepForSql $targetDirectory
-    LogMoveActivityLine "Moving $sourceDirectory to $targetDirectory..." -textColor $StartingColor
+    LogMoveActivityLine "Moving $sourcePathToDirectoryOrFile to $targetDirectory..." -textColor $StartingColor
     # ERROR: Can't run during single large -MoveItem and even between moves. No update. $activityAnimation.Load("D:\qt_projects\filmcab\simplified\images\animations\running.homer.silly.gif")
 
     # So much table change, we need to transact it. Else it leaves stuff during partial testing
@@ -386,7 +214,7 @@ $Move_Directory = {
     try {
         $Script:ActiveTransaction        = $DatabaseConnection.BeginTransaction([System.Data.IsolationLevel]::ReadCommitted) #PostgreSQL's Read Uncommitted mode behaves like Read Committed
 
-        $source_driveletter              = Left $sourceDirectory
+        $source_driveletter              = Left $sourcePathToDirectoryOrFile
         $sourceVolumeId                  = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$source_driveletter'"
         $source_search_directory_id      = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $sourceBaseDirectory_prepped_for_sql"
 
@@ -538,7 +366,7 @@ $Move_Directory = {
                 all_files y
             WHERE
                 files_v.file_id = y.file_id
-        "
+        "|Out-Null
 
         $currentActivity.Text = "(5) Copying the file records over, altering paths and hashes as needed."
         $currentActivity.Refresh()
@@ -592,17 +420,17 @@ $Move_Directory = {
                 ,   file_id                        AS moved_from_file_id
                 FROM
                     all_files
-        "
+        "|Out-Null
 
         $currentActivity.Text = "(6) Starting Move-Item..."
-        $currentActivity.Refresh()
+        $currentActivity.Refresh()|Out-Null
 
         ###############################################################################################################################################################################################################################################################
         ###############################################################################################################################################################################################################################################################
         $movedFilesYet = $false
         try {
 
-            #$arguments = @("$sourceDirectory","$targetDirectory") #(Pass scriptblock up update gui progress)
+            #$arguments = @("$sourcePathToDirectoryOrFile","$targetDirectory") #(Pass scriptblock up update gui progress)
             # When job finishes, need to lock move button
             #$job = Start-Job -ScriptBlock $ScriptBlockAsyncMoveFilesAndDirectories -ArgumentList $arguments
             #$jobEvent = Register-ObjectEvent $job StateChanged -Action {
@@ -610,7 +438,7 @@ $Move_Directory = {
             #    $jobEvent | Unregister-Event
                 #Start-BitsTransfer -Source $Source -Destination $Destination -Description "Backup" -DisplayName "Backup"
                 # When job finishes, need to unlock move button
-            Move-Item -LiteralPath $sourceDirectory -Destination $targetDirectory -Force
+            Move-Item -LiteralPath $sourcePathToDirectoryOrFile -Destination $targetDirectory -Force
             #}
         } catch {}
         $movedFilesYet = $true
@@ -646,7 +474,7 @@ $Move_Directory = {
             $currentActivity.Text                = "Move CANCELLED"
             $currentActivity.ForeColor           = $Red
             $currentActivity.Font                = $BoldFont
-            LogMoveActivityLine "Failed to move $sourceDirectory to $targetDirectory" -textColor $FailColor
+            LogMoveActivityLine "Failed to move $sourcePathToDirectoryOrFile to $targetDirectory" -textColor $FailColor
         }
     }
     finally {
@@ -660,7 +488,7 @@ $Move_Directory = {
             $currentActivity.Text                = "MOVE COMPLETED SUCCESSFULLY"
             $currentActivity.ForeColor           = $Green
             $currentActivity.Font                = $BoldFont
-            LogMoveActivityLine "Successfully moved $sourceDirectory to $targetDirectory" -textColor $SuccessColor
+            LogMoveActivityLine "Successfully moved $sourcePathToDirectoryOrFile to $targetDirectory" -textColor $SuccessColor
         }
     }
     $form.Cursor                                 = [System.Windows.Forms.Cursors]::Default
@@ -669,7 +497,7 @@ $Move_Directory = {
     $sourceDirectorySize.Text                    = ""
 }
 
-$MoveFilesButton.add_click($Move_Directory)
+$MoveFilesButton.add_click($Move_Directory)|Out-Null
 
 #################################################################################################################################################################################################
 # Load all published directories into nodes and add them to tree view
@@ -728,51 +556,57 @@ $AddFoldersToSeenOffline = WhileReadSql "
 # Load all the subfolders into the tree view
 
 while ($AddFoldersToSeenOffline.Read()) {
-    $parentBranch = $parentDirectories[$parent_directory]
-    $branchNode   = New-Object System.Windows.Forms.TreeNode
-    $parentDirectories.Add($directory, $branchNode)
+    $parentBranch    = $parentDirectories[$parent_directory]
+    $branchNode      = New-Object System.Windows.Forms.TreeNode
     $branchNode.Text = "$folder"
     $branchNode.Name = "$directory"
     $branchNode.Tag  = "$useful_part_of_directory"
+    $parentDirectories.Add($directory, $branchNode)|Out-Null
     $parentBranch.Nodes.Add($branchNode)|Out-Null
 }
 
-$rootNode.Expand()
+$rootNode.Expand()|Out-Null
 
-$treeViewOfPublishedDirectories.EndUpdate()
+$treeViewOfPublishedDirectories.EndUpdate()|Out-Null
 
-# Set our place in the tree where we were last, or very near there.
+###################################################################################################################################################################################################################################################################
+# Set our place in the tree where we were last, or very near there. Labor-reducing.
+###################################################################################################################################################################################################################################################################
 
 if ((Test-Path variable:Script:directory_path) -and -not [string]::IsNullOrWhiteSpace($Script:directory_path)) {
-[array]$treeNodesForThatDirectory = $treeViewOfPublishedDirectories.Nodes.Find($Script:directory_path, $true)
-# if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
-if ($treeNodesForThatDirectory.Count -ge 1) {
-    $treeViewOfPublishedDirectories.SelectedNode = ($treeNodesForThatDirectory[0])
-    $treeViewOfPublishedDirectories.Focus()
-    # Get nodes before and after for when this node is removed.
-}
+    if (Test-Path $Script:directory_path -PathType Leaf) {
+        $Script:file_path = $Script:directory_path
+        $Script:directory_path = (Split-Path $Script:directory_path -Parent)
+    }
+    [array]$treeNodesForThatDirectory = $treeViewOfPublishedDirectories.Nodes.Find($Script:directory_path, $true)
+    # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
+    if ($treeNodesForThatDirectory.Count -ge 1) {
+        $treeViewOfPublishedDirectories.SelectedNode = ($treeNodesForThatDirectory[0])
+        $treeViewOfPublishedDirectories.Focus()
+        # Get nodes before and after for when this node is removed.
+    }
 } elseif ((Test-Path variable:Script:prev_directory_path) -and -not [string]::IsNullOrWhiteSpace($Script:prev_directory_path)) {
-[array]$treeNodesForThatDirectory = $treeViewOfPublishedDirectories.Nodes.Find($Script:prev_directory_path, $true)
-# if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
-if ($treeNodesForThatDirectory.Count -ge 1) {
-    $treeViewOfPublishedDirectories.SelectedNode = ($treeNodesForThatDirectory[0])
-    # Get nodes before and after for when this node is removed.
-}
+    [array]$treeNodesForThatDirectory = $treeViewOfPublishedDirectories.Nodes.Find($Script:prev_directory_path, $true)
+    # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
+    if ($treeNodesForThatDirectory.Count -ge 1) {
+        $treeViewOfPublishedDirectories.SelectedNode = ($treeNodesForThatDirectory[0])
+        # Get nodes before and after for when this node is removed.
+    }
 } elseif ((Test-Path variable:Script:next_directory_path) -and -not [string]::IsNullOrWhiteSpace($Script:next_directory_path)) {
-[array]$treeNodesForThatDirectory = $treeViewOfPublishedDirectories.Nodes.Find($Script:next_directory_path, $true)
-# if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
-if ($treeNodesForThatDirectory.Count -ge 1) {
-    $treeViewOfPublishedDirectories.SelectedNode = ($treeNodesForThatDirectory[0])
-    # Get nodes before and after for when this node is removed.
-}
+    [array]$treeNodesForThatDirectory = $treeViewOfPublishedDirectories.Nodes.Find($Script:next_directory_path, $true)
+    # if not found, we need to have saved the higher folder, and then the next alphabetic subfolder.
+    if ($treeNodesForThatDirectory.Count -ge 1) {
+        $treeViewOfPublishedDirectories.SelectedNode = ($treeNodesForThatDirectory[0])
+        # Get nodes before and after for when this node is removed.
+    }
 }
 
 $selectedmoveReasonComboBox.SelectedItem = ""
 
 $form.Topmost = $True
 
-$form.BringToFront() # Required to get it on top, not just "TopMost"
-$treeViewOfPublishedDirectories.Focus()
+$form.BringToFront()|Out-Null # Required to get it on top, not just "TopMost"
+$treeViewOfPublishedDirectories.Focus()|Out-Null
 $form.TabIndex = 0
 $form.ShowDialog()
 
@@ -784,57 +618,3 @@ finally {
 Write-AllPlaces "Finally"
 . .\_dot_include_standard_footer.ps1
 }
-
-<#
-
-https://www.systanddeploy.com/2019/11/powershell-and-wpf-how-to-use-animated.html
-
-https://github.com/XamlAnimatedGif/WpfAnimatedGif
-A simple library to display animated GIF images in WPF, usable in XAML or in code.
-var image = new BitmapImage();
-image.BeginInit();
-image.UriSource = new Uri(fileName);
-image.EndInit();
-ImageBehavior.SetAnimatedSource(img, image);
-https://www.nuget.org/packages/WpfAnimatedGif
-
-#>
-
-<#
-
-
-https://stackoverflow.com/questions/165735/how-do-you-show-animated-gifs-on-a-windows-form-c
-  private void button1_Click(object sender, EventArgs e)
-  {
-   ThreadStart myThreadStart = new ThreadStart(Show);
-   Thread myThread = new Thread(myThreadStart);
-   myThread.Start();
-  }
-
-Show activity on this post.
-
-Note that in Windows, you traditionally don't use animated Gifs, but little AVI animations: there is a Windows native control just to display them. There are even tools to convert animated Gifs to AVI (and vice-versa).
-
-https://learn.microsoft.com/en-us/windows/win32/controls/animation-control-overview
-
-
-https://learn.microsoft.com/en-us/dotnet/api/system.windows.media.animation.animatable?view=windowsdesktop-8.0
-
-Animatable Class
-System.Windows.Media.Animation
-public abstract class Animatable : System.Windows.Freezable, System.Windows.Media.Animation.IAnimatable
-
-CAnimateCtrl m_avi;this is placed in your .h file.
-https://www.codeproject.com/Articles/159/CAnimateCtrl-Example
-
-Function ShowProgressGifDelegate {
-    $animatedGif.Visible = $true
-}
-Function ShowAnimation()
-{
- $this.Invoke(ShowProgressGifDelegate);
- #//your long running process
- #System.Threading.Thread.Sleep(5000);
- #this.Invoke(this.HideProgressGifDelegate);
-}
-#>
