@@ -188,13 +188,13 @@ AS SELECT files.file_id,
     files.final_extension,
     files.file_size,
     files.file_date,
-    files.deleted          AS file_deleted,
-    files.is_symbolic_link AS file_is_symbolic_link,
-    files.is_hard_link     AS file_is_hard_link,
-    files.broken_link      AS file_is_broken_link,
-    files.linked_path,
-    files.file_ntfs_id,
-    files.scan_for_ntfs_id AS scan_file_for_ntfs_id,
+    files.deleted                              AS file_deleted,
+    files.is_symbolic_link                     AS file_is_symbolic_link,
+    files.is_hard_link                         AS file_is_hard_link,
+    files.broken_link                          AS file_is_broken_link,
+    files.linked_path,                         
+    files.file_ntfs_id,                        
+    files.scan_for_ntfs_id                     AS scan_file_for_ntfs_id,
     files.has_no_ads, 
     files.move_id,
     files.moved_out, 
@@ -207,90 +207,310 @@ AS SELECT files.file_id,
    FROM files;
 --   SELECT count(*) FROM simplified.files_ext_v WHERE is_real_file;
 --   SELECT count(*) FROM simplified.files_ext_v WHERE NOT file_has_no_ads  ;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS files_media_info_v;
 CREATE OR REPLACE VIEW files_media_info_v AS
 SELECT
      file_id
-   , files.final_extension 
-   , files.file_path
-   , general_title
+   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   , general_title                                /* シン・ゴジラ　本編DISC */
+   , audio_title
+   , text_title
+   , video_title
    , general_filenameextension
+   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    , general_encoded_date
+   , general_tagged_date
    , general_file_created_date
+   , general_recorded_date
+   , video_tagged_date
+   , video_encoded_date
+   , general_released_date
+   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    , general_duration                               AS duration_in_ms
    , general_duration_string1                       AS duration_long_display
-   , video_language
-   , audio_language
-   , general_audio
-   , text_language
-   , audio_channel_s                                AS audio_channels
-   , audio_channelpositions
-   , audio_channelpositions_string2
-   , audio_channellayout
-   , audio_dsurmod
+   , video_duration_string1                        /* Slightly different; no idea why */
+   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   , general_longdescription                      /* A clergyman's daughter calls Tommy and Tuppence in to investigate frightening events at a country house. A poltergeist is suspected, but the Beresfords look for a human agent. */
+   , general_synopsis                           /* A germ warfare lab has had an accident and a super virulent strain named The Satan Bug may have been stolen. */
+   , general_summary
+   , general_wm_subtitledescription                /* When Sally sees the box of candy Linus brought for his teacher, she thinks it's for her and gives him a card; Lucy wants affection from Schroeder; Charlie waits for a card; Charlie tries to invite a girl to a dance but doesn't have her phone number. */
    /******************************************************************************************************************************************************************************************************************
     * 
     *                                                                        Video Details 
     * 
     ******************************************************************************************************************************************************************************************************************/
    , video_width
+   , video_stored_width
    , video_height
+   , video_stored_height
    , video_displayaspectratio
+   , video_displayaspectratio_original
+   , video_pixelaspectratio_original
    , general_format
-   , general_format_string
    , general_video_format_list
-   , video_format
-   , video_format_string
-   , video_format_commercial
-   , video_format_info
    , video_codecid
+   , general_codecid
+   , general_overallbitrate_mode_string
+   , general_codecid_compatible
+   , general_codecid_string
+   , video_codecconfigurationbox                 /* avcC */
    , video_format_profile
    , video_internetmediatype
+   , general_internetmediatype
    , video_encoded_library_string
-   , video_encoded_library_name
    , video_bitrate_string
    , general_overallbitrate_string
    , general_framerate_string
-   , video_framerate_string
    , video_framerate_mode
    , video_framerate_mode_original
    , general_format_extensions
+   , video_buffersize                                /* 939524096, 78124992, 65536 */
+   , video_standard                                                         -- PAL, NTSC
+   , video_language
+   , video_source_delay
+   , video_bitrate_maximum_string
    /******************************************************************************************************************************************************************************************************************
     * 
     *                                                                        Audio Details 
     * 
     ******************************************************************************************************************************************************************************************************************/
    , general_audio_codec_list
-   , audio_format
    , audio_format_commercial
-   , audio_format_string
    , audio_codecid
-   , audio_format_info
+   , audio_internetmediatype                      /* audio/eac3 */
    , audio_bitrate_mode_string
+   , general_audio                                /* [English][Russian], [English] */
+   , audio_language
+   , audio_channel_s                                AS audio_channels 
+   , audio_channelpositions_string2                 AS audio_channelpositions 
+   , audio_channellayout
+   , audio_dsurmod                                /* 0,1,2 */
+   , audio_format_settings_mode                   /* Joint stereo, Dolby Surround */
+   , audio_format_settings_modeextension          /* MS Stereo, Intensity Stereo + MS Stereo */
+   , audio_delay_string
+   , audio_delay                                  /* 0, 9968, 16 */
+   , audio_dialnorm_average                       /* -29, -31 */
+   , audio_encoded_library_settings
+   , audio_interleave_preload_string
+   , audio_codecid_hint
+   , audio_format_profile
+   , audio_format_version
    /******************************************************************************************************************************************************************************************************************
     * 
     *                                                                        Subtitle Details 
     * 
     ******************************************************************************************************************************************************************************************************************/
    , general_text_format_list
-   , general_text_codec_list
-   , text_format
-   , text_format_commercial
-   , text_codecid_info
    , text_default
    , text_forced
+   , text_language
    /******************************************************************************************************************************************************************************************************************
     * 
     *                                                                        Miscellaneous Details 
     * 
     ******************************************************************************************************************************************************************************************************************/
-   , general_encoded_application
-   , general_encoded_library_string
-   , video_encoded_library_version
-   , audio_delay
-   , audio_dialog_normalization
-   , audio_dialog_normalization_str
-   , audio_dialnorm_average
+   , general_encoded_application    /* HandBrake 1.4.2 2021100300, VirtualDubMod 1.5.4.1 (build 2178/release) */        
+   , general_encoded_library_string /* [= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll */
+   , video_encoded_library_version  /* core 163 r3059 b684ebe0 */
+   ------------------------------
+   , general_part_id
+   , general_tvnetworkname
+   , general_description
+   , general_contenttype
+   , general_genre
+   , general_screenplayby
+   , general_director
+   , general_performer
+   , general_track
+   , general_part
+   , general_season
+   , general_collection
+   , general_album
+   , video_bitrate_mode_string
+   , video_delay_string
+   , text_muxingmode
+   , audio_encoded_library_string
+   , video_muxingmode
+   , audio_dynrng_maximum
+   , audio_dynrng_minimum
+   , audio_dynrng_average
+   , video_codecid_hint                                          /* DivX 3 Low, DivX 4, DivX 5 very low pop */
+   , video_format_settings_matrix_string
+   , general_istruncated
+   , general_format_info
+   , general_format_profile
+   , general_writing_frontend
+   , general_artist
+   , video_format_version
+   , video_scanorder_string
+   , video_codecid_description
+   , general_copyright
+   , general_overallbitrate_maximum_string
+   , general_rating
+   , video_hdr_format_string
+   , general_encoded_by,general_cc
+   , audio_channel_s_original_string,general_chapters
+   , general_subtitles
+   , general_productionstudio
+   , video_originalsourcemedium
+   , general_wm_wmrvwatched,general_wm_wmrvseriesuid
+   , general_wm_provider,general_wm_parentalrating,general_wm_mediaoriginalruntime,general_wm_mediaoriginalchannel,general_wm_mediaoriginalbroadcastdatetim,general_wm_medianetworkaffiliation,general_wm_mediaistape,general_wm_mediaissubtitled,general_wm_mediaisstereo,general_wm_mediaissport,general_wm_mediaissap,general_wm_mediaisrepeat,general_wm_mediaispremiere,general_wm_mediaismovie,general_wm_mediaislive,general_wm_mediaisfinale,general_wm_mediaisdelay,general_wm_mediacredits
+FROM
+    files_media_info
+;
+   
+DROP VIEW IF EXISTS files_media_info_ext_v;
+CREATE OR REPLACE VIEW files_media_info_ext_v AS
+SELECT
+     file_id
+   , files.final_extension 
+   , files.file_path
+   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   , general_title
+   , audio_title
+   , text_title
+   , video_title
+   , general_filenameextension
+   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   , general_encoded_date
+   , general_tagged_date
+   , general_file_created_date
+   , general_recorded_date
+   , video_tagged_date
+   , video_encoded_date
+   , general_released_date
+   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   , general_duration                               AS duration_in_ms
+   , general_duration_string1                       AS duration_long_display
+   , video_duration_string1                        /* Slightly different; no idea why */
+   , general_longdescription
+   , general_synopsis
+   , general_summary
+   /******************************************************************************************************************************************************************************************************************
+    * 
+    *                                                                        Video Details 
+    * 
+    ******************************************************************************************************************************************************************************************************************/
+   , video_width
+   , video_stored_width
+   , video_height
+   , video_stored_height
+   , video_displayaspectratio, video_displayaspectratio_original, video_pixelaspectratio_original
+   , general_format
+   , general_video_format_list
+   , video_codecid
+   , general_codecid
+   , general_overallbitrate_mode_string
+   , general_codecid_compatible
+   , general_codecid_string
+   , video_codecconfigurationbox                 /* avcC */
+   , video_format_profile
+   , video_internetmediatype
+   , general_internetmediatype
+   , video_encoded_library_string
+   , video_bitrate_string
+   , general_overallbitrate_string
+   , general_framerate_string
+   , video_framerate_mode
+   , video_framerate_mode_original
+   , general_format_extensions
+   , video_buffersize                                /* 939524096, 78124992, 65536 */
+   , video_standard                                                         -- PAL, NTSC
+   , video_language
+   , video_source_delay
+   , video_bitrate_maximum_string
+   /******************************************************************************************************************************************************************************************************************
+    * 
+    *                                                                        Audio Details 
+    * 
+    ******************************************************************************************************************************************************************************************************************/
+   , general_audio_codec_list
+   , audio_format_commercial
+   , audio_codecid
+   , audio_internetmediatype                      /* audio/eac3 */
+   , audio_bitrate_mode_string
+   , general_audio                                /* [English][Russian], [English] */
+   , audio_language
+   , audio_channel_s                                AS audio_channels 
+   , audio_channelpositions_string2                 AS audio_channelpositions 
+   , audio_channellayout
+   , audio_dsurmod                                /* 0,1,2 */
+   , audio_format_settings_mode                   /* Joint stereo, Dolby Surround */
+   , audio_format_settings_modeextension          /* MS Stereo, Intensity Stereo + MS Stereo */
+   , audio_delay_string
+   , audio_delay                                  /* 0, 9968, 16 */
+   , audio_dialnorm_average                       /* -29, -31 */
+   , audio_encoded_library_settings
+   , audio_interleave_preload_string
+   , audio_codecid_hint
+   , audio_format_profile
+   , audio_format_version
+   /******************************************************************************************************************************************************************************************************************
+    * 
+    *                                                                        Subtitle Details 
+    * 
+    ******************************************************************************************************************************************************************************************************************/
+   , general_text_format_list
+   , text_default
+   , text_forced
+   , text_language
+   /******************************************************************************************************************************************************************************************************************
+    * 
+    *                                                                        Miscellaneous Details 
+    * 
+    ******************************************************************************************************************************************************************************************************************/
+   , general_encoded_application    /* HandBrake 1.4.2 2021100300, VirtualDubMod 1.5.4.1 (build 2178/release) */        
+   , general_encoded_library_string /* [= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll! =][= DigiArty videodll */
+   , video_encoded_library_version  /* core 163 r3059 b684ebe0 */
+   ------------------------------
+   , general_part_id
+   , general_tvnetworkname
+   , general_description
+   , general_contenttype
+   , general_genre
+   , general_screenplayby
+   , general_director
+   , general_performer
+   , general_track
+   , general_part
+   , general_season
+   , general_collection
+   , general_album
+   , video_bitrate_mode_string
+   , video_delay_string
+   , text_muxingmode
+   , audio_encoded_library_string
+   , video_muxingmode
+   , audio_dynrng_maximum
+   , audio_dynrng_minimum
+   , audio_dynrng_average
+   , video_codecid_hint                                          /* DivX 3 Low, DivX 4, DivX 5 very low pop */
+   , video_format_settings_matrix_string
+   , general_istruncated
+   , general_format_info
+   , general_format_profile
+   , general_writing_frontend
+   , general_artist
+   , video_format_version
+   , video_scanorder_string
+   , video_codecid_description
+   , general_copyright
+   , general_overallbitrate_maximum_string
+   , general_rating
+   , video_hdr_format_string
+   , general_encoded_by,general_cc
+   , audio_channel_s_original_string,general_chapters
+   , general_subtitles
+   , general_productionstudio
+   , video_originalsourcemedium
+   , general_wm_wmrvwatched,general_wm_wmrvseriesuid,general_wm_subtitledescription,general_wm_provider,general_wm_parentalrating,general_wm_mediaoriginalruntime,general_wm_mediaoriginalchannel,general_wm_mediaoriginalbroadcastdatetim,general_wm_medianetworkaffiliation,general_wm_mediaistape,general_wm_mediaissubtitled,general_wm_mediaisstereo,general_wm_mediaissport,general_wm_mediaissap,general_wm_mediaisrepeat,general_wm_mediaispremiere,general_wm_mediaismovie,general_wm_mediaislive,general_wm_mediaisfinale,general_wm_mediaisdelay,general_wm_mediacredits
 FROM
     files_media_info JOIN files_ext_v files using(file_id)
 ;
+DELETE FROM files_media_info WHERE file_id in(SELECT file_id FROM files_media_info_v WHERE duration_in_ms IS NULL AND general_video_format_list IS NULL AND general_audio_codec_list IS NULL);
+DELETE FROM files_media_info WHERE file_id in(SELECT file_id FROM files_media_info_ext_v x JOIN file_extensions r ON final_extension = file_extension WHERE r.file_is_print_content  );
+SELECT * FROM files_media_info_ext_v;
+SELECT * FROM information_schema.COLUMNS WHERE table_name = 'files_media_info'
