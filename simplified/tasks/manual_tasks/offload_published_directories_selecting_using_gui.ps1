@@ -89,6 +89,8 @@ $treeViewOfPublishedDirectories.add_NodeMouseDoubleClick({
                 directory = $fileOrFolderPath_prepped_for_sql
             AND
                 NOT file_deleted
+            ORDER BY
+                1
             "
 
         while ($filereader.Read()) {
@@ -98,7 +100,7 @@ $treeViewOfPublishedDirectories.add_NodeMouseDoubleClick({
             $branchNode.Tag       = $Script:useful_part_of_directory
             if ($Script:is_link) {
                 $branchNode.ForeColor = '#bdb9b9' # even lighter
-                $branchNode.NodeFont.Italic = $true
+                $branchNode.NodeFont  = $ItalicFont8
             } else {
                 $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
             }
@@ -552,7 +554,8 @@ $AddFoldersToSeenOffline = WhileReadSql "
             directory = 'O:\Video AllInOne'
         )
      ********************************************************************************************************************************/
-    AND directory like 'O:\Video AllInOne\`$_Mystery%' ESCAPE '`$' /* Reduce workspace temporarily */
+    --AND directory like 'O:\Video AllInOne\`$_Mystery%' ESCAPE '`$' /* Reduce workspace temporarily */
+    AND directory like 'O:\Video AllInOne\`$_Classic%' ESCAPE '`$' /* Reduce workspace temporarily */
     ORDER BY
         directory_depth
     ,   directory
