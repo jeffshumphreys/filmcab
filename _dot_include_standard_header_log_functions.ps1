@@ -27,7 +27,7 @@ An example
 .NOTES
 General notes
 #>
-function Log-Line {
+Function Log-Line {
     [CmdletBinding()]
     param(
         [Parameter(Position=1, Mandatory=$false)][string] $Text,
@@ -91,7 +91,7 @@ An example
 .NOTES
 General notes
 #>
-function Write-LogLineToFile {
+Function Write-LogLineToFile {
     param([string]$text, [hashtable]$arguments)
     #"HERE"| Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
     if ($null -eq $text) {
@@ -105,54 +105,13 @@ function Write-LogLineToFile {
     }
     # TOO SLOW!!! Write-VolumeCache D # So that log stuff gets written out in case of fatal crash
 }
-function Log-SqlConnection {
-    # Database, driver, etc. Even user!!!!!!!!!!!
-}
-
-function Log-Sql {
-
-}
-
-function Log-SqlError {
-
-}
-
-function Log-SqlChangedObject {
-    # New columns, indexes, constraints, updated function, new postgres version, new extensions
-}
-
-function Log-HttpRequest {
-
-}
-
-function Log-Wait {
-
-}
-function Log-SkipSection {
-
-}
-
-function Log-EmptyElseClause {
-
-}
-
-function Log-Unimplemented {
-
-}
-function Log-Branch {
-
-}
-
-function Log-OutOfBandValue {
-
-}
 
 <#
 .SYNOPSIS
 Log the end of a script so we can trace earliers point for last error log message, especially for unhandled exceptiond
 #>
 
-function Log-ScriptCompleted {
+Function Log-ScriptCompleted {
     $elapsedTime = $scriptTimer.Elapsed
     $secondsRan = $elapsedTime.TotalSeconds
     Log-Line "Stopping Normally after $secondsRan Second(s)"
@@ -177,7 +136,7 @@ Start-Log # _dot_include_standard_header.ps1
 .NOTES
 General notes
 #>
-function Start-Log {
+Function Start-Log {
     [CmdletBinding()]
     param(
         [Switch]$TestScheduleDrivenTaskDetection
@@ -306,8 +265,8 @@ function Start-Log {
         # Get-WinEvent -ComputerName DS1 -LogName Security -FilterXPath "*[System[EventID=4670 and TimeCreated[timediff(@SystemTime) <= 86400000]] and EventData[Data[@Name='ObjectType']='File']]"  | fl
         Log-Line "Attempting to get triggering event for $($Script:ScriptNameWithoutExtension) for run set name $scheduled_task_run_set_name in root directory $scheduled_task_root_directory"
         <#
-            If from task scheduler but triggered by user, it will be:
-            Message = Task Scheduler launched "{1104927b-4d03-4388-b221-58ba3f2c3abd}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions"  for user "jeffs" .
+        Message = Task Scheduler launched "{1104927b-4d03-4388-b221-58ba3f2c3abd}"  instance of task "\FilmCab\schedule maintenance\pull_scheduled_task_definitions"  for user "jeffs" .
+        If from task scheduler but triggered by user, it will be:
             TaskDisplayName = Task triggered by user
             TimeCreated = 3/25/2024 7:30:46 PM
             RecordId = 196741
