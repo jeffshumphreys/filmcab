@@ -105,8 +105,18 @@ SELECT
 ,   (SELECT count(*)            AS How_many_views          FROM information_schema.TABLES WHERE table_schema = 'simplified' AND table_type = 'VIEW')
 ,   (SELECT count(*)            AS How_many_columns        FROM information_schema.COLUMNS WHERE table_schema = 'simplified')
 ,   (SELECT count(*)            AS How_many_enabled_tasks  FROM scheduled_tasks WHERE is_enabled)
-,   (SELECT run_duration_in_minutes                         FROM batch_run_sessions_v brsv WHERE session_ending_script = 'zzz_end_batch_run_session.ps1' ORDER BY started DESC LIMIT 1)
+,   (SELECT '00:' || run_duration_in_minutes::text         AS run_duration_in_minutes FROM batch_run_sessions_v brsv WHERE session_ending_script = 'zzz_end_batch_run_session.ps1' ORDER BY started DESC LIMIT 1)
 " -prereadfirstrow
+
+# TODO: WakaTime API https://wakatime.com/developers/ get  OAuth2Service or use secret API KEY
+<#
+Using HTTP Basic Auth pass your API Key base64 encoded in the Authorization header. Don't forget to prepend Basic to your api key after base64 encoding it.
+For example, when using HTTP Basic Auth with an api key of 12345 you should add this header to your request:
+Authorization: Basic MTIzNDU=
+That’s because when you decode the base64 string "MTIzNDU=" you get "12345".
+Alternatively, you can pass your api key as a query parameter in your request like ?api_key=XXXX.
+#>
+
 
 # Can cut directly from the popup and paste into Google sheet each day.
 
