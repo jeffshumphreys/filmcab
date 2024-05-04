@@ -91,16 +91,16 @@ $Remotepath = $Config.FTP.FTPRemotePath
   
 
 
-function LoadDLL {
+Function LoadDLL {
     param (
-            [parameter(Mandatory=$true)] [string] $FileName           
+            [parameter(Mandatory=$true)] [string] $FileName
         )
         $dllBytes = [System.IO.File]::ReadAllBytes( $FileName)
         [System.Reflection.Assembly]::Load($dllBytes)
     }
- 
- 
-function Out-DataTable { 
+
+
+Function Out-DataTable {
     [CmdletBinding()] 
     param([Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)] [PSObject[]]$InputObject) 
   
@@ -142,7 +142,7 @@ function Out-DataTable {
     ## Set this to the directory that contains the curl executable.
     Set-Location $CurlPath
 	
-function Get-AvailableScooters([Object] $Provider, $startdatetime, $enddatetime) { 
+Function Get-AvailableScooters([Object] $Provider, $startdatetime, $enddatetime) { 
     $file = $CurlPath + "\result_" + $Provider.provider + ".dat"
     if ($Provider.provider -eq "SPIN") {
         $Provider.token = (Login $Provider.username $Providerr.password $Provider.authEndPoint)
