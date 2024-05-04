@@ -1,4 +1,4 @@
-function CustomInputBox([string] $title, [string] $message, [string] $defaultText) 
+Function CustomInputBox([string] $title, [string] $message, [string] $defaultText)
 {
 $inputObject = new-object -comobject MSScriptControl.ScriptControl
 $inputObject.language = "vbscript" 
