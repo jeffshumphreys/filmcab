@@ -1,7 +1,7 @@
-function Test-ValidateScriptThrow{
+Function Test-ValidateScriptThrow{
     param(
         [ValidateScript( { 
-            ![String]::IsNullOrWhiteSpace($_) -or {throw 'Your string is null or contains whitespace'}
-        } )]
+            ![String]::IsNullOrWhiteSpace($_) -or {throw 'Your string is null or contains whitespace'}]{}
+         )]
     )
 }

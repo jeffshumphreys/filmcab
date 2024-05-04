@@ -1,4 +1,4 @@
-function Get-CRC32 {
+Function Get-CRC32 {
     <#
         .SYNOPSIS
             Calculate CRC.
