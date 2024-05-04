@@ -64,53 +64,63 @@ $selectedmoveReasonComboBox.add_SelectedIndexChanged({
 })
 
 #################################################################################################################################################################################################
-# Action taken When the user double-clicks on a node.
+# Action taken When the user double-clicks on a node. Or presses Enter.
 #################################################################################################################################################################################################
-$treeViewOfPublishedDirectories.add_NodeMouseDoubleClick({
-    # if a directory, flush any below, and repop with files in directory, coloring links or italicizing
-    # SelectedNode.Name = full path
-    # NOTE: First expands.
-
-    $fileOrFolderPath = $this.SelectedNode.Name
-    $fileOrFolderPath_prepped_for_sql = PrepForSql $fileOrFolderPath
-    if (Test-Path -LiteralPath $fileOrFolderPath -PathType Container) {
-        # Fetch files
-
-        $filereader = WhileReadSql "
-            SELECT
-                file_name_with_ext
-            ,   useful_part_of_directory
-            ,   file_path
-            ,   CASE WHEN file_is_symbolic_link OR file_is_hard_link THEN TRUE ELSE FALSE END AS is_link
-            ,   CASE WHEN moved_out OR file_deleted THEN TRUE ELSE FALSE END AS nothing_here
-            FROM
-                files_ext_v
-            WHERE
-                directory = $fileOrFolderPath_prepped_for_sql
-            AND
-                NOT file_deleted
-            ORDER BY
-                1
-            "
-
-        while ($filereader.Read()) {
-            $branchNode           = New-Object System.Windows.Forms.TreeNode
-            $branchNode.Name      = $Script:file_path # Since we're in an expression block called from a separate thread (WinForms), queries won't create any variables in this scope, so reference by Script.
-            $branchNode.Text      = $Script:file_name_with_ext
-            $branchNode.Tag       = $Script:useful_part_of_directory
-            if ($Script:is_link) {
-                $branchNode.ForeColor = '#bdb9b9' # even lighter
-                $branchNode.NodeFont  = $ItalicFont8
-            } else {
-                $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
+$ExpandDirectoryNodeListOfFiles =
+    {
+        # if a directory, flush any below, and repop with files in directory, coloring links or italicizing
+        # SelectedNode.Name = full path
+        # NOTE: First expands.
+    
+        $fileOrFolderPath = $this.SelectedNode.Name
+        $fileOrFolderPath_prepped_for_sql = PrepForSql $fileOrFolderPath
+        if (Test-Path -LiteralPath $fileOrFolderPath -PathType Container) {
+            # Fetch files
+    
+            $filereader = WhileReadSql "
+                SELECT
+                    file_name_with_ext
+                ,   useful_part_of_directory
+                ,   file_path
+                ,   CASE WHEN file_is_symbolic_link OR file_is_hard_link THEN TRUE ELSE FALSE END AS is_link
+                ,   CASE WHEN moved_out OR file_deleted THEN TRUE ELSE FALSE END AS nothing_here
+                FROM
+                    files_ext_v
+                WHERE
+                    directory = $fileOrFolderPath_prepped_for_sql
+                AND
+                    NOT file_deleted
+                ORDER BY
+                    1
+                "
+    
+            while ($filereader.Read()) {
+                $branchNode           = New-Object System.Windows.Forms.TreeNode
+                $branchNode.Name      = $Script:file_path # Since we're in an expression block called from a separate thread (WinForms), queries won't create any variables in this scope, so reference by Script.
+                $branchNode.Text      = $Script:file_name_with_ext
+                $branchNode.Tag       = $Script:useful_part_of_directory
+                if ($Script:is_link) {
+                    $branchNode.ForeColor = '#bdb9b9' # even lighter
+                    $branchNode.NodeFont  = $ItalicFont8
+                } else {
+                    $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
+                }
+                $this.SelectedNode.Nodes.Add($branchNode)|Out-Null
             }
-            $this.SelectedNode.Nodes.Add($branchNode)|Out-Null
+    
+            $this.SelectedNode.Expand()
         }
-
-        $this.SelectedNode.Expand()
+        #$statusBarMessage.Text = "treeViewOfPublishedDirectories.add_NodeMouseDoubleClick"
     }
-    #$statusBarMessage.Text = "treeViewOfPublishedDirectories.add_NodeMouseDoubleClick"
+
+$enterkey = [System.Windows.Input.Key]::Enter
+$treeViewOfPublishedDirectories.add_KeyPress( {
+    $isEnterKeyPressed = [System.Windows.Input.Keyboard]::IsKeyDown($enterkey)
+    if ($isEnterKeyPressed) {
+        & $ExpandDirectoryNodeListOfFiles
+    }
 })
+$treeViewOfPublishedDirectories.add_NodeMouseDoubleClick($ExpandDirectoryNodeListOfFiles)
 
 #################################################################################################################################################################################################
 # Action taken When the user selects a node in the tree, we capture the detail for displaying for the move action
@@ -184,9 +194,9 @@ $Move_Directory = {
     }
 
     $currentActivity.Refresh()
-    $sourceBaseDirectory_prepped_for_sql = PrepForSql $Script:sourceBaseDirectory
-    $sourceDirectory_prepped_for_sql     = PrepForSql $Script:sourcePathToDirectoryOrFile
-    $sizeOfSourceDirectoryOrFile         = 0
+    $sourceBaseDirectory_prepped_for_sql   = PrepForSql $Script:sourceBaseDirectory
+    $sourceDirectoryOrFile_prepped_for_sql = PrepForSql $Script:sourcePathToDirectoryOrFile
+    $sizeOfSourceDirectoryOrFile           = 0
     try {
         $sizeOfSourceDirectoryOrFile     = ((Get-ChildItem –Force -LiteralPath $Script:sourcePathToDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
     } catch {}
@@ -197,21 +207,23 @@ $Move_Directory = {
     $moveReason_prepped_for_sql          = PrepForSql $moveReason
     $whyMove                             = $whyThisMoveReasonText.Text
     $whyMove_prepped_for_sql             = PrepForSql $whyMove
-    $targetDirectory                     = "$Script:targetBaseDirectory\$sourcePartOfPath"
+    $targetDirectoryOrFile                     = "$Script:targetBaseDirectory\$sourcePartOfPath"
     if ($sizeOfSourceDirectoryOrFile -eq 0) {
-        $sizeOfSourceDirectoryOrFile           = ((gci –force -LiteralPath $targetDirectory –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+        $sizeOfSourceDirectoryOrFile           = ((gci –force -LiteralPath $targetDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
     }
-    $currentActivity.Text                = "Moving Files to $targetDirectory"
+    $currentActivity.Text                = "Moving Files to $targetDirectoryOrFile"
     $currentActivity.Refresh()
     $targetBaseDirectory_prepped_for_sql = PrepForSql $targetBaseDirectory
-    New-Item -ItemType Directory -Force -Path $targetDirectory
+    New-Item -ItemType Directory -Force -Path $targetDirectoryOrFile
     if ($isMovingADirectory) {
-        $targetDirectory                     = (Get-Item $targetDirectory).Parent.FullName
+        $targetDirectoryOrFile                     = (Get-Item $targetDirectoryOrFile).Parent.FullName
     } else {
-        # $target directory for file is already set?
+        $sourceFileName = (Split-Path $Script:sourcePathToDirectoryOrFile -Leaf)
+        $targetDirectoryOrFile+= "\$sourceFileName"
     }
-    $targetDirectory_prepped_for_sql     = PrepForSql $targetDirectory
-    LogMoveActivityLine "Moving $sourcePathToDirectoryOrFile to $targetDirectory..." -textColor $StartingColor
+
+    $targetDirectoryOrFile_prepped_for_sql  = PrepForSql $targetDirectoryOrFile
+    LogMoveActivityLine "Moving $sourcePathToDirectoryOrFile to $targetDirectoryOrFile..." -textColor $StartingColor
     # ERROR: Can't run during single large -MoveItem and even between moves. No update. $activityAnimation.Load("D:\qt_projects\filmcab\simplified\images\animations\running.homer.silly.gif")
 
     # So much table change, we need to transact it. Else it leaves stuff during partial testing
@@ -224,11 +236,11 @@ $Move_Directory = {
         $sourceVolumeId                  = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$source_driveletter'"
         $source_search_directory_id      = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $sourceBaseDirectory_prepped_for_sql"
 
-        $target_driveletter              = Left $targetDirectory
+        $target_driveletter              = Left $targetDirectoryOrFile
         $targetVolumeId                  = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$target_driveletter'"
         $target_search_directory_id      = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $targetBaseDirectory_prepped_for_sql"
 
-        $currentActivity.Text = "(1) Creating a move transaction that keeps details..."
+        $currentActivity.Text            = "(1) Creating a move transaction that keeps details..."
         $currentActivity.Refresh()
 
         $move_id = Get-SqlValue "
@@ -236,11 +248,11 @@ $Move_Directory = {
                 moves(
                     move_started
                 ,   bytes_moved
-                ,   from_directory
+                ,   from_directory_or_file
                 ,   from_base_directory
                 ,   from_volume_id
                 ,   from_search_directory_id
-                ,   to_directory
+                ,   to_directory_or_file
                 ,   to_base_directory
                 ,   to_volume_id
                 ,   to_search_directory_id
@@ -248,18 +260,18 @@ $Move_Directory = {
                 ,   description_why_reason_applies
                 )
                 VALUES(
-                    TRANSACTION_TIMESTAMP()                                       /* Transaction start time above) */
-                ,   $sizeOfSourceDirectoryOrFile                                        /* How much space we're freeing up */
-                ,   $sourceDirectory_prepped_for_sql
-                ,   $sourceBaseDirectory_prepped_for_sql
-                ,   $sourceVolumeId
-                ,   $source_search_directory_id
-                ,   $targetDirectory_prepped_for_sql
-                ,   $targetBaseDirectory_prepped_for_sql
-                ,   $targetVolumeId
-                ,   $target_search_directory_id
-                ,   $moveReason_prepped_for_sql
-                ,   $whyMove_prepped_for_sql
+                    /*  move_started                    */ TRANSACTION_TIMESTAMP()                                       /* Transaction start time above) */
+                ,   /*  bytes_moved                     */ $sizeOfSourceDirectoryOrFile                                  /* How much space we're freeing up */
+                ,   /*  from_directory_or_file          */ $sourceDirectoryOrFile_prepped_for_sql
+                ,   /*  from_base_directory             */ $sourceBaseDirectory_prepped_for_sql
+                ,   /*  from_volume_id                  */ $sourceVolumeId
+                ,   /*  from_search_directory_id        */ $source_search_directory_id
+                ,   /*  to_directory_or_file            */ $targetDirectoryOrFile_prepped_for_sql
+                ,   /*  to_base_directory               */ $targetBaseDirectory_prepped_for_sql
+                ,   /*  to_volume_id                    */ $targetVolumeId
+                ,   /*  to_search_directory_id          */ $target_search_directory_id
+                ,   /*  move_reason                     */ $moveReason_prepped_for_sql
+                ,   /*  description_why_reason_applies  */ $whyMove_prepped_for_sql
                 )
                 RETURNING move_id"
 
@@ -270,7 +282,7 @@ $Move_Directory = {
         Invoke-Sql "
             WITH RECURSIVE nodes AS (
                 SELECT *, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory          AS new_directory
-                FROM directories_ext_v dev WHERE directory = $sourceDirectory_prepped_for_sql
+                FROM directories_ext_v dev WHERE directory = $sourceDirectoryOrFile_prepped_for_sql
             UNION ALL
                 SELECT dev.*, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory      AS new_directory
                 FROM directories_ext_v dev JOIN nodes ON dev.parent_directory_hash = nodes.directory_hash
@@ -294,7 +306,7 @@ $Move_Directory = {
         Invoke-Sql "
             WITH RECURSIVE nodes AS (
                 SELECT *, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory          AS new_directory
-                FROM directories_ext_v dev WHERE directory = $sourceDirectory_prepped_for_sql
+                FROM directories_ext_v dev WHERE directory = $sourceDirectoryOrFile_prepped_for_sql
             UNION ALL
                 SELECT dev.*, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory      AS new_directory
                 FROM directories_ext_v dev JOIN nodes ON dev.parent_directory_hash = nodes.directory_hash
@@ -354,7 +366,7 @@ $Move_Directory = {
         Invoke-Sql "
             WITH RECURSIVE nodes AS (
                 SELECT *, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory          AS new_directory
-                FROM directories_ext_v dev WHERE directory = $sourceDirectory_prepped_for_sql
+                FROM directories_ext_v dev WHERE directory = $sourceDirectoryOrFile_prepped_for_sql
             UNION ALL
                 SELECT dev.*, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory      AS new_directory
                 FROM directories_ext_v dev JOIN nodes ON dev.parent_directory_hash = nodes.directory_hash
@@ -380,7 +392,7 @@ $Move_Directory = {
         Invoke-Sql "
             WITH RECURSIVE nodes AS (
                 SELECT *, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory          AS new_directory
-                FROM directories_ext_v dev WHERE directory = $sourceDirectory_prepped_for_sql
+                FROM directories_ext_v dev WHERE directory = $sourceDirectoryOrFile_prepped_for_sql
             UNION ALL
                 SELECT dev.*, $targetBaseDirectory_prepped_for_sql || '\' || dev.useful_part_of_directory      AS new_directory
                 FROM directories_ext_v dev JOIN nodes ON dev.parent_directory_hash = nodes.directory_hash
@@ -436,7 +448,7 @@ $Move_Directory = {
         $movedFilesYet = $false
         try {
 
-            #$arguments = @("$sourcePathToDirectoryOrFile","$targetDirectory") #(Pass scriptblock up update gui progress)
+            #$arguments = @("$sourcePathToDirectoryOrFile","$targetDirectoryOrFile") #(Pass scriptblock up update gui progress)
             # When job finishes, need to lock move button
             #$job = Start-Job -ScriptBlock $ScriptBlockAsyncMoveFilesAndDirectories -ArgumentList $arguments
             #$jobEvent = Register-ObjectEvent $job StateChanged -Action {
@@ -444,7 +456,7 @@ $Move_Directory = {
             #    $jobEvent | Unregister-Event
                 #Start-BitsTransfer -Source $Source -Destination $Destination -Description "Backup" -DisplayName "Backup"
                 # When job finishes, need to unlock move button
-            Move-Item -LiteralPath $sourcePathToDirectoryOrFile -Destination $targetDirectory -Force
+            Move-Item -LiteralPath $sourcePathToDirectoryOrFile -Destination $targetDirectoryOrFile -Force
             #}
         } catch {}
         $movedFilesYet = $true
@@ -480,7 +492,7 @@ $Move_Directory = {
             $currentActivity.Text                = "Move CANCELLED"
             $currentActivity.ForeColor           = $Red
             $currentActivity.Font                = $BoldFont
-            LogMoveActivityLine "Failed to move $sourcePathToDirectoryOrFile to $targetDirectory" -textColor $FailColor
+            LogMoveActivityLine "Failed to move $sourcePathToDirectoryOrFile to $targetDirectoryOrFile" -textColor $FailColor
         }
     }
     finally {
@@ -494,7 +506,7 @@ $Move_Directory = {
             $currentActivity.Text                = "MOVE COMPLETED SUCCESSFULLY"
             $currentActivity.ForeColor           = $Green
             $currentActivity.Font                = $BoldFont
-            LogMoveActivityLine "Successfully moved $sourcePathToDirectoryOrFile to $targetDirectory" -textColor $SuccessColor
+            LogMoveActivityLine "Successfully moved $sourcePathToDirectoryOrFile to $targetDirectoryOrFile" -textColor $SuccessColor
         }
     }
     $form.Cursor                                 = [System.Windows.Forms.Cursors]::Default
@@ -556,6 +568,8 @@ $AddFoldersToSeenOffline = WhileReadSql "
      ********************************************************************************************************************************/
     --AND directory like 'O:\Video AllInOne\`$_Mystery%' ESCAPE '`$' /* Reduce workspace temporarily */
     AND directory like 'O:\Video AllInOne\`$_Classic%' ESCAPE '`$' /* Reduce workspace temporarily */
+    --AND directory like 'O:\Video AllInOne\`$_Comedy%' ESCAPE '`$' /* Reduce workspace temporarily */
+    --AND directory like 'O:\Video AllInOne\`$_Family%' ESCAPE '`$' /* Reduce workspace temporarily */
     ORDER BY
         directory_depth
     ,   directory
