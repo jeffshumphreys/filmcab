@@ -54,7 +54,7 @@ description: >-
   * unaccent extension (_works!_)
 * DBeaver 24.0.2 Community (_latest always, Oct 2023, for browsing data, DDL extract, adding columns, scripting._)
 * pgAdmin 4.7.8 (_latest always) (2023) (for not table work, just types, enums, ddl creation, most can be done in DBeaver_)
-* pg\_dump for DDL (_only tool that works_)
+* pg_dump for DDL (_only tool that works_)
 * psqlODBC 16.00.0000, psqlODBC 13.02.0000-1, psqlODBC_x64 15.00.0000 (_Huh? Which installed app is used??_)
 
 #### File Gathering
@@ -65,7 +65,7 @@ description: >-
     * DownloadHelper CoApp 2.0.19.0
 * Jackett 0.21.1025                (_Probably misconfigured. Does it matter?_)
 * Telegram - Channel iPapkornFbot  (_Haven't tried it yet_)
-* archive.com                      (_Works for old films_)
+* archive.com                      (_Works for old films, often low rez._)
 
 #### File Management
 
@@ -77,7 +77,7 @@ description: >-
     * fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1 (_I want to move stuff off of spindles for space saving, but leave a link that MX Player can follow_)
 * Everything (1.4.1.1005)      (_Fast!_)
 * Advanced Renamer 3.91        (_Used to get crazy on cleanin' up mass names of episodes from their downloaded torrent names_)
-
+* MakeMKV 1.17.6               (_If you have all the DVD files on disk (not a mounted ISO), it splits it into episodes and chapters. WARNING:Has virus, Defender blocked._)
 #### Video Play
 
 * ~~VLC 3.0.20~~                 (_latest always. Can't use well on firetv. Uses it's own codecs so not always up to date._)
