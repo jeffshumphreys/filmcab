@@ -20,7 +20,7 @@ $global:num_columns_now_empty_in_src      = 0
 $global:num_columns_upcast                = 0 # 0.6 to 0.611 popularity for example
 $queryAPIResponseTime              = 0
 $moviejsonpacket                   = $null
-function Update-ChangeStatus {
+Function Update-ChangeStatus {
     param (
         [string]$TargetColumnName,
         [string]$SourceColumnCurrentValue,
