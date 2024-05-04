@@ -24,7 +24,7 @@ $StartingColor = $DarkYellow
 $SuccessColor = $Green
 $FailColor = $Red
 
-function Get-TaskBarDimensions {
+Function Get-TaskBarDimensions {
     param (
         [System.Windows.Forms.Screen]$Screen = [System.Windows.Forms.Screen]::PrimaryScreen
     )
