@@ -3239,8 +3239,8 @@ CREATE TABLE simplified.moves (
     move_started timestamp with time zone NOT NULL,
     move_ended timestamp with time zone,
     bytes_moved bigint,
-    from_directory text NOT NULL,
-    to_directory text NOT NULL,
+    from_directory_or_file text NOT NULL,
+    to_directory_or_file text NOT NULL,
     files_moved integer,
     move_reason text NOT NULL,
     from_base_directory character varying,
@@ -3771,7 +3771,7 @@ ALTER TABLE simplified.search_terms ALTER COLUMN search_term_id ADD GENERATED AL
 --
 
 CREATE TABLE simplified.user_spreadsheet_interface (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     record_created_on_ts_wth_tz timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
     seen text,
     have text,
