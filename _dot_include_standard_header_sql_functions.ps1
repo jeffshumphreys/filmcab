@@ -8,26 +8,26 @@ $Script:ActiveTransaction = $null
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #
  #    All writing to relational SQL databases.
- #>                                                                                                
-   
+ #>
+
  <#
  .SYNOPSIS
  Prep PowerShell object for embedding in postgresql string
- 
+
  .DESCRIPTION
  Lots to do, convert dates, bytes, ints, deal with nulls, format datetime, date, escape strings
- 
+
  .PARAMETER val
  typed value (or null)
- 
+
  .PARAMETER KeepEmpties
  Parameter description
- 
+
  .EXAMPLE
  $script_name_prepped_for_sql = PrepForSql $script_name # Not sure an ideal example.
  $script_name = PrepForSql $script_name      # Hmm, still bad. Now I've messed the original. So after the INSERT, now I have a fragile value.
  $Script:batch_run_session_task_id = Get-SqlValue("
-            INSERT INTO 
+            INSERT INTO
                 batch_run_sessions_tasks(
                     batch_run_session_id,
                     script_changed,
@@ -41,7 +41,7 @@ $Script:ActiveTransaction = $null
 
 Another way I'm  considering but I'm not excited about:
 
-           INSERT INTO 
+           INSERT INTO
                 batch_run_sessions_tasks(
                     batch_run_session_id,
                     script_changed,
@@ -52,7 +52,7 @@ Another way I'm  considering but I'm not excited about:
                     '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
                     $(PrepForSql $script_name)
                 )
- 
+
  .NOTES
  General notes
  #>
@@ -61,8 +61,8 @@ Another way I'm  considering but I'm not excited about:
         $val,
         [Switch]$KeepEmpties
     )
-    if ($null -eq$val) { return 'NULL'}      
-                 
+    if ($null -eq$val) { return 'NULL'}
+
     if ($val.Trim() -eq '' -and -not $KeepEmpties) { return 'NULL'}
     return "'" + $val.Replace("'", "''") + "'"
 }
@@ -71,13 +71,13 @@ Another way I'm  considering but I'm not excited about:
 .SYNOPSIS
 Execute SQL commands.
 
-.DESCRIPTION                                                                                                          
+.DESCRIPTION
 Also captures as much error detail as it can. Forces a stoppage even if ErrorAction is not Stop.  That's probably bad.
 Mostly just to reduce caller bloat.  There's no $DatabaseCommand.ExecuteNonQuery("Select 1") like there is in C#. And I don't think Powershell supports extended functions.
 Doesn't capture return values.
 
 .PARAMETER sql
-Script to execute. 
+Script to execute.
 
 .EXAMPLE
 Invoke-Sql 'SET search_path = simplified, "$user", public'
@@ -90,7 +90,7 @@ Also good way to enforce some sort of error response. Damn! Even displays the sq
 #>
 Function Invoke-Sql {
     [CmdletBinding()]
-    param(           
+    param(
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
         [Switch]$OneAndOnlyOne,
         [Switch]$OneOrNone,
@@ -114,12 +114,12 @@ Function Invoke-Sql {
         if ($OneAndOnlyOne -and $howManyRowsAffected -ne 1) { throw [Exception]"Failed one and only one requirement: $howManyRowsAffected"}
         elseif ($OneOrMore -and $howManyRowsAffected -lt 1) { throw [Exception]"Failed one or more requirement: $howManyRowsAffected"}
         return $howManyRowsAffected
-    } catch {   
+    } catch {
         Show-Error $sql -exitcode 111 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh. UNLESS THERES a real result.
         throw # Force caller to deal with
     }
 }
-                                                                                                          
+
 
 # https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56
 # https://gist.github.com/Jaykul/dfc355598e0f233c8c7f288295f7bb56#file-you-need-to-implement-non-generic-md
@@ -137,11 +137,11 @@ The sql that should return a row
 .EXAMPLE
 $reader = WhileReadSql "SELECT 1 t FROM x" -prereadfirstrow
 Write-ToAllPlaces $t
- 
+
 $volumesForSearchDirectories = WhileReadSql 'SELECT DISTINCT drive_letter from search_directories_ext_v ORDER BY 1'
 while ($volumesForSearchDirectories.Read()) {
     $TestPath = "$drive_letter`:\"
-    Flush-Volume $drive_letter                             
+    Flush-Volume $drive_letter
 }
 
 .NOTES
@@ -224,7 +224,7 @@ class ForEachRowInQuery {
         #    $this._p = "setter $arg"
         #}
     )
-    
+
     # [void] Reset() {
     #     $this.Actual = 0
     # }
@@ -247,9 +247,9 @@ Long description
 
 .EXAMPLE
 $readerHandle = Walk-Sql $sql
-$reader = $readerHandle.Value 
+$reader = $readerHandle.Value
 While ($reader.Read()) {
-} 
+}
 
 $reader.Close() # Optional
 
@@ -258,11 +258,11 @@ General notes
 #>
 # Function Walk-Sql {
 #     [CmdletBinding()]
-#     param(           
+#     param(
 #         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
 #     )
 #     Select-Sql $sql -skipInitialRead
-# }                                   
+# }
 
 
 <#
@@ -277,7 +277,7 @@ SQL script that I guess could execute a function (stored proc) that returned a r
 
 .EXAMPLE
 $readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
-$reader = $readerHandle.Value # Now we can unbox!  Ta da!                                                                                                    
+$reader = $readerHandle.Value # Now we can unbox!  Ta da!
 Do { # Buggy problem: My "Select-Sql" does an initial read.  If it came back with no rows, this would crash. Ugh. Maybe a "Walk-Sql" that does not do a read.
 } While ($reader.Read())
 
@@ -290,20 +290,20 @@ Better name for a command that runs a query and returns a cursor?  Invoke is mor
 #>
 # Function Select-Sql {
 #     [CmdletBinding()]
-#     param(           
+#     param(
 #         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
 #         [Switch]$skipInitialRead
 #     )
-#     try { 
+#     try {
 #         $DatabaseCommand = $DatabaseConnection.CreateCommand()
 #         $DatabaseCommand.CommandText = $sql
 #         $reader = [REF]$DatabaseCommand.ExecuteReader(); # Too many refs?
-#         $reader = $reader.Value 
+#         $reader = $reader.Value
 #         if (-not $skipInitialRead) {        $reader.Read() >> $null   }
 #         return [REF]$reader                      # Forces caller to deref!!!!! But only way to get it to work.
 #     } catch {
 #         Show-Error $sql -exitcode 2
-#     }   
+#     }
 # }
 
 <#
@@ -318,9 +318,9 @@ Parameter description
 
 .EXAMPLE
 $sql = "
-SELECT 
+SELECT
     directory_path                         /* Deleted or not, we want to validate it. Probably more efficient filter is possible. Skip ones I just added, for instance. Don't descend deleted trees. */
-FROM 
+FROM
     directories
 "
 $readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
@@ -335,7 +335,7 @@ I don't like the verb "Show".  But this function just to blow a select output on
 #>
 # Function Out-SqlToList {
 #     [CmdletBinding()]
-#     param(           
+#     param(
 #         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
 #         [Switch]$DontOutputToConsole,
 #         [Switch]$DontWriteSqlToConsole
@@ -343,17 +343,17 @@ I don't like the verb "Show".  But this function just to blow a select output on
 #     try {
 #         $DatabaseCommand = $DatabaseConnection.CreateCommand()
 #         $DatabaseCommand.CommandText = $sql
-#         $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand 
+#         $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand
 #         $dataset = New-Object System.Data.DataSet
 #         $adapter.Fill($dataSet) | out-null
 #         if (-not $DontWriteSqlToConsole) {
 #             Write-AllPlaces $sql
 #         }
 #         if (-not $DontOutputToConsole) {
-            
+
 #             $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
-#         }      
-        
+#         }
+
 #         $stringlist = @()
 #         foreach ($s in $dataset.Tables[0].Rows)
 #         {
@@ -363,9 +363,9 @@ I don't like the verb "Show".  But this function just to blow a select output on
 #         return $stringlist
 #     } catch {
 #         Show-Error $sql -exitcode 3
-#     }   
+#     }
 # }
-                               
+
 <#
 .SYNOPSIS
 Return true/false from a sql based on row count
@@ -390,7 +390,7 @@ General notes
 #>#
 # Function Test-Sql {
 #     [CmdletBinding()]
-#     param(           
+#     param(
 #         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
 #         [Switch]$DontOutputToConsole,
 #         [Switch]$DontWriteSqlToConsole
@@ -404,7 +404,7 @@ General notes
 #         return $true
 #     } catch {
 #         Show-Error $sql -exitcode 6
-#     }   
+#     }
 # }
 
 <#
@@ -433,7 +433,7 @@ General notes
 #>
 Function Out-SqlToDataset {
     [CmdletBinding()]
-    param(           
+    param(
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
         [Switch]$DontOutputToConsole,
         [Switch]$DontWriteSqlToConsole
@@ -456,12 +456,12 @@ Function Out-SqlToDataset {
             return [array]$arr # This appears to be the key.  the "[array]" typing of the array-type arr variable when returning. Sigh.
         }
         return $dataset.Tables[0].Rows
-        
+
     } catch {
         Show-Error $sql -exitcode 4
-    }   
+    }
 }
-  
+
 Function Get-SqlValue {
     param (
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
@@ -471,7 +471,7 @@ Function Get-SqlValue {
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
         if ($null -ne $Script:ActiveTransaction) {
             $DatabaseCommand.Transaction = $Script:ActiveTransaction
-        }                                                           
+        }
         $DatabaseCommand.CommandText = $sql
         if ($LogSqlToHost) {
             Write-Host $sql
@@ -503,22 +503,22 @@ Allows you pass in the ordinal number, usually the position of the field, or the
 .NOTES
 Far from perfect. Only solution I can find is to do my own pg_types query and get the postgres column type, and if it's an array. Maybe if I type the columns in the SQL?
 #>
-function Get-SqlFieldValue {
+Function Get-SqlFieldValue {
     param (
         [Parameter(Position=0,Mandatory=$true)][Object] $readerOb, # Child types are DataTableReader, Odbc.OdbcDataReader, OleDb.OleDbDataReader, SqlClient.SqlDataReader
         [Parameter(Position=1,Mandatory=$true)][Object] $ordinalNoOrColumnName
     )
-             
+
     $reader = $null
 
     if ($readerOb -is [System.Data.Common.DbDataReader])
     {
         $reader = $readerOb
-    }                      
+    }
     else {
         $reader = $readerOb.Value # readers have to be wrapped or they go blank.
     }
-    
+
     [Int32]$ordinal      = $null
     [object]$columnValue = $null
 
@@ -532,22 +532,22 @@ function Get-SqlFieldValue {
 
     if ($null -eq $columnODBCMetadata) {
         throw [System.Exception] "GetSchemaTable returned nothing for $ordinalNoOrColumnName"
-    }        
+    }
 
     $ordinal = $columnODBCMetadata.ColumnOrdinal
 
     if ($ordinal -eq -1) { # Not sure this happens.
         throw [System.Exception] "ordinal not set or found for $ordinalNoOrColumnName"
     }
-                                             
+
     ##### Nows to the typing of our DatabaseColumnValue, which we want to maintain in the script. Only tested for Postgres 15
-    
+
     $columnValue = $reader.GetValue($ordinal)
     $columnValueIsNull = $reader.IsDBNull($ordinal) # We need delicate treatment. Unlike C#, PS cannot hold a null in a string. or an int or a date.
     if ($columnValue -is [System.DBNull] -or $columnValueIsNull) {
         $columnValue = $null # NULL IS UNTYPED! IF YOU TRY AND TYPE IT, it changes to empty string, 0, etc.
     }
-    
+
     $columnDataType = $columnODBCMetadata.DataType
     $columnPostgresTypeId = $columnODBCMetadata.ProviderType # Only way to distinguish
     $columnPostgresType = [type][String] # Default type
@@ -570,7 +570,7 @@ function Get-SqlFieldValue {
             }
         }
         12 {$columnPostgresType = [type][string]}                                                 # varchar in database
-         1 {                                    
+         1 {
             if ($columnDataType -eq 'Int64') {    # May alter the connection string to force int8 returns
                 $columnPostgresType = [type][Int64]
             } else {
@@ -578,7 +578,7 @@ function Get-SqlFieldValue {
             }
         }                                                 # char in database
         13 {$columnPostgresType = [type][string]}                                                 # name in database
-         4 {$columnPostgresType = [type][Int32]}                                                  
+         4 {$columnPostgresType = [type][Int32]}
         10 {$columnPostgresType = [type][Int32]}                                                  # int4 in database
          5 {
             if ($columnDataType.Name -eq 'DateTime') { # More bugs!!!!
@@ -586,20 +586,20 @@ function Get-SqlFieldValue {
             } else {
                 $columnPostgresType = [type][Int16]
             }
-        }                                                  
+        }
         17 {$columnPostgresType = [type][Int16]}                                                  # int2 in database
         14 {$columnPostgresType = [type][single]}                                                 # float4 in database
          8 {$columnPostgresType = [type][double]}                                                 # float8 in database
          7 {$columnPostgresType = [type][decimal]}                                                # numeric in database
         15 {$columnPostgresType = [type][guid]}                                                   # uuid in database
-        
-        default { 
+
+        default {
             throw [System.Exception] "Unimplemented type $columnPostgresTypeId for data type $columnDataType and column $ordinalNoOrColumnName"
         }
     }
 
     if (-not $columnValueIsNull) {$columnValue = $columnValue -as $columnPostgresType}
-    
+
     # Warning: Nulls will NOT return as typed. No can do.
     return $columnValue
 }
@@ -609,7 +609,7 @@ function Get-SqlFieldValue {
 Get better data typing on a query's columns.
 
 .DESCRIPTION
-Needs work. Right now it just displays them.  
+Needs work. Right now it just displays them.
 
 .PARAMETER reader
 Data reader object.  These can be passed in if created at the callers level.
@@ -623,27 +623,27 @@ Dependent on Get-SqlFieldValue so that's why it's up above.
 #>
 Function Get-SqlColDefinitions {
     param(
-        [Parameter(Position=0,Mandatory=$true)] [Data.Common.DbDataReader] $reader 
+        [Parameter(Position=0,Mandatory=$true)] [Data.Common.DbDataReader] $reader
     )
-    
+
     $ResultSetColumnDefinitions = $reader.GetSchemaTable()
 
-    foreach ($ResultSetColumnDefinition in $ResultSetColumnDefinitions) {             
+    foreach ($ResultSetColumnDefinition in $ResultSetColumnDefinitions) {
         $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
         $DatabaseColumnType = $ResultSetColumnDefinition.DataType
         $DatabaseDriverTypeNo = $ResultSetColumnDefinition.ProviderType
         $DatabaseColumnValue          = Get-SqlFieldValue $reader $DatabaseColumnName
 
         if ($null -eq $DatabaseColumnValue) {
-            "column {0} is column type {1}, and value of null, provider type #{3}" -f 
+            "column {0} is column type {1}, and value of null, provider type #{3}" -f
             $DatabaseColumnName, $DatabaseColumnType, $DatabaseColumnValue, $DatabaseDriverTypeNo
         } else {
             $DatabaseColumnValueType = $DatabaseColumnValue.GetType().Name
-            "column {0} is column type {1} and a value of {2}, provider type #{3}, and a value type of {4}" -f 
+            "column {0} is column type {1} and a value of {2}, provider type #{3}, and a value type of {4}" -f
             $DatabaseColumnName, $DatabaseColumnType, $DatabaseColumnValue, $DatabaseDriverTypeNo, $DatabaseColumnValueType
         }
     }
 }
- 
+
 # When a script fails in the includes, this should help know how far it got.
 Write-Host "Exiting standard_header (sql functions)"
