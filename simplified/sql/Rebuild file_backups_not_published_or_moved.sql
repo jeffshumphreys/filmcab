@@ -13,7 +13,7 @@ AND
     NOT moved_out
 )
 , published_files AS (SELECT file_hash, moved_out, file_deleted FROM files_ext_v WHERE search_directory_tag = 'published' AND NOT file_deleted)
-SELECT 'DEL /Q ' || 
+SELECT 'DEL /Q "' || file_path || '"' AS script,
 b.*, COUNT(*) OVER() deletable, SUM(b.file_size) OVER() how_much_space_restarable
 FROM possible_unpublished_backups b WHERE b.file_hash NOT IN(SELECT file_hash FROM published_files)
 ORDER BY b.file_size DESC;
