@@ -38,10 +38,19 @@ $columnWidth1                            = 364
 $treeViewWidth                           = $columnWidth1
 
 ########################################################################################################################################################################################################
-$treeViewOfPublishedDirectories          = New-Object System.Windows.Forms.TreeView
-$treeViewOfPublishedDirectories.Location = New-Object System.Drawing.Point(0,0)
-$treeViewOfPublishedDirectories.Size     = New-Object System.Drawing.Size($treeViewWidth, ($ScreenHeight - 17))
-$treeViewOfPublishedDirectories.TabIndex = 0
+$treeFilterToDirectoryComboBox           = New-Object System.Windows.Forms.ComboBox
+$treeFilterToDirectoryComboBox.Location  = New-Object System.Drawing.Point(0, ($BUTTON_HEIGHT * 0))
+$treeFilterToDirectoryComboBox.Size      = New-Object System.Drawing.Size($treeViewWidth, $BUTTON_HEIGHT)
+$treeFilterToDirectoryComboBox.Items.AddRange('Mystery', 'Comedy', 'Classics', 'Family', 'Noir', 'Camp', 'AI', 'Sci Fi', 'Spy', 'War', 'Musicals', 'Invasion', 'Horror', 'Existentialism')|Out-Null
+
+<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($treeFilterToDirectoryComboBox)<#~~~~~~~~~~~~~~~~~~~~#>
+
+########################################################################################################################################################################################################
+$treeViewOfPublishedDirectories                  = New-Object System.Windows.Forms.TreeView
+$treeViewOfPublishedDirectories.Location         = New-Object System.Drawing.Point(0,($BUTTON_HEIGHT * 1))
+$treeViewOfPublishedDirectories.Size             = New-Object System.Drawing.Size($treeViewWidth, ($ScreenHeight - 17 - $BUTTON_HEIGHT))
+$treeViewOfPublishedDirectories.CheckBoxes       = $true
+$treeViewOfPublishedDirectories.TabIndex         = 0
 $treeViewOfPublishedDirectories.ContextMenuStrip = $nodeContextMenu
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($treeViewOfPublishedDirectories)<#~~~~~~~~~~~~~~~~~~~~#>
@@ -96,6 +105,8 @@ $maxObjectWidth3                         = 680
 $columnWidth3                            = $maxObjectWidth3 + ($HORIZONTAL_SPACER*2)
 $maxObjectWidth3b                        = 100
 $columnWidth3b                           = $maxObjectWidth3b + ($HORIZONTAL_SPACER)
+$maxObjectWidth4                         = 100
+$columnWidth4                            = $maxObjectWidth4 + ($HORIZONTAL_SPACER*2)
 
 ########################################################################################################################################################################################################
 
@@ -109,7 +120,7 @@ $columnWidth3b                           = $maxObjectWidth3b + ($HORIZONTAL_SPAC
 ########################################################################################################################################################################################################
 $RunningActivityLog                      = New-Object System.Windows.Forms.RichTextBox
 $RunningActivityLog.Location             = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 7 + $VERTICAL_SPACER))
-$RunningActivityLog.Size                 = New-Object System.Drawing.Size(($columnWidth2+$columnWidth3), ($BUTTON_HEIGHT*10))
+$RunningActivityLog.Size                 = New-Object System.Drawing.Size(($columnWidth2+$columnWidth3+$columnWidth4), ($BUTTON_HEIGHT*10))
 $RunningActivityLog.ReadOnly             = $true
 $RunningActivityLog.AutoScrollOffset     = 100
 $RunningActivityLog.Text                 = ""
@@ -178,8 +189,6 @@ $targetDirectoryToMoveTo.PlaceholderText = "selected target directory goes here"
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # Column 4
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-$maxObjectWidth4                         = 100
-$columnWidth4                            = $maxObjectWidth4 + ($HORIZONTAL_SPACER*2)
 
 #######################################################################################################################################################################################################
 $sourceDirectorySize                     = New-Object System.Windows.Forms.Label
@@ -188,6 +197,14 @@ $sourceDirectorySize.Size                = New-Object System.Drawing.Size($colum
 $sourceDirectorySize.TextAlign           = [System.Drawing.ContentAlignment]::MiddleLeft
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($sourceDirectorySize)<#~~~~~~~~~~~~~~~~~~~~#>
+
+#######################################################################################################################################################################################################
+$moveIdLabel                     = New-Object System.Windows.Forms.Label
+$moveIdLabel.Location            = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER + $columnWidth2+ $columnWidth3b+$columnWidth3), ($BUTTON_HEIGHT * 3 + $VERTICAL_SPACER))
+$moveIdLabel.Size                = New-Object System.Drawing.Size($columnWidth4, $BUTTON_HEIGHT)
+$moveIdLabel.TextAlign           = [System.Drawing.ContentAlignment]::MiddleLeft
+
+<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($moveIdLabel)<#~~~~~~~~~~~~~~~~~~~~#>
 
 #######################################################################################################################################################################################################
 $statusBarMessage                        = New-Object System.Windows.Forms.ToolStripStatusLabel
