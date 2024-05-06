@@ -128,6 +128,16 @@ $RunningActivityLog.Text                 = ""
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($RunningActivityLog)<#~~~~~~~~~~~~~~~~~~~~#>
 
 ########################################################################################################################################################################################################
+$MoveComments                            = New-Object System.Windows.Forms.RichTextBox
+$MoveComments.Location                   = New-Object System.Drawing.Point(($treeViewWidth + $HORIZONTAL_SPACER), ($BUTTON_HEIGHT * 17 + $VERTICAL_SPACER))
+$MoveComments.Size                       = New-Object System.Drawing.Size(($columnWidth2+$columnWidth3+$columnWidth4), ($BUTTON_HEIGHT*10))
+$MoveComments.ReadOnly                   = $false
+$MoveComments.AutoScrollOffset           = 100
+$MoveComments.Text                       = ""
+
+<#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($MoveComments)<#~~~~~~~~~~~~~~~~~~~~#>
+
+########################################################################################################################################################################################################
 $MoveFilesButton                         = New-Object System.Windows.Forms.Button
 $MoveFilesButton.Location                = New-Object System.Drawing.Point(($treeViewWidth + $columnWidth2),0)
 $MoveFilesButton.Size                    = New-Object System.Drawing.Size($BUTTON_WIDTH, $BUTTON_HEIGHT)
