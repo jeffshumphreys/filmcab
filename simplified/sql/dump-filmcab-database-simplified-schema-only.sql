@@ -2229,11 +2229,13 @@ CREATE VIEW simplified.files_ext_v AS
             d.directory_is_symbolic_link,
             d.directory_is_junction_link,
             d.move_id AS directory_move_id,
-            f.move_id,
-            COALESCE(f.moved_in, false) AS moved_in,
-            COALESCE(f.moved_out, false) AS moved_out,
-            f.moved_from_file_id,
-            f.moved_to_directory_hash
+            COALESCE(d.moved_in, false) AS directory_moved_in,
+            COALESCE(d.moved_out, false) AS directory_moved_out,
+            f.move_id AS file_move_id,
+            COALESCE(f.moved_in, false) AS file_moved_in,
+            COALESCE(f.moved_out, false) AS file_moved_out,
+            f.moved_from_file_id AS file_moved_from_file_id,
+            f.moved_to_directory_hash AS file_moved_to_directory_hash
            FROM ((simplified.files f
              JOIN simplified.directories_ext_v d USING (directory_hash))
              JOIN simplified.search_directories sd USING (search_directory_id))
@@ -2274,13 +2276,15 @@ CREATE VIEW simplified.files_ext_v AS
             base.directory_is_symbolic_link,
             base.directory_is_junction_link,
             base.directory_move_id,
-            base.move_id,
-            base.moved_in,
-            base.moved_out,
-            base.moved_from_file_id,
-            base.moved_to_directory_hash,
+            base.directory_moved_in,
+            base.directory_moved_out,
+            base.file_move_id,
+            base.file_moved_in,
+            base.file_moved_out,
+            base.file_moved_from_file_id,
+            base.file_moved_to_directory_hash,
                 CASE
-                    WHEN ((NOT base.directory_deleted) AND (NOT base.directory_is_symbolic_link) AND (NOT base.directory_is_junction_link) AND (NOT base.file_deleted) AND (NOT base.moved_out) AND (NOT base.file_is_symbolic_link) AND (NOT base.file_is_hard_link)) THEN true
+                    WHEN ((NOT base.directory_deleted) AND (NOT base.directory_is_symbolic_link) AND (NOT base.directory_is_junction_link) AND (NOT base.file_deleted) AND (NOT base.file_moved_out) AND (NOT base.file_is_symbolic_link) AND (NOT base.file_is_hard_link)) THEN true
                     ELSE false
                 END AS is_real_file
            FROM base
@@ -2321,11 +2325,13 @@ CREATE VIEW simplified.files_ext_v AS
     add_reduced_user_logic.directory_is_symbolic_link,
     add_reduced_user_logic.directory_is_junction_link,
     add_reduced_user_logic.directory_move_id,
-    add_reduced_user_logic.move_id,
-    add_reduced_user_logic.moved_in,
-    add_reduced_user_logic.moved_out,
-    add_reduced_user_logic.moved_from_file_id,
-    add_reduced_user_logic.moved_to_directory_hash,
+    add_reduced_user_logic.directory_moved_in,
+    add_reduced_user_logic.directory_moved_out,
+    add_reduced_user_logic.file_move_id,
+    add_reduced_user_logic.file_moved_in,
+    add_reduced_user_logic.file_moved_out,
+    add_reduced_user_logic.file_moved_from_file_id,
+    add_reduced_user_logic.file_moved_to_directory_hash,
     add_reduced_user_logic.is_real_file,
     count(*) OVER () AS how_many_files,
     count(
