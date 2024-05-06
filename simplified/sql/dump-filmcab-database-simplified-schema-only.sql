@@ -3249,7 +3249,8 @@ CREATE TABLE simplified.moves (
     to_base_directory character varying,
     to_volume_id smallint,
     to_search_directory_id integer,
-    description_why_reason_applies character varying
+    description_why_reason_applies character varying,
+    note text
 );
 
 
@@ -3259,7 +3260,14 @@ ALTER TABLE simplified.moves OWNER TO postgres;
 -- Name: TABLE moves; Type: COMMENT; Schema: simplified; Owner: postgres
 --
 
-COMMENT ON TABLE simplified.moves IS 'Track all the meta about amove of a directory off one volume to another, especially why.';
+COMMENT ON TABLE simplified.moves IS 'Track all the meta about amove of a directory off one volume to another, especially why.  The sum gives me an idea of how much space I''ve recovered for more published unseen stuff.';
+
+
+--
+-- Name: COLUMN moves.move_reason; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.moves.move_reason IS 'Seen, Won''t Watch, Corrupt';
 
 
 --
@@ -3267,6 +3275,13 @@ COMMENT ON TABLE simplified.moves IS 'Track all the meta about amove of a direct
 --
 
 COMMENT ON COLUMN simplified.moves.description_why_reason_applies IS 'So for "Won''t Watch", why won''t we watch. Woke? Breaks 4th wall? Fembots?';
+
+
+--
+-- Name: COLUMN moves.note; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.moves.note IS '"This was a great film, but it''s 26 GB!  I can''t keep it in published. Maybe should get the link back to work, but."';
 
 
 --
