@@ -138,11 +138,13 @@ AS WITH base AS (SELECT
     d.directory_is_symbolic_link                                                                                                                             AS directory_is_symbolic_link,
     d.directory_is_junction_link                                                                                                                             AS directory_is_junction_link,
     d.move_id                                                                                                                                                AS directory_move_id,
-    f.move_id                                                                                                                                                AS move_id,
-    COALESCE(f.moved_in, FALSE)                                                                                                                              AS moved_in,
-    COALESCE(f.moved_out, FALSE)                                                                                                                             AS moved_out,
-    f.moved_from_file_id                                                                                                                                     AS moved_from_file_id,
-    f.moved_to_directory_hash                                                                                                                                AS moved_to_directory_hash
+    COALESCE(d.moved_in, FALSE)                                                                                                                              AS directory_moved_in,
+    COALESCE(d.moved_out, FALSE)                                                                                                                             AS directory_moved_out,
+    f.move_id                                                                                                                                                AS file_move_id,
+    COALESCE(f.moved_in, FALSE)                                                                                                                              AS file_moved_in,
+    COALESCE(f.moved_out, FALSE)                                                                                                                             AS file_moved_out,
+    f.moved_from_file_id                                                                                                                                     AS file_moved_from_file_id,
+    f.moved_to_directory_hash                                                                                                                                AS file_moved_to_directory_hash
    FROM files f
      JOIN directories_ext_v d USING (directory_hash)
      JOIN search_directories sd USING (search_directory_id)
@@ -159,7 +161,7 @@ add_reduced_user_logic AS (SELECT
     AND                      
         NOT file_deleted
     AND
-        NOT moved_out
+        NOT file_moved_out
     AND
         NOT file_is_symbolic_link
     AND
@@ -510,7 +512,3 @@ SELECT
 FROM
     files_media_info JOIN files_ext_v files using(file_id)
 ;
-DELETE FROM files_media_info WHERE file_id in(SELECT file_id FROM files_media_info_v WHERE duration_in_ms IS NULL AND general_video_format_list IS NULL AND general_audio_codec_list IS NULL);
-DELETE FROM files_media_info WHERE file_id in(SELECT file_id FROM files_media_info_ext_v x JOIN file_extensions r ON final_extension = file_extension WHERE r.file_is_print_content  );
-SELECT * FROM files_media_info_ext_v;
-SELECT * FROM information_schema.COLUMNS WHERE table_name = 'files_media_info'
