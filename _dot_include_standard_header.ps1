@@ -365,6 +365,8 @@ $MyDatabaseUserName      = "$($Config.database_user)";
 $MyDatabaseUsersPassword = "$($Config.database_password)"
 $MyDatabaseSchema        = "$($Config.database_schema)"
 
+# https://odbc.postgresql.org/docs/config-opt.html
+
 $DatabaseConnectionString = "
     Driver={$MyOdbcDatabaseDriver};
     Servername=$MyDatabaseServer;
@@ -375,6 +377,10 @@ $DatabaseConnectionString = "
     Parse=True;
     OptionalErrors=True;
     BoolsAsChar=False;
+    KeepaliveTime=30;
+    KeepaliveInterval=40;
+    MaxLongVarcharSize=8190;
+    MaxVarcharSize=8190;
     "
 $Script:DatabaseConnection                   = New-Object System.Data.Odbc.OdbcConnection
 $Script:DatabaseConnection.ConnectionString  = $DatabaseConnectionString
@@ -397,7 +403,12 @@ $Script:AttemptedToConnectToDatabase = $true
 if ($Script:DatabaseConnectionIsOpen) {
     Invoke-Sql "SET application_name to '$($Script:ScriptName)'"|Out-Null
     Invoke-Sql @"
-        SET search_path = $MyDatabaseSchema, "`$user", public
+        SET search_path = $MyDatabaseSchema, "`$user", public;
+        /*  Set to support offload_published_directories_selecting_using_gui.ps1 when it 1) creates a transaction, 2) starts a massive file move op, and then 3) updates and commits the transaction.
+            This fails if it times out, still moves the files, but all the files tracking info is lost.
+            Note that I need all the SQL BEFORE the move files, since move files are not atomic and do not rollback.
+        */
+        SET SESSION idle_in_transaction_session_timeout = '60min';
 "@|Out-Null
 }
 
