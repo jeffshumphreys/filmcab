@@ -3,7 +3,7 @@
     - Easiest for me to use
     - Would have to use Visual Studio for anything else. MAUI is cross-platform and ridiculously huge.
 #>
-#Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms, System.Drawing
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms, System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 
 # https://learn.microsoft.com/en-us/dotnet/api/system.drawing.color?view=net-8.0
