@@ -119,7 +119,7 @@ $ExpandDirectoryNodeListOfFiles =
                 ORDER BY
                     1
                 "
-    
+
             while ($filereader.Read()) {
                 $branchNode           = New-Object System.Windows.Forms.TreeNode
                 $branchNode.Name      = $Script:file_path # Since we're in an expression block called from a separate thread (WinForms), queries won't create any variables in this scope, so reference by Script.
@@ -166,6 +166,9 @@ $treeViewOfPublishedDirectories.add_AfterCheck({
     $checkedNode     = $value.Node
     $checkedNodePath = $value.Node.Name
     $isDirectory     = (Test-Path -LiteralPath $checkedNodePath -PathType Container)
+
+    $treeViewOfPublishedDirectories.SelectedNode = $null # Unfortunately, the selectednode cannot be null, so it just takes the node of the parent, which is NOT something we want to move
+    # TODO: Set a flag that says "There are no active selections; ignore selected node!"
 
     if ($checkedNode.Checked) {
         $Script:checkedNodes.Add($checkedNode)
@@ -240,23 +243,30 @@ Function LogMoveActivityLine($msg, [System.Drawing.Color]$textColor) {
 ###########################################################################################################################################################################################
 # Action taken when we click the move button
 ###########################################################################################################################################################################################
-$Move_Directory = {
+$Move_DirectoryOrFiles = {
     $form.Cursor                         = [System.Windows.Forms.Cursors]::WaitCursor
-    $loopThroughNodes = @()
+    $currentActivity.Text = ""; $currentActivity.Refresh()
+    $loopThroughNodes = [System.Collections.ArrayList]::new()
 
     if ($Script:checkedNodes.Count -gt 0) {
-        $loopThroughNodes+= $Script:checkedNodes
+        $loopThroughNodes.AddRange($Script:checkedNodes)
+    }
+    else {
+        if (-not $loopThroughNodes -contains $treeViewOfPublishedDirectories.SelectedNode) {
+            $loopThroughNodes.Add($treeViewOfPublishedDirectories.SelectedNode)
+        }
     }
 
-    if (-not $loopThroughNodes -contains $treeViewOfPublishedDirectories.SelectedNode) {
-        $loopThroughNodes+= $treeViewOfPublishedDirectories.SelectedNode
+    $MovingMultipleFiles = $pretest_assuming_false
+    if ($Script:checkedNodes.Count -gt 1) {
+        $MovingMultipleFiles = $true
     }
 
     foreach($movingNode in $loopThroughNodes) {
         $treeViewOfPublishedDirectories.SelectedNode = $movingNode
         # Avoid accidentally trying to move the root or any genre folders "_"
         # BUG: If we selected something randomly, then checked off a bunch, we should ignore the random right?
-        if ($movingNode.Text.StartsWith('_') -or $movingNode.SelectedNode.Level -eq 0) {
+        if ($movingNode.Text.StartsWith('_') -or $movingNode.Level -eq 0) {
             continue
         }
 
@@ -272,13 +282,12 @@ $Move_Directory = {
         $currentActivity.Font                = $NormalFont
 
         if ($isMovingADirectory) {
-            $currentActivity.Text                ="moving selected directory..."
+            $currentActivity.Text            ="moving selected directory..."
         } elseif ($MovingMultipleFiles) {
-            $currentActivity.Text                ="moving checked files..."
+            $currentActivity.Text            ="moving checked files..."
         } else {
-            $currentActivity.Text                ="moving selected file..."
+            $currentActivity.Text            ="moving selected file..."
         }
-
 
         $currentActivity.Refresh()
         $sourceBaseDirectory_prepped_for_sql   = PrepForSql $Script:sourceBaseDirectory
@@ -294,6 +303,8 @@ $Move_Directory = {
         $moveReason_prepped_for_sql          = PrepForSql $moveReason
         $whyMove                             = $whyThisMoveReasonText.Text
         $whyMove_prepped_for_sql             = PrepForSql $whyMove
+        $noteOnMove                          = $MoveComments.Text
+        $noteOnMove_prepped_for_sql          = PrepForSql $noteOnMove
         $targetDirectoryOrFile               = "$Script:targetBaseDirectory\$sourcePartOfPath"
         if ($sizeOfSourceDirectoryOrFile -eq 0) {
             $sizeOfSourceDirectoryOrFile     = ((gci –force -LiteralPath $targetDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
@@ -347,6 +358,7 @@ $Move_Directory = {
                     ,   to_search_directory_id
                     ,   move_reason
                     ,   description_why_reason_applies
+                    ,   note
                     )
                     VALUES(
                         /*  move_started                    */ TRANSACTION_TIMESTAMP()                                       /* Transaction start time above) */
@@ -361,6 +373,7 @@ $Move_Directory = {
                     ,   /*  to_search_directory_id          */ $target_search_directory_id
                     ,   /*  move_reason                     */ $moveReason_prepped_for_sql
                     ,   /*  description_why_reason_applies  */ $whyMove_prepped_for_sql
+                    ,   /*  note                            */ $noteOnMove_prepped_for_sql
                     )
                     RETURNING move_id"
 
@@ -543,6 +556,8 @@ $Move_Directory = {
                         files_ext_v y
                     WHERE
                         y.file_path = $sourceDirectoryOrFile_prepped_for_sql
+                    AND
+                        y.file_id = files_v.file_id
                     "
                 Invoke-Sql "
                     INSERT INTO
@@ -662,7 +677,7 @@ $Move_Directory = {
     $sourceDirectorySize.Text                    = ""
 }
 
-$MoveFilesButton.add_click($Move_Directory)|Out-Null
+$MoveFilesButton.add_click($Move_DirectoryOrFiles)|Out-Null
 
 WhileReadSql "
     SELECT
