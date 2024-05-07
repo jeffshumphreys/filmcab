@@ -467,6 +467,27 @@ Function Out-SqlToDataset {
     }
 }
 
+Function Get-SqlArray {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
+        [Switch]$DontOutputToConsole,
+        [Switch]$DontWriteSqlToConsole
+    )
+    try {
+        $DatabaseCommand = $DatabaseConnection.CreateCommand()
+        $DatabaseCommand.CommandText = $sql
+        $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand
+        $dataset = New-Object System.Data.DataSet
+        $adapter.Fill($dataSet) | out-null
+
+        $returnArrayRaw = [array]($dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors)|Out-String -Stream
+        return ($returnArrayRaw[3..($returnArrayRaw.length-1)])
+    } catch {
+        Show-Error $sql -exitcode 4
+    }
+}
+
 Function Get-SqlValue {
     param (
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
