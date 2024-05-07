@@ -16,9 +16,19 @@ $ErrorActionPreference                            = 'Stop'
 $Script:OutputEncoding                            = [System.Text.Encoding]::UTF8
 $Script:scriptTimer                               = [Diagnostics.Stopwatch]::StartNew()
 $Script:SnapshotMasterRunDate                     = Get-Date
+$Script:LastDisplayedTimeElapsed                         = $Script:SnapshotMasterRunDate
+Function DisplayTimePassed($point) {
+    $now = (Get-Date)
+    $timepassed = $Script:LastDisplayedTimeElapsed - $now
+    $Script:LastDisplayedTimeElapsed = $now
+    $timepassedString = $timepassed.Humanize()
+    Write-Host "$point`: $timepassedString"
+}
 $Script:DEFAULT_POWERSHELL_TIMESTAMP_FORMAT       = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    Restrict to ONLY 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6, which then causes mismatches between timestamps in database with timestamps on files. They were always off by 4 100ths nanoseconds, and caused massive thrashing.
 $Script:pretest_assuming_true                     = $true
 $Script:pretest_assuming_false                    = $false
+
+DisplayTimePassed ("Start")
 
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 2 - Load configuration file
@@ -27,6 +37,10 @@ $Script:pretest_assuming_false                    = $false
 $Script:ProjectRoot                               = (Get-Location).Path                                                   # D:\qt_projects\filmcab. May be to do with WorkingDirectory setting in Windows Task Scheduler for Exec commands.
 $Script:PathToConfig                              = $ProjectRoot + '\config.json'
 $Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json)           # Will fail if not exist, which is the desired outcome.
+$Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json)
+$Script:SUPER_SECRET_SQUIRREL                     = (Get-Content -Path ($ProjectRoot + '\SUPER_SECRET_SQUIRREL.json') | ConvertFrom-Json) # Too on the nose?
+
+DisplayTimePassed ("Loaded configs")
 
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 3 - Get Script Name and Path
@@ -53,6 +67,7 @@ New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
 $Script:LogFileName                               = $Script:ScriptName + '.log.txt'
 $Script:LogFilePath                               = $Script:LogDirectory + '\' + $Script:LogFileName
 
+DisplayTimePassed ("Finished script path identification")
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 4 - Start Transcript
 # Dependent on: ScriptName, LogDirectory
@@ -76,6 +91,7 @@ while ($tryToStartTranscriptAttempts -lt 3) {
     }
 }
 
+DisplayTimePassed ("Started transcript")
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 5 - Start Log
 #####################################################################################################################################################################################################################################################
@@ -146,6 +162,7 @@ Log-Line "`$ScriptFullPath: $Script:MasterScriptPath, `$PSVersion = $($Script:PS
 
 $basePath                                                   = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
 $Script:amRunningAsAdmin                                    = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+DisplayTimePassed ("Identified admin status")
 
 if(-not (Test-Path $basePath)) {
     $null = New-Item $basePath -Force
@@ -153,6 +170,7 @@ if(-not (Test-Path $basePath)) {
     New-ItemProperty $basePath -Name "EnableInvocationHeader" -PropertyType Dword
     New-ItemProperty $basePath -Name "OutputDirectory" -PropertyType String
 }
+
 
 if ($amRunningAsAdmin) {
     Set-ItemProperty $basePath -Name "EnableScriptBlockLogging" -Value "1"
@@ -351,7 +369,9 @@ Function Has-Property ($sourceob, $prop) {
     return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
 
+DisplayTimePassed ("Including sql functions...")
 . .\_dot_include_standard_header_sql_functions.ps1
+DisplayTimePassed ("Sql functions included")
 
 #####################################################################################################################################################################################################################################################
 # Bootstrap Ordered Stage 6 - Connect Database
@@ -382,6 +402,9 @@ $DatabaseConnectionString = "
     MaxLongVarcharSize=8190;
     MaxVarcharSize=8190;
     "
+
+DisplayTimePassed ("Connecting to db...")
+
 $Script:DatabaseConnection                   = New-Object System.Data.Odbc.OdbcConnection
 $Script:DatabaseConnection.ConnectionString  = $DatabaseConnectionString
 $Script:DatabaseConnection.ConnectionTimeout = 10
@@ -400,7 +423,10 @@ try {
 }
 $Script:AttemptedToConnectToDatabase = $true
 
+DisplayTimePassed ("Connected to db")
+
 if ($Script:DatabaseConnectionIsOpen) {
+    DisplayTimePassed ("Setting some session parameters...")
     Invoke-Sql "SET application_name to '$($Script:ScriptName)'"|Out-Null
     Invoke-Sql @"
         SET search_path = $MyDatabaseSchema, "`$user", public;
@@ -417,13 +443,14 @@ if ($Script:DatabaseConnectionIsOpen) {
 # Dependencies: PID
 #####################################################################################################################################################################################################################################################
 
-$process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $PID"
+DisplayTimePassed ("Getting process tree...")
 $processtree = @()
+$process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $PID"
+$processtree+= $process_enumerator
+$process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $($process_enumerator.ParentProcessId)"
+$processtree+= $process_enumerator
 
-While ($process_enumerator) {
-    $processtree+= $process_enumerator
-    $process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $($process_enumerator.ParentProcessId)"
-}
+DisplayTimePassed ("Finished getting process tree")
 
 $Script:Caller = 'ndef'
 if ((Test-Path variable:Script:TestScheduleDrivenTaskDetection) -and $Script:TestScheduleDrivenTaskDetection) {
@@ -452,10 +479,14 @@ if ((Test-Path variable:Script:TestScheduleDrivenTaskDetection) -and $Script:Tes
     Show-Error -message "Error: Unable to determine caller from processtree: $processInfo" -exitcode 6
 }
 
+DisplayTimePassed ("Determination of caller completed")
+
 $scheduledTaskForProject = $pretest_assuming_false
 
 if ($Script:Caller -eq 'Windows Task Scheduler') {
     $scheduledTaskForProject = $pretest_assuming_true
+
+    DisplayTimePassed ("Getting task detail...")
 
     $getScheduledTaskDetailIfFound = WhileReadSql "
         SELECT
@@ -483,6 +514,8 @@ if ($Script:Caller -eq 'Windows Task Scheduler') {
     $xmlToFilterGetWinEventsInvolvingTrigger = @"
     <QueryList><Query Id="0"><Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name="TaskName"]="$fullScheduledTaskPath"]]</Select></Query></QueryList>
 "@
+    DisplayTimePassed ("Getting last 100 events for current task...")
+
     $lastEventsWhileRunningIs = Get-WinEvent -FilterXml $xmlToFilterGetWinEventsInvolvingTrigger -MaxEvents 100 -ErrorAction Ignore|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, ProcessId,
     @{Name='ResultCode'; Expression = {
             if ($_.Id -in @(203,716,201,715,714,305,713,316,315,717,202,718,105,205,104,712,103,306,204,101,307,311,331,403,711,702,126,303,703,130,704,705,706,707,708,709,413,412,113,146,410,408,401,115,116,710,404,409,151,150,406,407,148,405,701)) {
@@ -541,6 +574,7 @@ if ($Script:Caller -eq 'Windows Task Scheduler') {
         145  <# Triggered by coming out of suspend mode #>
     }|Select -First 1
 
+    DisplayTimePassed ("Completing getting last useful event for current task")
     if ($null -ne $lastEventsWhileRunningIs) {
         $Script:WindowsSchedulerTaskTriggeringEvent = $lastEventsWhileRunningIs
     }
@@ -634,6 +668,7 @@ Function Get-LastEventsForTask ($fullScheduledTaskPath, $howManyEvents = 1, [Swi
 
 if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeringEvent) {
     Set-StrictMode -Off # Critical to avoid not found errors on following attributes
+    DisplayTimePassed ("Fetch task trigger details...")
     $triggers = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|
     SELECT -expandProperty Triggers|
     % {
@@ -759,6 +794,8 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
         }
     }
 
+    DisplayTimePassed ("Completing getting task trigger details")
+    DisplayTimePassed ("Detect active batch run session...")
     $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
             $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
             $script_name_prepped_for_sql           = PrepForSql $Script:ScriptName
@@ -769,6 +806,8 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
         if ($null -ne $Script:active_batch_run_session_id) {
             Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
         }
+        DisplayTimePassed ("Creating or ending(?) session entry...")
+
         $Script:active_batch_run_session_id = Get-SqlValue "
             INSERT INTO batch_run_sessions_v(
                 last_script_ran
@@ -810,6 +849,7 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
         ") -LogSqlToHost
     ############################################################################################################################
     } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
+        DisplayTimePassed ("Ending(?) session entry...")
         if ($triggerType -eq 'event') {
             if ($null -ne $Script:active_batch_run_session_id) {
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
@@ -821,6 +861,7 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
         Invoke-Sql "DELETE FROM batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
     ############################################################################################################################
     } elseif ($script_position_in_lineup -eq 'In-Between') {
+        DisplayTimePassed ("inbetween session entry...")
         # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
         # if there is not an active session??????? Crash?????
         if ($triggerType -eq 'Event') {
@@ -884,6 +925,7 @@ Function End-BatchRunSessionTaskEntry() {
 # Bootstrap Final steps, no dependencies. Define global constants
 #####################################################################################################################################################################################################################################################
 
+DisplayTimePassed ("Get Tpm status...")
 $Script:TpmStatus                                           = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
 $Script:MyComputerName                                      = $env:COMPUTERNAME     # DSKTP-HOME-JEFF
 $Script:OneDriveDirectory                                   = $env:OneDrive         # D:\OneDrive
@@ -892,6 +934,7 @@ $Script:OSUserFiles                                         = $env:USERPROFILE  
 $Script:DEFAULT_POSTGRES_TIMESTAMP_FORMAT                   = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
 $Script:DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
 $Script:CurrentDebugSessionNo                               = $MyInvocation.HistoryId
+DisplayTimePassed ("Finished getting Tpm status")
 
 # Do we need?
 
@@ -1155,34 +1198,6 @@ Function HumanizeCount([Int64]$i) {
     return [string]::Format('{0:N0}', $i)
 }
 
-$ScriptBlockAsyncMoveFilesAndDirectories = {
-    $SourcePath = $args[0]
-    $TargetPath = $args[1]
-    #$SourceFilesAndDirectories = Get-ChildItem -File -Recurse -Path "$($SourcePath)\$($Filename)" -ErrorAction SilentlyContinue
-    Write-Host "`$SourcePath = $SourcePath"
-    Write-Host "`$TargetPath = $TargetPath"
-    $SourceFilesAndDirectories = Get-ChildItem -Recurse -LiteralPath "$SourcePath" -ErrorAction SilentlyContinue
-
-    foreach ($fileOrDirectory in $SourceFilesAndDirectories) {
-        $MeaningfulPartOfSourcePath = ($fileOrDirectory.FullName.Substring($SourcePath.Length).Trim("\"))
-        Write-Host "`$MeaningfulPartOfSourcePath = $MeaningfulPartOfSourcePath"
-        $NewlyConstructedTargetPath = "$($TargetPath)\$($MeaningfulPartOfSourcePath)"
-        if ((Test-Path -LiteralPath $fileOrDirectory.FullName -PathType Container)) {
-            # For cases where directories are empty, we still want to move them over.
-            Write-Host "Creating directory: $NewlyConstructedTargetPath"
-            New-Item -Path $NewlyConstructedTargetPath -ItemType Directory -Force|Out-Null
-        } else {
-            Write-Host "Copying file to: $NewlyConstructedTargetPath"
-            # We want to use Move-Item because of space concerns when moving to the same spindle.  Huge moves of many files and directories could run out of space with Copy-Item
-            Move-Item -LiteralPath $fileOrDirectory.FullName -Destination $NewlyConstructedTargetPath -Force|Out-Null
-        }
-    }
-    Write-Host "`$SourcePath = $SourcePath"
-
-    # This deletes the source
-    Remove-Item -LiteralPath $SourcePath -Force -Recurse -ErrorAction SilentlyContinue|Out-Null
-}
-
 Function EllipseString($string, $cutoff) {
     if ($string.Length -lt $cutoff) {
         return $string
@@ -1229,4 +1244,6 @@ Function Copy-File {
         Write-Progress -Activity "Copying file" -Status "Ready" -Completed
     }
 }
+DisplayTimePassed ("Finished header.")
+
 Log-Line "Exiting standard_header v2"
