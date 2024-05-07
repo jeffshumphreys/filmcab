@@ -41,7 +41,8 @@ $treeViewWidth                           = $columnWidth1
 $treeFilterToDirectoryComboBox           = New-Object System.Windows.Forms.ComboBox
 $treeFilterToDirectoryComboBox.Location  = New-Object System.Drawing.Point(0, ($BUTTON_HEIGHT * 0))
 $treeFilterToDirectoryComboBox.Size      = New-Object System.Drawing.Size($treeViewWidth, $BUTTON_HEIGHT)
-$treeFilterToDirectoryComboBox.Items.AddRange('Mystery', 'Comedy', 'Classics', 'Family', 'Noir', 'Camp', 'AI', 'Sci Fi', 'Spy', 'War', 'Musicals', 'Invasion', 'Horror', 'Existentialism')|Out-Null
+$listOfFolders                           = Get-SqlArray "SELECT SUBSTRING(folder,2) tag FROM directories_ext_v WHERE directory_depth = 1 AND search_directory_tag = 'published' AND folder LIKE '\_%' AND folder NOT LIKE '\_\_%' ORDER BY 1"
+$treeFilterToDirectoryComboBox.Items.AddRange($listOfFolders)|Out-Null
 
 <#~~~~~~~~~~~~~~~~~~~~#>$form.Controls.Add($treeFilterToDirectoryComboBox)<#~~~~~~~~~~~~~~~~~~~~#>
 
