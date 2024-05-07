@@ -13,7 +13,6 @@ $headers = @{
     'X-RapidAPI-Host' = 'moviesdatabase.p.rapidapi.com'
 }
 # https://rapidapi.com/hub
-# jeffshumphreys@gmail.com
 # https://rapidapi.com/SAdrian/api/moviesdatabase
 # /titles?limit=50&page=2
 
