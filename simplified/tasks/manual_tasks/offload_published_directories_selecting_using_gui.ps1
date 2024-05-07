@@ -30,7 +30,7 @@ Function EnableMoveFileButton() {
         -not([string]::IsNullOrWhiteSpace($selectedmoveReasonComboBox.Text) -or $selectedmoveReasonComboBox.Text -notin $selectedmoveReasonComboBox.Items) -and
         ( -not
             # If we selected a genre folder like "_Mystery", block the move.
-            ($treeViewOfPublishedDirectories.SelectedNode.Text.StartsWith('_') -or $treeViewOfPublishedDirectories.SelectedNode.Level -eq 0) -or
+            ($null -ne $treeViewOfPublishedDirectories.selectedNode -and ($treeViewOfPublishedDirectories.SelectedNode.Text.StartsWith('_') -or $treeViewOfPublishedDirectories.SelectedNode.Level -eq 0)) -or
             # Are we on a root or genre folder? We don't want to try and move those
                     # But if I checked some items, even in "_Mystery" for instance, we want to enable moving those
             ($Script:checkedNodes.Count -gt 0)
@@ -43,11 +43,15 @@ Function EnableMoveFileButton() {
         } else {
             $Script:targetBaseDirectory = "N:\Video AllInOne Seen"
         }
+
+        $driveLetter = Left $Script:targetBaseDirectory 1
+
         $targetDirectoryToMoveTo.Text = $Script:targetBaseDirectory
 
+        $targetVolumeId = Get-SqlValue "SELECT MAX(volume_id) FROM volumes WHERE drive_letter = '$driveLetter'"
         $targetBaseDirectory_prepped_for_sql = PrepForSql $Script:targetBaseDirectory
         # Verify all target data set
-        Invoke-Sql "INSERT INTO search_directories_v(search_directory) VALUES($targetBaseDirectory_prepped_for_sql) ON CONFLICT DO NOTHING"|Out-Null
+        Invoke-Sql "INSERT INTO search_directories_v(search_directory, volume_id) VALUES($targetBaseDirectory_prepped_for_sql, $targetVolumeId) ON CONFLICT DO NOTHING"|Out-Null
         return $true
     }
     return $false
@@ -90,58 +94,58 @@ $selectedmoveReasonComboBox.add_SelectedIndexChanged({
 #################################################################################################################################################################################################
 # Action taken When the user double-clicks on a node. Or presses Enter.
 #################################################################################################################################################################################################
-$ExpandDirectoryNodeListOfFiles =
-    {
-        # if a directory, flush any below, and repop with files in directory, coloring links or italicizing
-        # SelectedNode.Name = full path
-        # NOTE: First expands.
+$ExpandDirectoryNodeListOfFiles = {
+    # if a directory, flush any below, and repop with files in directory, coloring links or italicizing
+    # SelectedNode.Name = full path
+    # NOTE: First expands.
 
-        $fileOrFolderPath = $this.SelectedNode.Name
-        $fileOrFolderPath_prepped_for_sql = PrepForSql $fileOrFolderPath
-        if (Test-Path -LiteralPath $fileOrFolderPath -PathType Container) {
-            # Fetch files
+    $fileOrFolderPath = $this.SelectedNode.Name
+    $fileOrFolderPath_prepped_for_sql = PrepForSql $fileOrFolderPath
+    if (Test-Path -LiteralPath $fileOrFolderPath -PathType Container) {
+        # Fetch files
 
-            $filereader = WhileReadSql "
-                SELECT
-                    file_name_with_ext
-                ,   useful_part_of_directory
-                ,   file_path
-                ,   CASE WHEN file_is_symbolic_link OR file_is_hard_link THEN TRUE ELSE FALSE END AS is_link
-                ,   CASE WHEN file_moved_out OR file_deleted THEN TRUE ELSE FALSE END AS nothing_here
-                FROM
-                    files_ext_v
-                WHERE
-                    directory = $fileOrFolderPath_prepped_for_sql
-                AND
-                    NOT file_deleted
-                AND
-                    NOT file_moved_out
-                ORDER BY
-                    1
-                "
+        $filereader = WhileReadSql "
+            SELECT
+                file_name_with_ext
+            ,   useful_part_of_directory
+            ,   file_path
+            ,   CASE WHEN file_is_symbolic_link OR file_is_hard_link THEN TRUE ELSE FALSE END AS is_link
+            ,   CASE WHEN file_moved_out OR file_deleted THEN TRUE ELSE FALSE END AS nothing_here
+            FROM
+                files_ext_v
+            WHERE
+                directory = $fileOrFolderPath_prepped_for_sql
+            AND
+                NOT file_deleted
+            AND
+                NOT file_moved_out
+            ORDER BY
+                1
+            "
 
-            while ($filereader.Read()) {
-                $branchNode           = New-Object System.Windows.Forms.TreeNode
-                $branchNode.Name      = $Script:file_path # Since we're in an expression block called from a separate thread (WinForms), queries won't create any variables in this scope, so reference by Script.
-                $branchNode.Text      = $Script:file_name_with_ext
-                $branchNode.Tag       = $Script:useful_part_of_directory
+        while ($filereader.Read()) {
+            $branchNode           = New-Object System.Windows.Forms.TreeNode
+            $branchNode.Name      = $Script:file_path # Since we're in an expression block called from a separate thread (WinForms), queries won't create any variables in this scope, so reference by Script.
+            $branchNode.Text      = $Script:file_name_with_ext
+            $branchNode.Tag       = $Script:useful_part_of_directory
 
-                if ($Script:is_link) {
-                    $branchNode.ForeColor = '#bdb9b9' # even lighter
-                    $branchNode.NodeFont  = $ItalicFont8
-                } else {
-                    $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
-                }
-                $this.SelectedNode.Nodes.Add($branchNode)|Out-Null
+            if ($Script:is_link) {
+                $branchNode.ForeColor = '#bdb9b9' # even lighter
+                $branchNode.NodeFont  = $ItalicFont8
+            } else {
+                $branchNode.ForeColor = '#969494' # grey, light to distinguish from folders
             }
-    
-            $this.SelectedNode.Expand()
+            $this.SelectedNode.Nodes.Add($branchNode)|Out-Null
         }
-        #$statusBarMessage.Text = "treeViewOfPublishedDirectories.add_NodeMouseDoubleClick"
-        $MoveFilesButton.Enabled            = EnableMoveFileButton
+
+        $this.SelectedNode.Expand()
     }
+    #$statusBarMessage.Text = "treeViewOfPublishedDirectories.add_NodeMouseDoubleClick"
+    $MoveFilesButton.Enabled            = EnableMoveFileButton
+}
 
 $enterkey = [System.Windows.Input.Key]::Enter
+
 $treeViewOfPublishedDirectories.add_KeyPress( {
     $isEnterKeyPressed = [System.Windows.Input.Keyboard]::IsKeyDown($enterkey)
     if ($isEnterKeyPressed) {
@@ -238,15 +242,18 @@ Function LogMoveActivityLine($msg, [System.Drawing.Color]$textColor) {
     $RunningActivityLog.SelectionFont   = $BoldFont
     $RunningActivityLog.AppendText("$logtimestr`:$msg$([System.Environment]::NewLine)")
     $RunningActivityLog.ScrollToCaret()
+    $RunningActivityLog.Invalidate()
+    $RunningActivityLog.Update()
     $RunningActivityLog.Refresh()
+    [System.Windows.Forms.Application]::DoEvents()
 }
 ###########################################################################################################################################################################################
 # Action taken when we click the move button
 ###########################################################################################################################################################################################
 $Move_DirectoryOrFiles = {
-    $form.Cursor                         = [System.Windows.Forms.Cursors]::WaitCursor
+    $form.Cursor          = [System.Windows.Forms.Cursors]::WaitCursor
     $currentActivity.Text = ""; $currentActivity.Refresh()
-    $loopThroughNodes = [System.Collections.ArrayList]::new()
+    $loopThroughNodes     = [System.Collections.ArrayList]::new()
 
     if ($Script:checkedNodes.Count -gt 0) {
         $loopThroughNodes.AddRange($Script:checkedNodes)
@@ -270,10 +277,10 @@ $Move_DirectoryOrFiles = {
             continue
         }
 
-        $Script:sourcePathToDirectoryOrFile  = $treeViewOfPublishedDirectories.SelectedNode.Name
-        #$treeViewOfPublishedDirectories.Sele
-        $Script:sourceDirectory              = $Script:sourcePathToDirectoryOrFile
-        $isMovingADirectory                  = (Test-Path -LiteralPath $Script:sourcePathToDirectoryOrFile -PathType Container)
+        $Script:sourcePathToDirectoryOrFile     = $treeViewOfPublishedDirectories.SelectedNode.Name
+                $sourceDirectoryToMoveFrom.Text = $Script:sourcePathToDirectoryOrFile
+        $Script:sourceDirectory                 = $Script:sourcePathToDirectoryOrFile
+                $isMovingADirectory             = (Test-Path -LiteralPath $Script:sourcePathToDirectoryOrFile -PathType Container)
         if (-not $isMovingADirectory) {
             $Script:sourceDirectory = (Split-Path $Script:sourcePathToDirectoryOrFile -Parent)
         }
@@ -306,6 +313,8 @@ $Move_DirectoryOrFiles = {
         $noteOnMove                          = $MoveComments.Text
         $noteOnMove_prepped_for_sql          = PrepForSql $noteOnMove
         $targetDirectoryOrFile               = "$Script:targetBaseDirectory\$sourcePartOfPath"
+        $fullTargetDirectoryOrFile           = $targetDirectoryOrFile
+
         if ($sizeOfSourceDirectoryOrFile -eq 0) {
             $sizeOfSourceDirectoryOrFile     = ((gci –force -LiteralPath $targetDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
         }
@@ -607,7 +616,6 @@ $Move_DirectoryOrFiles = {
 
             ###############################################################################################################################################################################################################################################################
             ###############################################################################################################################################################################################################################################################
-            $movedFilesYet = $false
             try {
 
                 #$arguments = @("$sourcePathToDirectoryOrFile","$targetDirectoryOrFile") #(Pass scriptblock up update gui progress)
@@ -621,7 +629,7 @@ $Move_DirectoryOrFiles = {
                 Move-Item -LiteralPath $sourcePathToDirectoryOrFile -Destination $targetDirectoryOrFile -Force
                 #}
             } catch {}
-            $movedFilesYet        = $true
+
             $currentActivity.Text = "(6) Move-Item Complete."
             $currentActivity.Refresh()
             ###############################################################################################################################################################################################################################################################
@@ -670,7 +678,18 @@ $Move_DirectoryOrFiles = {
                 LogMoveActivityLine "Successfully moved $sourcePathToDirectoryOrFile to $targetDirectoryOrFile" -textColor $SuccessColor
             }
         }
-    }
+
+        if ($leaveLinkInPlaceCheckBox.Checked) {
+            if ($isMovingADirectory) {
+                # Junction link
+                New-Item -Path $sourcePathToDirectoryOrFile -ItemType Junction -Value $fullTargetDirectoryOrFile
+            } else {
+                # Symbolic Link
+                New-Item -Path $sourcePathToDirectoryOrFile -ItemType SymbolicLink -Value $targetDirectoryOrFile
+            }
+        }
+    } # foreach($movingNode in $loopThroughNodes) {
+
     $form.Cursor                                 = [System.Windows.Forms.Cursors]::Default
     $selectedmoveReasonComboBox.Text             = ""
     $whyThisMoveReasonText.Text                  = ""
