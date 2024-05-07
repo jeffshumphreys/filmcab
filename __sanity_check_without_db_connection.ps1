@@ -62,10 +62,10 @@ $RunningAsAdmin          = ([Security.Principal.WindowsPrincipal][Security.Princ
 # Put it all together
 
 $SanityCheckStatus = [PSCustomObject]@{
-    ComputerName               = $Script:OSPropertiesOfInterest.CSName                 # DSKTP-HOME-JEFF
-    ComputerDescription        = $Script:OSPropertiesOfInterest.Description            # Jeff's Home Dev Client
-    CurrentUserName            = $env:USERNAME                                         # jeffs  
-    OSOwner                    = $ComputerInfo.WindowsRegisteredOwner                  # jeffshumphreys@outlook.com
+    ComputerName               = $Script:OSPropertiesOfInterest.CSName                 #
+    ComputerDescription        = $Script:OSPropertiesOfInterest.Description            #
+    CurrentUserName            = $env:USERNAME                                         #
+    OSOwner                    = $ComputerInfo.WindowsRegisteredOwner                  #
     Platform                   = [System.Environment]::OSVersion.Platform              # Win32NT
     OS                         = $OS                                                   # Windows, Linux, or MacOS
     OSName                     = $ComputerInfo.OsName                                  # Microsoft Windows 10 Pro
