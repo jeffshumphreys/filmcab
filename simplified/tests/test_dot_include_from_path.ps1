@@ -6,8 +6,8 @@
  #>
 
 . .\_dot_include_standard_header.ps1
- 
-$reader = WhileReadSql "SELECT 1 AS t" 
+
+$reader = WhileReadSql "SELECT 1 AS t"
 
 While ($reader.Read()) {
     $t
