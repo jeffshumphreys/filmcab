@@ -1,100 +1,381 @@
-[Net.ServicePointManager]::SecurityProtocol       = [Net.SecurityProtocolType]::Tls12;   # More to do with PowerShellGet issues, not Imports.
 Import-Module PowerShellHumanizer
 Import-Module DellBIOSProvider
 
-Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptName, LogDirectory -Scope Script -ErrorAction Ignore -Verbose
+. .\_dot_include_standard_header_sql_functions.ps1
 
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 1 - Set environment control
-#####################################################################################################################################################################################################################################################
+Function main_dot_include_standard_header() {
+    DisplayTimePassed ("Start")
 
-# Lists every line executed, every if branch, and converts simple expressions when assigned to variables to their evaluated constants.
-# Set-PSDebug -Trace 2
-# Set-PSDebug -Off
-Set-StrictMode -Version Latest
-$ErrorActionPreference                            = 'Stop'
-$Script:OutputEncoding                            = [System.Text.Encoding]::UTF8
-$Script:scriptTimer                               = [Diagnostics.Stopwatch]::StartNew()
-$Script:SnapshotMasterRunDate                     = Get-Date
-$Script:LastDisplayedTimeElapsed                         = $Script:SnapshotMasterRunDate
+    # Attempt to clean up memory detritus when rerunning in interactive mode.
+
+    Remove-Variable batch_run_session_task_id, batch_run_session_id, Caller, ScriptName, LogDirectory -Scope Script -ErrorAction SilentlyContinue
+
+    # Settings
+
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference                                      = 'Stop'
+    Set-PSDebug -Off                                                                             # When the Trace parameter has a value of 1, each line of script is traced as it runs. When the parameter has a value of 2, variable assignments, function calls
+    [Net.ServicePointManager]::SecurityProtocol                 = [Net.SecurityProtocolType]::Tls12;    # More to do with PowerShellGet issues, not Imports.
+    $Script:OutputEncoding                                      = [System.Text.Encoding]::UTF8
+    $Script:scriptTimer                                         = [Diagnostics.Stopwatch]::StartNew()
+    $Script:SnapshotMasterRunDate                               = Get-Date                              # Capture "One timestamp to rule them all". Everything should be marked off this instead of Get-Date unless it really wants to know NOW
+
+    # Constants
+
+    $Script:DEFAULT_POWERSHELL_TIMESTAMP_FORMAT                 = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    Restrict to ONLY 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6, which then causes mismatches between timestamps in database with timestamps on files. They were always off by 4 100ths nanoseconds, and caused massive thrashing.
+    $Script:DEFAULT_POSTGRES_TIMESTAMP_FORMAT                   = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
+    $Script:DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
+    $Script:pretest_assuming_true                               = $true
+    $Script:pretest_assuming_false                              = $false
+
+    # Gettings
+
+    $Script:DSTTag                                              = If (($Script:SnapshotMasterRunDate).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up measuring durations of tasks.
+    $Script:LastDisplayedTimeElapsed                            = $Script:SnapshotMasterRunDate
+    $Script:TpmStatus                                           = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
+    $Script:amRunningAsAdmin                                    = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    $Script:AreWeRunningInteractively                           = [Environment]::UserInteractive                 # Under ISE and Powershell console it returns true, as a scheduled task it returns false.
+    $Script:MyComputerName                                      = $env:COMPUTERNAME
+    $Script:OneDriveDirectory                                   = $env:OneDrive
+    $Script:OSUserName                                          = $env:USERNAME
+    $Script:OSUserFiles                                         = $env:USERPROFILE
+    $Script:CurrentDebugSessionNo                               = $MyInvocation.HistoryId
+    $Script:PSVersion                                           = $PSVersionTable.PSVersion                       # 7.5.0-preview.2
+    $Script:CommandOrigin                                       = $MyInvocation.CommandOrigin                     # Internal
+    $Script:CurrentFunction                                     = $MyInvocation.MyCommand                         # _dot_include_standard_header.v2.ps1
+    $Script:InvokationName                                      = $MyInvocation.InvocationName                    # always "." when included or ran direct.
+    $Script:ProjectRoot                                         = (Get-Location).Path                             # D:\qt_projects\filmcab. May be to do with WorkingDirectory setting in Windows Task Scheduler for Exec commands.
+    $Script:ScriptRoot                                          = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
+    if ($null -eq $Script:ScriptRoot) {
+        $Script:ScriptRoot                                      = (Get-Item -Path $masterScriptPath).DirectoryName
+    }
+
+    $Script:MasterScriptPath                                    = $MyInvocation.ScriptName                        # This is null if you are running this dot include directly.
+    if ([String]::IsNullOrEmpty($MasterScriptPath)) {
+        $Script:MasterScriptPath                                = $MyInvocation.Line
+    }
+    $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". .\")) { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
+    $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". '"))  { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
+    $Script:MasterScriptPath                                    = $Script:MasterScriptPath.Trim("'")
+
+    if (-not (Test-Path $Script:MasterScriptPath)) {
+        throw "Path to master calling/including script not valid. $($Script:MasterScriptPath)"
+    }
+
+    $Script:FileTimeStampForParentScript              = (Get-Item -Path $Script:MasterScriptPath).LastWriteTime
+    $Script:ScriptName                                = (Get-Item -Path $Script:MasterScriptPath).Name       # Unlike "BaseName" this includes the extension
+    $Script:ScriptNameWithoutExtension                = (Get-Item -Path $Script:MasterScriptPath).BaseName   # Base name is nice for labelling and searching scheduler tasks
+
+    # Get Settings en masse
+
+    $Script:PathToConfig                              = $ProjectRoot + '\config.json'
+    $Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json) # Will fail if not exist, which is the desired outcome.
+    $Script:SUPER_SECRET_SQUIRREL                     = (Get-Content -Path ($ProjectRoot + '\SUPER_SECRET_SQUIRREL.json') | ConvertFrom-Json) # Too on the nose?
+
+    # Build out logging infrastructure
+
+    $Script:LogDirectory                              = "$Script:ScriptRoot\_log"
+    New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
+    $Script:LogFileName                               = $Script:ScriptName + '.log.txt'
+    $Script:LogFilePath                               = $Script:LogDirectory + '\' + $Script:LogFileName
+
+    # Settings 2nd pass after key gettings
+
+    if ($amRunningAsAdmin) {
+        $ExtendedScriptLoggingRegistryPath                      = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
+        if(-not (Test-Path $ExtendedScriptLoggingRegistryPath)) {
+            New-Item $ExtendedScriptLoggingRegistryPath -Force | Out-Null
+            New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableScriptBlockLogging" -PropertyType Dword
+            New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableInvocationHeader" -PropertyType Dword
+            New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "OutputDirectory" -PropertyType String
+        }
+        Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableScriptBlockLogging" -Value "1"
+        Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableInvocationHeader" -Value "1"
+        Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "OutputDirectory" -Value $Script:LogDirectory
+    }
+
+    # Start logging
+
+    Log-Line "Starting Log $($Script:SnapshotMasterRunDate) on $(($Script:SnapshotMasterRunDate).DayOfWeek) $($Script:DSTTag) in $(($Script:SnapshotMasterRunDate).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
+    Log-Line "`$ScriptFullPath: $Script:MasterScriptPath, `$PSVersion = $($Script:PSVersion), `$PSEdition = $($Script:PSEdition), `$CommandOrigin = $($Script:CommandOrigin), Current Function = $($Script:CurrentFunction)"
+
+    $Script:TranscriptFileName                        = $Script:ScriptName + '.transcript.log.txt'
+    $Script:TranscriptFilePath                        = $Script:LogDirectory + '\' + $Script:TranscriptFileName
+
+    Remove-Item -Path $Script:TranscriptFilePath -Force -ErrorAction Ignore # Otherwise, in Core it will just keep appending. Bug? Or an issue when in VS Code?
+
+    $tryToStartTranscriptAttempts                     = 0
+    while ($tryToStartTranscriptAttempts -lt 3) {
+        try {
+            $tryToStartTranscriptAttempts++
+            Start-Transcript -Path $Script:TranscriptFilePath -IncludeInvocationHeader
+            break
+        }
+        catch [System.IO.IOException] {
+            try { Stop-Transcript} catch {}
+            Start-Sleep -Milliseconds 10.0
+        }
+    }
+
+    $MyOdbcDatabaseDriver    = "$($Config.database_driver)"
+    $MyDatabaseServer        = "$($Config.database_server_ip_address)";
+    $MyDatabaseServerPort    = "$($Config.database_server_port)";
+    $MyDatabaseName          = "$($Config.database)";
+    $MyDatabaseUserName      = "$($Config.database_user)";
+    $MyDatabaseUsersPassword = "$($Config.database_password)"
+    $MyDatabaseSchema        = "$($Config.database_schema)"
+
+    # https://odbc.postgresql.org/docs/config-opt.html
+
+    # WARNING: Do not add spaces to connectionstring. Will fail to connect
+
+    $DatabaseConnectionString = "
+        Driver={$MyOdbcDatabaseDriver};
+        Servername=$MyDatabaseServer;
+        Port=$MyDatabaseServerPort;
+        Database=$MyDatabaseName;
+        Username=$MyDatabaseUserName;
+        Password=$MyDatabaseUsersPassword;
+        Parse=True;
+        OptionalErrors=True;
+        BoolsAsChar=False;
+        KeepaliveTime=30;
+        KeepaliveInterval=40;
+        MaxLongVarcharSize=8190;
+        MaxVarcharSize=8190;
+        "
+
+    DisplayTimePassed ("Connecting to db...")
+
+    $Script:DatabaseConnection                   = New-Object System.Data.Odbc.OdbcConnection
+    $Script:DatabaseConnection.ConnectionString  = $DatabaseConnectionString
+    $Script:DatabaseConnection.ConnectionTimeout = 10
+
+    $informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-AllPlaces $event.Message }
+    $Script:DatabaseConnection.add_InfoMessage($informationalmessagehandler)
+
+    $Script:AttemptedToConnectToDatabase = $false
+    $Script:DatabaseConnectionIsOpen     = $false
+    try {
+        $Script:DatabaseConnection.Open();
+        $Script:DatabaseConnectionIsOpen = $true
+    } catch {
+        Show-Error -exitcode 3 -DontExit # dot includer can decide if having no db connection is bad or not.
+        $Script:DatabaseConnectionIsOpen = $false
+    }
+    $Script:AttemptedToConnectToDatabase = $true
+
+    DisplayTimePassed ("Connected to db")
+
+    if ($Script:DatabaseConnectionIsOpen) {
+        DisplayTimePassed ("Setting some session parameters...")
+        Invoke-Sql "SET application_name to '$($Script:ScriptName)'"|Out-Null
+        Invoke-Sql @"
+            SET search_path = $MyDatabaseSchema, "`$user", public;
+            /*  Set to support offload_published_directories_selecting_using_gui.ps1 when it 1) creates a transaction, 2) starts a massive file move op, and then 3) updates and commits the transaction.
+                This fails if it times out, still moves the files, but all the files tracking info is lost.
+                Note that I need all the SQL BEFORE the move files, since move files are not atomic and do not rollback.
+            */
+            SET SESSION idle_in_transaction_session_timeout = '60min';
+"@|Out-Null
+    }
+
+    $Script:Caller                   = 'ndef'
+            $scheduledTaskForProject = $pretest_assuming_false
+
+    if (-not(Test-Path variable:Script:__DISABLE_DETECTING_SCHEDULED_TASK) -and -not $Script:AreWeRunningInteractively) { # Over-engineered. Blocks "TestScheduleDrivenTaskDetection"
+        DisplayTimePassed ("Getting process tree...")
+        $processtree = @()
+        $process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $PID"              # SLOW! Only want for scheduled tasks
+        $processtree+= $process_enumerator
+        $process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $($process_enumerator.ParentProcessId)" # SLOW! Only want for scheduled tasks
+        $processtree+= $process_enumerator
+
+        DisplayTimePassed ("Finished getting process tree")
+
+        if ((Test-Path variable:Script:TestScheduleDrivenTaskDetection) -and $Script:TestScheduleDrivenTaskDetection) {
+            $Script:Caller      = "Windows Task Scheduler"
+            $Script:ScriptNameWithoutExtension = $Script:PretendMyFileNameWithoutExtensionIs # Fail if missing
+        } elseif ($processtree.Count -ge 2) {
+            $determinorOfCaller = $processtree[1]
+            if ($determinorOfCaller.Name -eq 'svchost.exe' -and $determinorOfCaller.CommandLine -ilike "*schedule*") {
+                $Script:Caller  = 'Windows Task Scheduler'
+            } elseif ($determinorOfCaller.Name -eq 'Code.exe') {
+                $Script:Caller  = 'Visual Code Editor'
+            } elseif ($determinorOfCaller.Name -eq 'Code - Insiders.exe') {
+                $Script:Caller  = 'Visual Code Editor'
+            } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {
+                $Script:Caller  = 'Command Line'
+            } else {
+                $Script:Caller  = ($determinorOfCaller.CommandLine)
+                Log-Line ($determinorOfCaller.CommandLine)
+                # Other callers could be the command line, JAMS, a bat file, another powershell script, that one at Simplot, the other one at Ivinci, the one at BofA
+            }
+        } else {
+            $processInfo = "n/a"
+            if ($processtree.Count -eq 1) {
+                $processInfo = $processtree[0].Name
+            }
+            Show-Error -message "Error: Unable to determine caller from processtree: $processInfo" -exitcode 6
+        }
+
+        DisplayTimePassed ("Determination of caller completed")
+
+        if ($Script:Caller -eq 'Windows Task Scheduler') {
+            $scheduledTaskForProject = $pretest_assuming_true
+
+            DisplayTimePassed ("Getting task detail...")
+
+            $getScheduledTaskDetailIfFound = WhileReadSql "
+                SELECT
+                    scheduled_task_root_directory
+                ,   scheduled_task_run_set_name
+                ,   script_position_in_lineup
+                FROM
+                    scheduled_tasks_ext_v
+                WHERE
+                    scheduled_task_name = '$($Script:ScriptNameWithoutExtension)'" -PreReadFirstRow
+
+            $fullScheduledTaskPath = "?"
+
+            if ($getScheduledTaskDetailIfFound[0] -and $null -ne $Script:scheduled_task_run_set_name) {
+                $scheduled_task_root_directory = "\$Script:scheduled_task_root_directory"
+                $scheduled_task_run_set_name   = "\$Script:scheduled_task_run_set_name"
+                $fullScheduledTaskPath         = "$scheduled_task_root_directory$scheduled_task_run_set_name\$($Script:ScriptNameWithoutExtension)"
+            } else {
+                $scheduled_task_run_set_name   = ""
+                $scheduled_task_root_directory = ""
+                $fullScheduledTaskPath         = (Get-ScheduledTask -TaskName $Script:ScriptNameWithoutExtension|Select URI).URI
+                $scheduledTaskForProject       = $false
+            }
+
+            $xmlToFilterGetWinEventsInvolvingTrigger = @"
+            <QueryList><Query Id="0"><Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name="TaskName"]="$fullScheduledTaskPath"]]</Select></Query></QueryList>
+"@
+            DisplayTimePassed ("Getting last interest event for current task...")
+
+            $lastEventsWhileRunningIs = Get-WinEvent -FilterXml $xmlToFilterGetWinEventsInvolvingTrigger -MaxEvents 100 -ErrorAction Ignore|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, ProcessId,
+            @{Name='ResultCode'; Expression = {
+                    if ($_.Id -in @(203,716,201,715,714,305,713,316,315,717,202,718,105,205,104,712,103,306,204,101,307,311,331,403,711,702,126,303,703,130,704,705,706,707,708,709,413,412,113,146,410,408,401,115,116,710,404,409,151,150,406,407,148,405,701)) {
+                                if ($_.Id -in @(716,715,717,718,712,702,703,704,705,413,412,410,408,115,710,409,406,407,405,701) -and $_.Version -eq 0) {
+                    $_.Properties[0].Value
+                    }          elseif ($_.Id -in @(714,713,316,315,105,205,306,204,307,403,711,126,130,707,709,113,146,401,116,404,150,148) -and $_.Version -eq 0) {
+                    $_.Properties[1].Value
+                    }          elseif ($_.Id -in @(305,104,101,331,303,706,708,151) -and $_.Version -eq 0) {
+                    $_.Properties[2].Value
+                    }          elseif ($_.Id -in @(203,202,103,311) -and $_.Version -eq 0) {
+                    $_.Properties[3].Value
+                    }          elseif ($_.Id -in @(201,202) -and $_.Version -eq 1) {
+                    $_.Properties[3].Value
+                    }          elseif ($_.Id -in @(201) -and $_.Version -eq 2) {
+                    $_.Properties[3].Value
+                    }
+                    }
+                }},
+                @{Name='UserContext'; Expression = {
+                    if ($_.Id -in @(110,100,101,106,330,102,103)) {
+                                if ($_.Id -in @(100,101,106,102) -and $_.Version -eq 0) {
+                    $_.Properties[1].Value
+                    }          elseif ($_.Id -in @(110,330,103) -and $_.Version -eq 0) {
+                    $_.Properties[2].Value
+                    }
+                    }
+                }},
+                @{Name='UserName'; Expression = {
+                    if ($_.Id -in @(124,134,119,133,141,121,142,104,122,120,123,125,332,140)) {
+                                if ($_.Id -in @(104) -and $_.Version -eq 0) {
+                    $_.Properties[0].Value
+                    }          elseif ($_.Id -in @(124,134,119,141,121,142,122,120,123,125,332,140) -and $_.Version -eq 0) {
+                    $_.Properties[1].Value
+                    }          elseif ($_.Id -in @(133) -and $_.Version -eq 0) {
+                    $_.Properties[2].Value
+                    }
+                    }
+                }},
+            ID|
+            Where-Object {$_.ID -in
+                107, <# Triggered on Scheduler (Message ends with "due to a time trigger condition")#>
+                108, <# Triggered on Event #>
+                109, <# Triggered by Registration #>
+                110, <# Triggered by User #>
+                117, <# Triggered on Idle #>
+                118, <# Triggered by Computer startup #>
+                119, <# Triggered on logon #>
+                120, <# Triggered on local console connect#>
+                121, <# Triggered on #>
+                122, <# Triggered on #>
+                123, <# Triggered on #>
+                124, <# Triggered on Locking workstation #>
+                125, <# Triggered on #>
+                126, <# Triggered on #>
+                127, <# Restarted On failure (Rejected) #>
+                145  <# Triggered by coming out of suspend mode #>
+            }|Select -First 1
+
+            DisplayTimePassed ("Completing getting last useful event for current task")
+            if ($null -ne $lastEventsWhileRunningIs) {
+                $Script:WindowsSchedulerTaskTriggeringEvent = $lastEventsWhileRunningIs
+            }
+            else {
+                $Script:WindowsSchedulerTaskTriggeringEvent = $null
+            }
+        }
+    }
+
+} ##### Function main_dot_include_standard_header() {
+
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function DisplayTimePassed($point) {
-    $now = (Get-Date)
-    $timepassed = $Script:LastDisplayedTimeElapsed - $now
+            $now                     = (Get-Date)
+            $timepassed              = $Script:LastDisplayedTimeElapsed - $now
     $Script:LastDisplayedTimeElapsed = $now
-    $timepassedString = $timepassed.Humanize()
+            $timepassedString        = $timepassed.Humanize()
     Write-Host "$point`: $timepassedString"
 }
-$Script:DEFAULT_POWERSHELL_TIMESTAMP_FORMAT       = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    Restrict to ONLY 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6, which then causes mismatches between timestamps in database with timestamps on files. They were always off by 4 100ths nanoseconds, and caused massive thrashing.
-$Script:pretest_assuming_true                     = $true
-$Script:pretest_assuming_false                    = $false
 
-DisplayTimePassed ("Start")
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
 
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 2 - Load configuration file
-#####################################################################################################################################################################################################################################################
+.DESCRIPTION
+Long description
 
-$Script:ProjectRoot                               = (Get-Location).Path                                                   # D:\qt_projects\filmcab. May be to do with WorkingDirectory setting in Windows Task Scheduler for Exec commands.
-$Script:PathToConfig                              = $ProjectRoot + '\config.json'
-$Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json)           # Will fail if not exist, which is the desired outcome.
-$Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json)
-$Script:SUPER_SECRET_SQUIRREL                     = (Get-Content -Path ($ProjectRoot + '\SUPER_SECRET_SQUIRREL.json') | ConvertFrom-Json) # Too on the nose?
+.PARAMETER variableName
+Parameter description
 
-DisplayTimePassed ("Loaded configs")
+.PARAMETER singularLabel
+Parameter description
 
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 3 - Get Script Name and Path
-# Dependencies: None
-#####################################################################################################################################################################################################################################################
+.PARAMETER pluralLabel
+Parameter description
 
-$Script:MasterScriptPath                          = $MyInvocation.ScriptName                               # This is null if you are running this dot include directly.
-if ([String]::IsNullOrEmpty($MasterScriptPath)) {
-    $Script:MasterScriptPath                      = $MyInvocation.Line
-}
-$Script:MasterScriptPath                          = if ($Script:MasterScriptPath.StartsWith(". .\")) { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
-$Script:MasterScriptPath                          = if ($Script:MasterScriptPath.StartsWith(". '"))  { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
-$Script:MasterScriptPath                          = $Script:MasterScriptPath.Trim("'")
-Test-Path $Script:MasterScriptPath
-$Script:FileTimeStampForParentScript              = (Get-Item -Path $Script:MasterScriptPath).LastWriteTime
-$Script:ScriptName                                = (Get-Item -Path $Script:MasterScriptPath).Name       # Unlike "BaseName" this includes the extension
-$Script:ScriptNameWithoutExtension                = (Get-Item -Path $Script:MasterScriptPath).BaseName   # Base name is nice for labelling and searching scheduler tasks
-$Script:ScriptRoot                                = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
-if ($null -eq $Script:ScriptRoot) {
-    $Script:ScriptRoot                            = (Get-Item -Path $masterScriptPath).DirectoryName
-}
-$Script:LogDirectory                              = "$Script:ScriptRoot\_log"
-New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
-$Script:LogFileName                               = $Script:ScriptName + '.log.txt'
-$Script:LogFilePath                               = $Script:LogDirectory + '\' + $Script:LogFileName
+.EXAMPLE
+An example
 
-DisplayTimePassed ("Finished script path identification")
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 4 - Start Transcript
-# Dependent on: ScriptName, LogDirectory
-#####################################################################################################################################################################################################################################################
-
-$Script:TranscriptFileName                        = $Script:ScriptName + '.transcript.log.txt'
-$Script:TranscriptFilePath                        = $Script:LogDirectory + '\' + $Script:TranscriptFileName
-
-Remove-Item -Path $Script:TranscriptFilePath -Force -ErrorAction Ignore # Otherwise, in Core it will just keep appending. Bug? Or an issue when in VS Code?
-
-$tryToStartTranscriptAttempts                     = 0
-while ($tryToStartTranscriptAttempts -lt 3) {
-    try {
-        $tryToStartTranscriptAttempts++
-        Start-Transcript -Path $Script:TranscriptFilePath -IncludeInvocationHeader
-        break
-    }
-    catch [System.IO.IOException] {
-        try { Stop-Transcript} catch {}
-        Start-Sleep -Milliseconds 10.0
-    }
-}
-
-DisplayTimePassed ("Started transcript")
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 5 - Start Log
-#####################################################################################################################################################################################################################################################
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Write-LogLineToFile {
     param([string]$text, [hashtable]$arguments)
     #"HERE"| Out-File "$ScriptRoot\text.txt" -Encoding utf8 -Append
@@ -110,6 +391,28 @@ Function Write-LogLineToFile {
     # TOO SLOW!!! Write-VolumeCache D # So that log stuff gets written out in case of fatal crash
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Log-Line {
     [CmdletBinding()]
     param(
@@ -150,36 +453,30 @@ Function Log-Line {
     }
 }
 
-$Script:DSTTag                                              = If (($Script:SnapshotMasterRunDate).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up ordering.
-$Script:PSVersion                                           = $PSVersionTable.PSVersion                       # 7.5.0-preview.2
-$Script:PS_Edition                                          = $PSVersionTable.PSEdition                       # Core
-$Script:CommandOrigin                                       = $MyInvocation.CommandOrigin                     # Internal
-$Script:CurrentFunction                                     = $MyInvocation.MyCommand                         # _dot_include_standard_header.v2.ps1
-$Script:InvokationName                                      = $MyInvocation.InvocationName                    # always "." when included or ran direct.
 
-Log-Line "Starting Log $($Script:SnapshotMasterRunDate) on $(($Script:SnapshotMasterRunDate).DayOfWeek) $($Script:DSTTag) in $(($Script:SnapshotMasterRunDate).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
-Log-Line "`$ScriptFullPath: $Script:MasterScriptPath, `$PSVersion = $($Script:PSVersion), `$PSEdition = $($Script:PSEdition), `$CommandOrigin = $($Script:CommandOrigin), Current Function = $($Script:CurrentFunction)"
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
 
-$basePath                                                   = 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
-$Script:amRunningAsAdmin                                    = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-DisplayTimePassed ("Identified admin status")
+.DESCRIPTION
+Long description
 
-if(-not (Test-Path $basePath)) {
-    $null = New-Item $basePath -Force
-    New-ItemProperty $basePath -Name "EnableScriptBlockLogging" -PropertyType Dword
-    New-ItemProperty $basePath -Name "EnableInvocationHeader" -PropertyType Dword
-    New-ItemProperty $basePath -Name "OutputDirectory" -PropertyType String
-}
+.PARAMETER variableName
+Parameter description
 
+.PARAMETER singularLabel
+Parameter description
 
-if ($amRunningAsAdmin) {
-    Set-ItemProperty $basePath -Name "EnableScriptBlockLogging" -Value "1"
-    Set-ItemProperty $basePath -Name "EnableInvocationHeader" -Value "1"
-    Set-ItemProperty $basePath -Name "OutputDirectory" -Value $Script:LogDirectory
-}
+.PARAMETER pluralLabel
+Parameter description
 
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 $Script:CurrentXPosInTerminal = 0
-
 Function Write-AllPlaces {
     param(
     [string]$s,
@@ -207,6 +504,28 @@ Function Write-AllPlaces {
     }
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Get-CRC32 {
     [CmdletBinding()]
     param (
@@ -266,6 +585,28 @@ Function Get-CRC32 {
     }
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 $_EXITCODE_UNTRAPPED_EXCEPTION           = 4001
 $_EXITCODE_GENERIC_AND_USELESS_EXCEPTION = -2146233087
 $_EXITCODE_VARIABLE_NOT_FOUND            = 15631964        # Get-CRC32 -shr 8
@@ -353,6 +694,28 @@ Function Show-Error {
     return $exitcode
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Assert-MeaningfulString([string]$s, $varname = 'string') {
     if ($null -eq $s){                            # Inquiring minds want to know.  Send me 4 spaces?  Big clue.  Not the same as being sent a null.
         throw "Your $varname is null."
@@ -365,224 +728,54 @@ Function Assert-MeaningfulString([string]$s, $varname = 'string') {
     }
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Has-Property ($sourceob, $prop) {
     return @($sourceob.PSObject.Properties|Where Name -eq "$prop").Count -eq 1
 }
 
-DisplayTimePassed ("Including sql functions...")
-. .\_dot_include_standard_header_sql_functions.ps1
-DisplayTimePassed ("Sql functions included")
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
 
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 6 - Connect Database
-#####################################################################################################################################################################################################################################################
+.DESCRIPTION
+Long description
 
-$MyOdbcDatabaseDriver    = "$($Config.database_driver)"
-$MyDatabaseServer        = "$($Config.database_server_ip_address)";
-$MyDatabaseServerPort    = "$($Config.database_server_port)";
-$MyDatabaseName          = "$($Config.database)";
-$MyDatabaseUserName      = "$($Config.database_user)";
-$MyDatabaseUsersPassword = "$($Config.database_password)"
-$MyDatabaseSchema        = "$($Config.database_schema)"
+.PARAMETER variableName
+Parameter description
 
-# https://odbc.postgresql.org/docs/config-opt.html
+.PARAMETER singularLabel
+Parameter description
 
-$DatabaseConnectionString = "
-    Driver={$MyOdbcDatabaseDriver};
-    Servername=$MyDatabaseServer;
-    Port=$MyDatabaseServerPort;
-    Database=$MyDatabaseName;
-    Username=$MyDatabaseUserName;
-    Password=$MyDatabaseUsersPassword;
-    Parse=True;
-    OptionalErrors=True;
-    BoolsAsChar=False;
-    KeepaliveTime=30;
-    KeepaliveInterval=40;
-    MaxLongVarcharSize=8190;
-    MaxVarcharSize=8190;
-    "
+.PARAMETER pluralLabel
+Parameter description
 
-DisplayTimePassed ("Connecting to db...")
+.EXAMPLE
+An example
 
-$Script:DatabaseConnection                   = New-Object System.Data.Odbc.OdbcConnection
-$Script:DatabaseConnection.ConnectionString  = $DatabaseConnectionString
-$Script:DatabaseConnection.ConnectionTimeout = 10
-
-$informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-AllPlaces $event.Message }
-$Script:DatabaseConnection.add_InfoMessage($informationalmessagehandler)
-
-$Script:AttemptedToConnectToDatabase = $false
-$Script:DatabaseConnectionIsOpen     = $false
-try {
-    $Script:DatabaseConnection.Open();
-    $Script:DatabaseConnectionIsOpen = $true
-} catch {
-    Show-Error -exitcode 3 -DontExit # dot includer can decide if having no db connection is bad or not.
-    $Script:DatabaseConnectionIsOpen = $false
-}
-$Script:AttemptedToConnectToDatabase = $true
-
-DisplayTimePassed ("Connected to db")
-
-if ($Script:DatabaseConnectionIsOpen) {
-    DisplayTimePassed ("Setting some session parameters...")
-    Invoke-Sql "SET application_name to '$($Script:ScriptName)'"|Out-Null
-    Invoke-Sql @"
-        SET search_path = $MyDatabaseSchema, "`$user", public;
-        /*  Set to support offload_published_directories_selecting_using_gui.ps1 when it 1) creates a transaction, 2) starts a massive file move op, and then 3) updates and commits the transaction.
-            This fails if it times out, still moves the files, but all the files tracking info is lost.
-            Note that I need all the SQL BEFORE the move files, since move files are not atomic and do not rollback.
-        */
-        SET SESSION idle_in_transaction_session_timeout = '60min';
-"@|Out-Null
-}
-
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 7 - Detect Caller
-# Dependencies: PID
-#####################################################################################################################################################################################################################################################
-
-DisplayTimePassed ("Getting process tree...")
-$processtree = @()
-$process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $PID"
-$processtree+= $process_enumerator
-$process_enumerator = Get-CimInstance -Class Win32_Process -Filter "ProcessId = $($process_enumerator.ParentProcessId)"
-$processtree+= $process_enumerator
-
-DisplayTimePassed ("Finished getting process tree")
-
-$Script:Caller = 'ndef'
-if ((Test-Path variable:Script:TestScheduleDrivenTaskDetection) -and $Script:TestScheduleDrivenTaskDetection) {
-    $Script:Caller      = "Windows Task Scheduler"
-    $Script:ScriptNameWithoutExtension = $Script:PretendMyFileNameWithoutExtensionIs # Fail if missing
-} elseif ($processtree.Count -ge 2) {
-    $determinorOfCaller = $processtree[1]
-    if ($determinorOfCaller.Name -eq 'svchost.exe' -and $determinorOfCaller.CommandLine -ilike "*schedule*") {
-        $Script:Caller  = 'Windows Task Scheduler'
-    } elseif ($determinorOfCaller.Name -eq 'Code.exe') {
-        $Script:Caller  = 'Visual Code Editor'
-    } elseif ($determinorOfCaller.Name -eq 'Code - Insiders.exe') {
-        $Script:Caller  = 'Visual Code Editor'
-    } elseif ($determinorOfCaller.CommandLine -ilike "cmd *") {
-        $Script:Caller  = 'Command Line'
-    } else {
-        $Script:Caller  = ($determinorOfCaller.CommandLine)
-        Log-Line ($determinorOfCaller.CommandLine)
-        # Other callers could be the command line, JAMS, a bat file, another powershell script, that one at Simplot, the other one at Ivinci, the one at BofA
-    }
-} else {
-    $processInfo = "n/a"
-    if ($processtree.Count -eq 1) {
-        $processInfo = $processtree[0].Name
-    }
-    Show-Error -message "Error: Unable to determine caller from processtree: $processInfo" -exitcode 6
-}
-
-DisplayTimePassed ("Determination of caller completed")
-
-$scheduledTaskForProject = $pretest_assuming_false
-
-if ($Script:Caller -eq 'Windows Task Scheduler') {
-    $scheduledTaskForProject = $pretest_assuming_true
-
-    DisplayTimePassed ("Getting task detail...")
-
-    $getScheduledTaskDetailIfFound = WhileReadSql "
-        SELECT
-            scheduled_task_root_directory
-        ,   scheduled_task_run_set_name
-        ,   script_position_in_lineup
-        FROM
-            scheduled_tasks_ext_v
-        WHERE
-            scheduled_task_name = '$($Script:ScriptNameWithoutExtension)'" -PreReadFirstRow
-
-    $fullScheduledTaskPath = "?"
-
-    if ($getScheduledTaskDetailIfFound[0] -and $null -ne $Script:scheduled_task_run_set_name) {
-        $scheduled_task_root_directory = "\$Script:scheduled_task_root_directory"
-        $scheduled_task_run_set_name   = "\$Script:scheduled_task_run_set_name"
-        $fullScheduledTaskPath         = "$scheduled_task_root_directory$scheduled_task_run_set_name\$($Script:ScriptNameWithoutExtension)"
-    } else {
-        $scheduled_task_run_set_name   = ""
-        $scheduled_task_root_directory = ""
-        $fullScheduledTaskPath         = (Get-ScheduledTask -TaskName $Script:ScriptNameWithoutExtension|Select URI).URI
-        $scheduledTaskForProject       = $false
-    }
-
-    $xmlToFilterGetWinEventsInvolvingTrigger = @"
-    <QueryList><Query Id="0"><Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name="TaskName"]="$fullScheduledTaskPath"]]</Select></Query></QueryList>
-"@
-    DisplayTimePassed ("Getting last 100 events for current task...")
-
-    $lastEventsWhileRunningIs = Get-WinEvent -FilterXml $xmlToFilterGetWinEventsInvolvingTrigger -MaxEvents 100 -ErrorAction Ignore|Select Message, TaskDisplayName, TimeCreated, RecordId, ActivityId, ThreadId, ProcessId,
-    @{Name='ResultCode'; Expression = {
-            if ($_.Id -in @(203,716,201,715,714,305,713,316,315,717,202,718,105,205,104,712,103,306,204,101,307,311,331,403,711,702,126,303,703,130,704,705,706,707,708,709,413,412,113,146,410,408,401,115,116,710,404,409,151,150,406,407,148,405,701)) {
-                        if ($_.Id -in @(716,715,717,718,712,702,703,704,705,413,412,410,408,115,710,409,406,407,405,701) -and $_.Version -eq 0) {
-            $_.Properties[0].Value
-            }          elseif ($_.Id -in @(714,713,316,315,105,205,306,204,307,403,711,126,130,707,709,113,146,401,116,404,150,148) -and $_.Version -eq 0) {
-            $_.Properties[1].Value
-            }          elseif ($_.Id -in @(305,104,101,331,303,706,708,151) -and $_.Version -eq 0) {
-            $_.Properties[2].Value
-            }          elseif ($_.Id -in @(203,202,103,311) -and $_.Version -eq 0) {
-            $_.Properties[3].Value
-            }          elseif ($_.Id -in @(201,202) -and $_.Version -eq 1) {
-            $_.Properties[3].Value
-            }          elseif ($_.Id -in @(201) -and $_.Version -eq 2) {
-            $_.Properties[3].Value
-            }
-            }
-        }},
-        @{Name='UserContext'; Expression = {
-            if ($_.Id -in @(110,100,101,106,330,102,103)) {
-                        if ($_.Id -in @(100,101,106,102) -and $_.Version -eq 0) {
-            $_.Properties[1].Value
-            }          elseif ($_.Id -in @(110,330,103) -and $_.Version -eq 0) {
-            $_.Properties[2].Value
-            }
-            }
-        }},
-        @{Name='UserName'; Expression = {
-            if ($_.Id -in @(124,134,119,133,141,121,142,104,122,120,123,125,332,140)) {
-                        if ($_.Id -in @(104) -and $_.Version -eq 0) {
-            $_.Properties[0].Value
-            }          elseif ($_.Id -in @(124,134,119,141,121,142,122,120,123,125,332,140) -and $_.Version -eq 0) {
-            $_.Properties[1].Value
-            }          elseif ($_.Id -in @(133) -and $_.Version -eq 0) {
-            $_.Properties[2].Value
-            }
-            }
-        }},
-    ID|
-    Where-Object {$_.ID -in
-        107, <# Triggered on Scheduler (Message ends with "due to a time trigger condition")#>
-        108, <# Triggered on Event #>
-        109, <# Triggered by Registration #>
-        110, <# Triggered by User #>
-        117, <# Triggered on Idle #>
-        118, <# Triggered by Computer startup #>
-        119, <# Triggered on logon #>
-        120, <# Triggered on local console connect#>
-        121, <# Triggered on #>
-        122, <# Triggered on #>
-        123, <# Triggered on #>
-        124, <# Triggered on Locking workstation #>
-        125, <# Triggered on #>
-        126, <# Triggered on #>
-        127, <# Restarted On failure (Rejected) #>
-        145  <# Triggered by coming out of suspend mode #>
-    }|Select -First 1
-
-    DisplayTimePassed ("Completing getting last useful event for current task")
-    if ($null -ne $lastEventsWhileRunningIs) {
-        $Script:WindowsSchedulerTaskTriggeringEvent = $lastEventsWhileRunningIs
-    }
-    else {
-        $Script:WindowsSchedulerTaskTriggeringEvent = $null
-    }
-}
-
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Get-LastEventsForTask ($fullScheduledTaskPath, $howManyEvents = 1, [Switch]$LastRunOnly) {
     $xmlToFilterGetWinEventsInvolvingTrigger = @"
     <QueryList><Query Id="0"><Select Path="Microsoft-Windows-TaskScheduler/Operational">*[EventData[Data[@Name="TaskName"]="$fullScheduledTaskPath"]]</Select></Query></QueryList>
@@ -851,7 +1044,7 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
     } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
         DisplayTimePassed ("Ending(?) session entry...")
         if ($triggerType -eq 'event') {
-            if ($null -ne $Script:active_batch_run_session_id) {
+            if ($null -eq $Script:active_batch_run_session_id) {
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
                 # For safety, in case using the "running" flag fails.
                 Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
@@ -896,6 +1089,28 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
     }
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function End-BatchRunSessionTaskEntry() {
     if ((Test-Path variable:Script:batch_run_session_task_id) -and
         (Test-Path variable:script:active_batch_run_session_id)) {
@@ -914,45 +1129,90 @@ Function End-BatchRunSessionTaskEntry() {
             UPDATE
                 batch_run_session_tasks_v
             SET
-              running = false
+                running = false
             , ended   = CURRENT_TIMESTAMP
             WHERE
                 batch_run_session_task_id = $tied_batch_run_session_task
             " -OneAndOnlyOne
         }
 }
-#####################################################################################################################################################################################################################################################
-# Bootstrap Final steps, no dependencies. Define global constants
-#####################################################################################################################################################################################################################################################
 
-DisplayTimePassed ("Get Tpm status...")
-$Script:TpmStatus                                           = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
-$Script:MyComputerName                                      = $env:COMPUTERNAME     # DSKTP-HOME-JEFF
-$Script:OneDriveDirectory                                   = $env:OneDrive         # D:\OneDrive
-$Script:OSUserName                                          = $env:USERNAME         # jeffs
-$Script:OSUserFiles                                         = $env:USERPROFILE      # C:\Users\jeffs
-$Script:DEFAULT_POSTGRES_TIMESTAMP_FORMAT                   = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
-$Script:DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
-$Script:CurrentDebugSessionNo                               = $MyInvocation.HistoryId
-DisplayTimePassed ("Finished getting Tpm status")
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
 
-# Do we need?
+.DESCRIPTION
+Long description
 
-#. .\_dot_include_standard_header_helper_functions.ps1
-#####################################################################################################################################################################################################################################################
-# Bootstrap Final steps, interdependent on each other. Helper functions for includers.
-#####################################################################################################################################################################################################################################################
+.PARAMETER variableName
+Parameter description
 
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function TrimToMicroseconds([datetime]$date) # Format only for PowerShell! Not Postgres!
 {
     # Only way I know to flush micro AND nanoseconds is to convert to string and back. And adding negative microseconds back leaves trailing Nanoseconds, which have no function to clear.  Can't add negative Nanoseconds.
     [DateTime]::ParseExact($date.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "yyyy-MM-dd HH:mm:ss.ffffff", $null)
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Least([array]$things) {
     return ($things|Measure -Minimum).Minimum
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Right([string]$val, [int32]$howManyChars = 1) {
     if ([String]::IsNullOrEmpty($val)) {
         return $null
@@ -962,6 +1222,28 @@ Function Right([string]$val, [int32]$howManyChars = 1) {
     return $val.Substring($val.Length - $actualLengthWeWillGet)
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Left([string]$val, [int32]$howManyChars = 1) {
     if ([String]::IsNullOrEmpty($val)) {
         # Made up rule: Empty doesn't have a Leftmost character. $null should break the caller.  Returning an empty string as "leftmost character" is a fudge, and causes problems.
@@ -971,6 +1253,28 @@ Function Left([string]$val, [int32]$howManyChars = 1) {
     return $val.Substring(0,$actualLengthWeWillGet)
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralLabel = $null, [switch]$includeCount, [string]$variableName = $null) {
     $ct = ""
 
@@ -1036,6 +1340,28 @@ Function Format-Plural ([string]$singularLabel, [Int64]$number, [string]$pluralL
     return ($ct + $singularLabel)
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Format-Humanize([Diagnostics.Stopwatch]$ob) {
     [timespan]$elapsed = $ob.Elapsed
 
@@ -1067,6 +1393,28 @@ Function NullIf([string]$val, [string]$ifthis = '') {
     return $val
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function __TICK ($tick_emoji) {
     # Only write to terminal if not a scheduled task run
     if ($Script:Caller -ne 'Windows Task Scheduler') {
@@ -1084,6 +1432,28 @@ $SOUGHT_OBJECT_NOT_FOUND             = '😱'; Function _TICK_Sought_Object_Not_
 $UPDATE_OBJECT_STATUS                = '🚩'; Function _TICK_Update_Object_Status                {__TICK $UPDATE_OBJECT_STATUS}
 $IMPOSSIBLE_OUTCOME                  = '🤷‍♂️'; Function _TICK_Impossible_Outcome                  {__TICK $IMPOSSIBLE_OUTCOME}
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 $Script:WriteCounts = @([PSCustomObject]@{
     CountLabel = '';
     Count      = 0;
@@ -1157,6 +1527,28 @@ Function Write-Count ([string]$variableName = $null, [string]$singularLabel, [st
     }
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Convert-SidToUser {
     param($sidString)
     try {
@@ -1168,11 +1560,55 @@ Function Convert-SidToUser {
     }
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Convert-ByteArrayToHexString ([byte[]] $bytearray) {
     if ($null -eq $bytearray) {return $null}
     return @($bytearray|Format-Hex|Select ascii).Ascii -join ''
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Fill-Property ($targetob, $sourceob, $prop) {
     # TODO: Add property if not found.
     # TODO: take in an array of properties all at once!!!!
@@ -1194,10 +1630,54 @@ Function Fill-Property ($targetob, $sourceob, $prop) {
     }
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function HumanizeCount([Int64]$i) {
     return [string]::Format('{0:N0}', $i)
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function EllipseString($string, $cutoff) {
     if ($string.Length -lt $cutoff) {
         return $string
@@ -1206,6 +1686,28 @@ Function EllipseString($string, $cutoff) {
     return "$($string.Substring(0, $cutoff-3))..."
 }
 
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function ReplaceAll($string, $what, $with) {
     if ([string]::IsNullOrEmpty($what)) {return $string}
     if ($null -eq $with) {return $string}
@@ -1220,6 +1722,28 @@ Function ReplaceAll($string, $what, $with) {
 }
 # Version (untested) with progress bars.
 # Question: What is a PSDrive?
+<#########################################################################################################################################################################################################
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER variableName
+Parameter description
+
+.PARAMETER singularLabel
+Parameter description
+
+.PARAMETER pluralLabel
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+##########################################################################################################################################################################################################>
 Function Copy-File {
     param( [string]$from, [string]$to)
     $ffile = [io.file]::OpenRead($from)
@@ -1244,6 +1768,9 @@ Function Copy-File {
         Write-Progress -Activity "Copying file" -Status "Ready" -Completed
     }
 }
+
+main_dot_include_standard_header
+
 DisplayTimePassed ("Finished header.")
 
 Log-Line "Exiting standard_header v2"
