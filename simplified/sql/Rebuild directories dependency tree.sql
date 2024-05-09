@@ -1,7 +1,14 @@
 -- simplified.directories_ext_v source
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP VIEW IF EXISTS files_linked_across_search_directories_v CASCADE;
 DROP VIEW IF EXISTS simplified.directories_v CASCADE;
+DROP VIEW IF EXISTS files_ext_v CASCADE;
+DROP VIEW IF EXISTS files_v CASCADE;
+DROP VIEW IF EXISTS files_media_info_ext_v CASCADE;
+CREATE COLLATION IF NOT EXISTS ignore_both_accent_and_case (provider = icu, deterministic = false, locale = 'und-u-ks-level1');
+ALTER TABLE files ALTER COLUMN final_extension SET DATA TYPE TEXT COLLATE "ignore_both_accent_and_case";
+
 CREATE OR REPLACE VIEW simplified.directories_v AS 
 SELECT 
     d.directory_id,
@@ -98,7 +105,6 @@ COMMENT ON VIEW simplified.directories_ext_v IS 'Directories combined volume and
  -- simplified.files_ext_v source
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 CREATE OR REPLACE VIEW simplified.files_ext_v
 AS WITH base AS (SELECT 
     f.file_id                                                                                                                                                AS file_id,        
@@ -181,7 +187,6 @@ COMMENT ON VIEW simplified.files_ext_v IS 'file info with directory detail. A lo
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- simplified.files_v source
-DROP VIEW IF EXISTS simplified.files_v;
 CREATE OR REPLACE VIEW simplified.files_v
 AS SELECT files.file_id,
     files.file_hash,
@@ -364,7 +369,6 @@ FROM
     files_media_info
 ;
    
-DROP VIEW IF EXISTS files_media_info_ext_v;
 CREATE OR REPLACE VIEW files_media_info_ext_v AS
 SELECT
      file_id
@@ -512,3 +516,105 @@ SELECT
 FROM
     files_media_info JOIN files_ext_v files using(file_id)
 ;
+-- simplified.files_linked_across_search_directories_v source
+
+CREATE OR REPLACE VIEW simplified.files_linked_across_search_directories_v
+AS WITH base AS (
+         SELECT files.file_id,
+            files.file_hash,
+            files.file_name_no_ext,
+            files.final_extension,
+            files.deleted,
+            files.is_symbolic_link,
+            files.is_hard_link,
+            files.linked_path,
+            files.broken_link,
+            files.file_size,
+            files.file_date,
+            search_directories.tag
+           FROM files
+             JOIN directories directories(directory_hash, directory_path, folder, parent_directory_hash, parent_folder, grandparent_folder, root_genre, sub_genre, directory_date, volume_id, is_symbolic_link, is_junction_link, linked_path, link_directory_still_exists, scan_directory, deleted, search_path_id, move_id, directory_id, moved_out, moved_in, moved_to_directory_hash, moved_to_volume_id, moved_from_directory_hash, moved_from_volume_id, moved_from_directory_id) USING (directory_hash)
+             JOIN search_directories search_directories(search_path_id, search_directory, extensions_to_grab, primary_function_of_entry, file_names_can_be_changed, tag, volume_id, directly_deletable, size_of_drive_in_bytes, space_left_on_drive_in_bytes, skip_hash_generation) USING (search_path_id)
+        ), payload_files AS (
+         SELECT base.file_id,
+            base.file_hash,
+            base.file_name_no_ext,
+            base.final_extension,
+            base.deleted,
+            base.is_symbolic_link,
+            base.is_hard_link,
+            base.linked_path,
+            base.broken_link,
+            base.file_size,
+            base.file_date,
+            base.tag
+           FROM base
+          WHERE base.tag::text = 'payload'::text
+        ), published_files AS (
+         SELECT base.file_id,
+            base.file_hash,
+            base.file_name_no_ext,
+            base.final_extension,
+            base.deleted,
+            base.is_symbolic_link,
+            base.is_hard_link,
+            base.linked_path,
+            base.broken_link,
+            base.file_size,
+            base.file_date,
+            base.tag
+           FROM base
+          WHERE base.tag::text = 'published'::text
+        ), backup_files AS (
+         SELECT base.file_id,
+            base.file_hash,
+            base.file_name_no_ext,
+            base.final_extension,
+            base.deleted,
+            base.is_symbolic_link,
+            base.is_hard_link,
+            base.linked_path,
+            base.broken_link,
+            base.file_size,
+            base.file_date,
+            base.tag
+           FROM base
+          WHERE base.tag::text = 'backup'::text
+        ), payload_to_published AS (
+         SELECT COALESCE(payload_files.file_hash, published_files.file_hash) AS file_hash,
+            payload_files.file_name_no_ext AS pay_file_name_no_ext,
+            published_files.file_name_no_ext AS pub_file_name_no_ext,
+            payload_files.final_extension AS pay_final_extension,
+            published_files.final_extension AS pub_final_extension,
+            payload_files.file_id AS payload_file_id,
+            payload_files.deleted AS payload_file_deleted,
+            published_files.file_id AS published_file_id,
+            published_files.deleted AS published_file_deleted
+           FROM payload_files
+             FULL JOIN published_files USING (file_hash)
+        ), payload_pub_to_backup AS (
+         SELECT COALESCE(a.file_hash, b.file_hash) AS file_hash,
+            a.pay_file_name_no_ext,
+            a.pub_file_name_no_ext,
+            b.file_name_no_ext,
+            a.payload_file_id,
+            a.published_file_id,
+            b.file_id AS backup_file_id,
+            a.payload_file_deleted,
+            a.published_file_deleted,
+            b.deleted AS backup_file_deleted
+           FROM payload_to_published a
+             FULL JOIN backup_files b USING (file_hash)
+        )
+ SELECT payload_pub_to_backup.file_hash,
+    payload_pub_to_backup.pay_file_name_no_ext,
+    payload_pub_to_backup.pub_file_name_no_ext,
+    payload_pub_to_backup.file_name_no_ext,
+    payload_pub_to_backup.payload_file_id,
+    payload_pub_to_backup.published_file_id,
+    payload_pub_to_backup.backup_file_id,
+    payload_pub_to_backup.payload_file_deleted,
+    payload_pub_to_backup.published_file_deleted,
+    payload_pub_to_backup.backup_file_deleted
+   FROM payload_pub_to_backup;
+   
