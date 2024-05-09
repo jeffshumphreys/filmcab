@@ -37,6 +37,51 @@ COMMENT ON SCHEMA simplified IS 'Absolute reduction of all the many sources that
 
 
 --
+-- Name: ignore_accent_case; Type: COLLATION; Schema: simplified; Owner: postgres
+--
+
+CREATE COLLATION simplified.ignore_accent_case (provider = icu, deterministic = false, locale = 'und-u-ks-level1');
+
+
+ALTER COLLATION simplified.ignore_accent_case OWNER TO postgres;
+
+--
+-- Name: ignore_accents; Type: COLLATION; Schema: simplified; Owner: postgres
+--
+
+CREATE COLLATION simplified.ignore_accents (provider = icu, deterministic = false, locale = 'und-u-ks-level1-kc-true');
+
+
+ALTER COLLATION simplified.ignore_accents OWNER TO postgres;
+
+--
+-- Name: ignore_both_accent_and_case; Type: COLLATION; Schema: simplified; Owner: postgres
+--
+
+CREATE COLLATION simplified.ignore_both_accent_and_case (provider = icu, deterministic = false, locale = 'und-u-ks-level1');
+
+
+ALTER COLLATION simplified.ignore_both_accent_and_case OWNER TO postgres;
+
+--
+-- Name: level3; Type: COLLATION; Schema: simplified; Owner: postgres
+--
+
+CREATE COLLATION simplified.level3 (provider = icu, deterministic = false, locale = 'und-u-ka-shifted-ks-level3');
+
+
+ALTER COLLATION simplified.level3 OWNER TO postgres;
+
+--
+-- Name: ndcoll; Type: COLLATION; Schema: simplified; Owner: postgres
+--
+
+CREATE COLLATION simplified.ndcoll (provider = icu, deterministic = false, locale = 'und');
+
+
+ALTER COLLATION simplified.ndcoll OWNER TO postgres;
+
+--
 -- Name: computer_os_type_enum; Type: TYPE; Schema: simplified; Owner: postgres
 --
 
@@ -1474,7 +1519,7 @@ ALTER SEQUENCE simplified.file_attributes_file_attribute_id_seq OWNED BY simplif
 
 CREATE TABLE simplified.file_extensions (
     file_extension_id smallint NOT NULL,
-    file_extension public.citext NOT NULL,
+    file_extension text NOT NULL,
     file_extension_name text,
     file_extension_notes text,
     file_is_media_content boolean,
@@ -1682,7 +1727,7 @@ CREATE TABLE simplified.files (
     file_hash bytea NOT NULL,
     directory_hash bytea NOT NULL,
     file_name_no_ext text NOT NULL,
-    final_extension text NOT NULL,
+    final_extension text NOT NULL COLLATE simplified.ignore_both_accent_and_case,
     file_size bigint NOT NULL,
     file_date timestamp with time zone NOT NULL,
     deleted boolean,
@@ -3788,6 +3833,215 @@ ALTER TABLE simplified.search_terms ALTER COLUMN search_term_id ADD GENERATED AL
 
 
 --
+-- Name: torrents; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.torrents (
+    torrent_id bigint NOT NULL,
+    from_torrent_stage_batch_id integer,
+    from_torrent_stage_id bigint,
+    added_to_this_table timestamp with time zone DEFAULT clock_timestamp(),
+    load_batch_timestamp timestamp with time zone,
+    load_batch_id integer,
+    found_missing_on timestamp with time zone,
+    addedon timestamp with time zone,
+    amountleft bigint,
+    amountleft_original bigint,
+    autotmm boolean,
+    availability double precision,
+    availability_original double precision,
+    category text,
+    completed bigint,
+    completionon timestamp with time zone,
+    contentpath text,
+    dllimit bigint,
+    dlspeed bigint,
+    downloaded bigint,
+    downloaded_original bigint,
+    downloadedsession bigint,
+    downloadpath text,
+    eta bigint,
+    eta_original bigint,
+    flpieceprio boolean,
+    forcestart boolean,
+    hash text,
+    inactiveseedingtimelimit bigint,
+    infohashv1 text,
+    infohashv2 text,
+    lastactivity timestamp with time zone,
+    lastactivity_original timestamp with time zone,
+    magneturi text,
+    maxinactiveseedingtime bigint,
+    maxratio double precision,
+    maxseedingtime bigint,
+    name text,
+    numcomplete bigint,
+    numcomplete_original bigint,
+    numincomplete bigint,
+    numincomplete_original bigint,
+    numleechs bigint,
+    numleechs_original bigint,
+    numseeds bigint,
+    numseeds_original bigint,
+    priority bigint,
+    progress double precision,
+    progress_original double precision,
+    ratio double precision,
+    ratio_original double precision,
+    ratiolimit double precision,
+    savepath text,
+    seedingtime bigint,
+    seedingtime_original bigint,
+    seedingtimelimit bigint,
+    seencomplete timestamp with time zone,
+    seencomplete_original timestamp with time zone,
+    seqdl boolean,
+    size bigint,
+    state text,
+    state_original text,
+    superseeding boolean,
+    tags text,
+    timeactive bigint,
+    timeactive_original bigint,
+    totalsize bigint,
+    tracker text,
+    tracker_original text,
+    trackerscount bigint,
+    trackerscount_original bigint,
+    uplimit bigint,
+    uploaded bigint,
+    uploaded_original bigint,
+    uploadedsession bigint,
+    uploadedsession_original bigint,
+    upspeed bigint,
+    upspeed_original bigint
+);
+
+
+ALTER TABLE simplified.torrents OWNER TO postgres;
+
+--
+-- Name: torrents_staged; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.torrents_staged (
+    torrent_staged_id bigint NOT NULL,
+    added_to_this_table timestamp with time zone DEFAULT clock_timestamp(),
+    load_batch_timestamp timestamp with time zone,
+    load_batch_id integer,
+    addedon timestamp with time zone,
+    amountleft bigint,
+    autotmm boolean,
+    availability double precision,
+    category text,
+    completed bigint,
+    completionon timestamp with time zone,
+    contentpath text,
+    dllimit bigint,
+    dlspeed bigint,
+    downloaded bigint,
+    downloadedsession bigint,
+    downloadpath text,
+    eta bigint,
+    flpieceprio boolean,
+    forcestart boolean,
+    hash text,
+    inactiveseedingtimelimit bigint,
+    infohashv1 text,
+    infohashv2 text,
+    lastactivity timestamp with time zone,
+    magneturi text,
+    maxinactiveseedingtime bigint,
+    maxratio double precision,
+    maxseedingtime bigint,
+    name text,
+    numcomplete bigint,
+    numincomplete bigint,
+    numleechs bigint,
+    numseeds bigint,
+    priority bigint,
+    progress double precision,
+    ratio double precision,
+    ratiolimit double precision,
+    savepath text,
+    seedingtime bigint,
+    seedingtimelimit bigint,
+    seencomplete timestamp with time zone,
+    seqdl boolean,
+    size bigint,
+    state text,
+    superseeding boolean,
+    tags text,
+    timeactive bigint,
+    totalsize bigint,
+    tracker text,
+    trackerscount bigint,
+    uplimit bigint,
+    uploaded bigint,
+    uploadedsession bigint,
+    upspeed bigint
+);
+
+
+ALTER TABLE simplified.torrents_staged OWNER TO postgres;
+
+--
+-- Name: torrents_staged_load_batch_id; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.torrents_staged_load_batch_id
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.torrents_staged_load_batch_id OWNER TO postgres;
+
+--
+-- Name: torrents_staged_torrent_staged_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.torrents_staged_torrent_staged_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.torrents_staged_torrent_staged_id_seq OWNER TO postgres;
+
+--
+-- Name: torrents_staged_torrent_staged_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.torrents_staged_torrent_staged_id_seq OWNED BY simplified.torrents_staged.torrent_staged_id;
+
+
+--
+-- Name: torrents_torrent_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.torrents_torrent_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.torrents_torrent_id_seq OWNER TO postgres;
+
+--
+-- Name: torrents_torrent_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.torrents_torrent_id_seq OWNED BY simplified.torrents.torrent_id;
+
+
+--
 -- Name: user_spreadsheet_interface; Type: TABLE; Schema: simplified; Owner: postgres
 --
 
@@ -4224,6 +4478,20 @@ ALTER TABLE ONLY simplified.scheduled_task_run_sets ALTER COLUMN scheduled_task_
 --
 
 ALTER TABLE ONLY simplified.scheduled_tasks ALTER COLUMN scheduled_task_id SET DEFAULT nextval('simplified.scheduled_tasks_scheduled_task_id_seq'::regclass);
+
+
+--
+-- Name: torrents torrent_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents ALTER COLUMN torrent_id SET DEFAULT nextval('simplified.torrents_torrent_id_seq'::regclass);
+
+
+--
+-- Name: torrents_staged torrent_staged_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged ALTER COLUMN torrent_staged_id SET DEFAULT nextval('simplified.torrents_staged_torrent_staged_id_seq'::regclass);
 
 
 --
@@ -4672,6 +4940,86 @@ ALTER TABLE ONLY simplified.search_terms
 
 ALTER TABLE ONLY simplified.search_terms
     ADD CONSTRAINT search_terms_unique UNIQUE (search_term, search_type);
+
+
+--
+-- Name: torrents torrents_hash_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents
+    ADD CONSTRAINT torrents_hash_key UNIQUE (hash);
+
+
+--
+-- Name: torrents torrents_infohashv1_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents
+    ADD CONSTRAINT torrents_infohashv1_key UNIQUE (infohashv1);
+
+
+--
+-- Name: torrents torrents_magneturi_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents
+    ADD CONSTRAINT torrents_magneturi_key UNIQUE (magneturi);
+
+
+--
+-- Name: torrents torrents_name_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents
+    ADD CONSTRAINT torrents_name_key UNIQUE (name);
+
+
+--
+-- Name: torrents torrents_pkey; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents
+    ADD CONSTRAINT torrents_pkey PRIMARY KEY (torrent_id);
+
+
+--
+-- Name: torrents_staged torrents_staged_hash_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged
+    ADD CONSTRAINT torrents_staged_hash_key UNIQUE (hash);
+
+
+--
+-- Name: torrents_staged torrents_staged_infohashv1_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged
+    ADD CONSTRAINT torrents_staged_infohashv1_key UNIQUE (infohashv1);
+
+
+--
+-- Name: torrents_staged torrents_staged_magneturi_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged
+    ADD CONSTRAINT torrents_staged_magneturi_key UNIQUE (magneturi);
+
+
+--
+-- Name: torrents_staged torrents_staged_name_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged
+    ADD CONSTRAINT torrents_staged_name_key UNIQUE (name);
+
+
+--
+-- Name: torrents_staged torrents_staged_pkey; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged
+    ADD CONSTRAINT torrents_staged_pkey PRIMARY KEY (torrent_staged_id);
 
 
 --
