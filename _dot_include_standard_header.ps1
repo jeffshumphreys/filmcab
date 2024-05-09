@@ -3,6 +3,18 @@ Import-Module DellBIOSProvider
 
 . .\_dot_include_standard_header_sql_functions.ps1
 
+# Has to be OUTSIDE of method to capture parent script details!
+
+$Script:ScriptRoot                                          = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
+if ($null -eq $Script:ScriptRoot) {
+    $Script:ScriptRoot                                      = (Get-Item -Path $masterScriptPath).DirectoryName
+}
+
+$Script:MasterScriptPath                                    = $MyInvocation.ScriptName                        # This is null if you are running this dot include directly.
+if ([String]::IsNullOrEmpty($MasterScriptPath)) {
+    $Script:MasterScriptPath                                = $MyInvocation.Line
+}
+
 Function main_dot_include_standard_header() {
     DisplayTimePassed ("Start")
 
@@ -45,15 +57,6 @@ Function main_dot_include_standard_header() {
     $Script:CurrentFunction                                     = $MyInvocation.MyCommand                         # _dot_include_standard_header.v2.ps1
     $Script:InvokationName                                      = $MyInvocation.InvocationName                    # always "." when included or ran direct.
     $Script:ProjectRoot                                         = (Get-Location).Path                             # D:\qt_projects\filmcab. May be to do with WorkingDirectory setting in Windows Task Scheduler for Exec commands.
-    $Script:ScriptRoot                                          = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
-    if ($null -eq $Script:ScriptRoot) {
-        $Script:ScriptRoot                                      = (Get-Item -Path $masterScriptPath).DirectoryName
-    }
-
-    $Script:MasterScriptPath                                    = $MyInvocation.ScriptName                        # This is null if you are running this dot include directly.
-    if ([String]::IsNullOrEmpty($MasterScriptPath)) {
-        $Script:MasterScriptPath                                = $MyInvocation.Line
-    }
     $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". .\")) { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
     $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". '"))  { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
     $Script:MasterScriptPath                                    = $Script:MasterScriptPath.Trim("'")
@@ -611,7 +614,8 @@ $_EXITCODE_UNTRAPPED_EXCEPTION           = 4001
 $_EXITCODE_GENERIC_AND_USELESS_EXCEPTION = -2146233087
 $_EXITCODE_VARIABLE_NOT_FOUND            = 15631964        # Get-CRC32 -shr 8
 $_EXITCODE_SCRIPT_NOT_FOUND              = 4479237
-
+# 2147982505 or 0x679CA9? What is it?
+$_RUNCODE_STILL_RUNNING                  = 267009        # 0x41301
 Function Show-Error {
     param(
         [Parameter(Position=0,mandatory=$false)]        [string]$scriptWhichProducedError,
