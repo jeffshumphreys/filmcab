@@ -117,3 +117,5 @@ simplified/tests/WhistlerBlue.xaml
 simplified/SUPER_SECRET_SQUIRREL.json
 SUPER_SECRET_SQUIRREL.json
 simplified/tests/user_spreadsheet_interface_test_copy.ods
+output.msg
+output.err
