@@ -8,9 +8,8 @@
  #>
 
  try {
-    $Script:__DISABLE_DETECTING_SCHEDULED_TASK = $true # Speed for testing.
-
     . .\_dot_include_standard_header.ps1
+
     DisplayTimePassed ("Starting program...")
     Add-Type -ReferencedAssemblies ("Microsoft.Powershell.Commands.Utility") -TypeDefinition @"
         using System;
@@ -27,20 +26,20 @@
         }
 "@
 
-Add-Type -TypeDefinition @"
-    public enum QbtSort
-    {
-        Hash,     Name,        Size,      Progress,      Dlspeed,  Upspeed, Priority,
-        NumSeeds, NumComplete, NumLeechs, NumIncomplete, Ratio,    Eta,     State,
-        SeqDl,    FLPiecePrio, Category,  SuperSeeding,  ForceStart
-    }
+    Add-Type -TypeDefinition @"
+        public enum QbtSort
+        {
+            Hash,     Name,        Size,      Progress,      Dlspeed,  Upspeed, Priority,
+            NumSeeds, NumComplete, NumLeechs, NumIncomplete, Ratio,    Eta,     State,
+            SeqDl,    FLPiecePrio, Category,  SuperSeeding,  ForceStart
+        }
 "@
 
-Add-Type -TypeDefinition @"
-    public enum QbtFilter
-    {
-        All, Downloading, Completed, Paused, Active, Inactive
-    }
+    Add-Type -TypeDefinition @"
+        public enum QbtFilter
+        {
+            All, Downloading, Completed, Paused, Active, Inactive
+        }
 "@
     Function Join-Uri(
         [Parameter(Mandatory=$true)][Uri] $Uri,
@@ -179,7 +178,7 @@ Add-Type -TypeDefinition @"
 
     DisplayTimePassed ("Fetching all torrent details...")
     $torrents = Get-QbtTorrent $connectedAPISession # -Limit 2
-    DisplayTimePassed ("Completed fetching all torrent details.")
+    DisplayTimePassed ("Completed fetching all torrent details")
 
     # Builds the stage for loading everything
     if ($true) {
@@ -195,7 +194,6 @@ Add-Type -TypeDefinition @"
         $torrents[0]|gm|Where MemberType -eq 'NoteProperty'|
         % {
             $_.Definition -match "(?<typename>.*?)[ ]"|Out-Null
-            #$typename = $matches['typename']
             $typeName = $matches['typename']
             $typeName = switch ($typeName) {
                 'long' { "INT8"}
@@ -206,7 +204,7 @@ Add-Type -TypeDefinition @"
                     $typeName.ToUpper()
                 }
             }
-            #$typeName
+
             $x = [PSCustomObject]@{
                 ColumnName = $_.Name
                 ColumnDataType = $typeName
@@ -218,26 +216,33 @@ Add-Type -TypeDefinition @"
                 $firstRow = $false
             }
 
+            # the following columns are expected (not proven) to be unique, and so a generically named unique index is applied to each of them.
+
             $tail = ""
             if ($_.Name -in ('MagnetUri', 'Name', 'Hash', 'InfohashV1', 'ContentPath')) {
                 $tail = " UNIQUE"
             }
+
+            # Build out line in "CREATE TABLE .... (" column list
             $Script:createTargetTableScript+= "$prefix   $($x.ColumnName)     $($x.ColumnDataType)$tail
             "
         }
+
+        # Close constructed list of columns in new table.
 
         $Script:createTargetTableScript+= ")"
 
         #$Script:createTargetTableScript
     }
 
-    Invoke-Sql "TRUNCATE TABLE torrents_staged"
+    Invoke-Sql "TRUNCATE TABLE torrents_staged" # This is a staging table into "torrents".  Note that the the primary key is allowed to advance; the truncate command does not reset it to 0.  Some sort of history kept in the master table for now.
+
+    # We keep a batch id for each staging run.  So if these gain entry into the master table, they can be said which batch they came in.  Perhaps there was some migration on qbittorrent side that caused a bunch of new names for old torrents.  We could see the bad batch.  Much like tracing back an infected batch in food systems.
 
     $torrentsStagedLoadBatchId = [Int64](Get-SqlValue("SELECT nextval('torrents_staged_load_batch_id')"))
-    $loadBatchTimestamp = Get-Date
-    $loadBatchTimestamp = TrimToMicroseconds $loadBatchTimestamp
-    $loadBatchTimestamp = $loadBatchTimestamp.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-    $loadBatchTimestamp = "'$loadBatchTimestamp'::TIMESTAMPTZ"
+
+    # We want all items loaded in this stage and eventually merged into master, we want them all tagged with the same timestamp for traceability.
+    $loadBatchTimestamp        = Get-SqlTimestamp
 
     foreach ($torrent in $torrents) {
         $Script:InsertTargetTableScript = "INSERT INTO torrents_staged (
@@ -248,9 +253,7 @@ Add-Type -TypeDefinition @"
 
         $torrent|gm|Where MemberType -eq 'NoteProperty'| Sort Name|%{
             $_.Definition -match "(?<typename>.*?)[ ]"|Out-Null
-            #$typename = $matches['typename']
             $typeName = $matches['typename']
-            #$typeName
             $x = [PSCustomObject]@{
                 ColumnName = $_.Name
                 ColumnDataType = $typeName
