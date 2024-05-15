@@ -5,17 +5,19 @@ Import-Module DellBIOSProvider
 
 # Has to be OUTSIDE of method to capture parent script details!
 
-$Script:ScriptRoot                                          = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
+$Script:ScriptRoot                                              = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
 if ($null -eq $Script:ScriptRoot) {
-    $Script:ScriptRoot                                      = (Get-Item -Path $masterScriptPath).DirectoryName
+    $Script:ScriptRoot                                          = (Get-Item -Path $masterScriptPath).DirectoryName
 }
 
-$Script:MasterScriptPath                                    = $MyInvocation.ScriptName                        # This is null if you are running this dot include directly.
+$Script:MasterScriptPath                                        = $MyInvocation.ScriptName              # This is null if you are running this dot include directly.
 if ([String]::IsNullOrEmpty($MasterScriptPath)) {
-    $Script:MasterScriptPath                                = $MyInvocation.Line
+    $Script:MasterScriptPath                                    = $MyInvocation.Line
 }
 
 Function main_dot_include_standard_header() {
+    $Script:SnapshotMasterRunDate                               = Get-Date                              # Capture "One timestamp to rule them all". Everything should be marked off this instead of Get-Date unless it really wants to know NOW
+    $Script:LastDisplayedTimeElapsed                            = $Script:SnapshotMasterRunDate
     DisplayTimePassed ("Start")
 
     # Attempt to clean up memory detritus when rerunning in interactive mode.
@@ -26,11 +28,10 @@ Function main_dot_include_standard_header() {
 
     Set-StrictMode -Version Latest
     $ErrorActionPreference                                      = 'Stop'
-    Set-PSDebug -Off                                                                             # When the Trace parameter has a value of 1, each line of script is traced as it runs. When the parameter has a value of 2, variable assignments, function calls
+    Set-PSDebug -Off                                                                                    # Really noisy if on. When the Trace parameter has a value of 1, each line of script is traced as it runs. When the parameter has a value of 2, variable assignments, function calls
     [Net.ServicePointManager]::SecurityProtocol                 = [Net.SecurityProtocolType]::Tls12;    # More to do with PowerShellGet issues, not Imports.
     $Script:OutputEncoding                                      = [System.Text.Encoding]::UTF8
     $Script:scriptTimer                                         = [Diagnostics.Stopwatch]::StartNew()
-    $Script:SnapshotMasterRunDate                               = Get-Date                              # Capture "One timestamp to rule them all". Everything should be marked off this instead of Get-Date unless it really wants to know NOW
 
     # Constants
 
@@ -43,7 +44,6 @@ Function main_dot_include_standard_header() {
     # Gettings
 
     $Script:DSTTag                                              = If (($Script:SnapshotMasterRunDate).IsDaylightSavingTime()) { "DST"} else { "No DST"} # DST can seriously f-up measuring durations of tasks.
-    $Script:LastDisplayedTimeElapsed                            = $Script:SnapshotMasterRunDate
     $Script:TpmStatus                                           = ((Get-ChildItem -Path "DellSmbios:\TPMSecurity\TpmSecurity"|Select CurrentValue).CurrentValue -eq 'Enabled')
     $Script:amRunningAsAdmin                                    = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     $Script:AreWeRunningInteractively                           = [Environment]::UserInteractive                 # Under ISE and Powershell console it returns true, as a scheduled task it returns false.
@@ -65,22 +65,22 @@ Function main_dot_include_standard_header() {
         throw "Path to master calling/including script not valid. $($Script:MasterScriptPath)"
     }
 
-    $Script:FileTimeStampForParentScript              = (Get-Item -Path $Script:MasterScriptPath).LastWriteTime
-    $Script:ScriptName                                = (Get-Item -Path $Script:MasterScriptPath).Name       # Unlike "BaseName" this includes the extension
-    $Script:ScriptNameWithoutExtension                = (Get-Item -Path $Script:MasterScriptPath).BaseName   # Base name is nice for labelling and searching scheduler tasks
+    $Script:FileTimeStampForParentScript                        = (Get-Item -Path $Script:MasterScriptPath).LastWriteTime
+    $Script:ScriptName                                          = (Get-Item -Path $Script:MasterScriptPath).Name       # Unlike "BaseName" this includes the extension
+    $Script:ScriptNameWithoutExtension                          = (Get-Item -Path $Script:MasterScriptPath).BaseName   # Base name is nice for labelling and searching scheduler tasks
 
     # Get Settings en masse
 
-    $Script:PathToConfig                              = $ProjectRoot + '\config.json'
-    $Script:Config                                    = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json) # Will fail if not exist, which is the desired outcome.
-    $Script:SUPER_SECRET_SQUIRREL                     = (Get-Content -Path ($ProjectRoot + '\SUPER_SECRET_SQUIRREL.json') | ConvertFrom-Json) # Too on the nose?
+    $Script:PathToConfig                                        = $ProjectRoot + '\config.json'
+    $Script:Config                                              = (Get-Content -Path $Script:PathToConfig | ConvertFrom-Json) # Will fail if not exist, which is the desired outcome.
+    $Script:SUPER_SECRET_SQUIRREL                               = (Get-Content -Path ($ProjectRoot + '\SUPER_SECRET_SQUIRREL.json') | ConvertFrom-Json) # Too on the nose?
 
     # Build out logging infrastructure
 
-    $Script:LogDirectory                              = "$Script:ScriptRoot\_log"
+    $Script:LogDirectory                                        = "$Script:ScriptRoot\_log"
+    $Script:LogFileName                                         = $Script:ScriptName + '.log.txt'
+    $Script:LogFilePath                                         = $Script:LogDirectory + '\' + $Script:LogFileName
     New-Item -ItemType Directory -Force -Path $Script:LogDirectory|Out-Null
-    $Script:LogFileName                               = $Script:ScriptName + '.log.txt'
-    $Script:LogFilePath                               = $Script:LogDirectory + '\' + $Script:LogFileName
 
     # Settings 2nd pass after key gettings
 
@@ -89,12 +89,12 @@ Function main_dot_include_standard_header() {
         if(-not (Test-Path $ExtendedScriptLoggingRegistryPath)) {
             New-Item $ExtendedScriptLoggingRegistryPath -Force | Out-Null
             New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableScriptBlockLogging" -PropertyType Dword
-            New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableInvocationHeader" -PropertyType Dword
-            New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "OutputDirectory" -PropertyType String
+            New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableInvocationHeader"   -PropertyType Dword
+            New-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "OutputDirectory"          -PropertyType String
         }
         Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableScriptBlockLogging" -Value "1"
-        Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableInvocationHeader" -Value "1"
-        Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "OutputDirectory" -Value $Script:LogDirectory
+        Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "EnableInvocationHeader"   -Value "1"
+        Set-ItemProperty $ExtendedScriptLoggingRegistryPath -Name "OutputDirectory"          -Value $Script:LogDirectory
     }
 
     # Start logging
@@ -102,7 +102,7 @@ Function main_dot_include_standard_header() {
     Log-Line "Starting Log $($Script:SnapshotMasterRunDate) on $(($Script:SnapshotMasterRunDate).DayOfWeek) $($Script:DSTTag) in $(($Script:SnapshotMasterRunDate).ToString('MMMM')), by Windows User <$($env:UserName)>" -Restart
     Log-Line "`$ScriptFullPath: $Script:MasterScriptPath, `$PSVersion = $($Script:PSVersion), `$PSEdition = $($Script:PSEdition), `$CommandOrigin = $($Script:CommandOrigin), Current Function = $($Script:CurrentFunction)"
 
-    $Script:TranscriptFileName                        = $Script:ScriptName + '.transcript.log.txt'
+    $Script:TranscriptFileName                        = $Script:ScriptName   + '.transcript.log.txt'
     $Script:TranscriptFilePath                        = $Script:LogDirectory + '\' + $Script:TranscriptFileName
 
     Remove-Item -Path $Script:TranscriptFilePath -Force -ErrorAction Ignore # Otherwise, in Core it will just keep appending. Bug? Or an issue when in VS Code?
@@ -153,8 +153,7 @@ Function main_dot_include_standard_header() {
     $Script:DatabaseConnection                   = New-Object System.Data.Odbc.OdbcConnection
     $Script:DatabaseConnection.ConnectionString  = $DatabaseConnectionString
     $Script:DatabaseConnection.ConnectionTimeout = 10
-
-    $informationalmessagehandler = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-AllPlaces $event.Message }
+    $informationalmessagehandler                 = [System.Data.Odbc.OdbcInfoMessageEventHandler] {param($sender, $event) Write-AllPlaces $event.Message }
     $Script:DatabaseConnection.add_InfoMessage($informationalmessagehandler)
 
     $Script:AttemptedToConnectToDatabase = $false
@@ -341,7 +340,7 @@ Parameter description
 An example
 
 .NOTES
-General notes
+It can get tiresome re-remembering how to get a powershell datetime into a powershell timestamptz column.
 #>
 Function Get-SqlTimestamp([DateTime]$timestamp) {
     if ($null -eq $timestamp) {
@@ -349,8 +348,8 @@ Function Get-SqlTimestamp([DateTime]$timestamp) {
     }
 
     $trimmedToPostgresMaxPrecision = TrimToMicroseconds $timestamp
-    $formattedToPostgresString = $trimmedToPostgresMaxPrecision.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
-    $fullyFormattedForInsertion = "'$formattedToPostgresString'::TIMSTAMPTZ"
+    $formattedToPostgresString     = $trimmedToPostgresMaxPrecision.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
+    $fullyFormattedForInsertion    = "'$formattedToPostgresString'::TIMESTAMPTZ"  # The only way I found to insert a string constant as a 6 place timestamp into PostGres.
     return $fullyFormattedForInsertion
 }
 
@@ -381,7 +380,8 @@ Function DisplayTimePassed($point) {
             $timepassed              = $Script:LastDisplayedTimeElapsed - $now
     $Script:LastDisplayedTimeElapsed = $now
             $timepassedString        = $timepassed.Humanize()
-    Write-Host "$point`: $timepassedString"
+    Write-Host " took $timepassedString"
+    Write-Host $point -NoNewline
 }
 
 <#########################################################################################################################################################################################################
