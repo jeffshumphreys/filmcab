@@ -1,7 +1,8 @@
 <#
  #    FilmCab Daily morning batch run process: Fetch what qBittorrents are still active, stalled, or stuck downloading metadata.
+ #    Part 2, merge into masters and see where eta is way wrong, stuck in getting meta, stuck in stalled. Back and forth.
  #    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
- #    Status: Conception
+ #    Status: Manual out of run set.
  #
  #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
  #    https://github.com/andrewmolyneux/qbittorrent-powershell/blob/master/QBittorrent.psm1
@@ -43,7 +44,8 @@
 "@
     Function Join-Uri(
         [Parameter(Mandatory=$true)][Uri] $Uri,
-        [Parameter(Mandatory=$true)][String] $Path) {
+        [Parameter(Mandatory=$true)][String] $Path)
+    {
         $x = New-Object System.Uri ($Uri, $Path)
         $x.AbsoluteUri
     }
@@ -62,22 +64,22 @@
     }
 
     Function ConvertTo-QbittorrentName(
-    [Parameter(Mandatory=$true)] [String] $PowerShellName) {
-    # Remember the first character.
-    $FirstCharacter = $PowerShellName[0]
-    # Split on capital letters.
-    $Chunks = $PowerShellName.Substring(1) -csplit "([A-Z])"
-    # Join it all back together with the capital letters prefixed with underscores.
-    $Result = $FirstCharacter
-    foreach ($Chunk in $Chunks) {
-        if ($Chunk.Length -eq 1) {
-            $Result += "_$Chunk"
-        } else {
-            $Result += $Chunk
+        [Parameter(Mandatory=$true)] [String] $PowerShellName) {
+        # Remember the first character.
+        $FirstCharacter = $PowerShellName[0]
+        # Split on capital letters.
+        $Chunks = $PowerShellName.Substring(1) -csplit "([A-Z])"
+        # Join it all back together with the capital letters prefixed with underscores.
+        $Result = $FirstCharacter
+        foreach ($Chunk in $Chunks) {
+            if ($Chunk.Length -eq 1) {
+                $Result += "_$Chunk"
+            } else {
+                $Result += $Chunk
+            }
         }
+        $Result.ToLowerInvariant()
     }
-    $Result.ToLowerInvariant()
-}
     Function ConvertTo-PowerShellName(
         [Parameter(Mandatory=$true)] [String] $QbtName) {
         # Split on underscores.
@@ -120,12 +122,12 @@
     }
 
     Function Get-QbtTorrentProperty(
-    [Parameter(Mandatory=$true)][QbtSession] $Session,
-    [Parameter(Mandatory=$true)][String] $Hash) {
-    $Uri = Join-Uri $Session.Uri "query/propertiesGeneral/$Hash"
-    $Response = Invoke-WebRequest $Uri -WebSession $Session.Session
-    ConvertTo-TorrentProperties (Get-UTF8JsonContentFromResponse $Response)
-}
+        [Parameter(Mandatory=$true)][QbtSession] $Session,
+        [Parameter(Mandatory=$true)][String] $Hash) {
+        $Uri = Join-Uri $Session.Uri "query/propertiesGeneral/$Hash"
+        $Response = Invoke-WebRequest $Uri -WebSession $Session.Session
+        ConvertTo-TorrentProperties (Get-UTF8JsonContentFromResponse $Response)
+    }
     Function ConvertFrom-Timestamp(
         [Parameter(Mandatory=$true)][Object] $Timestamp) {
         if ($Timestamp -eq -1 -or $Timestamp -eq [Uint32]::MaxValue) {
@@ -180,66 +182,11 @@
     $torrents = Get-QbtTorrent $connectedAPISession # -Limit 2
     DisplayTimePassed ("Completed fetching all torrent details")
 
-    # Builds the stage for loading everything
-    if ($true) {
-        $Script:createTargetTableScript = "
-            CREATE TABLE torrents_staged (
-                torrent_staged_id SERIAL8 PRIMARY KEY
-            ,   added_to_this_table           TIMESTAMPTZ  DEFAULT(pg_catalog.clock_timestamp())
-            ,   load_batch_timestamp          TIMESTAMPTZ
-            ,   load_batch_id                 INT8
-            "
-        $firstRow = $true
-
-        $torrents[0]|gm|Where MemberType -eq 'NoteProperty'|
-        % {
-            $_.Definition -match "(?<typename>.*?)[ ]"|Out-Null
-            $typeName = $matches['typename']
-            $typeName = switch ($typeName) {
-                'long' { "INT8"}
-                'string' { "TEXT"}
-                'datetime' { "TIMESTAMPTZ"}
-                'double' { "DOUBLE PRECISION"}
-                default {
-                    $typeName.ToUpper()
-                }
-            }
-
-            $x = [PSCustomObject]@{
-                ColumnName = $_.Name
-                ColumnDataType = $typeName
-            }
-            $prefix = ","
-
-            if ($firstRow) {
-                $prefix = " "
-                $firstRow = $false
-            }
-
-            # the following columns are expected (not proven) to be unique, and so a generically named unique index is applied to each of them.
-
-            $tail = ""
-            if ($_.Name -in ('MagnetUri', 'Name', 'Hash', 'InfohashV1', 'ContentPath')) {
-                $tail = " UNIQUE"
-            }
-
-            # Build out line in "CREATE TABLE .... (" column list
-            $Script:createTargetTableScript+= "$prefix   $($x.ColumnName)     $($x.ColumnDataType)$tail
-            "
-        }
-
-        # Close constructed list of columns in new table.
-
-        $Script:createTargetTableScript+= ")"
-
-        #$Script:createTargetTableScript
-    }
-
-    Invoke-Sql "TRUNCATE TABLE torrents_staged" # This is a staging table into "torrents".  Note that the the primary key is allowed to advance; the truncate command does not reset it to 0.  Some sort of history kept in the master table for now.
+    Invoke-Sql "TRUNCATE TABLE torrents_staged"|Out-Nul; # This is a staging table into "torrents".  Note that the the primary key is allowed to advance; the truncate command does not reset it to 0.  Some sort of history kept in the master table for now.
 
     # We keep a batch id for each staging run.  So if these gain entry into the master table, they can be said which batch they came in.  Perhaps there was some migration on qbittorrent side that caused a bunch of new names for old torrents.  We could see the bad batch.  Much like tracing back an infected batch in food systems.
 
-    $torrentsStagedLoadBatchId = [Int64](Get-SqlValue("SELECT nextval('torrents_staged_load_batch_id')"))
+    $torrentsStagedLoadBatchId = [Int64](Get-SqlValue("SELECT nextval('torrents_staged_load_batch_id')")) # Note: once fetched, even in a transaction, can't recover that number unless you reset the sequence to this number.
 
     # We want all items loaded in this stage and eventually merged into master, we want them all tagged with the same timestamp for traceability.
     $loadBatchTimestamp        = Get-SqlTimestamp
