@@ -182,7 +182,7 @@
     $torrents = Get-QbtTorrent $connectedAPISession # -Limit 2
     DisplayTimePassed ("Completed fetching all torrent details")
 
-    Invoke-Sql "TRUNCATE TABLE torrents_staged"|Out-Nul; # This is a staging table into "torrents".  Note that the the primary key is allowed to advance; the truncate command does not reset it to 0.  Some sort of history kept in the master table for now.
+    Invoke-Sql "TRUNCATE TABLE torrents_staged"|Out-Null; # This is a staging table into "torrents".  Note that the the primary key is allowed to advance; the truncate command does not reset it to 0.  Some sort of history kept in the master table for now.
 
     # We keep a batch id for each staging run.  So if these gain entry into the master table, they can be said which batch they came in.  Perhaps there was some migration on qbittorrent side that caused a bunch of new names for old torrents.  We could see the bad batch.  Much like tracing back an infected batch in food systems.
 
