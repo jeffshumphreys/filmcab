@@ -332,6 +332,21 @@ $$;
 ALTER FUNCTION simplified.md5_hash_path(what text) OWNER TO postgres;
 
 --
+-- Name: rtrim(text, integer); Type: FUNCTION; Schema: simplified; Owner: postgres
+--
+
+CREATE FUNCTION simplified.rtrim(what text, howmanycharacters integer) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+begin
+    RETURN SUBSTRING(what, 1, CHAR_LENGTH(what) - howmanycharacters);
+end;
+$$;
+
+
+ALTER FUNCTION simplified.rtrim(what text, howmanycharacters integer) OWNER TO postgres;
+
+--
 -- Name: view_delete(); Type: FUNCTION; Schema: simplified; Owner: postgres
 --
 
