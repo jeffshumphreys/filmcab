@@ -29,7 +29,7 @@ $xaml.SelectNodes("//*[@Name]") | ForEach-Object {
         Set-Variable -Name "var_$($_.Name)" -Value $window.FindName($_.Name) -ErrorAction Stop
     } catch {
         throw
-   }
+    }
 }
     
 Get-Variable var_*
