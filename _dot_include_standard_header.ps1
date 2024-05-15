@@ -34,7 +34,7 @@ Function main_dot_include_standard_header() {
 
     # Constants
 
-    $Script:DEFAULT_POWERSHELL_TIMESTAMP_FORMAT                 = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    Restrict to ONLY 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6, which then causes mismatches between timestamps in database with timestamps on files. They were always off by 4 100ths nanoseconds, and caused massive thrashing.
+    $Script:DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT     = "yyyy-MM-dd HH:mm:ss.ffffff zzz"      # 2024-01-22 05:37:00.450241 -07:00    Restrict to ONLY 6 places (microseconds). Windows has 7 places, which won't match with Postgres's 6, which then causes mismatches between timestamps in database with timestamps on files. They were always off by 4 100ths nanoseconds, and caused massive thrashing.
     $Script:DEFAULT_POSTGRES_TIMESTAMP_FORMAT                   = "yyyy-mm-dd hh24:mi:ss.us tzh:tzm"    # 2024-01-22 05:36:46.489043 -07:00
     $Script:DEFAULT_WINDOWS_TASK_SCHEDULER_TIMESTAMP_FORMAT_XML = 'yyyy-MM-ddTHH:mm:ss.fffffff'
     $Script:pretest_assuming_true                               = $true
@@ -326,6 +326,33 @@ Function main_dot_include_standard_header() {
     }
 
 } ##### Function main_dot_include_standard_header() {
+
+<#
+.SYNOPSIS
+Pull a PowerShell datetime into most precise PostgreSQL insertable SQL string
+
+.DESCRIPTION
+Long description
+
+.PARAMETER timestamp
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
+Function Get-SqlTimestamp([DateTime]$timestamp) {
+    if ($null -eq $timestamp) {
+        $timestamp = (Get-Date)
+    }
+
+    $trimmedToPostgresMaxPrecision = TrimToMicroseconds $timestamp
+    $formattedToPostgresString = $trimmedToPostgresMaxPrecision.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
+    $fullyFormattedForInsertion = "'$formattedToPostgresString'::TIMSTAMPTZ"
+    return $fullyFormattedForInsertion
+}
 
 <#########################################################################################################################################################################################################
 .SYNOPSIS
@@ -994,8 +1021,8 @@ if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeri
     DisplayTimePassed ("Completing getting task trigger details")
     DisplayTimePassed ("Detect active batch run session...")
     $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
-            $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
-            $script_name_prepped_for_sql           = PrepForSql $Script:ScriptName
+            $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
+   ript_name_prepped_for_sql           = PrepForSql $Script:ScriptName
 
     ############################################################################################################################
     if ($script_position_in_lineup -in 'Starting', 'Starting-Ending') {
