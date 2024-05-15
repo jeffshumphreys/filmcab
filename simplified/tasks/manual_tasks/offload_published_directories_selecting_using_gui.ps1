@@ -1,18 +1,21 @@
 <#
-#    FilmCab Daily morning batch run process: Fills up published so hard to fine stuff I haven't watched.
-#    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
-#    Status: Conception
+#   FilmCab manual on-demand  run process: Selectively move published videos that for some reason don't need to be in directory.
+#   Purposes:
+            Published drive (spindle) is filling up.
+            Unfun to wade through a folder of stuff in alphabetical order and I watched it in alphabetic order, and I tire and stop looking, and many of the later movies don't get looked at.
+            Annoying to see something that's dead, like "Beforeigners" which is dead and will never have a conclusion just sitting there every time I go in the Sci Fi folder.
+
+    Warning: Symbolic file links do not present in MX Player on FireTV.  So the option to leave a link for files will not work without more work.
+
+    Missing Features:
+            Doesn't show progress of file movement.
+            Doesn't show file sizes before you click "Move Files"
+            No way to queue a set of folders/files to move.
+
+#    Called from VS Code (F5)
+#    Status: Working
 #    ###### Tue Mar 5 16:23:46 MST 2024
 #    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
-#>
-
-<#
-#    FilmCab Daily morning batch run process: Track our nearness to filling up our space
-#    Called from Windows Task Scheduler, Task is in \FilmCab, Task name is same as file
-#    Status: Conception
-#    ###### Sat Feb 3 22:20:01 MST 2024
-#    https://github.com/jeffshumphreys/filmcab/tree/master/simplified
-#    https://devblogs.microsoft.com/scripting/hey-scripting-guy-how-can-i-use-the-windows-forms-treeview-control/
 #>
 
 try {
@@ -20,7 +23,7 @@ try {
 
 . .\_dot_include_gui_tools.ps1
 
-Import-Module BitsTransfer
+#Import-Module BitsTransfer
 
 . .\simplified\tasks\manual_tasks\offload_published_directories_selecting_using_gui.formdef.ps1
 
