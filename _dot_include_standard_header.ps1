@@ -355,19 +355,13 @@ Function Get-SqlTimestamp([DateTime]$timestamp) {
 
 <#########################################################################################################################################################################################################
 .SYNOPSIS
-Short description
+Display a tag with a humanized duration afterwords on the same line.
 
 .DESCRIPTION
 Long description
 
-.PARAMETER variableName
-Parameter description
-
-.PARAMETER singularLabel
-Parameter description
-
-.PARAMETER pluralLabel
-Parameter description
+.PARAMETER nextProcessToMeasure
+Display this label AFTER displaying the time passed for the PREVIOUS process.
 
 .EXAMPLE
 An example
@@ -375,13 +369,13 @@ An example
 .NOTES
 General notes
 ##########################################################################################################################################################################################################>
-Function DisplayTimePassed($point) {
+Function DisplayTimePassed($nextProcessToMeasure) {
             $now                     = (Get-Date)
-            $timepassed              = $Script:LastDisplayedTimeElapsed - $now
+            $timepassed              = $now - $Script:LastDisplayedTimeElapsed
     $Script:LastDisplayedTimeElapsed = $now
             $timepassedString        = $timepassed.Humanize()
     Write-Host " took $timepassedString"
-    Write-Host $point -NoNewline
+    Write-Host $$nextProcessToMeasure -NoNewline # Leave it hanging for next call to DisplayTimePassed
 }
 
 <#########################################################################################################################################################################################################
@@ -391,13 +385,10 @@ Short description
 .DESCRIPTION
 Long description
 
-.PARAMETER variableName
+.PARAMETER text
 Parameter description
 
-.PARAMETER singularLabel
-Parameter description
-
-.PARAMETER pluralLabel
+.PARAMETER arguments
 Parameter description
 
 .EXAMPLE
@@ -405,6 +396,7 @@ An example
 
 .NOTES
 General notes
+
 ##########################################################################################################################################################################################################>
 Function Write-LogLineToFile {
     param([string]$text, [hashtable]$arguments)
@@ -431,10 +423,13 @@ Long description
 .PARAMETER variableName
 Parameter description
 
-.PARAMETER singularLabel
+.PARAMETER Text
 Parameter description
 
-.PARAMETER pluralLabel
+.PARAMETER Restart
+Parameter description
+
+.PARAMETER NoNewLine
 Parameter description
 
 .EXAMPLE
