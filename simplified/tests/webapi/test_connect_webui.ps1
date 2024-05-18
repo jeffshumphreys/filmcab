@@ -191,6 +191,8 @@
     # We want all items loaded in this stage and eventually merged into master, we want them all tagged with the same timestamp for traceability.
     $loadBatchTimestamp        = Get-SqlTimestamp
 
+    # Build a single insert per torrent.  Better to build multi-values. Tested in the past on MS SQL Server with a 1,000 value rows at a time. Don't know if that would work on pg, but probably would.
+    DisplayTimePassed ("Inserting torrent details into staging table...")
     foreach ($torrent in $torrents) {
         $Script:InsertTargetTableScript = "INSERT INTO torrents_staged (
                 load_batch_timestamp
@@ -257,14 +259,251 @@
         # TODO: Load webseeders of torrent
     }
 
-    # TODO: Merge into torrents (only keeps newest status, keeps deleted torrent)
-    # TODO: Add to torrents_history so we can try and figger out where things stall.
+    DisplayTimePassed ("Completed inserting torrent details into staging table.")
+
+    # TODO: Merge into torrents master
+    $mergeSQL = @"
+    MERGE INTO torrents tgt
+    USING
+        (SELECT new_src.*, COALESCE(new_src.name, old_tgt.name) AS src_name -- FOR joining TO deleted stuff
+        , CASE WHEN new_src.name IS NULL THEN TRUE ELSE FALSE END AS tgt_now_missing                                 -- DELETED: True
+        , CASE WHEN old_tgt.name IS NULL THEN TRUE ELSE FALSE END AS src_is_new                                      -- DELETED: False
+        FROM torrents_staged new_src FULL JOIN torrents old_tgt ON new_src.name = old_tgt.name) src
+        ON (tgt.name = src.src_name)
+    WHEN MATCHED AND NOT src.tgt_now_missing AND NOT src.src_is_new THEN -- Confusing, YES. It's NOT really MATCHED, since the "USING" IS bringing IN BOTH sides, past AND NEW.  So we've fake a MATCH USING the FULL JOIN, so we can deal WITH things LIKE deleted torrents IN NEW DATA, AND updating the CURRENT master WITH that status, keeping the history that these were deleted, FOR whatever reason.
+        UPDATE SET
+            from_torrent_stage_id          = src.torrent_staged_id,
+            added_to_feed_table            = src.added_to_this_table,
+            amountleft_original            = tgt.amountleft,
+            amountleft                     = src.amountleft,
+            availability_original          = tgt.availability,
+            availability                   = src.availability,
+            downloaded_original            = tgt.downloaded,
+            downloaded                     = src.downloaded,
+            eta_original                   = tgt.eta,
+            eta                            = src.eta,
+            lastactivity_original          = tgt.lastactivity,
+            lastactivity                   = src.lastactivity,
+            numcomplete_original           = tgt.numcomplete,
+            numcomplete                    = src.numcomplete,
+            numincomplete_original         = tgt.numincomplete,
+            numincomplete                  = src.numincomplete,
+            numleechs_original             = tgt.numleechs,
+            numleechs                      = src.numleechs,
+            numseeds_original              = tgt.numseeds,
+            numseeds                       = src.numseeds,
+            progress_original              = tgt.progress,
+            progress                       = src.progress,
+            ratio_original                 = tgt.ratio,
+            ratio                          = src.ratio,
+            seedingtime_original           = tgt.seedingtime,
+            seedingtime                    = src.seedingtime,
+            seencomplete_original          = tgt.seencomplete,
+            seencomplete                   = src.seencomplete,
+            state_original                 = tgt.state,
+            state                          = src.state,
+            timeactive_original            = tgt.timeactive,
+            timeactive                     = src.timeactive,
+            tracker_original               = tgt.tracker,
+            tracker                        = src.tracker,
+            trackerscount_original         = tgt.trackerscount,
+            trackerscount                  = src.trackerscount,
+            uploaded_original              = tgt.uploaded,
+            uploaded                       = src.uploaded,
+            uploadedsession_original       = tgt.uploadedsession,
+            uploadedsession                = src.uploadedsession,
+            upspeed_original               = tgt.upspeed,
+            upspeed                        = src.upspeed,
+            merge_action_taken             = 'MATCHED AND NOT src.tgt_now_missing AND NOT src.src_is_new'
+/**/
+        WHEN MATCHED AND src.tgt_now_missing AND NOT src.src_is_new THEN -- See, these NO longer exist IN the qbittorrent app, so we keep that they were, AND UPDATE NOT WHEN they were removed FROM qbittorrent, but WHEN we detected they were removed.
+        UPDATE SET found_missing_on        = clock_timestamp(), -- TODO: UPDATE WITH batch timestamp AND ALSO SET a batch id
+            merge_action_taken             = 'MATCHED AND src.tgt_now_missing AND NOT src.src_is_new'
+        /* There is no src, so don't try to pull anything from there into target */
+/**/
+        WHEN NOT MATCHED AND src.src_is_new THEN
+        INSERT
+        (
+            from_torrent_stage_batch_id
+        ,   from_torrent_stage_id
+        ,   added_to_feed_table                                           /* The difference between feed and master gives us rate on other difference. How much amountleft shifted per second, etc. */
+        ,   load_batch_timestamp                                          /* from script */
+        ,   load_batch_id                                                 /* from script */
+        ,   addedon
+        ,   amountleft
+        ,   autotmm
+        ,   availability
+        ,   category
+        ,   completed
+        ,   completionon
+        ,   contentpath
+        ,   dllimit
+        ,   dlspeed
+        ,   downloaded
+        ,   downloadedsession
+        ,   downloadpath
+        ,   eta
+        ,   flpieceprio
+        ,   forcestart
+        ,   hash
+        ,   inactiveseedingtimelimit
+        ,   infohashv1
+        ,   infohashv2
+        ,   lastactivity
+        ,   magneturi
+        ,   maxinactiveseedingtime
+        ,   maxratio
+        ,   maxseedingtime
+        ,   "name"
+        ,   numcomplete
+        ,   numincomplete
+        ,   numleechs
+        ,   numseeds
+        ,   priority
+        ,   progress
+        ,   ratio
+        ,   ratiolimit
+        ,   savepath
+        ,   seedingtime
+        ,   seedingtimelimit
+        ,   seencomplete
+        ,   seqdl
+        ,   "size"
+        ,   state
+        ,   superseeding
+        ,   tags
+        ,   timeactive
+        ,   totalsize
+        ,   tracker
+        ,   trackerscount
+        ,   uplimit
+        ,   uploaded
+        ,   uploadedsession
+        ,   upspeed
+        ,   merge_action_taken
+        )
+    VALUES
+        (
+                  /* from_torrent_stage_batch_id                 */ load_batch_id              /* not sure */
+                , /* from_torrent_stage_id                       */ torrent_staged_id
+                , /* added_to_feed_table                         */ added_to_this_table
+                , /* load_batch_timestamp                        */ $loadBatchTimestamp
+                , /* load_batch_id                               */ $torrentsStagedLoadBatchId
+                , /* addedon                                     */ addedon
+                , /* amountleft                                  */ amountleft
+                , /* autotmm                                     */ autotmm
+                , /* availability                                */ availability
+                , /* category                                    */ category
+                , /* completed                                   */ completed
+                , /* completionon                                */ completionon
+                , /* contentpath                                 */ contentpath
+                , /* dllimit                                     */ dllimit
+                , /* dlspeed                                     */ dlspeed
+                , /* downloaded                                  */ downloaded
+                , /* downloadedsession                           */ downloadedsession
+                , /* downloadpath                                */ downloadpath
+                , /* eta                                         */ eta
+                , /* flpieceprio                                 */ flpieceprio
+                , /* forcestart                                  */ forcestart
+                , /* hash                                        */ hash
+                , /* inactiveseedingtimelimit                    */ inactiveseedingtimelimit
+                , /* infohashv1                                  */ infohashv1
+                , /* infohashv2                                  */ infohashv2
+                , /* lastactivity                                */ lastactivity
+                , /* magneturi                                   */ magneturi
+                , /* maxinactiveseedingtime                      */ maxinactiveseedingtime
+                , /* maxratio                                    */ maxratio
+                , /* maxseedingtime                              */ maxseedingtime
+                , /* "name"                                      */ "name"
+                , /* numcomplete                                 */ numcomplete
+                , /* numincomplete                               */ numincomplete
+                , /* numleechs                                   */ numleechs
+                , /* numseeds                                    */ numseeds
+                , /* priority                                    */ priority
+                , /* progress                                    */ progress
+                , /* ratio                                       */ ratio
+                , /* ratiolimit                                  */ ratiolimit
+                , /* savepath                                    */ savepath
+                , /* seedingtime                                 */ seedingtime
+                , /* seedingtimelimit                            */ seedingtimelimit
+                , /* seencomplete                                */ seencomplete
+                , /* seqdl                                       */ seqdl
+                , /* "size"                                      */ "size"
+                , /* state                                       */ state
+                , /* superseeding                                */ superseeding
+                , /* tags                                        */ tags
+                , /* timeactive                                  */ timeactive
+                , /* totalsize                                   */ totalsize
+                , /* tracker                                     */ tracker
+                , /* trackerscount                               */ trackerscount
+                , /* uplimit                                     */ uplimit
+                , /* uploaded                                    */ uploaded
+                , /* uploadedsession                             */ uploadedsession
+                , /* upspeed                                     */ upspeed
+                , /* merge_action_taken                          */ 'NOT MATCHED AND src.src_is_new'
+        )        
+"@
+    DisplayTimePassed ("Merging staged torrents into torrent master...")
+    Invoke-Sql $mergeSQL|Out-Null
+    DisplayTimePassed ("Completed merge into torrent master. Starting split out into value history...")
+
+    $splitOutValueHistorySQL = @"
+    WITH head AS (
+        SELECT
+            name
+        ,   "size"
+        ,   addedon                                   AS added_to_qbittorrent_on
+        ,   torrent_id
+        ,   added_to_this_table                       AS from_capture_point
+        ,   added_to_feed_table                       AS to_capture_point
+        ,   added_to_feed_table - added_to_this_table AS time_elapsed_between_capture_points
+        ,   state_original                            AS first_state
+        ,   state                                     AS second_state
+        ,   added_to_this_table                       AS added_to_feed_table
+        ,   clock_timestamp()                         AS added_to_this_table
+        FROM torrents t
+        )
+        , all_attributes AS (
+            SELECT head.*, 'amountleft_original'      AS capture_attribute, t.amountleft_original      AS from_capture_point_value, t.amountleft      AS to_capture_point_value, t.amountleft_original     - t.amountleft      AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'availability_original'    AS capture_attribute, t.availability_original    AS from_capture_point_value, t.availability    AS to_capture_point_value, t.availability_original   - t.availability    AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'downloaded_original'      AS capture_attribute, t.downloaded_original      AS from_capture_point_value, t.downloaded      AS to_capture_point_value, t.downloaded_original     - t.downloaded      AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'eta_original'             AS capture_attribute, t.eta_original             AS from_capture_point_value, t.eta             AS to_capture_point_value, t.eta_original            - t.eta             AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'numcomplete_original'     AS capture_attribute, t.numcomplete_original     AS from_capture_point_value, t.numcomplete     AS to_capture_point_value, t.numcomplete_original    - t.numcomplete     AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'numincomplete_original'   AS capture_attribute, t.numincomplete_original   AS from_capture_point_value, t.numincomplete   AS to_capture_point_value, t.numincomplete_original  - t.numincomplete   AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'numleechs_original'       AS capture_attribute, t.numleechs_original       AS from_capture_point_value, t.numleechs       AS to_capture_point_value, t.numleechs_original      - t.numleechs       AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'numseeds_original'        AS capture_attribute, t.numseeds_original        AS from_capture_point_value, t.numseeds        AS to_capture_point_value, t.numseeds_original       - t.numseeds        AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'progress_original'        AS capture_attribute, t.progress_original        AS from_capture_point_value, t.progress        AS to_capture_point_value, t.progress_original       - t.progress        AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'ratio_original'           AS capture_attribute, t.ratio_original           AS from_capture_point_value, t.ratio           AS to_capture_point_value, t.ratio_original          - t.ratio           AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'seedingtime_original'     AS capture_attribute, t.seedingtime_original     AS from_capture_point_value, t.seedingtime     AS to_capture_point_value, t.seedingtime_original    - t.seedingtime     AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'trackerscount_original'   AS capture_attribute, t.trackerscount_original   AS from_capture_point_value, t.trackerscount   AS to_capture_point_value, t.trackerscount_original  - t.trackerscount   AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'uploaded_original'        AS capture_attribute, t.uploaded_original        AS from_capture_point_value, t.uploaded        AS to_capture_point_value, t.uploaded_original       - t.uploaded        AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'uploadedsession_original' AS capture_attribute, t.uploadedsession_original AS from_capture_point_value, t.uploadedsession AS to_capture_point_value, t.uploadedsession_original- t.uploadedsession AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id) UNION ALL
+            SELECT head.*, 'upspeed_original'         AS capture_attribute, t.upspeed_original         AS from_capture_point_value, t.upspeed         AS to_capture_point_value, t.upspeed_original        - t.upspeed         AS change_in_capture_point_value FROM head JOIN torrents t USING(torrent_id)
+        )
+        INSERT INTO torrent_attributes_change
+        SELECT aa.* FROM all_attributes aa LEFT JOIN torrent_attributes_change ac USING(torrent_id, added_to_qbittorrent_on, name, from_capture_point, capture_attribute)
+        WHERE ac.torrent_id IS NULL;
+"@
+
+    Invoke-Sql $splitOutValueHistorySQL|Out-Null
+    DisplayTimePassed ("Completed split out into value history.")
+
+    # Create a flattened table for anything ever in downloading state, with torrent names across.  Then export and view as a graph: any patterns?
+    # So, for a few names, run rowa across a1,a2,a3, a4, then a graph?
+    # using System.Windows.Forms.DataVisualization.Charting;
+    # this.chart1.Palette = ChartColorPalette.SeaGreen;
+    # this.chart1.Titles.Add("Pets");
+    # for (int i = 0; i < seriesArray.Length; i++)
+    # Series series = this.chart1.Series.Add(seriesArray[i]);
+    # series.Points.Add(pointsArray[i]);
+    # this.chart1.SaveImage("C:\\chart.png", ChartImageFormat.Png);
+
     $Response = Invoke-WebRequest (Join-Uri $Uri api/v2/auth/logout) -WebSession $connectedAPISession.Session -Method Post  -Headers @{Referer=$Uri}
 }
 catch {
 Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
 }
 finally {
-Write-AllPlaces "Finally"
-. .\_dot_include_standard_footer.ps1
+    Write-AllPlaces "Finally" -ForceStartOnNewLine
+    . .\_dot_include_standard_footer.ps1
 }
