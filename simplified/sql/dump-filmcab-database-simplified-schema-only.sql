@@ -3848,6 +3848,38 @@ ALTER TABLE simplified.search_terms ALTER COLUMN search_term_id ADD GENERATED AL
 
 
 --
+-- Name: torrent_attributes_change; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.torrent_attributes_change (
+    name text,
+    size bigint,
+    added_to_qbittorrent_on timestamp with time zone,
+    torrent_id bigint,
+    from_capture_point timestamp with time zone,
+    to_capture_point timestamp with time zone,
+    time_elapsed_between_capture_points interval,
+    first_state text,
+    second_state text,
+    added_to_feed_table timestamp with time zone NOT NULL,
+    added_to_this_table timestamp with time zone DEFAULT clock_timestamp(),
+    capture_attribute text,
+    first_capture_point_value double precision,
+    second_capture_point_value double precision,
+    change_in_capture_point_value double precision
+);
+
+
+ALTER TABLE simplified.torrent_attributes_change OWNER TO postgres;
+
+--
+-- Name: COLUMN torrent_attributes_change.added_to_this_table; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrent_attributes_change.added_to_this_table IS 'Now standard';
+
+
+--
 -- Name: torrents; Type: TABLE; Schema: simplified; Owner: postgres
 --
 
@@ -3855,11 +3887,11 @@ CREATE TABLE simplified.torrents (
     torrent_id bigint NOT NULL,
     from_torrent_stage_batch_id integer,
     from_torrent_stage_id bigint,
-    added_to_this_table timestamp with time zone DEFAULT clock_timestamp(),
+    added_to_this_table timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
     load_batch_timestamp timestamp with time zone,
     load_batch_id integer,
     found_missing_on timestamp with time zone,
-    addedon timestamp with time zone,
+    addedon timestamp with time zone NOT NULL,
     amountleft bigint,
     amountleft_original bigint,
     autotmm boolean,
@@ -3929,11 +3961,27 @@ CREATE TABLE simplified.torrents (
     uploadedsession bigint,
     uploadedsession_original bigint,
     upspeed bigint,
-    upspeed_original bigint
+    upspeed_original bigint,
+    merge_action_taken character varying,
+    added_to_feed_table timestamp with time zone NOT NULL
 );
 
 
 ALTER TABLE simplified.torrents OWNER TO postgres;
+
+--
+-- Name: COLUMN torrents.merge_action_taken; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.merge_action_taken IS 'MATCHED 1, MATCHED 2, NOT MATCHED';
+
+
+--
+-- Name: COLUMN torrents.added_to_feed_table; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.added_to_feed_table IS 'Should be not null, but, I don''t want to truncate. feed or staging. If we have more tables (layers), then each has a feed table, not just staging.';
+
 
 --
 -- Name: torrents_staged; Type: TABLE; Schema: simplified; Owner: postgres
@@ -5120,6 +5168,13 @@ CREATE UNIQUE INDEX scheduled_tasks_order_in_set_idx ON simplified.scheduled_tas
 --
 
 CREATE UNIQUE INDEX scheduled_tasks_scheduled_task_name_idx ON simplified.scheduled_tasks USING btree (scheduled_task_name, scheduled_task_run_set_id);
+
+
+--
+-- Name: t_a_c_ak; Type: INDEX; Schema: simplified; Owner: postgres
+--
+
+CREATE UNIQUE INDEX t_a_c_ak ON simplified.torrent_attributes_change USING btree (torrent_id, added_to_qbittorrent_on, name, from_capture_point, capture_attribute);
 
 
 --
