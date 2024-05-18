@@ -1,68 +1,68 @@
 DROP TABLE IF EXISTS torrents_staged CASCADE;
 CREATE TABLE torrents_staged(
-            torrent_staged_id serial8 PRIMARY KEY
-            ,   added_to_this_table timestamptz DEFAULT(pg_catalog.clock_timestamp())
-            ,   load_batch_timestamp timestamptz
-            ,   load_batch_id INT
-            ,   AddedOn     TIMESTAMPTZ
-            ,   AmountLeft     INT8
-            ,   AutoTmm     bool
-            ,   Availability     FLOAT
-            ,   Original_Availability
-            ,   Category     TEXT
-            ,   Completed     INT8
-            ,   CompletionOn     TIMESTAMPTZ
-            ,   ContentPath     TEXT
-            ,   DlLimit     INT8
-            ,   Dlspeed     INT8
-            ,   Downloaded     INT8
-            ,   DownloadedSession     INT8
-            ,   DownloadPath     TEXT
-            ,   Eta     INT8
-            ,   FLPiecePrio     bool
-            ,   ForceStart     bool
-            ,   Hash     TEXT UNIQUE
-            ,   InactiveSeedingTimeLimit     INT8
-            ,   Original_InactiveSeedingTimeLimit     INT8
-            ,   InfohashV1     TEXT UNIQUE
-            ,   InfohashV2     TEXT
-            ,   LastActivity     TIMESTAMPTZ
-            ,   MagnetUri     TEXT UNIQUE
-            ,   MaxInactiveSeedingTime     INT8
-            ,   MaxRatio     FLOAT
-            ,   MaxSeedingTime     INT8
-            ,   Name     TEXT UNIQUE
-            ,   NumComplete     INT8
-            ,   NumIncomplete     INT8
-            ,   NumLeechs     INT8
-            ,   NumSeeds     INT8
-            ,   Priority     INT8
-            ,   Progress     FLOAT
-            ,   Ratio     FLOAT
-            ,   RatioLimit     FLOAT
-            ,   SavePath     TEXT
-            ,   SeedingTime     INT8
-            ,   SeedingTimeLimit     INT8
-            ,   SeenComplete     TIMESTAMPTZ
-            ,   SeqDl     bool
-            ,   Size     INT8
-            ,   State     TEXT
-            ,   SuperSeeding     bool
-            ,   Tags     TEXT
-            ,   TimeActive     INT8
-            ,   TotalSize     INT8
-            ,   Tracker     TEXT
-            ,   TrackersCount     INT8
-            ,   UpLimit     INT8
-            ,   Uploaded     INT8
-            ,   UploadedSession     INT8
-            ,   Upspeed     INT8
+                torrent_staged_id                 SERIAL8 PRIMARY KEY
+            ,   added_to_this_table               TIMESTAMPTZ DEFAULT(clock_timestamp())
+            ,   load_batch_timestamp              TIMESTAMPTZ
+            ,   load_batch_id                     INT
+            ,   AddedOn                           TIMESTAMPTZ
+            ,   AmountLeft                        INT8
+            ,   AutoTmm                           BOOL
+            ,   Availability                      FLOAT
+            ,   Original_Availability             FLOAT
+            ,   Category                          TEXT
+            ,   Completed                         INT8
+            ,   CompletionOn                      TIMESTAMPTZ
+            ,   ContentPath                       TEXT
+            ,   DlLimit                           INT8
+            ,   Dlspeed                           INT8
+            ,   Downloaded                        INT8
+            ,   DownloadedSession                 INT8
+            ,   DownloadPath                      TEXT
+            ,   Eta                               INT8
+            ,   FLPiecePrio                       BOOL
+            ,   ForceStart                        BOOL
+            ,   Hash                              TEXT UNIQUE
+            ,   InactiveSeedingTimeLimit          INT8
+            ,   Original_InactiveSeedingTimeLimit INT8
+            ,   InfohashV1                        TEXT UNIQUE
+            ,   InfohashV2                        TEXT
+            ,   LastActivity                      TIMESTAMPTZ
+            ,   MagnetUri                         TEXT UNIQUE
+            ,   MaxInactiveSeedingTime            INT8
+            ,   MaxRatio                          FLOAT
+            ,   MaxSeedingTime                    INT8
+            ,   Name                              TEXT UNIQUE
+            ,   NumComplete                       INT8
+            ,   NumIncomplete                     INT8
+            ,   NumLeechs                         INT8
+            ,   NumSeeds                          INT8
+            ,   Priority                          INT8
+            ,   Progress                          FLOAT
+            ,   Ratio                             FLOAT
+            ,   RatioLimit                        FLOAT
+            ,   SavePath                          TEXT
+            ,   SeedingTime                       INT8
+            ,   SeedingTimeLimit                  INT8
+            ,   SeenComplete                      TIMESTAMPTZ
+            ,   SeqDl                             BOOL
+            ,   Size                              INT8
+            ,   State                             TEXT
+            ,   SuperSeeding                      BOOL
+            ,   Tags                              TEXT
+            ,   TimeActive                        INT8
+            ,   TotalSize                         INT8
+            ,   Tracker                           TEXT
+            ,   TrackersCount                     INT8
+            ,   UpLimit                           INT8
+            ,   Uploaded                          INT8
+            ,   UploadedSession                   INT8
+            ,   Upspeed                           INT8
         );
         
 CREATE TABLE torrents(
-                torrent_id                  SERIAL8 PRIMARY KEY
-            ,   from_torrent_stage_batch_id INT
-            ,   from_torrent_stage_id       INT8 REFERENCES torrents_staged(torrent_staged_id)
+                torrent_id                        SERIAL8 PRIMARY KEY
+            ,   from_torrent_staged_load_batch_id INT
+            ,   from_torrent_staged_id            INT8 REFERENCES torrents_staged(torrent_staged_id)
             ,   added_to_this_table         TIMESTAMPTZ DEFAULT(pg_catalog.clock_timestamp())
             ,   load_batch_timestamp        TIMESTAMPTZ
             ,   load_batch_id               INT
