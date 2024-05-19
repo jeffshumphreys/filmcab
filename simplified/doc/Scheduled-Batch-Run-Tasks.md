@@ -58,6 +58,7 @@ description: >-
 3. update\_spreadsheet\_with\_new\_files
 4. pull\_keep\_list
 5. merge\_keep\_list\_into\_spreadsheet
+1. 🚧pull\_qbittorrent\_torrent\_statuses
 6. pull\_new\_tmdb\_metadata
 7. scrape\_tmdb\_metadata\_history
 8. pull\_imdb\_dumps
