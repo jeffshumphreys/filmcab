@@ -362,6 +362,7 @@ Long description
 
 .PARAMETER nextProcessToMeasure
 Display this label AFTER displaying the time passed for the PREVIOUS process.
+Send a null if you want to just close out the last process tag.  This is when you're not sure which process or group of script is next.
 
 .EXAMPLE
 An example
@@ -370,12 +371,14 @@ An example
 General notes
 ##########################################################################################################################################################################################################>
 Function DisplayTimePassed($nextProcessToMeasure) {
-            $now                     = (Get-Date)
-            $timepassed              = $now - $Script:LastDisplayedTimeElapsed
+    $now                     = (Get-Date)
+    $timepassed              = $now - $Script:LastDisplayedTimeElapsed
     $Script:LastDisplayedTimeElapsed = $now
-            $timepassedString        = $timepassed.Humanize()
+    $timepassedString        = $timepassed.Humanize()
     Write-Host " took $timepassedString"
-    Write-Host $$nextProcessToMeasure -NoNewline # Leave it hanging for next call to DisplayTimePassed
+    if ($null -ne $nextProcessToMeasure) {
+        Write-Host $nextProcessToMeasure -NoNewline # Leave it hanging for next call to DisplayTimePassed
+    }
 }
 
 <#########################################################################################################################################################################################################
