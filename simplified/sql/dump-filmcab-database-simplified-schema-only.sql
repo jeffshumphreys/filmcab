@@ -3852,44 +3852,28 @@ ALTER TABLE simplified.search_terms ALTER COLUMN search_term_id ADD GENERATED AL
 --
 
 CREATE TABLE simplified.torrent_attributes_change (
-    name text,
-    size bigint,
-    added_to_qbittorrent_on timestamp with time zone,
-    torrent_id bigint,
-    from_capture_point timestamp with time zone,
-    to_capture_point timestamp with time zone,
-    time_elapsed_between_capture_points interval,
-    first_state text,
-    second_state text,
-    added_to_feed_table timestamp with time zone NOT NULL,
-    added_to_this_table timestamp with time zone DEFAULT clock_timestamp(),
-    capture_attribute text,
-    first_capture_point_value double precision,
-    second_capture_point_value double precision,
-    change_in_capture_point_value double precision
+    torrent_id integer NOT NULL,
+    from_capture_point timestamp with time zone NOT NULL,
+    to_capture_point timestamp with time zone NOT NULL,
+    capture_attribute "char" NOT NULL,
+    first_capture_point_value real,
+    second_capture_point_value real
 );
 
 
 ALTER TABLE simplified.torrent_attributes_change OWNER TO postgres;
 
 --
--- Name: COLUMN torrent_attributes_change.added_to_this_table; Type: COMMENT; Schema: simplified; Owner: postgres
---
-
-COMMENT ON COLUMN simplified.torrent_attributes_change.added_to_this_table IS 'Now standard';
-
-
---
 -- Name: torrents; Type: TABLE; Schema: simplified; Owner: postgres
 --
 
 CREATE TABLE simplified.torrents (
-    torrent_id bigint NOT NULL,
-    from_torrent_stage_batch_id integer,
-    from_torrent_stage_id bigint,
+    torrent_id integer NOT NULL,
+    from_torrent_staged_load_batch_id integer NOT NULL,
+    from_torrent_staged_id bigint NOT NULL,
     added_to_this_table timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
-    load_batch_timestamp timestamp with time zone,
-    load_batch_id integer,
+    load_batch_timestamp timestamp with time zone NOT NULL,
+    load_batch_id integer NOT NULL,
     found_missing_on timestamp with time zone,
     addedon timestamp with time zone NOT NULL,
     amountleft bigint,
@@ -3963,11 +3947,49 @@ CREATE TABLE simplified.torrents (
     upspeed bigint,
     upspeed_original bigint,
     merge_action_taken character varying,
-    added_to_feed_table timestamp with time zone NOT NULL
+    added_to_feed_table timestamp with time zone NOT NULL,
+    from_torrent_staged_load_batch_timestamp timestamp with time zone,
+    original_load_batch_id integer,
+    original_load_batch_timestamp timestamp with time zone
 );
 
 
 ALTER TABLE simplified.torrents OWNER TO postgres;
+
+--
+-- Name: COLUMN torrents.added_to_this_table; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.added_to_this_table IS 'Not static, changes per row, can be used for ordering both in table and across table loads.';
+
+
+--
+-- Name: COLUMN torrents.load_batch_timestamp; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.load_batch_timestamp IS 'in code: $loadBatchTimestamp        = Get-SqlTimestamp, which just captures now, not the beginning script time. Maybe should be diff, not sure.  But this is captured before torrents_staged is loaded so should be the same across all torrent tables where a row changed.';
+
+
+--
+-- Name: COLUMN torrents.load_batch_id; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.load_batch_id IS 'from code: cannot set here as part of batch load. value from nextval(''torrents_staged_load_batch_id'')';
+
+
+--
+-- Name: COLUMN torrents.found_missing_on; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.found_missing_on IS 'Set from MERGE of FULL JOIN where there is a target row, but no longer a matching source row. So doesn''t tell you when something in qbittorrent was removed, just that it was removed.';
+
+
+--
+-- Name: COLUMN torrents.addedon; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.addedon IS 'added to qbittorrent - the internal name is used, I didn''t rename it.  This way the API output matches the column.';
+
 
 --
 -- Name: COLUMN torrents.merge_action_taken; Type: COMMENT; Schema: simplified; Owner: postgres
@@ -3984,15 +4006,75 @@ COMMENT ON COLUMN simplified.torrents.added_to_feed_table IS 'Should be not null
 
 
 --
+-- Name: COLUMN torrents.from_torrent_staged_load_batch_timestamp; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents.from_torrent_staged_load_batch_timestamp IS 'Measure against the original batch timestamp, or last updated batch timestamp.';
+
+
+--
+-- Name: torrent_attributes_change_ext_v; Type: VIEW; Schema: simplified; Owner: postgres
+--
+
+CREATE VIEW simplified.torrent_attributes_change_ext_v AS
+ WITH base AS (
+         SELECT tac.torrent_id,
+            t.name AS torrent_name,
+            t.addedon AS torrent_added_to_qbittorrent_queue,
+            NULLIF(tac.from_capture_point, '1970-01-01 07:00:00-07'::timestamp with time zone) AS from_capture_point,
+            tac.to_capture_point,
+            t.state AS current_state,
+            t.hash,
+                CASE (tac.capture_attribute)::integer
+                    WHEN 0 THEN 'amountleft'::text
+                    WHEN 1 THEN 'availability'::text
+                    WHEN 2 THEN 'downloaded'::text
+                    WHEN 3 THEN 'eta'::text
+                    WHEN 4 THEN 'seeds in swarm'::text
+                    WHEN 5 THEN 'leechers in swarm'::text
+                    WHEN 6 THEN 'leachers connected'::text
+                    WHEN 7 THEN 'seeds connected'::text
+                    WHEN 8 THEN 'progress'::text
+                    WHEN 9 THEN 'ratio'::text
+                    WHEN 10 THEN 'seedingtime'::text
+                    WHEN 11 THEN 'trackerscount'::text
+                    WHEN 12 THEN 'uploaded'::text
+                    WHEN 13 THEN 'uploadedsession'::text
+                    WHEN 14 THEN 'upspeed'::text
+                    ELSE '??????'::text
+                END AS captured_attribute,
+            tac.first_capture_point_value AS from_value,
+            tac.second_capture_point_value AS to_value
+           FROM (simplified.torrent_attributes_change tac
+             JOIN simplified.torrents t USING (torrent_id))
+        )
+ SELECT base.torrent_id,
+    base.torrent_name,
+    base.torrent_added_to_qbittorrent_queue,
+    base.from_capture_point,
+    base.to_capture_point,
+    base.current_state,
+    base.hash,
+    base.captured_attribute,
+    base.from_value,
+    base.to_value,
+    (base.to_capture_point - base.from_capture_point) AS capture_period
+   FROM base
+  ORDER BY base.torrent_name, base.captured_attribute, base.from_capture_point;
+
+
+ALTER TABLE simplified.torrent_attributes_change_ext_v OWNER TO postgres;
+
+--
 -- Name: torrents_staged; Type: TABLE; Schema: simplified; Owner: postgres
 --
 
 CREATE TABLE simplified.torrents_staged (
     torrent_staged_id bigint NOT NULL,
-    added_to_this_table timestamp with time zone DEFAULT clock_timestamp(),
-    load_batch_timestamp timestamp with time zone,
-    load_batch_id integer,
-    addedon timestamp with time zone,
+    added_to_this_table timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+    load_batch_timestamp timestamp with time zone NOT NULL,
+    load_batch_id integer NOT NULL,
+    addedon timestamp with time zone NOT NULL,
     amountleft bigint,
     autotmm boolean,
     availability double precision,
@@ -4049,6 +4131,181 @@ CREATE TABLE simplified.torrents_staged (
 ALTER TABLE simplified.torrents_staged OWNER TO postgres;
 
 --
+-- Name: COLUMN torrents_staged.load_batch_timestamp; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.load_batch_timestamp IS 'set from code and carried through torrents, torrent_attributes_change, and any other updated in the  batch.';
+
+
+--
+-- Name: COLUMN torrents_staged.addedon; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.addedon IS 'Time (Unix Epoch) when the torrent was added to the client';
+
+
+--
+-- Name: COLUMN torrents_staged.amountleft; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.amountleft IS 'Amount of data left to download (bytes)';
+
+
+--
+-- Name: COLUMN torrents_staged.autotmm; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.autotmm IS 'Whether this torrent is managed by Automatic Torrent Management';
+
+
+--
+-- Name: COLUMN torrents_staged.availability; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.availability IS 'Percentage of file pieces currently available.';
+
+
+--
+-- Name: COLUMN torrents_staged.completed; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.completed IS 'Amount of transfer data completed (bytes)';
+
+
+--
+-- Name: COLUMN torrents_staged.contentpath; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.contentpath IS 'Absolute path of torrent content (root path for multifile torrents, absolute file path for singlefile torrents)';
+
+
+--
+-- Name: COLUMN torrents_staged.dllimit; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.dllimit IS 'Torrent download speed limit (bytes/s). -1 if unlimited.';
+
+
+--
+-- Name: COLUMN torrents_staged.flpieceprio; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.flpieceprio IS 'True if first last piece are prioritized';
+
+
+--
+-- Name: COLUMN torrents_staged.forcestart; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.forcestart IS 'Torrent is forced to downloading to ignore queue limit';
+
+
+--
+-- Name: COLUMN torrents_staged.lastactivity; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.lastactivity IS 'Last time (Unix Epoch) when a chunk was downloaded/uploaded';
+
+
+--
+-- Name: COLUMN torrents_staged.magneturi; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.magneturi IS 'Magnet URI corresponding to this torrent';
+
+
+--
+-- Name: COLUMN torrents_staged.numcomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.numcomplete IS 'Number of seeds in the swarm';
+
+
+--
+-- Name: COLUMN torrents_staged.numincomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.numincomplete IS 'Number of leechers in the swarm';
+
+
+--
+-- Name: COLUMN torrents_staged.numleechs; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.numleechs IS 'Number of leechers connected to';
+
+
+--
+-- Name: COLUMN torrents_staged.numseeds; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.numseeds IS 'Number of seeds connected to';
+
+
+--
+-- Name: COLUMN torrents_staged.priority; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.priority IS 'Torrent priority. Returns -1 if queuing is disabled or torrent is in seed mode';
+
+
+--
+-- Name: COLUMN torrents_staged.ratio; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.ratio IS 'Torrent share ratio. Max ratio value: 9999.';
+
+
+--
+-- Name: COLUMN torrents_staged.seencomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.seencomplete IS 'Time (Unix Epoch) when this torrent was last seen complete';
+
+
+--
+-- Name: COLUMN torrents_staged.seqdl; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.seqdl IS 'True if sequential download is enabled';
+
+
+--
+-- Name: COLUMN torrents_staged.superseeding; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.superseeding IS 'True if super seeding is enabled';
+
+
+--
+-- Name: COLUMN torrents_staged.timeactive; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.timeactive IS 'Total active time (seconds)';
+
+
+--
+-- Name: COLUMN torrents_staged.totalsize; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.totalsize IS 'Total size (bytes) of all file in this torrent (including unselected ones)';
+
+
+--
+-- Name: COLUMN torrents_staged.tracker; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.tracker IS 'The first tracker with working status. Returns empty string if no tracker is working.';
+
+
+--
+-- Name: COLUMN torrents_staged.upspeed; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged.upspeed IS 'Torrent upload speed (bytes/s)';
+
+
+--
 -- Name: torrents_staged_load_batch_id; Type: SEQUENCE; Schema: simplified; Owner: postgres
 --
 
@@ -4061,6 +4318,610 @@ CREATE SEQUENCE simplified.torrents_staged_load_batch_id
 
 
 ALTER TABLE simplified.torrents_staged_load_batch_id OWNER TO postgres;
+
+--
+-- Name: torrents_staged_snapshot; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.torrents_staged_snapshot (
+    torrent_staged_id bigint NOT NULL,
+    added_to_this_table timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+    load_batch_timestamp timestamp with time zone NOT NULL,
+    load_batch_id integer NOT NULL,
+    addedon timestamp with time zone NOT NULL,
+    amountleft bigint,
+    autotmm boolean,
+    availability double precision,
+    category text,
+    completed bigint,
+    completionon timestamp with time zone,
+    contentpath text,
+    dllimit bigint,
+    dlspeed bigint,
+    downloaded bigint,
+    downloadedsession bigint,
+    downloadpath text,
+    eta bigint,
+    flpieceprio boolean,
+    forcestart boolean,
+    hash text,
+    inactiveseedingtimelimit bigint,
+    infohashv1 text,
+    infohashv2 text,
+    lastactivity timestamp with time zone,
+    magneturi text,
+    maxinactiveseedingtime bigint,
+    maxratio double precision,
+    maxseedingtime bigint,
+    name text,
+    numcomplete bigint,
+    numincomplete bigint,
+    numleechs bigint,
+    numseeds bigint,
+    priority bigint,
+    progress double precision,
+    ratio double precision,
+    ratiolimit double precision,
+    savepath text,
+    seedingtime bigint,
+    seedingtimelimit bigint,
+    seencomplete timestamp with time zone,
+    seqdl boolean,
+    size bigint,
+    state text,
+    superseeding boolean,
+    tags text,
+    timeactive bigint,
+    totalsize bigint,
+    tracker text,
+    trackerscount bigint,
+    uplimit bigint,
+    uploaded bigint,
+    uploadedsession bigint,
+    upspeed bigint
+);
+
+
+ALTER TABLE simplified.torrents_staged_snapshot OWNER TO postgres;
+
+--
+-- Name: TABLE torrents_staged_snapshot; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON TABLE simplified.torrents_staged_snapshot IS 'This has to be separate from torrents_staged as that one is loaded on demand, while this one is going to cycle constantly to merge into torrents_snapshots with only columns that make sense over a time flow. We may manage to narrow this tighter if we can fetch only things that change.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.load_batch_timestamp; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.load_batch_timestamp IS 'set from code and carried through torrents, torrent_attributes_change, and any other updated in the  batch.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.addedon; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.addedon IS 'Time (Unix Epoch) when the torrent was added to the client';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.amountleft; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.amountleft IS 'Amount of data left to download (bytes)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.autotmm; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.autotmm IS 'Whether this torrent is managed by Automatic Torrent Management';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.availability; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.availability IS 'Percentage of file pieces currently available.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.completed; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.completed IS 'Amount of transfer data completed (bytes)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.contentpath; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.contentpath IS 'Absolute path of torrent content (root path for multifile torrents, absolute file path for singlefile torrents)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.dllimit; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.dllimit IS 'Torrent download speed limit (bytes/s). -1 if unlimited.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.flpieceprio; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.flpieceprio IS 'True if first last piece are prioritized';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.forcestart; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.forcestart IS 'Torrent is forced to downloading to ignore queue limit';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.lastactivity; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.lastactivity IS 'Last time (Unix Epoch) when a chunk was downloaded/uploaded';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.magneturi; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.magneturi IS 'Magnet URI corresponding to this torrent';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.numcomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.numcomplete IS 'Number of seeds in the swarm';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.numincomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.numincomplete IS 'Number of leechers in the swarm';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.numleechs; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.numleechs IS 'Number of leechers connected to';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.numseeds; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.numseeds IS 'Number of seeds connected to';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.priority; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.priority IS 'Torrent priority. Returns -1 if queuing is disabled or torrent is in seed mode';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.ratio; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.ratio IS 'Torrent share ratio. Max ratio value: 9999.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.seencomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.seencomplete IS 'Time (Unix Epoch) when this torrent was last seen complete';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.seqdl; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.seqdl IS 'True if sequential download is enabled';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.superseeding; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.superseeding IS 'True if super seeding is enabled';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.timeactive; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.timeactive IS 'Total active time (seconds)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.totalsize; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.totalsize IS 'Total size (bytes) of all file in this torrent (including unselected ones)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.tracker; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.tracker IS 'The first tracker with working status. Returns empty string if no tracker is working.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot.upspeed; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot.upspeed IS 'Torrent upload speed (bytes/s)';
+
+
+--
+-- Name: torrents_staged_snapshot_dl; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.torrents_staged_snapshot_dl (
+    torrent_staged_id bigint NOT NULL,
+    added_to_this_table timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+    load_batch_timestamp timestamp with time zone NOT NULL,
+    load_batch_id integer NOT NULL,
+    addedon timestamp with time zone NOT NULL,
+    amountleft bigint,
+    autotmm boolean,
+    availability double precision,
+    category text,
+    completed bigint,
+    completionon timestamp with time zone,
+    contentpath text,
+    dllimit bigint,
+    dlspeed bigint,
+    downloaded bigint,
+    downloadedsession bigint,
+    downloadpath text,
+    eta bigint,
+    flpieceprio boolean,
+    forcestart boolean,
+    hash text,
+    inactiveseedingtimelimit bigint,
+    infohashv1 text,
+    infohashv2 text,
+    lastactivity timestamp with time zone,
+    magneturi text,
+    maxinactiveseedingtime bigint,
+    maxratio double precision,
+    maxseedingtime bigint,
+    name text,
+    numcomplete bigint,
+    numincomplete bigint,
+    numleechs bigint,
+    numseeds bigint,
+    priority bigint,
+    progress double precision,
+    ratio double precision,
+    ratiolimit double precision,
+    savepath text,
+    seedingtime bigint,
+    seedingtimelimit bigint,
+    seencomplete timestamp with time zone,
+    seqdl boolean,
+    size bigint,
+    state text,
+    superseeding boolean,
+    tags text,
+    timeactive bigint,
+    totalsize bigint,
+    tracker text,
+    trackerscount bigint,
+    uplimit bigint,
+    uploaded bigint,
+    uploadedsession bigint,
+    upspeed bigint
+);
+
+
+ALTER TABLE simplified.torrents_staged_snapshot_dl OWNER TO postgres;
+
+--
+-- Name: TABLE torrents_staged_snapshot_dl; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON TABLE simplified.torrents_staged_snapshot_dl IS 'Only active downloads. Fast, small, tight.  Mostly what I want to know.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.load_batch_timestamp; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.load_batch_timestamp IS 'set from code and carried through torrents, torrent_attributes_change, and any other updated in the  batch.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.addedon; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.addedon IS 'Time (Unix Epoch) when the torrent was added to the client';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.amountleft; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.amountleft IS 'Amount of data left to download (bytes)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.autotmm; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.autotmm IS 'Whether this torrent is managed by Automatic Torrent Management';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.availability; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.availability IS 'Percentage of file pieces currently available.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.completed; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.completed IS 'Amount of transfer data completed (bytes)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.contentpath; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.contentpath IS 'Absolute path of torrent content (root path for multifile torrents, absolute file path for singlefile torrents)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.dllimit; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.dllimit IS 'Torrent download speed limit (bytes/s). -1 if unlimited.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.flpieceprio; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.flpieceprio IS 'True if first last piece are prioritized';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.forcestart; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.forcestart IS 'Torrent is forced to downloading to ignore queue limit';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.lastactivity; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.lastactivity IS 'Last time (Unix Epoch) when a chunk was downloaded/uploaded';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.magneturi; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.magneturi IS 'Magnet URI corresponding to this torrent';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.numcomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.numcomplete IS 'Number of seeds in the swarm';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.numincomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.numincomplete IS 'Number of leechers in the swarm';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.numleechs; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.numleechs IS 'Number of leechers connected to';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.numseeds; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.numseeds IS 'Number of seeds connected to';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.priority; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.priority IS 'Torrent priority. Returns -1 if queuing is disabled or torrent is in seed mode';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.ratio; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.ratio IS 'Torrent share ratio. Max ratio value: 9999.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.seencomplete; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.seencomplete IS 'Time (Unix Epoch) when this torrent was last seen complete';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.seqdl; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.seqdl IS 'True if sequential download is enabled';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.superseeding; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.superseeding IS 'True if super seeding is enabled';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.timeactive; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.timeactive IS 'Total active time (seconds)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.totalsize; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.totalsize IS 'Total size (bytes) of all file in this torrent (including unselected ones)';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.tracker; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.tracker IS 'The first tracker with working status. Returns empty string if no tracker is working.';
+
+
+--
+-- Name: COLUMN torrents_staged_snapshot_dl.upspeed; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.torrents_staged_snapshot_dl.upspeed IS 'Torrent upload speed (bytes/s)';
+
+
+--
+-- Name: torrents_staged_snapshot_dl_ext_v; Type: VIEW; Schema: simplified; Owner: postgres
+--
+
+CREATE VIEW simplified.torrents_staged_snapshot_dl_ext_v AS
+ SELECT tss.name AS torrent_name,
+    t.torrent_id,
+    tss.addedon AS added_to_qbittorrent_on,
+    NULLIF(tss.seencomplete, '1970-01-01 07:00:00-07'::timestamp with time zone) AS last_seen_complete_on,
+    NULLIF(tss.lastactivity, '1970-01-01 07:00:00-07'::timestamp with time zone) AS last_time_any_activity_on,
+    tss.load_batch_timestamp AS captured_status_on,
+    tss.amountleft,
+    tss.downloaded,
+    tss.uploaded,
+    tss.ratio,
+    tss.availability,
+    tss.dlspeed,
+    tss.upspeed,
+    justify_hours(((NULLIF(tss.eta, 8640000) || ' second'::text))::interval) AS time_to_completion,
+    tss.numcomplete AS seeds_in_swarm,
+    tss.numincomplete AS leechers_in_swarm,
+    tss.numseeds AS connected_seeds,
+    tss.numleechs AS connected_leeches,
+    tss.progress,
+    tss.tracker,
+    tss.trackerscount
+   FROM (simplified.torrents_staged_snapshot_dl tss
+     LEFT JOIN simplified.torrents t USING (name));
+
+
+ALTER TABLE simplified.torrents_staged_snapshot_dl_ext_v OWNER TO postgres;
+
+--
+-- Name: torrents_staged_snapshot_dl_torrent_staged_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.torrents_staged_snapshot_dl_torrent_staged_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.torrents_staged_snapshot_dl_torrent_staged_id_seq OWNER TO postgres;
+
+--
+-- Name: torrents_staged_snapshot_dl_torrent_staged_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.torrents_staged_snapshot_dl_torrent_staged_id_seq OWNED BY simplified.torrents_staged_snapshot_dl.torrent_staged_id;
+
+
+--
+-- Name: torrents_staged_snapshot_ext_v; Type: VIEW; Schema: simplified; Owner: postgres
+--
+
+CREATE VIEW simplified.torrents_staged_snapshot_ext_v AS
+ SELECT tss.name AS torrent_name,
+    tss.downloadpath,
+    tss.hash,
+    t.torrent_id,
+    tss.addedon AS added_to_qbittorrent_on,
+    NULLIF(tss.completionon, '1970-01-01 07:00:00-07'::timestamp with time zone) AS completed_download_on,
+    NULLIF(tss.seencomplete, '1970-01-01 07:00:00-07'::timestamp with time zone) AS last_seen_complete_on,
+    NULLIF(tss.lastactivity, '1970-01-01 07:00:00-07'::timestamp with time zone) AS last_time_any_activity_on,
+    tss.load_batch_timestamp AS captured_status_on,
+    tss.state,
+    tss.amountleft,
+    tss.downloaded,
+    tss.uploaded,
+    tss.ratio,
+    tss.availability,
+    tss.dlspeed,
+    tss.upspeed,
+    justify_hours(((NULLIF(tss.eta, 8640000) || ' second'::text))::interval) AS time_to_completion,
+    tss.numcomplete AS seeds_in_swarm,
+    tss.numincomplete AS leechers_in_swarm,
+    tss.numseeds AS connected_seeds,
+    tss.numleechs AS connected_leeches,
+    tss.progress,
+    tss.tracker,
+    tss.trackerscount
+   FROM (simplified.torrents_staged_snapshot tss
+     LEFT JOIN simplified.torrents t USING (name));
+
+
+ALTER TABLE simplified.torrents_staged_snapshot_ext_v OWNER TO postgres;
+
+--
+-- Name: torrents_staged_snapshot_torrent_staged_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.torrents_staged_snapshot_torrent_staged_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.torrents_staged_snapshot_torrent_staged_id_seq OWNER TO postgres;
+
+--
+-- Name: torrents_staged_snapshot_torrent_staged_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.torrents_staged_snapshot_torrent_staged_id_seq OWNED BY simplified.torrents_staged_snapshot.torrent_staged_id;
+
 
 --
 -- Name: torrents_staged_torrent_staged_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
@@ -4102,6 +4963,258 @@ ALTER TABLE simplified.torrents_torrent_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE simplified.torrents_torrent_id_seq OWNED BY simplified.torrents.torrent_id;
+
+
+--
+-- Name: tv_episodes; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.tv_episodes (
+    tv_episode_id integer NOT NULL,
+    tv_serial_id integer,
+    tv_season_id integer,
+    tv_episode_name character varying,
+    tv_episode_no smallint,
+    air_date date,
+    run_time time without time zone,
+    uk_viewers integer,
+    uk_audience_appreciation_index smallint,
+    wikipedia_plot character varying,
+    time_period_set_in character varying
+);
+
+
+ALTER TABLE simplified.tv_episodes OWNER TO postgres;
+
+--
+-- Name: TABLE tv_episodes; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON TABLE simplified.tv_episodes IS 'The meat! of a serial, or I suppose it could be just an episode of a season???  How???';
+
+
+--
+-- Name: COLUMN tv_episodes.tv_serial_id; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_episodes.tv_serial_id IS 'empty in the later doctor whos, since no story level.';
+
+
+--
+-- Name: COLUMN tv_episodes.uk_audience_appreciation_index; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_episodes.uk_audience_appreciation_index IS '0 to a 100';
+
+
+--
+-- Name: tv_episodes_tv_episode_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.tv_episodes_tv_episode_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.tv_episodes_tv_episode_id_seq OWNER TO postgres;
+
+--
+-- Name: tv_episodes_tv_episode_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.tv_episodes_tv_episode_id_seq OWNED BY simplified.tv_episodes.tv_episode_id;
+
+
+--
+-- Name: tv_seasons; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.tv_seasons (
+    tv_season_id integer NOT NULL,
+    tv_show_id integer NOT NULL,
+    tv_season_no smallint NOT NULL,
+    protagonists text[],
+    antagonists text[],
+    companions text[]
+);
+
+
+ALTER TABLE simplified.tv_seasons OWNER TO postgres;
+
+--
+-- Name: COLUMN tv_seasons.tv_season_no; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_seasons.tv_season_no IS 'The number, so not really the id.  Should be consecutive unless they actual number skips in the actual show.';
+
+
+--
+-- Name: COLUMN tv_seasons.protagonists; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_seasons.protagonists IS 'First Doctor, Second?';
+
+
+--
+-- Name: COLUMN tv_seasons.antagonists; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_seasons.antagonists IS 'The first Master, the second?  Actors, not characters. Though I guess "First Doctor" is a quasi-reification of character and actor.';
+
+
+--
+-- Name: tv_seasons_tv_season_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.tv_seasons_tv_season_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.tv_seasons_tv_season_id_seq OWNER TO postgres;
+
+--
+-- Name: tv_seasons_tv_season_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.tv_seasons_tv_season_id_seq OWNED BY simplified.tv_seasons.tv_season_id;
+
+
+--
+-- Name: tv_serials; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.tv_serials (
+    tv_serial_id integer NOT NULL,
+    tv_serial_name text,
+    film_type text,
+    air_date date,
+    script_edited_by text[],
+    directed_by text[],
+    produced_by text[],
+    program_controller character varying,
+    head_of_script_department character varying,
+    written_by text[],
+    production_code character varying,
+    tv_season_id integer,
+    wikipedia_plot text
+);
+
+
+ALTER TABLE simplified.tv_serials OWNER TO postgres;
+
+--
+-- Name: TABLE tv_serials; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON TABLE simplified.tv_serials IS 'or "shows". Groups of episodes that are connected. Though sometimes a show trails into the next show.';
+
+
+--
+-- Name: COLUMN tv_serials.tv_serial_name; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_serials.tv_serial_name IS 'It is null sometimes.';
+
+
+--
+-- Name: COLUMN tv_serials.film_type; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_serials.film_type IS 'Just for curiosity''s sake. So 406-line black and white videotape, for instance.';
+
+
+--
+-- Name: COLUMN tv_serials.air_date; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_serials.air_date IS '"original" of course.';
+
+
+--
+-- Name: COLUMN tv_serials.script_edited_by; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_serials.script_edited_by IS 'Could be multiple. same as writer?';
+
+
+--
+-- Name: tv_serials_tv_serial_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.tv_serials_tv_serial_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.tv_serials_tv_serial_id_seq OWNER TO postgres;
+
+--
+-- Name: tv_serials_tv_serial_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.tv_serials_tv_serial_id_seq OWNED BY simplified.tv_serials.tv_serial_id;
+
+
+--
+-- Name: tv_shows; Type: TABLE; Schema: simplified; Owner: postgres
+--
+
+CREATE TABLE simplified.tv_shows (
+    tv_show_id integer NOT NULL,
+    tv_show_name text NOT NULL COLLATE simplified.ignore_both_accent_and_case,
+    year_released text
+);
+
+
+ALTER TABLE simplified.tv_shows OWNER TO postgres;
+
+--
+-- Name: TABLE tv_shows; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON TABLE simplified.tv_shows IS 'Started to track my Doctor Who stuff.  Is classic Doctor Who and Nu Who the same show though?  Ugh. Let the contraversy begin.';
+
+
+--
+-- Name: COLUMN tv_shows.year_released; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.tv_shows.year_released IS 'So Doctor Who classic and Doctor Who 2005 can be distinct things.';
+
+
+--
+-- Name: tv_shows_tv_show_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
+--
+
+CREATE SEQUENCE simplified.tv_shows_tv_show_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE simplified.tv_shows_tv_show_id_seq OWNER TO postgres;
+
+--
+-- Name: tv_shows_tv_show_id_seq; Type: SEQUENCE OWNED BY; Schema: simplified; Owner: postgres
+--
+
+ALTER SEQUENCE simplified.tv_shows_tv_show_id_seq OWNED BY simplified.tv_shows.tv_show_id;
 
 
 --
@@ -4558,6 +5671,48 @@ ALTER TABLE ONLY simplified.torrents_staged ALTER COLUMN torrent_staged_id SET D
 
 
 --
+-- Name: torrents_staged_snapshot torrent_staged_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot ALTER COLUMN torrent_staged_id SET DEFAULT nextval('simplified.torrents_staged_snapshot_torrent_staged_id_seq'::regclass);
+
+
+--
+-- Name: torrents_staged_snapshot_dl torrent_staged_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot_dl ALTER COLUMN torrent_staged_id SET DEFAULT nextval('simplified.torrents_staged_snapshot_dl_torrent_staged_id_seq'::regclass);
+
+
+--
+-- Name: tv_episodes tv_episode_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_episodes ALTER COLUMN tv_episode_id SET DEFAULT nextval('simplified.tv_episodes_tv_episode_id_seq'::regclass);
+
+
+--
+-- Name: tv_seasons tv_season_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_seasons ALTER COLUMN tv_season_id SET DEFAULT nextval('simplified.tv_seasons_tv_season_id_seq'::regclass);
+
+
+--
+-- Name: tv_serials tv_serial_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_serials ALTER COLUMN tv_serial_id SET DEFAULT nextval('simplified.tv_serials_tv_serial_id_seq'::regclass);
+
+
+--
+-- Name: tv_shows tv_show_id; Type: DEFAULT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_shows ALTER COLUMN tv_show_id SET DEFAULT nextval('simplified.tv_shows_tv_show_id_seq'::regclass);
+
+
+--
 -- Name: videos video_id; Type: DEFAULT; Schema: simplified; Owner: postgres
 --
 
@@ -5006,6 +6161,14 @@ ALTER TABLE ONLY simplified.search_terms
 
 
 --
+-- Name: torrent_attributes_change torrent_attributes_change_pkey; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrent_attributes_change
+    ADD CONSTRAINT torrent_attributes_change_pkey PRIMARY KEY (torrent_id, from_capture_point, to_capture_point, capture_attribute);
+
+
+--
 -- Name: torrents torrents_hash_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
 --
 
@@ -5054,11 +6217,43 @@ ALTER TABLE ONLY simplified.torrents_staged
 
 
 --
+-- Name: torrents_staged_snapshot torrents_staged_hash_key_1; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot
+    ADD CONSTRAINT torrents_staged_hash_key_1 UNIQUE (hash);
+
+
+--
+-- Name: torrents_staged_snapshot_dl torrents_staged_hash_key_2; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot_dl
+    ADD CONSTRAINT torrents_staged_hash_key_2 UNIQUE (hash);
+
+
+--
 -- Name: torrents_staged torrents_staged_infohashv1_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
 --
 
 ALTER TABLE ONLY simplified.torrents_staged
     ADD CONSTRAINT torrents_staged_infohashv1_key UNIQUE (infohashv1);
+
+
+--
+-- Name: torrents_staged_snapshot torrents_staged_infohashv1_key_1; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot
+    ADD CONSTRAINT torrents_staged_infohashv1_key_1 UNIQUE (infohashv1);
+
+
+--
+-- Name: torrents_staged_snapshot_dl torrents_staged_infohashv1_key_2; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot_dl
+    ADD CONSTRAINT torrents_staged_infohashv1_key_2 UNIQUE (infohashv1);
 
 
 --
@@ -5070,6 +6265,22 @@ ALTER TABLE ONLY simplified.torrents_staged
 
 
 --
+-- Name: torrents_staged_snapshot torrents_staged_magneturi_key_1; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot
+    ADD CONSTRAINT torrents_staged_magneturi_key_1 UNIQUE (magneturi);
+
+
+--
+-- Name: torrents_staged_snapshot_dl torrents_staged_magneturi_key_2; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot_dl
+    ADD CONSTRAINT torrents_staged_magneturi_key_2 UNIQUE (magneturi);
+
+
+--
 -- Name: torrents_staged torrents_staged_name_key; Type: CONSTRAINT; Schema: simplified; Owner: postgres
 --
 
@@ -5078,11 +6289,83 @@ ALTER TABLE ONLY simplified.torrents_staged
 
 
 --
+-- Name: torrents_staged_snapshot torrents_staged_name_key_1; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot
+    ADD CONSTRAINT torrents_staged_name_key_1 UNIQUE (name);
+
+
+--
+-- Name: torrents_staged_snapshot_dl torrents_staged_name_key_2; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot_dl
+    ADD CONSTRAINT torrents_staged_name_key_2 UNIQUE (name);
+
+
+--
 -- Name: torrents_staged torrents_staged_pkey; Type: CONSTRAINT; Schema: simplified; Owner: postgres
 --
 
 ALTER TABLE ONLY simplified.torrents_staged
     ADD CONSTRAINT torrents_staged_pkey PRIMARY KEY (torrent_staged_id);
+
+
+--
+-- Name: torrents_staged_snapshot torrents_staged_pkey_1; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot
+    ADD CONSTRAINT torrents_staged_pkey_1 PRIMARY KEY (torrent_staged_id);
+
+
+--
+-- Name: torrents_staged_snapshot_dl torrents_staged_pkey_2; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrents_staged_snapshot_dl
+    ADD CONSTRAINT torrents_staged_pkey_2 PRIMARY KEY (torrent_staged_id);
+
+
+--
+-- Name: tv_episodes tv_episodes_pk; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_episodes
+    ADD CONSTRAINT tv_episodes_pk PRIMARY KEY (tv_episode_id);
+
+
+--
+-- Name: tv_seasons tv_season_nos_pk; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_seasons
+    ADD CONSTRAINT tv_season_nos_pk UNIQUE (tv_show_id, tv_season_no);
+
+
+--
+-- Name: tv_seasons tv_seasons_pk; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_seasons
+    ADD CONSTRAINT tv_seasons_pk PRIMARY KEY (tv_season_id);
+
+
+--
+-- Name: tv_serials tv_serials_pk; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_serials
+    ADD CONSTRAINT tv_serials_pk PRIMARY KEY (tv_serial_id);
+
+
+--
+-- Name: tv_shows tv_shows_pk; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_shows
+    ADD CONSTRAINT tv_shows_pk PRIMARY KEY (tv_show_id);
 
 
 --
@@ -5168,13 +6451,6 @@ CREATE UNIQUE INDEX scheduled_tasks_order_in_set_idx ON simplified.scheduled_tas
 --
 
 CREATE UNIQUE INDEX scheduled_tasks_scheduled_task_name_idx ON simplified.scheduled_tasks USING btree (scheduled_task_name, scheduled_task_run_set_id);
-
-
---
--- Name: t_a_c_ak; Type: INDEX; Schema: simplified; Owner: postgres
---
-
-CREATE UNIQUE INDEX t_a_c_ak ON simplified.torrent_attributes_change USING btree (torrent_id, added_to_qbittorrent_on, name, from_capture_point, capture_attribute);
 
 
 --
@@ -5274,11 +6550,35 @@ ALTER TABLE ONLY simplified.directories
 
 
 --
+-- Name: tv_episodes fk_episode_part_of_season; Type: FK CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_episodes
+    ADD CONSTRAINT fk_episode_part_of_season FOREIGN KEY (tv_season_id) REFERENCES simplified.tv_seasons(tv_season_id);
+
+
+--
+-- Name: tv_episodes fk_episode_part_of_serial; Type: FK CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_episodes
+    ADD CONSTRAINT fk_episode_part_of_serial FOREIGN KEY (tv_serial_id) REFERENCES simplified.tv_serials(tv_serial_id);
+
+
+--
 -- Name: media_files fk_media_file_is_file; Type: FK CONSTRAINT; Schema: simplified; Owner: postgres
 --
 
 ALTER TABLE ONLY simplified.media_files
     ADD CONSTRAINT fk_media_file_is_file FOREIGN KEY (media_file_id) REFERENCES simplified.files(file_id);
+
+
+--
+-- Name: tv_serials fk_serial_part_of_season; Type: FK CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_serials
+    ADD CONSTRAINT fk_serial_part_of_season FOREIGN KEY (tv_season_id) REFERENCES simplified.tv_seasons(tv_season_id);
 
 
 --
@@ -5334,6 +6634,22 @@ ALTER TABLE ONLY simplified.scheduled_tasks
 --
 
 COMMENT ON CONSTRAINT scheduled_tasks_scheduled_task_run_sets_fk ON simplified.scheduled_tasks IS 'Every task must be part of exactly ONE set.  Don''t want to get into tasks in multiple sets.';
+
+
+--
+-- Name: torrent_attributes_change torrent_attributes_change_torrent_id_fkey; Type: FK CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.torrent_attributes_change
+    ADD CONSTRAINT torrent_attributes_change_torrent_id_fkey FOREIGN KEY (torrent_id) REFERENCES simplified.torrents(torrent_id);
+
+
+--
+-- Name: tv_seasons tv_seasons_tv_show_id_fkey; Type: FK CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.tv_seasons
+    ADD CONSTRAINT tv_seasons_tv_show_id_fkey FOREIGN KEY (tv_show_id) REFERENCES simplified.tv_shows(tv_show_id);
 
 
 --

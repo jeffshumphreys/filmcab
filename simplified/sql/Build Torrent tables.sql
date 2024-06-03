@@ -216,7 +216,9 @@ COMMENT ON TABLE torrent_attributes_change IS 'We want this as thin as possible 
     SELECT DISTINCT availability  FROM torrents;
     SELECT * FROM torrents WHERE from_torrent_staged_id IS null;
     SELECT * FROM torrents WHERE from_torrent_staged_load_batch_timestamp IS null;
-    SELECT from_torrent_staged_load_batch_timestamp, load_batch_timestamp  FROM torrents;
+    SELECT original_load_batch_timestamp , load_batch_timestamp  FROM torrents;
     SELECT torrent_id, from_capture_point, to_capture_point, capture_attribute::int, first_capture_point_value, second_capture_point_value  FROM torrent_attributes_change tac; 
+    
+    SELECT DISTINCT from_capture_point, to_capture_point FROM torrent_attributes_change tac;
     SELECT DISTINCT capture_attribute::int FROM torrent_attributes_change tac;
     SELECT '1970-01-01 07:00:00.000 -0700'::TIMESTAMPTZ

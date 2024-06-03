@@ -160,15 +160,16 @@ in next room, which means, you have not created anything new- but just moved it 
  *  UGLY REPAIR
  */                
 SELECT * FROM moves WHERE moves.bytes_moved = 0;
-SELECT * FROM directories_ext_v dev WHERE directory LIKE '%Those Who%' AND moved_in;
-SELECT * FROM directories_ext_v dev WHERE directory LIKE '%Those Who%' AND moved_out;
-SELECT * FROM files_ext_v WHERE directory_hash in(SELECT directory_hash  FROM directories_ext_v dev WHERE directory LIKE '%Those Who%' AND moved_in) AND moved_in ;
-SELECT * FROM files_ext_v WHERE directory_hash in(SELECT directory_hash  FROM directories_ext_v dev WHERE directory LIKE '%Those Who%' AND moved_out) AND moved_out ;
+SELECT * FROM moves WHERE move_ended IS NULL; /* delete move_id = 184 */
+SELECT * FROM moves ORDER BY move_id DESC;
+SELECT * FROM directories_ext_v dev WHERE directory LIKE '%Don %' AND moved_in;
+SELECT * FROM directories_ext_v dev WHERE directory LIKE '%Don %' AND moved_out; /* set move_id to null, moved_out = false, moved_to_volume_id to null */
+SELECT * FROM files_ext_v WHERE directory_hash in(SELECT directory_hash  FROM directories_ext_v dev WHERE directory LIKE '%Don %' AND moved_in) AND file_moved_in ;
+SELECT * FROM files_ext_v WHERE directory_hash in(SELECT directory_hash  FROM directories_ext_v dev WHERE directory LIKE '%Don %' AND moved_out); -- AND file_moved_out ;
 
-DELETE FROM files_v WHERE file_id IN(SELECT file_id FROM files_ext_v WHERE directory_id in(SELECT directory_id  FROM directories_ext_v dev WHERE directory LIKE '%Those Who%' AND moved_in));
-UPDATE files_v SET move_id = NULL, moved_to_volume_id = NULL, moved_to_directory_hash = NULL, moved_out = NULL WHERE directory_hash IN (SELECT directory_hash  FROM directories_ext_v dev WHERE directory LIKE '%Those Who%' AND moved_out);
-DELETE FROM directories_v WHERE directory_id in(SELECT directory_id  FROM directories_ext_v dev WHERE directory LIKE '%Those Who%' AND moved_in);
-UPDATE directories_v SET move_id = NULL, moved_to_volume_id = NULL, moved_to_directory_hash = NULL, moved_out = NULL WHERE directory LIKE '%Those Who%' AND moved_out;
-DELETE FROM moves WHERE moves.from_directory LIKE '%Those Who%';
+DELETE FROM files_v WHERE file_id IN(SELECT file_id FROM files_ext_v WHERE directory_id in(SELECT directory_id  FROM directories_ext_v dev WHERE directory LIKE '%Don %' AND moved_in));
+UPDATE files_v SET move_id = NULL, moved_to_volume_id = NULL, moved_to_directory_hash = NULL, moved_out = NULL WHERE directory_hash IN (SELECT directory_hash  FROM directories_ext_v dev WHERE directory LIKE '%Don %' AND moved_out);
+DELETE FROM directories_v WHERE directory_id in(SELECT directory_id  FROM directories_ext_v dev WHERE directory LIKE '%Don %' AND moved_in);
+UPDATE directories_v SET move_id = NULL, moved_to_volume_id = NULL, moved_to_directory_hash = NULL, moved_out = NULL WHERE directory LIKE '%Don %' AND moved_out;
+DELETE FROM moves WHERE moves.from_directory_or_file LIKE '%Don %';
 
- 
