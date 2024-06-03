@@ -24,6 +24,12 @@ $StartingColor = $DarkYellow
 $SuccessColor = $Green
 $FailColor = $Red
 
+Function ForceGUIObjectToRefresh([object]$item) {
+    try {$item.Invalidate()} catch{}
+    try {$item.Update()} catch{}
+    try {$item.Refresh()} catch{}
+    [System.Windows.Forms.Application]::DoEvents()
+}
 Function Get-TaskBarDimensions {
     param (
         [System.Windows.Forms.Screen]$Screen = [System.Windows.Forms.Screen]::PrimaryScreen
