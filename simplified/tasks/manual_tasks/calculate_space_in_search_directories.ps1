@@ -72,13 +72,13 @@ while ($volumesForSearchDirectories.Read()) {
 
 Write-Count howMuchSpaceLeft Byte
 
-Write-AllPlaces "Free Space (GB) $($howMuchSpaceLeft/1000/1000/1000) GB"
+Write-AllPlaces "      Free Space (GB) $($howMuchSpaceLeft/1000/1000/1000) GB"
 Write-AllPlaces "Least Free Space (GB) $($smallestRemainingSpace/1000/1000/1000) GB"
 
 if ($true) {
     [PscustomObject] @{
-        Total_Free_Space_GB = ($howMuchSpaceLeft/1000/1000/1000).ToString()
-        Smallest_Space_GB = ($smallestRemainingSpace/1000/1000/1000).ToString()
+        Total_Free_Space_GB        = ($howMuchSpaceLeft/1000/1000/1000).ToString()
+        Smallest_Space_GB          = ($smallestRemainingSpace/1000/1000/1000).ToString()
         Free_Space_in_Published_GB = ($spaceLeftOnPublished/1000/1000/1000).ToString()
     }|Select|Out-GridView
 }
