@@ -97,7 +97,8 @@ Function Invoke-Sql {
         [Switch]$OneOrMore,
         [Switch]$SameOrMoreAsLastRun,
         [Switch]$LogSqlToHost,
-        [Switch]$DisplaySqlOnly
+        [Switch]$DisplaySqlOnly,
+        [Switch]$ThrowOnError
     )
     try {
         if ($LogSqlToHost) {
@@ -120,6 +121,10 @@ Function Invoke-Sql {
         elseif ($OneOrMore -and $howManyRowsAffected -lt 1) { throw [Exception]"Failed one or more requirement: $howManyRowsAffected"}
         return $howManyRowsAffected
     } catch {
+        if ($ThrowOnError) {
+            Show-Error $sql -DontExit
+            throw
+        }
         Show-Error $sql -exitcode 111 # Try (not too hard) to have some unique DatabaseColumnValue returned. meh. UNLESS THERES a real result.
         throw # Force caller to deal with
     }
@@ -187,24 +192,6 @@ class ForEachRowInQuery {
         }
     }
 
-    # [object]get_Current() {
-    #     return $this
-    # }
-
-    # [bool] MoveNext() {
-    #     $local_reader = $this.readerObject.Value
-    #     $anyMoreRecordsToRead = $local_reader.Read()
-    #     if ($anyMoreRecordsToRead) {
-    #         $this.ResultSetColumnDefinitions       = $local_reader.GetSchemaTable()
-    #         foreach ($ResultSetColumnDefinition in $this.ResultSetColumnDefinitions) {
-    #             $DatabaseColumnName = $ResultSetColumnDefinition.ColumnName
-    #             $DatabaseColumnValue  = Get-SqlFieldValue $this.readerObject $DatabaseColumnName
-    #             New-Variable -Name $DatabaseColumnName -Scope Script -Option AllScope -Value $DatabaseColumnValue -Force -Visibility Public
-    #         }
-    #     }
-    #     return $anyMoreRecordsToRead
-    # }
-
     [bool] Read() {
         $anyMoreRecordsToRead = $this.readerObject.Value.Read()
         if ($anyMoreRecordsToRead) {
@@ -222,226 +209,20 @@ class ForEachRowInQuery {
         {
             # get
             "getter $($this.readerObject.Value.HasRows)"
-        }#`
-        #{
-        #    # set
-        #    param ( $arg )
-        #    $this._p = "setter $arg"
-        #}
+        }
     )
-
-    # [void] Reset() {
-    #     $this.Actual = 0
-    # }
 
     [void] Close() {
         $this.readerObject.Value.Close()
     }
-    # [void] Dispose() {
-    #     # Close reader
-    # }
 }
-
-
-<#
-.SYNOPSIS
-Select a query but don't read the first row so the caller can use a While
-
-.DESCRIPTION
-Long description
-
-.EXAMPLE
-$readerHandle = Walk-Sql $sql
-$reader = $readerHandle.Value
-While ($reader.Read()) {
-}
-
-$reader.Close() # Optional
-
-.NOTES
-General notes
-#>
-# Function Walk-Sql {
-#     [CmdletBinding()]
-#     param(
-#         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql
-#     )
-#     Select-Sql $sql -skipInitialRead
-# }
-
-
-<#
-.SYNOPSIS
-Execute a SELECT statement and return a traversable cursor.
-
-.DESCRIPTION
-Tired of rekeying this code over and over. I usually (always) only need one reader ever open in on thread. So this works.
-
-.PARAMETER sql
-SQL script that I guess could execute a function (stored proc) that returned a result set, but I use it for selects. Not for batches, though.
-
-.EXAMPLE
-$readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
-$reader = $readerHandle.Value # Now we can unbox!  Ta da!
-Do { # Buggy problem: My "Select-Sql" does an initial read.  If it came back with no rows, this would crash. Ugh. Maybe a "Walk-Sql" that does not do a read.
-} While ($reader.Read())
-
-$reader.Close()
-
-.NOTES
-There is no way to return a LOCALLY INSTANTIATED ODBCDataReader object as a DatabaseColumnValue. It will always ALWAYS resolve to null for the caller. I wish the example would be "$reader = Select-Sql 'select 1'" but I can't get it to work. hmmmmmmm
-Better name for a command that runs a query and returns a cursor?  Invoke is more like it does something and leaves it.
-"Read-Sql"? GetHandleToSQLInvokationOutput?  Maybe it's a Get-Sql. Traverse-Sql? Browse? Walk? ForEach-Sql?  That's what happens when you return the reader. Return an enumerator perhaps.  Even While-Sql
-#>
-# Function Select-Sql {
-#     [CmdletBinding()]
-#     param(
-#         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
-#         [Switch]$skipInitialRead
-#     )
-#     try {
-#         $DatabaseCommand = $DatabaseConnection.CreateCommand()
-#         $DatabaseCommand.CommandText = $sql
-#         $reader = [REF]$DatabaseCommand.ExecuteReader(); # Too many refs?
-#         $reader = $reader.Value
-#         if (-not $skipInitialRead) {        $reader.Read() >> $null   }
-#         return [REF]$reader                      # Forces caller to deref!!!!! But only way to get it to work.
-#     } catch {
-#         Show-Error $sql -exitcode 2
-#     }
-# }
-
-<#
-.SYNOPSIS
-Convert select output to a string array (no hashtable!).
-
-.DESCRIPTION
-Long description
-
-.PARAMETER sql
-Parameter description
-
-.EXAMPLE
-$sql = "
-SELECT
-    directory_path                         /* Deleted or not, we want to validate it. Probably more efficient filter is possible. Skip ones I just added, for instance. Don't descend deleted trees. */
-FROM
-    directories
-"
-$readerHandle = (Select-Sql $sql) # Cannot return reader value directly from a function or it blanks, so return it boxed
-$reader = $readerHandle.Value # Now we can unbox!  Ta da!
-$olddirstillexists          = Get-SqlFieldValue $readerHandle directory_still_exists
-$val = $reader.GetValue(0)
-
-.NOTES
-I don't like the verb "Show".  But this function just to blow a select output on the screen is sorely lacking for the lazy developer.
-"Out-Sql" isn't great. I want the output. Select-Sql returns a reader. I suppose "Select-Sql" would behave more like a Select both PS and SQL.
-"Out-Sql" might be more of a block or copy command to a database.  Treating the server as a device.
-#>
-# Function Out-SqlToList {
-#     [CmdletBinding()]
-#     param(
-#         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
-#         [Switch]$DontOutputToConsole,
-#         [Switch]$DontWriteSqlToConsole
-#     )
-#     try {
-#         $DatabaseCommand = $DatabaseConnection.CreateCommand()
-#         $DatabaseCommand.CommandText = $sql
-#         $adapter = New-Object System.Data.Odbc.OdbcDataAdapter $DatabaseCommand
-#         $dataset = New-Object System.Data.DataSet
-#         $adapter.Fill($dataSet) | out-null
-#         if (-not $DontWriteSqlToConsole) {
-#             Write-AllPlaces $sql
-#         }
-#         if (-not $DontOutputToConsole) {
-
-#             $dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors|Out-Host # Make it a little concise.
-#         }
-
-#         $stringlist = @()
-#         foreach ($s in $dataset.Tables[0].Rows)
-#         {
-#             $v = $s[0].ToString()
-#             $stringlist+= $v
-#         }
-#         return $stringlist
-#     } catch {
-#         Show-Error $sql -exitcode 3
-#     }
-# }
-
-<#
-.SYNOPSIS
-Return true/false from a sql based on row count
-
-.DESCRIPTION
-Long description
-
-.PARAMETER sql
-Parameter description
-
-.PARAMETER DontOutputToConsole
-Parameter description
-
-.PARAMETER DontWriteSqlToConsole
-Parameter description
-
-.EXAMPLE
-An example
-
-.NOTES
-General notes
-#>#
-# Function Test-Sql {
-#     [CmdletBinding()]
-#     param(
-#         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
-#         [Switch]$DontOutputToConsole,
-#         [Switch]$DontWriteSqlToConsole
-#     )
-#     try {
-#         $DatabaseCommand = $DatabaseConnection.CreateCommand()
-#         $DatabaseCommand.CommandText = $sql
-#         $reader = $DatabaseCommand.ExecuteReader()
-#         if (-not $reader.HasRows) { return $false}
-#         # Error if more than one row returned??
-#         return $true
-#     } catch {
-#         Show-Error $sql -exitcode 6
-#     }
-# }
-
-<#
-.SYNOPSIS
-Returns a dataset that I can "." reference properties from.
-
-.DESCRIPTION
-Long description
-
-.PARAMETER sql
-SQL script that returns a result set, probably a small set?
-
-.PARAMETER DontOutputToConsole
-Parameter description
-
-.PARAMETER DontWriteSqlToConsole
-Parameter description
-
-.EXAMPLE
-$state_of_session = Out-SqlToDataset "SELECT batch_run_session_id, started FROM batch_run_sessions WHERE running"
-if ($null -ne $state_of_session) {
-if ($state_of_session.batch_run_session_id -lt 100000) {...}
-
-.NOTES
-General notes
-#>
 Function Out-SqlToDataset {
     [CmdletBinding()]
     param(
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
         [Switch]$DontOutputToConsole,
-        [Switch]$DontWriteSqlToConsole
+        [Switch]$DontWriteSqlToConsole,
+        [Switch]$ThrowOnError
     )
     try {
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
@@ -463,6 +244,10 @@ Function Out-SqlToDataset {
         return $dataset.Tables[0].Rows
 
     } catch {
+        if ($ThrowOnError) {
+            Show-Error $sql -DontExit
+            throw
+        }
         Show-Error $sql -exitcode 4
     }
 }
@@ -472,7 +257,8 @@ Function Get-SqlArray {
     param(
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
         [Switch]$DontOutputToConsole,
-        [Switch]$DontWriteSqlToConsole
+        [Switch]$DontWriteSqlToConsole,
+        [Switch]$ThrowOnError
     )
     try {
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
@@ -484,6 +270,10 @@ Function Get-SqlArray {
         $returnArrayRaw = [array]($dataset.Tables[0].Rows|Select * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors)|Out-String -Stream
         return ($returnArrayRaw[3..($returnArrayRaw.length-1)])
     } catch {
+        if ($ThrowOnError) {
+            Show-Error $sql -DontExit
+            throw
+        }
         Show-Error $sql -exitcode 4
     }
 }
@@ -491,7 +281,8 @@ Function Get-SqlArray {
 Function Get-SqlValue {
     param (
         [Parameter(Position=0,Mandatory=$true)][ValidateScript({Assert-MeaningfulString $_ 'sql'})]        [string] $sql,
-        [Switch]$LogSqlToHost
+        [Switch]$LogSqlToHost,
+        [Switch]$ThrowOnError
     )
     try {
         $DatabaseCommand = $DatabaseConnection.CreateCommand()
@@ -505,6 +296,10 @@ Function Get-SqlValue {
         $value = $DatabaseCommand.ExecuteScalar()
         return $value
     } catch {
+        if ($ThrowOnError) {
+            Show-Error $sql -DontExit
+            throw
+        }
         Show-Error $sql -exitcode 44
     }
 }
@@ -532,7 +327,8 @@ Far from perfect. Only solution I can find is to do my own pg_types query and ge
 Function Get-SqlFieldValue {
     param (
         [Parameter(Position=0,Mandatory=$true)][Object] $readerOb, # Child types are DataTableReader, Odbc.OdbcDataReader, OleDb.OleDbDataReader, SqlClient.SqlDataReader
-        [Parameter(Position=1,Mandatory=$true)][Object] $ordinalNoOrColumnName
+        [Parameter(Position=1,Mandatory=$true)][Object] $ordinalNoOrColumnName,
+        [Switch]$ThrowOnError
     )
 
     $reader = $null
