@@ -1717,10 +1717,10 @@ Function EllipseString($string, $cutoff) {
 
 <#########################################################################################################################################################################################################
 .SYNOPSIS
-Short description
+Replace all occurrences of a string in another.
 
 .DESCRIPTION
-Long description
+Normal replace only replaces for one pass, so replace multiple spaces with one will not reduce all multi-spaces to a single space. So I added a loop.
 
 .PARAMETER variableName
 Parameter description
@@ -1739,8 +1739,8 @@ General notes
 ##########################################################################################################################################################################################################>
 Function ReplaceAll($string, $what, $with) {
     if ([string]::IsNullOrEmpty($what)) {return $string}
-    if ($null -eq $with) {return $string}
-    if ($with -contains $what) {return $string}
+    if ($null -eq $with) {return $string} # An empty string is allowed.
+    if ($with -contains $what) {return $string} # Safety check.  Either infinite loop or blow memory with infinite expansion.
 
     $newstring = $string
     while ($newstring -contains $what) {
