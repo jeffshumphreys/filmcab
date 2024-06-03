@@ -10,6 +10,7 @@
     Missing Features:
             Doesn't show progress of file movement.
             Doesn't show file sizes before you click "Move Files"
+            Doesn't show total space freed.
             No way to queue a set of folders/files to move.
 
 #    Called from VS Code (F5)
@@ -28,9 +29,10 @@ try {
 . .\simplified\tasks\manual_tasks\offload_published_directories_selecting_using_gui.formdef.ps1
 
 Function EnableMoveFileButton() {
+    if ($Script:ActivelyMovingFiles) {return $false}
     if (
         # Always require a reason selected
-        -not([string]::IsNullOrWhiteSpace($selectedmoveReasonComboBox.Text) -or $selectedmoveReasonComboBox.Text -notin $selectedmoveReasonComboBox.Items) -and
+        -not([string]::IsNullOrWhiteSpace($selectedmoveReasonComboBox.Text) <# -or $selectedmoveReasonComboBox.Text -notin $selectedmoveReasonComboBox.Items #>) -and
         ( -not
             # If we selected a genre folder like "_Mystery", block the move.
             ($null -ne $treeViewOfPublishedDirectories.selectedNode -and ($treeViewOfPublishedDirectories.SelectedNode.Text.StartsWith('_') -or $treeViewOfPublishedDirectories.SelectedNode.Level -eq 0)) -or
@@ -109,11 +111,11 @@ $ExpandDirectoryNodeListOfFiles = {
 
         $filereader = WhileReadSql "
             SELECT
-                file_name_with_ext
-            ,   useful_part_of_directory
-            ,   file_path
+                file_name_with_ext                                                            AS file_name_with_ext
+            ,   useful_part_of_directory                                                      AS useful_part_of_directory
+            ,   file_path                                                                     AS file_path
             ,   CASE WHEN file_is_symbolic_link OR file_is_hard_link THEN TRUE ELSE FALSE END AS is_link
-            ,   CASE WHEN file_moved_out OR file_deleted THEN TRUE ELSE FALSE END AS nothing_here
+            ,   CASE WHEN file_moved_out OR file_deleted THEN TRUE ELSE FALSE END             AS nothing_here
             FROM
                 files_ext_v
             WHERE
@@ -145,6 +147,7 @@ $ExpandDirectoryNodeListOfFiles = {
     }
     #$statusBarMessage.Text = "treeViewOfPublishedDirectories.add_NodeMouseDoubleClick"
     $MoveFilesButton.Enabled            = EnableMoveFileButton
+    ForceGUIObjectToRefresh $MoveFilesButton
 }
 
 $enterkey = [System.Windows.Input.Key]::Enter
@@ -193,7 +196,7 @@ $treeViewOfPublishedDirectories.add_AfterCheck({
         }
     }
     $MoveFilesButton.Enabled            = EnableMoveFileButton
-    $MoveFilesButton.Refresh()
+    ForceGUIObjectToRefresh $MoveFilesButton
 })
 
 #################################################################################################################################################################################################
@@ -229,8 +232,6 @@ $selectedmoveReasonComboBox.add_TextChanged({
     $MoveFilesButton.Enabled            = EnableMoveFileButton
 })
 
-[DateTime]$LastLogTime = 0
-
 ###########################################################################################################################################################################################
 Function LogMoveActivityLine($msg, [System.Drawing.Color]$textColor) {
     [DateTime]$logdate = (Get-Date)
@@ -245,18 +246,21 @@ Function LogMoveActivityLine($msg, [System.Drawing.Color]$textColor) {
     $RunningActivityLog.SelectionFont   = $BoldFont
     $RunningActivityLog.AppendText("$logtimestr`:$msg$([System.Environment]::NewLine)")
     $RunningActivityLog.ScrollToCaret()
-    $RunningActivityLog.Invalidate()
-    $RunningActivityLog.Update()
-    $RunningActivityLog.Refresh()
-    [System.Windows.Forms.Application]::DoEvents()
+    ForceGUIObjectToRefresh $RunningActivityLog
 }
+
+$Script:ActivelyMovingFiles = $false # Prevent re-enabling of Move button during move loop
+
 ###########################################################################################################################################################################################
 # Action taken when we click the move button
 ###########################################################################################################################################################################################
 $Move_DirectoryOrFiles = {
-    $form.Cursor          = [System.Windows.Forms.Cursors]::WaitCursor
-    $currentActivity.Text = ""; $currentActivity.Refresh()
-    $loopThroughNodes     = [System.Collections.ArrayList]::new()
+    $Script:ActivelyMovingFiles      = $true
+            $form.Cursor             = [System.Windows.Forms.Cursors]::WaitCursor
+            $currentActivity.Text    = ""; $currentActivity.Refresh()
+            $loopThroughNodes        = [System.Collections.ArrayList]::new()
+            $MoveFilesButton.Enabled = $false
+    ForceGUIObjectToRefresh $MoveFilesButton
 
     if ($Script:checkedNodes.Count -gt 0) {
         $loopThroughNodes.AddRange($Script:checkedNodes)
@@ -273,6 +277,9 @@ $Move_DirectoryOrFiles = {
     }
 
     foreach($movingNode in $loopThroughNodes) {
+        $form.Cursor             = [System.Windows.Forms.Cursors]::WaitCursor
+        $MoveFilesButton.Enabled = $false
+        ForceGUIObjectToRefresh $MoveFilesButton
         $treeViewOfPublishedDirectories.SelectedNode = $movingNode
         # Avoid accidentally trying to move the root or any genre folders "_"
         # BUG: If we selected something randomly, then checked off a bunch, we should ignore the random right?
@@ -299,12 +306,12 @@ $Move_DirectoryOrFiles = {
             $currentActivity.Text            ="moving selected file..."
         }
 
-        $currentActivity.Refresh()
+        ForceGUIObjectToRefresh $currentActivity
         $sourceBaseDirectory_prepped_for_sql   = PrepForSql $Script:sourceBaseDirectory
         $sourceDirectoryOrFile_prepped_for_sql = PrepForSql $Script:sourcePathToDirectoryOrFile
         $sizeOfSourceDirectoryOrFile           = 0
-        try {
-            $sizeOfSourceDirectoryOrFile     = ((Get-ChildItem –Force -LiteralPath $Script:sourcePathToDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+        try { # In case folder missing? then we'll get the target.
+            $sizeOfSourceDirectoryOrFile     = ((Get-ChildItem –Force -LiteralPath $Script:sourcePathToDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | measure Length -sum).sum)
         } catch {}
         $sourceDirectorySize.Text            = HumanizeCount $sizeOfSourceDirectoryOrFile
         $sourceDirectorySize.Refresh()
@@ -319,22 +326,22 @@ $Move_DirectoryOrFiles = {
         $fullTargetDirectoryOrFile           = $targetDirectoryOrFile
 
         if ($sizeOfSourceDirectoryOrFile -eq 0) {
-            $sizeOfSourceDirectoryOrFile     = ((gci –force -LiteralPath $targetDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" }| measure Length -sum).sum)
+            $sizeOfSourceDirectoryOrFile     = ((gci –force -LiteralPath $targetDirectoryOrFile –Recurse -ErrorAction SilentlyContinue | measure Length -sum).sum)
         }
         $currentActivity.Text                = "Moving Files to $targetDirectoryOrFile"
-        $currentActivity.Refresh()
+        ForceGUIObjectToRefresh $currentActivity
         $targetBaseDirectory_prepped_for_sql = PrepForSql $targetBaseDirectory
         New-Item -ItemType Directory -Force -Path $targetDirectoryOrFile
         if ($isMovingADirectory) {
             $targetDirectoryOrFile                     = (Get-Item $targetDirectoryOrFile).Parent.FullName
         } else {
-            $sourceFileName = (Split-Path $Script:sourcePathToDirectoryOrFile -Leaf)
-            $targetDirectoryOrFile+= "\$sourceFileName"
+            $sourceFileName         = (Split-Path $Script:sourcePathToDirectoryOrFile -Leaf)
+            $targetDirectoryOrFile += "\$sourceFileName"
         }
 
-        $targetDirectory = (Split-Path $targetDirectoryOrFile -Parent)
-        $targetDirectory_prepped_for_sql = PrepForSql $targetDirectory
-        $targetDirectoryOrFile_prepped_for_sql  = PrepForSql $targetDirectoryOrFile
+        $targetDirectory                       = (Split-Path $targetDirectoryOrFile -Parent)
+        $targetDirectory_prepped_for_sql       = PrepForSql $targetDirectory
+        $targetDirectoryOrFile_prepped_for_sql = PrepForSql $targetDirectoryOrFile
         LogMoveActivityLine "Moving $sourcePathToDirectoryOrFile to $targetDirectoryOrFile..." -textColor $StartingColor
         # ERROR: Can't run during single large -MoveItem and even between moves. No update. $activityAnimation.Load("D:\qt_projects\filmcab\simplified\images\animations\running.homer.silly.gif")
 
@@ -342,7 +349,7 @@ $Move_DirectoryOrFiles = {
         # NOTE: move_id is a sequence. rollbacks do not restore used ids. SQL Standard.
 
         try {
-            $Script:ActiveTransaction        = $DatabaseConnection.BeginTransaction([System.Data.IsolationLevel]::ReadCommitted) #PostgreSQL's Read Uncommitted mode behaves like Read Committed
+            $Script:ActiveTransaction        = $DatabaseConnection.BeginTransaction([System.Data.IsolationLevel]::ReadCommitted) #PostgreSQL's Read Uncommitted mode behaves like Read Committed. Only solution is to capture any sql errors and rollback, else partial data will be committed.
 
             $source_driveletter              = Left $sourcePathToDirectoryOrFile
             $sourceVolumeId                  = Get-SqlValue "SELECT volume_id from volumes WHERE drive_letter = '$source_driveletter'"
@@ -353,7 +360,7 @@ $Move_DirectoryOrFiles = {
             $target_search_directory_id      = Get-SqlValue "SELECT search_directory_id FROM search_directories where search_directory = $targetBaseDirectory_prepped_for_sql"
 
             $currentActivity.Text            = "(1) Creating a move transaction that keeps details..."
-            $currentActivity.Refresh()
+            ForceGUIObjectToRefresh $currentActivity
 
             $move_id = Get-SqlValue "
                 INSERT INTO
@@ -387,11 +394,11 @@ $Move_DirectoryOrFiles = {
                     ,   /*  description_why_reason_applies  */ $whyMove_prepped_for_sql
                     ,   /*  note                            */ $noteOnMove_prepped_for_sql
                     )
-                    RETURNING move_id"
+                    RETURNING move_id" -ThrowOnError
 
             $moveIdLabel.Text = $move_id
             $currentActivity.Text = "(2) Marking all sub directories as having been moved..."
-            $currentActivity.Refresh()
+            ForceGUIObjectToRefresh $currentActivity
 
             if ($isMovingADirectory) {
 
@@ -414,10 +421,10 @@ $Move_DirectoryOrFiles = {
                     nodes y
                 WHERE
                     x.directory_hash = y.directory_hash
-            " |Out-Null
+            " -ThrowOnError |Out-Null
 
             $currentActivity.Text = "(3) Migrate the directory records over, altering them according to the new base directory."
-            $currentActivity.Refresh()
+            ForceGUIObjectToRefresh $currentActivity
 
             Invoke-Sql "
                 WITH RECURSIVE nodes AS (
@@ -474,10 +481,11 @@ $Move_DirectoryOrFiles = {
                     ,   directory_id                           AS moved_from_directory_id
                     FROM
                         recalc_folders
-            "
+                    ON CONFLICT DO NOTHING
+                " -ThrowOnError
 
             $currentActivity.Text = "(4) Marking all the moved files as moved and to where."
-            $currentActivity.Refresh()
+            ForceGUIObjectToRefresh $currentActivity
 
             Invoke-Sql "
                 WITH RECURSIVE nodes AS (
@@ -500,10 +508,10 @@ $Move_DirectoryOrFiles = {
                     all_files y
                 WHERE
                     files_v.file_id = y.file_id
-            "|Out-Null
+            " -ThrowOnError|Out-Null
 
             $currentActivity.Text = "(5) Copying the file records over, altering paths and hashes as needed."
-            $currentActivity.Refresh()
+            ForceGUIObjectToRefresh $currentActivity
 
             Invoke-Sql "
                 WITH RECURSIVE nodes AS (
@@ -554,7 +562,8 @@ $Move_DirectoryOrFiles = {
                     ,   file_id                        AS moved_from_file_id
                     FROM
                         all_files
-            "|Out-Null
+                    ON CONFLICT DO NOTHING
+            " -ThrowOnError|Out-Null
             }
             else {
                 Invoke-Sql "
@@ -570,7 +579,7 @@ $Move_DirectoryOrFiles = {
                         y.file_path = $sourceDirectoryOrFile_prepped_for_sql
                     AND
                         y.file_id = files_v.file_id
-                    "
+                    " -ThrowOnError
                 Invoke-Sql "
                     INSERT INTO
                         files_v(
@@ -612,10 +621,11 @@ $Move_DirectoryOrFiles = {
                             files_ext_v
                         WHERE
                             file_path = $targetDirectoryOrFile_prepped_for_sql
-                "
+                        ON CONFLICT DO NOTHING
+                " -ThrowOnError
             }
             $currentActivity.Text = "(6) Starting Move-Item..."
-            $currentActivity.Refresh()|Out-Null
+            ForceGUIObjectToRefresh $currentActivity
 
             ###############################################################################################################################################################################################################################################################
             ###############################################################################################################################################################################################################################################################
@@ -634,12 +644,12 @@ $Move_DirectoryOrFiles = {
             } catch {}
 
             $currentActivity.Text = "(6) Move-Item Complete."
-            $currentActivity.Refresh()
+            ForceGUIObjectToRefresh $currentActivity
             ###############################################################################################################################################################################################################################################################
             ###############################################################################################################################################################################################################################################################
 
             $currentActivity.Text = "(7) Updating moves # $move_id with move_ended timestamp."
-            $currentActivity.Refresh()
+            ForceGUIObjectToRefresh $currentActivity
 
             Invoke-Sql "
                 UPDATE
@@ -647,27 +657,37 @@ $Move_DirectoryOrFiles = {
                 SET
                     move_ended = CLOCK_TIMESTAMP() /* Time on wall clock, so we can time the copy file commands */
                 WHERE
-                    move_id = $move_id" -OneAndOnlyOne|Out-Null
+                    move_id = $move_id" -OneAndOnlyOne -ThrowOnError|Out-Null
 
             # Complete. Silently remove item from tree.
 
-            $sequenceControlIgnoreNext_afterSelectTreeview = $true
+            $Script:sequenceControlIgnoreNext_afterSelectTreeview = $true
             $treeViewOfPublishedDirectories.SelectedNode.Remove()
-            [Console]::Beep(500,300);[Console]::Beep(500,300)
-
+            if ($sizeOfSourceDirectoryOrFile -gt 300000 ) {
+                # Assume it's a biggy
+                [Console]::Beep(600,400);
+            } else {
+                [Console]::Beep(610,100);
+            }
         }
         catch {
+            Write-Host "Caught-Error"
             # Warning: Any crashes here will auto-commit!!!!!!
             if ((Test-Path variable:ActiveTransaction) -and $null -ne $ActiveTransaction -and $null -ne $ActiveTransaction.Connection) {
+                Write-Host "Rolling back"
                 $Script:ActiveTransaction.Rollback()
                 $Script:ActiveTransaction.Dispose()
                 $currentActivity.Text                = "Move CANCELLED"
                 $currentActivity.ForeColor           = $Red
                 $currentActivity.Font                = $BoldFont
+                ForceGUIObjectToRefresh $currentActivity
                 LogMoveActivityLine "Failed to move $sourcePathToDirectoryOrFile to $targetDirectoryOrFile" -textColor $FailColor
+            } else {
+                Write-Host "Caught-Error: No transaction found"
             }
         }
         finally {
+            Write-Host "Hit Finally"
             if ((Test-Path variable:ActiveTransaction) -and $null -ne $ActiveTransaction -and $null -ne $ActiveTransaction.Connection) {
                 $Script:ActiveTransaction.Commit()
                 $Script:ActiveTransaction.Dispose()
@@ -678,7 +698,10 @@ $Move_DirectoryOrFiles = {
                 $currentActivity.Text                = "MOVE COMPLETED SUCCESSFULLY"
                 $currentActivity.ForeColor           = $Green
                 $currentActivity.Font                = $BoldFont
+                ForceGUIObjectToRefresh $currentActivity
                 LogMoveActivityLine "Successfully moved $sourcePathToDirectoryOrFile to $targetDirectoryOrFile" -textColor $SuccessColor
+            } else {
+                Write-Host "Hit Finally: No transaction found"
             }
         }
 
@@ -691,12 +714,15 @@ $Move_DirectoryOrFiles = {
                 New-Item -Path $sourcePathToDirectoryOrFile -ItemType SymbolicLink -Value $targetDirectoryOrFile
             }
         }
-    } # foreach($movingNode in $loopThroughNodes) {
+    }
 
+    $Script:ActivelyMovingFiles = $false
+    [Console]::Beep(500,300);[Console]::Beep(500,300)
     $form.Cursor                                 = [System.Windows.Forms.Cursors]::Default
     $selectedmoveReasonComboBox.Text             = ""
     $whyThisMoveReasonText.Text                  = ""
     $sourceDirectorySize.Text                    = ""
+    $Script:checkedNodes.Clear()
 }
 
 $MoveFilesButton.add_click($Move_DirectoryOrFiles)|Out-Null
@@ -810,7 +836,12 @@ $form.ShowDialog()
 
 }
 catch {
-Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
+    if ((Test-Path variable:ActiveTransaction) -and $null -ne $ActiveTransaction -and $null -ne $ActiveTransaction.Connection) {
+        $Script:ActiveTransaction.Rollback()
+        $Script:ActiveTransaction.Dispose()
+    }
+
+    Show-Error "Untrapped exception" -exitcode $_EXITCODE_UNTRAPPED_EXCEPTION
 }
 finally {
 Write-AllPlaces "Finally"
