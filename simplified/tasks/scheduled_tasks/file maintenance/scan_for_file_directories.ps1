@@ -106,14 +106,15 @@ While ($searchDirectories.Read()) {
         continue
     }
     else {
-       Write-AllPlaces "Starting search of search_directory $search_directory" -ForceStartOnNewLine
-   }
+        Write-AllPlaces "Starting search of search_directory $search_directory" -ForceStartOnNewLine
+    }
 
     # Stuff the search root search_directory in the all_file_objects so that we can completely shortcut search search_directory if nothing's changed. Has to be a DirectoryInfo object.
     $BaseDirectoryInfoForSearchPath = Get-Item $search_directory
 
     if (-not $BaseDirectoryInfoForSearchPath.PSIsContainer) {
         Write-AllPlaces "search_directory $search_directory is not a container; skipping scan." -ForceStartOnNewLine
+        continue
     }
 
     $all_file_objects.Enqueue($BaseDirectoryInfoForSearchPath)
@@ -149,10 +150,9 @@ While ($searchDirectories.Read()) {
                 $on_fs_directory_is_junction_link = $false
                 $on_fs_is_real_directory          = $false
             }
-            elseif (-not [String]::IsNullOrWhiteSpace($on_fs_file_object.LinkType)) {
-                throw [Exception]"New unrecognized link type for $on_fs_directory type is $($on_fs_file_object.LinkType)"
-            }
+
             # Note: HardLinks are for files only.
+
             else {
                 $on_fs_directory_is_symbolic_link = $false
                 $on_fs_directory_is_junction_link = $false
@@ -171,6 +171,7 @@ While ($searchDirectories.Read()) {
                 ,   directory_is_junction_link   AS   in_db_directory_is_junction_link      /* Verified I have these. and they can help organize for better finding of films in different genre folders          */
                 ,   linked_directory             AS   in_db_linked_directory                /* Verify this exists. Haven't tested.                                                                               */
                 ,   directory_deleted            AS   in_db_directory_deleted
+                ,   scan_directory               AS   in_db_scan_directory
                 FROM
                     directories_ext_v
                 WHERE
@@ -183,8 +184,7 @@ While ($searchDirectories.Read()) {
             $UpdateDirectoryRecord = $pretest_assuming_false
             $scan_directory        = $pretest_assuming_false
 
-            # if ($reader.HasRows) {
-              if ($reader.Read()) { #|Out-Null # Must read in the first row.
+            if ($reader.Read()) { #|Out-Null # Must read in the first row.
                 $foundANewDirectory        = $false
                 $UpdateDirectoryRecord     = $false
 
@@ -202,25 +202,31 @@ While ($searchDirectories.Read()) {
                 if ($in_db_directory_date                 -ne $on_fs_directory_date) { # if it's lower than the old date, still trigger, though that's probably a buggy touch
                     $scan_directory        = $true
                 }
-            } else {
+            }
+            # It's a new directory since the reader didn't match.  But what if it's just a directory rename?
+            else {
                 $foundANewDirectory        = $true
                 $scan_directory            = $true
             }
             $reader.Close()
 
-            if ($on_fs_directory_is_junction_link) {
+            if ($on_fs_directory_is_junction_link -or $on_fs_directory_is_symbolic_link) {
                 $scan_directory            = $false # Please do not traverse links. Even if the directory date changed.
             }
 
-            if ($scan_directory) {$howManyDirectoriesFlaggedToScan++} # Not necessarily weren't already flagged.
+            if ($scan_directory) {
+                $howManyDirectoriesFlaggedToScan++ # Not necessarily weren't already flagged.
+            }
+
             if ($on_fs_directory_is_symbolic_link -and -not $in_db_directory_is_symbolic_link) {
                 $howManyNewSymbolicLinks++
             }
+
             if ($on_fs_directory_is_junction_link -and -not $in_db_directory_is_junction_link)  {
                 $howManyNewJunctionLinks++
             }
 
-            $on_fs_directory_date_formatted = $on_fs_directory_date.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
+            $on_fs_directory_date_formatted = $on_fs_directory_date.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
             $on_fs_linked_directory_escaped = PrepForSql $on_fs_linked_directory
 
             if ($foundANewDirectory) { #even if it's a link, we store it
@@ -288,18 +294,26 @@ While ($searchDirectories.Read()) {
                     _TICK_Scan_Objects
                 } # Getting a trailing "st"
                 $howManyRowsUpdated+= $rowsUpdated
-            } else {
+            } elseif(-not $scan_directory -and $in_db_scan_directory) {
+                $rowsUpdated = Invoke-Sql "
+                    UPDATE
+                        directories_v
+                    SET
+                        scan_directory             = $false
+                    WHERE
+                        directory_hash             = md5_hash_path('$on_fs_directory_escaped')
+                "
                 # Not a new directory, not a changed directory date.  Note that there is currently no last_verified_directories_existence timestamp in the table, so no need to check.
+                _TICK_Disable_Scan_On_Existing_Object
+            } else {
                 _TICK_Found_Existing_Object_But_No_Change
             }
 
-            # By skipping the walk down the rest of this directory's children, we cut time by what: 10,000%?  Sometimes algorithms do matter.
-            # Performance without skip:   2 minutes
-            # Performance with skip and no changes: 720 ms (so 60 times faster for empties)
-            # DOESNT WORK !!!!! if ($on_fs_is_real_directory -and $walkdownthefilehierarchy ) { # https://stackoverflow.com/questions/1025187/rules-for-date-modified-of-folders-in-windows-explorer
-            if ($on_fs_is_real_directory ) { # No way to avoid it as of Windows 10: Must traverse
-                Get-ChildItem -Path $on_fs_file_object.FullName | ForEach-Object { $all_file_objects.Enqueue($_) }
-            }
+            # New Logic: Child directories, if any change, will be marked in queue. So no need to traverse.
+
+            #if ($on_fs_is_real_directory ) { # No way to avoid it as of Windows 10: Must traverse
+            #    Get-ChildItem -Path $on_fs_file_object.FullName | ForEach-Object { $all_file_objects.Enqueue($_) }
+            #}
         }
     }
 }
