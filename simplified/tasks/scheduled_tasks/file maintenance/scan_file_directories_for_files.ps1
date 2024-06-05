@@ -49,7 +49,7 @@ While ($reader.Read()) {
                 Write-AllPlaces "Scanning $($_.FullName)"
 
                 $on_fs_file_date                = TrimToMicroseconds $_.LastWriteTime
-                $on_fs_file_date_formatted      = $on_fs_file_date.ToString($DEFAULT_POWERSHELL_TIMESTAMP_FORMAT)
+                $on_fs_file_date_formatted      = $on_fs_file_date.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
                 $on_fs_file_size                = $_.Length
                 $on_fs_file_path                = $_.FullName
                 $on_fs_file_name_no_ext         = $_.BaseName
