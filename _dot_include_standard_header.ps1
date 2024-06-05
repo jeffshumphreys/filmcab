@@ -1,20 +1,43 @@
 Import-Module PowerShellHumanizer
 Import-Module DellBIOSProvider
 
-. .\_dot_include_standard_header_sql_functions.ps1
+Set-StrictMode -Version Latest                                  # WARNING: When embedded in main function, it applies ONLY to that function!!!!!
+$ErrorActionPreference                                          = 'Stop'
 
 # Has to be OUTSIDE of method to capture parent script details!
 
+$Script:MasterScriptPath                                        = $MyInvocation.ScriptName              # This is null if you are running this dot include directly.
+if ([String]::IsNullOrEmpty($Script:MasterScriptPath)) {
+    $Script:MasterScriptPath                                    = $MyInvocation.Line
+    $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". .\")) { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
+    $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". '"))  { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
+    $Script:MasterScriptPath                                    = $Script:MasterScriptPath.Trim("'")
+
+    if (-not (Test-Path $Script:MasterScriptPath)) {
+        throw "Path to master calling/including script not valid. $($Script:MasterScriptPath)"
+    }
+}
+
 $Script:ScriptRoot                                              = ([System.IO.Path]::GetDirectoryName($MyInvocation.PSCommandPath)) # directory of including file, where we want to build logs.
 if ($null -eq $Script:ScriptRoot) {
-    $Script:ScriptRoot                                          = (Get-Item -Path $masterScriptPath).DirectoryName
+    $Script:ScriptRoot                                          = (Get-Item -Path $Script:MasterScriptPath).DirectoryName
 }
 
-$Script:MasterScriptPath                                        = $MyInvocation.ScriptName              # This is null if you are running this dot include directly.
-if ([String]::IsNullOrEmpty($MasterScriptPath)) {
-    $Script:MasterScriptPath                                    = $MyInvocation.Line
-}
+. .\_dot_include_standard_header_sql_functions.ps1
 
+<#
+.SYNOPSIS
+Main
+
+.DESCRIPTION
+Long description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
 Function main_dot_include_standard_header() {
     $Script:SnapshotMasterRunDate                               = Get-Date                              # Capture "One timestamp to rule them all". Everything should be marked off this instead of Get-Date unless it really wants to know NOW
     $Script:LastDisplayedTimeElapsed                            = $Script:SnapshotMasterRunDate
@@ -26,8 +49,6 @@ Function main_dot_include_standard_header() {
 
     # Settings
 
-    Set-StrictMode -Version Latest
-    $ErrorActionPreference                                      = 'Stop'
     Set-PSDebug -Off                                                                                    # Really noisy if on. When the Trace parameter has a value of 1, each line of script is traced as it runs. When the parameter has a value of 2, variable assignments, function calls
     [Net.ServicePointManager]::SecurityProtocol                 = [Net.SecurityProtocolType]::Tls12;    # More to do with PowerShellGet issues, not Imports.
     $Script:OutputEncoding                                      = [System.Text.Encoding]::UTF8
@@ -57,13 +78,6 @@ Function main_dot_include_standard_header() {
     $Script:CurrentFunction                                     = $MyInvocation.MyCommand                         # _dot_include_standard_header.v2.ps1
     $Script:InvokationName                                      = $MyInvocation.InvocationName                    # always "." when included or ran direct.
     $Script:ProjectRoot                                         = (Get-Location).Path                             # D:\qt_projects\filmcab. May be to do with WorkingDirectory setting in Windows Task Scheduler for Exec commands.
-    $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". .\")) { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
-    $Script:MasterScriptPath                                    = if ($Script:MasterScriptPath.StartsWith(". '"))  { $Script:MasterScriptPath.Substring(2)} else {$Script:MasterScriptPath}
-    $Script:MasterScriptPath                                    = $Script:MasterScriptPath.Trim("'")
-
-    if (-not (Test-Path $Script:MasterScriptPath)) {
-        throw "Path to master calling/including script not valid. $($Script:MasterScriptPath)"
-    }
 
     $Script:FileTimeStampForParentScript                        = (Get-Item -Path $Script:MasterScriptPath).LastWriteTime
     $Script:ScriptName                                          = (Get-Item -Path $Script:MasterScriptPath).Name       # Unlike "BaseName" this includes the extension
@@ -182,8 +196,8 @@ Function main_dot_include_standard_header() {
 "@|Out-Null
     }
 
-    $Script:Caller                   = 'ndef'
-            $scheduledTaskForProject = $pretest_assuming_false
+    $Script:Caller                  = 'ndef'
+    $Script:scheduledTaskForProject = $pretest_assuming_false
 
     if (-not(Test-Path variable:Script:__DISABLE_DETECTING_SCHEDULED_TASK) -and -not $Script:AreWeRunningInteractively) { # Over-engineered. Blocks "TestScheduleDrivenTaskDetection"
         DisplayTimePassed ("Getting process tree...")
@@ -224,7 +238,7 @@ Function main_dot_include_standard_header() {
         DisplayTimePassed ("Determination of caller completed")
 
         if ($Script:Caller -eq 'Windows Task Scheduler') {
-            $scheduledTaskForProject = $pretest_assuming_true
+            $Script:scheduledTaskForProject = $pretest_assuming_true
 
             DisplayTimePassed ("Getting task detail...")
 
@@ -324,7 +338,9 @@ Function main_dot_include_standard_header() {
         }
     }
 
-} ##### Function main_dot_include_standard_header() {
+    Get-ScheduledTaskDetails
+
+}
 
 <#
 .SYNOPSIS
@@ -883,237 +899,250 @@ Function Get-LastEventsForTask ($fullScheduledTaskPath, $howManyEvents = 1, [Swi
     }
     return [array]$lastEventsWhileRunningIs
 }
-#####################################################################################################################################################################################################################################################
-# Bootstrap Ordered Stage 8 - Persist Batch Run Session Detail
-# Dependencies: scheduledTaskForProject, WindowsSchedulerTaskTriggeringEvent, ScriptName, ScriptNameWithoutExtension, Caller
-#####################################################################################################################################################################################################################################################
 
-if ($scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeringEvent) {
-    Set-StrictMode -Off # Critical to avoid not found errors on following attributes
-    DisplayTimePassed ("Fetch task trigger details...")
-    $triggers = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|
-    SELECT -expandProperty Triggers|
-    % {
-        $trigger = [PSCustomObject]@{
-            Id                          = $_.Id # Only set if I generated the script in generate_clean_project_scheduled_tasks.ps1
-            TriggerType                 = (($_.pstypenames[0])-split '/')[-1]
-            TaskName                    = $_.TaskName
-            Enabled                     = $_.Enabled
-            StartBoundary               = $_.StartBoundary
-            EndBoundary                 = $_.EndBoundary
-            DaysInterval                = $_.DaysInterval
-            WeeksInterval               = $_.WeeksInterval
-            Weeks                       = $_.Weeks
-            DaysOfWeek                  = $_.DaysOfWeek                    # uint16
-            Months                      = $_.Months
-            MonthOfYear                 = $_.MonthOfYear
-            DaysOfMonth                 = $_.DaysOfMonth
-            RunOnLastWeekOfMonth        = $_.RunOnLastWeekOfMonth
-            WeeksOfMonth                = $_.WeeksOfMonth
-            ExecutionTimeLimit          = $_.ExecutionTimeLimit
-            RepetitionInterval          = $_.Repetition.Interval            # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S
-            RepetitionDuration          = $_.Repetition.Duration
-            RepetitionStopAtDurationEnd = $_.Repetition.Duration            # PT4H
-            RandomDelay                 = $_.RandomDelay
-            Delay                       = $_.Delay                          # PT15S
-            UserId                      = $_.UserId
-            StateChange                 = $_.StateChange
-            Subscription                = $_.Subscription
-            ValueQueries                = $_.ValueQueries
-            MatchingElement             = $_.MatchingElement
-            PeriodOfOccurrence          = $_.PeriodOfOccurrence
-            NumberOfOccurrences         = $_.NumberOfOccurrences
-        }
-        $trigger # Dump it to our triggers array
-    }|Select *|Where Enabled
-    Set-StrictMode -Version Latest
-    $triggerType        = $Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName
-    $triggerId          = $Script:WindowsSchedulerTaskTriggeringEvent.Id
-    $timeTaskTriggered  = $Script:WindowsSchedulerTaskTriggeringEvent.TimeCreated
-    $triggered_by_login = ''
+<#
+.SYNOPSIS
+Short description
 
-    switch ($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName) {
-        ##############################################################################################################################################################################################################
-        "Task triggered by user" {         # If a non-lead task triggered by user, then do not attach it to whatever random floating id in active_run_session.
-            $triggerType = 'user'
-            $triggered_by_login = $lastEventsWhileRunningIs.UserContext
-        }
-        ##############################################################################################################################################################################################################
-        "Task triggered on scheduler" {
-            $triggerType = 'schedule'
-            $triggers = $triggers|Where TriggerType -match 'Daily|Weekly|Monthly|Time'
-            #TODO: If more than one, which one is closest as to trigger time? Which one was for today? This week? Was there a random delay? Month??  Ugh.
-            $triggersWithSameStartTime = @()
+.DESCRIPTION
+Long description
 
-            # Loop all we found and pull out ones with nearly same schedule time and actually started time
+.EXAMPLE
+An example
 
-            $triggers| % {
-                if ($null -ne $_.StartBoundary) {
-                    $scheduledStartTime = [DateTime]$_.StartBoundary
-                    $nearnessOfRunStartToScheduledStart = $timeTaskTriggered.TimeOfDay - $scheduledStartTime.TimeOfDay
-                    if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {
-                        if ($null -ne $_.DaysOfWeek) {
+.NOTES
+General notes
+#>
+Function Get-ScheduledTaskDetails {
+    if ($Script:scheduledTaskForProject -and $null -ne $Script:WindowsSchedulerTaskTriggeringEvent) {
+        Set-StrictMode -Off # Critical to avoid not found errors on following attributes
+        DisplayTimePassed ("Fetch task trigger details...")
+        $triggers = Get-ScheduledTask -TaskName $ScriptNameWithoutExtension|
+        SELECT -expandProperty Triggers|
+        % {
+            $trigger = [PSCustomObject]@{
+                Id                          = $_.Id # Only set if I generated the script in generate_clean_project_scheduled_tasks.ps1
+                TriggerType                 = (($_.pstypenames[0])-split '/')[-1]
+                TaskName                    = $_.TaskName
+                Enabled                     = $_.Enabled
+                StartBoundary               = $_.StartBoundary
+                EndBoundary                 = $_.EndBoundary
+                DaysInterval                = $_.DaysInterval
+                WeeksInterval               = $_.WeeksInterval
+                Weeks                       = $_.Weeks
+                DaysOfWeek                  = $_.DaysOfWeek                    # uint16
+                Months                      = $_.Months
+                MonthOfYear                 = $_.MonthOfYear
+                DaysOfMonth                 = $_.DaysOfMonth
+                RunOnLastWeekOfMonth        = $_.RunOnLastWeekOfMonth
+                WeeksOfMonth                = $_.WeeksOfMonth
+                ExecutionTimeLimit          = $_.ExecutionTimeLimit
+                RepetitionInterval          = $_.Repetition.Interval            # MSFT_TaskRepetitionPattern    P<days>DT<hours>H<minutes>M<seconds>S
+                RepetitionDuration          = $_.Repetition.Duration
+                RepetitionStopAtDurationEnd = $_.Repetition.Duration            # PT4H
+                RandomDelay                 = $_.RandomDelay
+                Delay                       = $_.Delay                          # PT15S
+                UserId                      = $_.UserId
+                StateChange                 = $_.StateChange
+                Subscription                = $_.Subscription
+                ValueQueries                = $_.ValueQueries
+                MatchingElement             = $_.MatchingElement
+                PeriodOfOccurrence          = $_.PeriodOfOccurrence
+                NumberOfOccurrences         = $_.NumberOfOccurrences
+            }
+            $trigger # Dump it to our triggers array
+        }|Select *|Where Enabled
+        Set-StrictMode -Version Latest
+        $triggerType        = $Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName
+        $triggerId          = $Script:WindowsSchedulerTaskTriggeringEvent.Id
+        $timeTaskTriggered  = $Script:WindowsSchedulerTaskTriggeringEvent.TimeCreated
+        $triggered_by_login = ''
 
+        switch ($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName) {
+            ##############################################################################################################################################################################################################
+            "Task triggered by user" {         # If a non-lead task triggered by user, then do not attach it to whatever random floating id in active_run_session.
+                $triggerType = 'user'
+                $triggered_by_login = $lastEventsWhileRunningIs.UserContext
+            }
+            ##############################################################################################################################################################################################################
+            "Task triggered on scheduler" {
+                $triggerType = 'schedule'
+                $triggers = $triggers|Where TriggerType -match 'Daily|Weekly|Monthly|Time'
+                #TODO: If more than one, which one is closest as to trigger time? Which one was for today? This week? Was there a random delay? Month??  Ugh.
+                $triggersWithSameStartTime = @()
+
+                # Loop all we found and pull out ones with nearly same schedule time and actually started time
+
+                $triggers| % {
+                    if ($null -ne $_.StartBoundary) {
+                        $scheduledStartTime = [DateTime]$_.StartBoundary
+                        $nearnessOfRunStartToScheduledStart = $timeTaskTriggered.TimeOfDay - $scheduledStartTime.TimeOfDay
+                        if ($nearnessOfRunStartToScheduledStart.TotalSeconds -in 0..2 ) {
+                            if ($null -ne $_.DaysOfWeek) {
+
+                            }
+                            if ($null -ne $_.DaysOfMonth) {
+
+                            }
+                            if ($null -ne $_.WeeksOfMonth) {
+
+                            }
+                            if ($null -ne $_.RunOnLastWeekOfMonth) {
+
+                            }
+                            if ($null -ne $_.MonthOfYear) {
+                                #if ($scheduledStartTime.Month -eq $timeTaskTriggered.Month)
+                            }
+                            # WARNING: Needs to check DaysOfWeek set and if it would include the day of week. Same for WeeksOfMonth, MonthsOfYear
+                            # This is the event? unless two are set
+
+                            $triggersWithSameStartTime+= $_
+                        } else {
+                            # are we in the random delay period?
+                            # are we a repetition?
+                            # YIKES, the complexity - but only if more than one time trigger.
                         }
-                        if ($null -ne $_.DaysOfMonth) {
-
-                        }
-                        if ($null -ne $_.WeeksOfMonth) {
-
-                        }
-                        if ($null -ne $_.RunOnLastWeekOfMonth) {
-
-                        }
-                        if ($null -ne $_.MonthOfYear) {
-                            #if ($scheduledStartTime.Month -eq $timeTaskTriggered.Month)
-                        }
-                        # WARNING: Needs to check DaysOfWeek set and if it would include the day of week. Same for WeeksOfMonth, MonthsOfYear
-                        # This is the event? unless two are set
-
-                        $triggersWithSameStartTime+= $_
-                    } else {
-                        # are we in the random delay period?
-                        # are we a repetition?
-                        # YIKES, the complexity - but only if more than one time trigger.
                     }
                 }
-            }
 
-            if ($triggersWithSameStartTime.Count -eq 0) {
-                # Ooops! How started with schedule? RandomDelay?
-            }
-            if ($triggersWithSameStartTime.Count -gt 1) {
-                # Hmmm, possible issue?
-            }
-            else {
-                # Just the one.  We need the "ID" or at least an index of which trigger it was.  Somehow categorize which trigger definition it is.
-            }
+                if ($triggersWithSameStartTime.Count -eq 0) {
+                    # Ooops! How started with schedule? RandomDelay?
+                }
+                if ($triggersWithSameStartTime.Count -gt 1) {
+                    # Hmmm, possible issue?
+                }
+                else {
+                    # Just the one.  We need the "ID" or at least an index of which trigger it was.  Somehow categorize which trigger definition it is.
+                }
 
-            # Lots of parsing to figure out time if it's a complex trigger def
-            # Get time, match to task trigger definition
-            # Was there a delay, or randomdelay?
-            # If there was a repetition interval, does that match time?
-            # Check settings for Retry specifications
-        }
-        ##############################################################################################################################################################################################################
-        "Task triggered on event" {
-            $triggers = $triggers|Where TriggerType -match 'Event|Idle'
-            $triggerType = "event"
-            if ($triggers.Count -eq 1 -and $triggers[0].TriggerType -eq 'MSFT_TaskIdleTrigger') {
-                $triggerType = "idle"
+                # Lots of parsing to figure out time if it's a complex trigger def
+                # Get time, match to task trigger definition
+                # Was there a delay, or randomdelay?
+                # If there was a repetition interval, does that match time?
+                # Check settings for Retry specifications
             }
-        }
-        ##############################################################################################################################################################################################################
-        "Task triggered on logon" {
-            $triggers = $triggers|Where TriggerType -match 'Logon'
-            if ($triggers.Count -eq 1 -and $null -ne $triggers[0].UserId) {
-                $triggered_by_login = $triggers[0].UserId
+            ##############################################################################################################################################################################################################
+            "Task triggered on event" {
+                $triggers = $triggers|Where TriggerType -match 'Event|Idle'
+                $triggerType = "event"
+                if ($triggers.Count -eq 1 -and $triggers[0].TriggerType -eq 'MSFT_TaskIdleTrigger') {
+                    $triggerType = "idle"
+                }
             }
-            # match Logon
-            $triggerType = 'logon'
-        } else {
-            Show-Error -message "Unprocessed task type $($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName)" -exitcode 99
-        }
-    }
-
-    DisplayTimePassed ("Completing getting task trigger details")
-    DisplayTimePassed ("Detect active batch run session...")
-    $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
-            $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
-   ript_name_prepped_for_sql           = PrepForSql $Script:ScriptName
-
-    ############################################################################################################################
-    if ($script_position_in_lineup -in 'Starting', 'Starting-Ending') {
-        .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
-        if ($null -ne $Script:active_batch_run_session_id) {
-            Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
-        }
-        DisplayTimePassed ("Creating or ending(?) session entry...")
-
-        $Script:active_batch_run_session_id = Get-SqlValue "
-            INSERT INTO batch_run_sessions_v(
-                last_script_ran
-            ,   session_starting_script
-            ,   caller_starting
-            ,   triggered_by_login
-            ,   trigger_type
-            ,   trigger_id
-            ) VALUES(
-                '$Script:ScriptName'
-            ,   '$Script:ScriptName'
-            ,   '$Script:Caller'
-            ,   '$triggered_by_login'
-            ,   '$triggerType'
-            ,   '$triggerId'
-            )
-            RETURNING batch_run_session_id
-            " -LogSqlToHost
-        Invoke-Sql "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null # Flush active session regardless of how this script was run.
-        $Script:batch_run_session_task_id      = Get-SqlValue("
-        INSERT INTO
-            batch_run_session_tasks_v(
-                batch_run_session_id,
-                script_changed,
-                script_name,
-                triggered_by_login,
-                trigger_type,
-                trigger_id
-            )
-            VALUES(
-                $($Script:active_batch_run_session_id),
-                '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
-                $script_name_prepped_for_sql
-            ,   '$triggered_by_login'
-            ,   '$triggerType'
-            ,   '$triggerId'
-                    )
-            RETURNING batch_run_session_task_id
-        ") -LogSqlToHost
-    ############################################################################################################################
-    } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
-        DisplayTimePassed ("Ending(?) session entry...")
-        if ($triggerType -eq 'event') {
-            if ($null -eq $Script:active_batch_run_session_id) {
-                Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
-                # For safety, in case using the "running" flag fails.
-                Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
+            ##############################################################################################################################################################################################################
+            "Task triggered on logon" {
+                $triggers = $triggers|Where TriggerType -match 'Logon'
+                if ($triggers.Count -eq 1 -and $null -ne $triggers[0].UserId) {
+                    $triggered_by_login = $triggers[0].UserId
+                }
+                # match Logon
+                $triggerType = 'logon'
+            } else {
+                Show-Error -message "Unprocessed task type $($Script:WindowsSchedulerTaskTriggeringEvent.TaskDisplayName)" -exitcode 99
             }
         }
-        . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
-        Invoke-Sql "DELETE FROM batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
-    ############################################################################################################################
-    } elseif ($script_position_in_lineup -eq 'In-Between') {
-        DisplayTimePassed ("inbetween session entry...")
-        # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
-        # if there is not an active session??????? Crash?????
-        if ($triggerType -eq 'Event') {
-            if (-not (Test-Path variable:Script:TestScheduleDrivenTaskDetection)) {
-                $Script:TestScheduleDrivenTaskDetection = 'NULL'
+
+        DisplayTimePassed ("Completing getting task trigger details")
+        Set-StrictMode -Version Latest
+
+        DisplayTimePassed ("Detect active batch run session...")
+        $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
+                $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
+                $script_name_prepped_for_sql           = PrepForSql $Script:ScriptName
+
+        ############################################################################################################################
+        if ($script_position_in_lineup -in 'Starting', 'Starting-Ending') {
+            .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
+            if ($null -ne $Script:active_batch_run_session_id) {
+                Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
             }
-            # UPDATE open (previous) task log
-            $Script:active_batch_run_session_id    = Get-SqlValue("SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v")
+            DisplayTimePassed ("Creating or ending(?) session entry...")
+
+            $Script:active_batch_run_session_id = Get-SqlValue "
+                INSERT INTO batch_run_sessions_v(
+                    last_script_ran
+                ,   session_starting_script
+                ,   caller_starting
+                ,   triggered_by_login
+                ,   trigger_type
+                ,   trigger_id
+                ) VALUES(
+                    '$Script:ScriptName'
+                ,   '$Script:ScriptName'
+                ,   '$Script:Caller'
+                ,   '$triggered_by_login'
+                ,   '$triggerType'
+                ,   '$triggerId'
+                )
+                RETURNING batch_run_session_id
+                " -LogSqlToHost
+            Invoke-Sql "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null # Flush active session regardless of how this script was run.
             $Script:batch_run_session_task_id      = Get-SqlValue("
-                INSERT INTO
-                    batch_run_session_tasks_v(
-                        batch_run_session_id,
-                        script_changed,
-                        script_name,
-                        triggered_by_login,
-                        trigger_type,
-                        trigger_id,
-                        is_testscheduledriventaskdetection
-                    )
-                    VALUES(
-                        $($Script:active_batch_run_session_id),
-                        '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
-                        $script_name_prepped_for_sql
-                    ,   '$triggered_by_login'
-                    ,   '$triggerType'
-                    ,   '$triggerId'
-                    ,   $($Script:TestScheduleDrivenTaskDetection)
-                    )
-                    RETURNING batch_run_session_task_id
-                ") -LogSqlToHost
+            INSERT INTO
+                batch_run_session_tasks_v(
+                    batch_run_session_id,
+                    script_changed,
+                    script_name,
+                    triggered_by_login,
+                    trigger_type,
+                    trigger_id
+                )
+                VALUES(
+                    $($Script:active_batch_run_session_id),
+                    '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                    $script_name_prepped_for_sql
+                ,   '$triggered_by_login'
+                ,   '$triggerType'
+                ,   '$triggerId'
+                        )
+                RETURNING batch_run_session_task_id
+            ") -LogSqlToHost
+        ############################################################################################################################
+        } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
+            DisplayTimePassed ("Ending(?) session entry...")
+            if ($triggerType -eq 'event') {
+                if ($null -eq $Script:active_batch_run_session_id) {
+                    Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
+                    # For safety, in case using the "running" flag fails.
+                    Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
+                }
+            }
+            . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
+            Invoke-Sql "DELETE FROM batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
+        ############################################################################################################################
+        } elseif ($script_position_in_lineup -eq 'In-Between') {
+            DisplayTimePassed ("inbetween session entry...")
+            # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
+            # if there is not an active session??????? Crash?????
+            if ($triggerType -eq 'Event') {
+                if (-not (Test-Path variable:Script:TestScheduleDrivenTaskDetection)) {
+                    $Script:TestScheduleDrivenTaskDetection = 'NULL'
+                }
+                # UPDATE open (previous) task log
+                $Script:active_batch_run_session_id    = Get-SqlValue("SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v")
+                $Script:batch_run_session_task_id      = Get-SqlValue("
+                    INSERT INTO
+                        batch_run_session_tasks_v(
+                            batch_run_session_id,
+                            script_changed,
+                            script_name,
+                            triggered_by_login,
+                            trigger_type,
+                            trigger_id,
+                            is_testscheduledriventaskdetection
+                        )
+                        VALUES(
+                            $($Script:active_batch_run_session_id),
+                            '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                            $script_name_prepped_for_sql
+                        ,   '$triggered_by_login'
+                        ,   '$triggerType'
+                        ,   '$triggerId'
+                        ,   $($Script:TestScheduleDrivenTaskDetection)
+                        )
+                        RETURNING batch_run_session_task_id
+                    ") -LogSqlToHost
+            }
         }
     }
 }
@@ -1453,6 +1482,7 @@ Function __TICK ($tick_emoji) {
 $NEW_OBJECT_INSTANTIATED             = '✨'; Function _TICK_New_Object_Instantiated             {__TICK $NEW_OBJECT_INSTANTIATED}
 $FOUND_EXISTING_OBJECT               = '✔️'; Function _TICK_Found_Existing_Object               {__TICK $FOUND_EXISTING_OBJECT}
 $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE = '🥱'; Function _TICK_Found_Existing_Object_But_No_Change {__TICK $FOUND_EXISTING_OBJECT_BUT_NO_CHANGE}
+$DISABLE_SCAN_ON_EXISTING_OBJECT     = '💤'; Function _TICK_Disable_Scan_On_Existing_Object     {__TICK $DISABLE_SCAN_ON_EXISTING_OBJECT}
 $EXISTING_OBJECT_EDITED              = '📝'; Function _TICK_Existing_Object_Edited              {__TICK $EXISTING_OBJECT_EDITED}
 $EXISTING_OBJECT_ACTUALLY_CHANGED    = '🏳️‍🌈'; Function _TICK_Existing_Object_Actually_Changed    {__TICK $EXISTING_OBJECT_ACTUALLY_CHANGED} # Warning: Comes out different in terminal than editor. fonts. Geez.
 $OBJECT_MARKED_DELETED               = '❌'; Function _TICK_Object_Marked_Deleted               {__TICK $OBJECT_MARKED_DELETED}   # Was a file or row deleted? Or just marked?
