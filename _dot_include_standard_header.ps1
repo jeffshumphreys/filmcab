@@ -247,6 +247,7 @@ Function main_dot_include_standard_header() {
                     scheduled_task_root_directory
                 ,   scheduled_task_run_set_name
                 ,   script_position_in_lineup
+                ,   log_batch_run_session
                 FROM
                     scheduled_tasks_ext_v
                 WHERE
@@ -1042,106 +1043,136 @@ Function Get-ScheduledTaskDetails {
             }
         }
 
-        DisplayTimePassed ("Completing getting task trigger details")
+        DisplayTimePassed ("Completed getting task trigger details")
         Set-StrictMode -Version Latest
 
-        DisplayTimePassed ("Detect active batch run session...")
-        $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
-                $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
-                $script_name_prepped_for_sql           = PrepForSql $Script:ScriptName
+        if ($log_batch_run_session) {
+            DisplayTimePassed ("Detect active batch run session...")
+            $Script:active_batch_run_session_id            = Get-SqlValue "SELECT batch_run_session_id FROM batch_run_sessions_v WHERE running"
+                    $FileTimeStampForParentScriptFormatted = $FileTimeStampForParentScript.ToString($DEFAULT_POWERSHELL_TO_POSTGRES_TIMESTAMP_FORMAT)
+                    $script_name_prepped_for_sql           = PrepForSql $Script:ScriptName
 
-        ############################################################################################################################
-        if ($script_position_in_lineup -in 'Starting', 'Starting-Ending') {
-            .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
-            if ($null -ne $Script:active_batch_run_session_id) {
-                Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', marking_ended_after_overrun = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
-            }
-            DisplayTimePassed ("Creating or ending(?) session entry...")
+            ############################################################################################################################
+            if ($script_position_in_lineup -in 'Starting', 'Starting-Ending') {
+                .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'before_session_starts'
+                if ($null -ne $Script:active_batch_run_session_id) {
+                    Invoke-Sql "
+                        UPDATE
+                            batch_run_sessions_v
+                        SET
+                            running                     = NULL,
+                            session_ending_script       = '$ScriptName',
+                            marking_ended_after_overrun = CURRENT_TIMESTAMP
+                        WHERE
+                            running
+                        " -LogSqlToHost|Out-Null
+                }
+                DisplayTimePassed ("Creating or ending(?) session entry...")
 
-            $Script:active_batch_run_session_id = Get-SqlValue "
-                INSERT INTO batch_run_sessions_v(
-                    last_script_ran
-                ,   session_starting_script
-                ,   caller_starting
-                ,   triggered_by_login
-                ,   trigger_type
-                ,   trigger_id
-                ) VALUES(
-                    '$Script:ScriptName'
-                ,   '$Script:ScriptName'
-                ,   '$Script:Caller'
-                ,   '$triggered_by_login'
-                ,   '$triggerType'
-                ,   '$triggerId'
-                )
-                RETURNING batch_run_session_id
-                " -LogSqlToHost
-            Invoke-Sql "UPDATE batch_run_session_active_running_values_ext_v SET active_batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null # Flush active session regardless of how this script was run.
-            $Script:batch_run_session_task_id      = Get-SqlValue("
-            INSERT INTO
-                batch_run_session_tasks_v(
-                    batch_run_session_id,
-                    script_changed,
-                    script_name,
-                    triggered_by_login,
-                    trigger_type,
-                    trigger_id
-                )
-                VALUES(
-                    $($Script:active_batch_run_session_id),
-                    '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
-                    $script_name_prepped_for_sql
-                ,   '$triggered_by_login'
-                ,   '$triggerType'
-                ,   '$triggerId'
-                        )
-                RETURNING batch_run_session_task_id
-            ") -LogSqlToHost
-        ############################################################################################################################
-        } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
-            DisplayTimePassed ("Ending(?) session entry...")
-            if ($triggerType -eq 'event') {
-                if ($null -eq $Script:active_batch_run_session_id) {
-                    Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE running" -LogSqlToHost|Out-Null
-                    # For safety, in case using the "running" flag fails.
-                    Invoke-Sql "UPDATE batch_run_sessions_v SET running = NULL, session_ending_script = '$ScriptName', ended = CURRENT_TIMESTAMP WHERE batch_run_session_id  = $($Script:active_batch_run_session_id)" -LogSqlToHost|Out-Null
-                }
-            }
-            . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
-            Invoke-Sql "DELETE FROM batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
-        ############################################################################################################################
-        } elseif ($script_position_in_lineup -eq 'In-Between') {
-            DisplayTimePassed ("inbetween session entry...")
-            # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
-            # if there is not an active session??????? Crash?????
-            if ($triggerType -eq 'Event') {
-                if (-not (Test-Path variable:Script:TestScheduleDrivenTaskDetection)) {
-                    $Script:TestScheduleDrivenTaskDetection = 'NULL'
-                }
-                # UPDATE open (previous) task log
-                $Script:active_batch_run_session_id    = Get-SqlValue("SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v")
+                $Script:active_batch_run_session_id = Get-SqlValue "
+                    INSERT INTO batch_run_sessions_v(
+                        last_script_ran
+                    ,   session_starting_script
+                    ,   caller_starting
+                    ,   triggered_by_login
+                    ,   trigger_type
+                    ,   trigger_id
+                    ) VALUES(
+                        '$Script:ScriptName'
+                    ,   '$Script:ScriptName'
+                    ,   '$Script:Caller'
+                    ,   '$triggered_by_login'
+                    ,   '$triggerType'
+                    ,   '$triggerId'
+                    )
+                    RETURNING
+                        batch_run_session_id
+                    " -LogSqlToHost
+                Invoke-Sql "
+                    UPDATE
+                        batch_run_session_active_running_values_ext_v
+                    SET
+                        active_batch_run_session_id  = $($Script:active_batch_run_session_id)
+                    " -LogSqlToHost|Out-Null # Flush active session regardless of how this script was run.
                 $Script:batch_run_session_task_id      = Get-SqlValue("
-                    INSERT INTO
-                        batch_run_session_tasks_v(
-                            batch_run_session_id,
-                            script_changed,
-                            script_name,
-                            triggered_by_login,
-                            trigger_type,
-                            trigger_id,
-                            is_testscheduledriventaskdetection
-                        )
-                        VALUES(
-                            $($Script:active_batch_run_session_id),
-                            '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
-                            $script_name_prepped_for_sql
-                        ,   '$triggered_by_login'
-                        ,   '$triggerType'
-                        ,   '$triggerId'
-                        ,   $($Script:TestScheduleDrivenTaskDetection)
-                        )
-                        RETURNING batch_run_session_task_id
-                    ") -LogSqlToHost
+                INSERT INTO
+                    batch_run_session_tasks_v(
+                        batch_run_session_id,
+                        script_changed,
+                        script_name,
+                        triggered_by_login,
+                        trigger_type,
+                        trigger_id
+                    )
+                    VALUES(
+                        $($Script:active_batch_run_session_id),
+                        '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                        $script_name_prepped_for_sql
+                    ,   '$triggered_by_login'
+                    ,   '$triggerType'
+                    ,   '$triggerId'
+                            )
+                    RETURNING
+                        batch_run_session_task_id
+                ") -LogSqlToHost
+            ############################################################################################################################
+            } elseif ($script_position_in_lineup -in 'Ending', 'Starting-Ending') {
+                DisplayTimePassed ("Ending(?) session entry...")
+                if ($triggerType -eq 'event') {
+                    if ($null -eq $Script:active_batch_run_session_id) {
+                        Invoke-Sql "
+                            UPDATE
+                                batch_run_sessions_v
+                            SET
+                                running               = NULL,
+                                session_ending_script = '$ScriptName',
+                                ended                 = CURRENT_TIMESTAMP
+                            WHERE
+                                running
+                            OR
+                                batch_run_session_id  = $($Script:active_batch_run_session_id)
+                            " -LogSqlToHost|Out-Null
+                    }
+                }
+                . .\__sanity_check_without_db_connection.ps1 'without_db_connection' 'after_session_ends'
+                Invoke-Sql "
+                    DELETE FROM
+                        batch_run_session_active_running_values_ext_v" -LogSqlToHost|Out-Null
+            ############################################################################################################################
+            } elseif ($script_position_in_lineup -eq 'In-Between') {
+                DisplayTimePassed ("inbetween session entry...")
+                # if user, skip messing with tasks. If downstream event from starting midstream user?????  Somehow cancel this?
+                # if there is not an active session??????? Crash?????
+                if ($triggerType -eq 'Event') {
+                    if (-not (Test-Path variable:Script:TestScheduleDrivenTaskDetection)) {
+                        $Script:TestScheduleDrivenTaskDetection = 'NULL'
+                    }
+                    # UPDATE open (previous) task log
+                    $Script:active_batch_run_session_id    = Get-SqlValue("SELECT active_batch_run_session_id FROM batch_run_session_active_running_values_ext_v")
+                    $Script:batch_run_session_task_id      = Get-SqlValue("
+                        INSERT INTO
+                            batch_run_session_tasks_v(
+                                batch_run_session_id,
+                                script_changed,
+                                script_name,
+                                triggered_by_login,
+                                trigger_type,
+                                trigger_id,
+                                is_testscheduledriventaskdetection
+                            )
+                            VALUES(
+                                $($Script:active_batch_run_session_id),
+                                '$FileTimeStampForParentScriptFormatted'::TIMESTAMPTZ,
+                                $script_name_prepped_for_sql
+                            ,   '$triggered_by_login'
+                            ,   '$triggerType'
+                            ,   '$triggerId'
+                            ,   $($Script:TestScheduleDrivenTaskDetection)
+                            )
+                            RETURNING
+                                batch_run_session_task_id
+                        ") -LogSqlToHost
+                }
             }
         }
     }
