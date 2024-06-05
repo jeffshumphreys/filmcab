@@ -3,31 +3,31 @@ DROP VIEW IF EXISTS simplified.scheduled_tasks_ext_v;
 CREATE OR REPLACE VIEW simplified.scheduled_tasks_ext_v
 AS WITH base AS (
 SELECT 
-    st.scheduled_task_id                                                                                                                                                                                        AS scheduled_task_id,
-    strs.scheduled_task_run_set_id                                                                                                                                                                              AS scheduled_task_run_set_id,
-    strs.scheduled_task_run_set_name                                                                                                                                                                            AS scheduled_task_run_set_name,
-    st.order_in_set                                                                                                                                                                                             AS order_in_set,
-    strs.run_start_time                                                                                                                                                                                         AS run_start_time,
-    st.scheduled_task_root_directory                                                                                                                                                                            AS scheduled_task_root_directory,
-    ((('\'::text || st.scheduled_task_root_directory) || '\'::text) || strs.scheduled_task_run_set_name) || '\'::text                                                                                           AS scheduled_task_directory,
-    (((('\'::text || st.scheduled_task_root_directory) || '\'::text) || strs.scheduled_task_run_set_name) || '\'::text) || st.scheduled_task_name                                                               AS uri,
-    (((('\'::text || st.scheduled_task_root_directory) || '\'::text) || strs.scheduled_task_run_set_name) || '\'::text) || st.scheduled_task_name                                                               AS scheduled_task_path,
-    lag(st.scheduled_task_name) OVER (PARTITION BY strs.scheduled_task_run_set_id ORDER BY st.order_in_set)                                                                                                     AS previous_task_name,
+    st.scheduled_task_id                                                                                                                                                                                             AS scheduled_task_id,
+    strs.scheduled_task_run_set_id                                                                                                                                                                                   AS scheduled_task_run_set_id,
+    strs.scheduled_task_run_set_name                                                                                                                                                                                 AS scheduled_task_run_set_name,
+    st.order_in_set                                                                                                                                                                                                  AS order_in_set,
+    strs.run_start_time                                                                                                                                                                                              AS run_start_time,
+    st.scheduled_task_root_directory                                                                                                                                                                                 AS scheduled_task_root_directory,
+    ((('\'::text || st.scheduled_task_root_directory) || '\'::text) || strs.scheduled_task_run_set_name) || '\'::text                                                                                                AS scheduled_task_directory,
+    (((('\'::text || st.scheduled_task_root_directory) || '\'::text) || strs.scheduled_task_run_set_name) || '\'::text) || st.scheduled_task_name                                                                    AS uri,
+    (((('\'::text || st.scheduled_task_root_directory) || '\'::text) || strs.scheduled_task_run_set_name) || '\'::text) || st.scheduled_task_name                                                                    AS scheduled_task_path,
+    lag(st.scheduled_task_name) OVER (PARTITION BY strs.scheduled_task_run_set_id ORDER BY st.order_in_set)                                                                                                          AS previous_task_name,
     lag((((('\'::text || st.scheduled_task_root_directory) || '\'::text) || strs.scheduled_task_run_set_name) || '\'::text) || st.scheduled_task_name) OVER (ORDER BY st.scheduled_task_run_set_id, st.order_in_set) AS previous_uri,
-    st.scheduled_task_name                                                                                                                                                                                      AS scheduled_task_name,
-    st.scheduled_task_short_description                                                                                                                                                                         AS scheduled_task_short_description,
+    st.scheduled_task_name                                                                                                                                                                                           AS scheduled_task_name,
+    st.scheduled_task_short_description                                                                                                                                                                              AS scheduled_task_short_description,
     CASE WHEN st.script_path_to_run IS NULL THEN 
-        'D:\qt_projects\' || st.scheduled_task_root_directory|| '\simplified\tasks\scheduled_tasks\' || strs.scheduled_task_run_set_name || '\' || st.scheduled_task_name ||'.ps1' ELSE st.script_path_to_run END AS script_path_to_run,
-        CASE WHEN st.script_path_to_run IS NOT NULL AND st.script_path_to_run !~~ (('%'::text || st.scheduled_task_name) || '.ps1'::text) THEN 'WARNING: Name mismatch'::TEXT ELSE ''::TEXT END                 AS warning,
-    st.execution_time_limit                                                                                                                                                                                     AS task_execution_time_limit,
-    st.trigger_execution_limit                                                                                                                                                                                  AS trigger_execution_time_limit,
-    MIN(st.order_in_set) OVER()                                                                                                                                                                                 AS min_order_in_set,
-    MAX(st.order_in_set) OVER()                                                                                                                                                                                 AS max_order_in_set
-    ,   COALESCE(repeat, FALSE)                                                                                                                                                                                 AS repeat
-    ,   repeat_interval
-    ,   repeat_duration
-    ,   stop_when_repeat_duration_reached
-    
+        'D:\qt_projects\' || st.scheduled_task_root_directory|| '\simplified\tasks\scheduled_tasks\' || strs.scheduled_task_run_set_name || '\' || st.scheduled_task_name ||'.ps1' ELSE st.script_path_to_run END    AS script_path_to_run,
+        CASE WHEN st.script_path_to_run IS NOT NULL AND st.script_path_to_run !~~ (('%'::text || st.scheduled_task_name) || '.ps1'::text) THEN 'WARNING: Name mismatch'::TEXT ELSE ''::TEXT END                      AS warning,
+    st.execution_time_limit                                                                                                                                                                                          AS task_execution_time_limit,
+    st.trigger_execution_limit                                                                                                                                                                                       AS trigger_execution_time_limit,
+    MIN(st.order_in_set) OVER()                                                                                                                                                                                      AS min_order_in_set,
+    MAX(st.order_in_set) OVER()                                                                                                                                                                                      AS max_order_in_set
+    ,   COALESCE(repeat, FALSE)                                                                                                                                                                                      AS repeat
+    ,   repeat_interval                                                                                                                                                                                              AS repeat_interval
+    ,   repeat_duration                                                                                                                                                                                              AS repeat_duration
+    ,   stop_when_repeat_duration_reached                                                                                                                                                                            AS stop_when_repeat_duration_reached
+    ,   strs.log_batch_run_session                                                                                                                                                                                   AS log_batch_run_session
    FROM scheduled_tasks st
      JOIN scheduled_task_run_sets strs USING (scheduled_task_run_set_id)
 )
