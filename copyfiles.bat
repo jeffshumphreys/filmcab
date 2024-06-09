@@ -1,0 +1,1 @@
+robocopy "O:\Video AllInOne" "H:\Video AllInOne" /E /XJ /MT:1 /XJD /XJF /XD /IPG:10 "__Julie might want to watch" "__Jeff wants to watch" "__By Actor"
