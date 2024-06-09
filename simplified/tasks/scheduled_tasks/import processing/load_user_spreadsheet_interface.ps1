@@ -26,33 +26,22 @@ Invoke-Sql "TRUNCATE TABLE $targettable RESTART IDENTITY" -LogSqlToHost
 $columns_csv = "
     seen,
     have,
-    manually_corrected_title, /* column 1 of index */
+    title,                    /* column 1 of index */
     year_of_season,
-    season,
-    episode,
-    genres_csv_list,
-    ended_with_right_paren,
-    type_of_media,            /* column 1 of index */
-    source_of_item,
-    who_csv_list,
-    aka_slsh_list,
-    characters_csv_list,
-    video_wrapper,
+    season,                   /* column 3 of index */
+    episode,                  /* column 4 of index */
+    tags,
+    type_of_media,            /* column 2 of index */
+    people,
+    characters,
+    akas,
     series_in,
-    imdb_id,
-    imdb_added_to_list_on,
-    imdb_changed_on_list_on,
-    release_year,
-    imdb_rating,
-    runtime_in_minutes,
-    votes,
-    released_on,
-    directors_csv_list,
-    imdb_my_rating,
-    imdb_my_rating_made_on,
     date_watched,
+    set_in_year,
+    greatest_line,
+    source_of_item,
     last_save_time,
-    creation_date"
+    file_creation_date"
 
 $columns = ($columns_csv.Replace("`r`n", ' ') -replace '\s+', ' ').Split(",")
 $widestcolumnname = 0;
