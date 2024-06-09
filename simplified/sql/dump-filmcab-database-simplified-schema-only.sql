@@ -3431,7 +3431,8 @@ CREATE TABLE simplified.scheduled_task_run_sets (
     run_start_time time without time zone DEFAULT '00:00:00'::time without time zone NOT NULL,
     reason_why text,
     last_generated timestamp with time zone,
-    last_run timestamp with time zone
+    last_run timestamp with time zone,
+    log_batch_run_session boolean DEFAULT true NOT NULL
 );
 
 
@@ -3449,6 +3450,13 @@ COMMENT ON TABLE simplified.scheduled_task_run_sets IS 'Use these to generate al
 --
 
 COMMENT ON COLUMN simplified.scheduled_task_run_sets.run_start_time IS 'If null, time start defaults to 2047';
+
+
+--
+-- Name: COLUMN scheduled_task_run_sets.log_batch_run_session; Type: COMMENT; Schema: simplified; Owner: postgres
+--
+
+COMMENT ON COLUMN simplified.scheduled_task_run_sets.log_batch_run_session IS 'The looping stuff is blowing up the active run session singleton so we no longer get the file run start and stop.';
 
 
 --
@@ -3632,7 +3640,8 @@ CREATE VIEW simplified.scheduled_tasks_ext_v AS
             COALESCE(st.repeat, false) AS repeat,
             st.repeat_interval,
             st.repeat_duration,
-            st.stop_when_repeat_duration_reached
+            st.stop_when_repeat_duration_reached,
+            strs.log_batch_run_session
            FROM (simplified.scheduled_tasks st
              JOIN simplified.scheduled_task_run_sets strs USING (scheduled_task_run_set_id))
         )
@@ -3659,6 +3668,7 @@ CREATE VIEW simplified.scheduled_tasks_ext_v AS
     base.repeat_interval,
     base.repeat_duration,
     base.stop_when_repeat_duration_reached,
+    base.log_batch_run_session,
         CASE
             WHEN (base.min_order_in_set = base.max_order_in_set) THEN 'Starting-Ending'::text
             WHEN (base.order_in_set = base.min_order_in_set) THEN 'Starting'::text
@@ -5223,83 +5233,36 @@ ALTER SEQUENCE simplified.tv_shows_tv_show_id_seq OWNED BY simplified.tv_shows.t
 
 CREATE TABLE simplified.user_spreadsheet_interface (
     id integer NOT NULL,
-    record_created_on_ts_wth_tz timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
     seen text,
     have text,
-    manually_corrected_title text,
+    title text,
     year_of_season text,
     season text,
     episode text,
-    genres_csv_list text,
-    ended_with_right_paren text,
+    tags text,
     type_of_media text,
-    source_of_item text,
-    who_csv_list text,
-    aka_slsh_list text,
-    characters_csv_list text,
-    video_wrapper text,
+    people text,
+    characters text,
+    akas text,
     series_in text,
-    imdb_id text,
-    imdb_added_to_list_on text,
-    imdb_changed_on_list_on text,
-    release_year text,
-    imdb_rating text,
-    runtime_in_minutes text,
-    votes text,
-    released_on text,
-    directors_csv_list text,
-    imdb_my_rating text,
-    imdb_my_rating_made_on text,
     date_watched text,
+    set_in_year text,
     last_save_time text,
-    creation_date text,
-    hash_of_all_columns text GENERATED ALWAYS AS (encode(sha256(((((((((((((((((((((((((((COALESCE(seen, 'NULL'::text) || COALESCE(have, 'NULL'::text)) || COALESCE(manually_corrected_title, 'NULL'::text)) || COALESCE(genres_csv_list, 'NULL'::text)) || COALESCE(ended_with_right_paren, 'NULL'::text)) || COALESCE(type_of_media, 'NULL'::text)) || COALESCE(source_of_item, 'NULL'::text)) || COALESCE(who_csv_list, 'NULL'::text)) || COALESCE(aka_slsh_list, 'NULL'::text)) || COALESCE(characters_csv_list, 'NULL'::text)) || COALESCE(video_wrapper, 'NULL'::text)) || COALESCE(series_in, 'NULL'::text)) || COALESCE(imdb_id, 'NULL'::text)) || COALESCE(imdb_added_to_list_on, 'NULL'::text)) || COALESCE(imdb_changed_on_list_on, 'NULL'::text)) || COALESCE(release_year, 'NULL'::text)) || COALESCE(imdb_rating, 'NULL'::text)) || COALESCE(runtime_in_minutes, 'NULL'::text)) || COALESCE(votes, 'NULL'::text)) || COALESCE(released_on, 'NULL'::text)) || COALESCE(directors_csv_list, 'NULL'::text)) || COALESCE(imdb_my_rating, 'NULL'::text)) || COALESCE(imdb_my_rating_made_on, 'NULL'::text)) || COALESCE(date_watched, 'NULL'::text)) || COALESCE(last_save_time, 'NULL'::text)) || COALESCE(creation_date, 'NULL'::text)))::bytea), 'hex'::text)) STORED,
-    dictionary_sortable_title text,
-    record_added_on timestamp with time zone DEFAULT clock_timestamp()
+    file_creation_date text,
+    greatest_line text,
+    source_of_item text,
+    record_created_on_ts_wth_tz timestamp with time zone DEFAULT clock_timestamp() NOT NULL
 );
 
 
 ALTER TABLE simplified.user_spreadsheet_interface OWNER TO postgres;
 
 --
--- Name: TABLE user_spreadsheet_interface; Type: COMMENT; Schema: simplified; Owner: postgres
+-- Name: COLUMN user_spreadsheet_interface.set_in_year; Type: COMMENT; Schema: simplified; Owner: postgres
 --
 
-COMMENT ON TABLE simplified.user_spreadsheet_interface IS 'The ODS gets imported into here. The user can edit in LibreOffice Calc and add entries.  Eventually the script will update the "have"attribute when manually_corrected_title matches something we have in files.';
+COMMENT ON COLUMN simplified.user_spreadsheet_interface.set_in_year IS 'For fun';
 
-
---
--- Name: user_spreadsheet_interface_anal_v; Type: VIEW; Schema: simplified; Owner: postgres
---
-
-CREATE VIEW simplified.user_spreadsheet_interface_anal_v AS
- WITH how_many_entries AS (
-         SELECT count(*) AS how_many_entries_ct
-           FROM simplified.user_spreadsheet_interface usi
-        ), missing_right_parens AS (
-         SELECT count(*) AS missing_right_parens_ct
-           FROM simplified.user_spreadsheet_interface usi
-          WHERE (("right"(TRIM(BOTH FROM usi.manually_corrected_title), 1) <> ')'::text) AND (usi.type_of_media <> 'Movie about…'::text))
-        ), multiple_spaces AS (
-         SELECT count(*) AS multiple_spaces_ct
-           FROM simplified.user_spreadsheet_interface usi
-          WHERE (usi.manually_corrected_title ~~ '%  %'::text)
-        ), unseen_and_donthave AS (
-         SELECT count(*) AS unseen_and_donthave_ct
-           FROM simplified.user_spreadsheet_interface usi
-          WHERE (((usi.seen <> ALL (ARRAY['y'::text, 's'::text, '?'::text])) OR (usi.seen IS NULL)) AND ((usi.have <> ALL (ARRAY['n'::text, 'x'::text, 'd'::text, 'na'::text, 'c'::text, 'h'::text, 'y'::text])) OR (usi.have IS NULL)))
-        )
- SELECT how_many_entries.how_many_entries_ct,
-    missing_right_parens.missing_right_parens_ct,
-    multiple_spaces.multiple_spaces_ct,
-    unseen_and_donthave.unseen_and_donthave_ct
-   FROM how_many_entries,
-    missing_right_parens,
-    multiple_spaces,
-    unseen_and_donthave;
-
-
-ALTER TABLE simplified.user_spreadsheet_interface_anal_v OWNER TO postgres;
 
 --
 -- Name: user_spreadsheet_interface_id_seq; Type: SEQUENCE; Schema: simplified; Owner: postgres
@@ -5312,7 +5275,6 @@ ALTER TABLE simplified.user_spreadsheet_interface ALTER COLUMN id ADD GENERATED 
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
-    CYCLE
 );
 
 
@@ -5743,19 +5705,11 @@ ALTER TABLE ONLY simplified.acronyms
 
 
 --
--- Name: user_spreadsheet_interface ak_hash_of_all_columns; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+-- Name: user_spreadsheet_interface ak_title_release_year_media_type_season_episode; Type: CONSTRAINT; Schema: simplified; Owner: postgres
 --
 
 ALTER TABLE ONLY simplified.user_spreadsheet_interface
-    ADD CONSTRAINT ak_hash_of_all_columns UNIQUE (hash_of_all_columns);
-
-
---
--- Name: user_spreadsheet_interface ak_title_release_year_media_type_season; Type: CONSTRAINT; Schema: simplified; Owner: postgres
---
-
-ALTER TABLE ONLY simplified.user_spreadsheet_interface
-    ADD CONSTRAINT ak_title_release_year_media_type_season UNIQUE (manually_corrected_title, type_of_media, season);
+    ADD CONSTRAINT ak_title_release_year_media_type_season_episode UNIQUE (title, type_of_media, season, episode);
 
 
 --
@@ -6111,6 +6065,14 @@ ALTER TABLE ONLY simplified.scheduled_tasks
 
 ALTER TABLE ONLY simplified.scheduled_task_run_sets
     ADD CONSTRAINT scheduled_task_run_sets_pk PRIMARY KEY (scheduled_task_run_set_id);
+
+
+--
+-- Name: scheduled_task_run_sets scheduled_task_run_sets_unique; Type: CONSTRAINT; Schema: simplified; Owner: postgres
+--
+
+ALTER TABLE ONLY simplified.scheduled_task_run_sets
+    ADD CONSTRAINT scheduled_task_run_sets_unique UNIQUE (scheduled_task_run_set_name);
 
 
 --
