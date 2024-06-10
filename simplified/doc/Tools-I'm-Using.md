@@ -68,30 +68,29 @@ description: >-
     * Video DownloadHelper 8.2.2.8 (**$28** permanent) (_Works good, though quality so far of downloads is limited.  Source of last resort._)
     * DownloadHelper CoApp 2.0.19.0
 * Jackett 0.21.1025                (_Probably misconfigured. Does it matter?_)
-* ~~Telegram - Channel iPapkornFbot~~  (_Haven't tried it yet. Now I've deleted Telegram, so..._)
 * archive.com                      (_Works for old films, often low rez._)
+* ~~Telegram - Channel iPapkornFbot~~  (_Haven't tried it yet. Now I've deleted Telegram, so..._)
 
 #### File Management
 
 * Windows Explorer
 * Link Shell Extension 3.9.3.3 (_Explorer extension_)
-* ~~Fsync~~
 * fsutil
     * fsutil file queryfileid  (_Get ntfs id for (eventual) use in detecting when files change name but are not new files so don't need new file hash_)
     * fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1 (_I want to move stuff off of spindles for space saving, but leave a link that MX Player can follow_)
 * Everything (1.4.1.1005)      (_Fast!_)
 * Advanced Renamer 3.91        (_Used to get crazy on cleanin' up mass names of episodes from their downloaded torrent names_)
-* ~~MakeMKV 1.17.6~~           (_If you have all the DVD files on disk (not a mounted ISO), it splits it into episodes and chapters. WARNING:Has virus, Defender blocked. Expired._)
 * robocopy                     (_Fast move of files, mirroring published to backup._)
+* ~~MakeMKV 1.17.6~~           (_If you have all the DVD files on disk (not a mounted ISO), it splits it into episodes and chapters. WARNING:Has virus, Defender blocked. Expired._)
 
 #### Video Play
 
 * Kodi 21.0                      (_Beautiful and free. Running on FireTV as an APK. Thumbnails, last watching, grabs video metadata from TMDB. multi-threaded GUI._)
-* ~~VLC 3.0.20~~                 (_latest always. Can't use well on firetv. Uses it's own codecs so not always up to date. Use for my audio plays._)
-* ~~X-plore (FireTV) 4.32 ($6)~~ (_almost dead, buggy as hell, getting WORSE_)
-* ~~MX Player~~                  (_linux (firetv) only, can't play protected DSL Audio EAC. Need to try pro version. Copy of pro failed. All bad. Blows up on audio files. No thumbnails. Switching to kodi._)
+* X-plore $6                     (_necessary to move APK files from windows to Amazon Fire TV and install._)
 * MPC-HC (64-bit) 2.2.0          (_only way to get subtitles (some) and plays more than MX Player, but only on Desktop_)
-* K-Lite Mega Codec Pack 18.2.6  (_Being used I assume?_)
+* K-Lite Mega Codec Pack 18.2.6  (_Being used I assume? (on desktop)_)
+* VLC 3.0.20                     (_Can't use well on firetv. Uses it's own codecs so not always up to date. Use for my audio plays._)
+* ~~MX Player~~                  (_linux (firetv) only, can't play protected DSL Audio EAC. Need to try pro version. Copy of pro failed. All bad. Blows up on audio files. No thumbnails. Switching to kodi._)
 
 #### Video Edit
 
@@ -105,14 +104,14 @@ description: >-
 
 #### Scheduling
 
-* Windows Task Scheduler on Windows 10 (_Works, but have to be admin to use PowerShell Cmdlets now._)
+* Windows Task Scheduler on Windows 10 (_Works, but have to be admin to use PowerShell Cmdlets now. I have PS scripts now to update and deploy the scripts, database-driven._)
 
 #### User Interface
 
 * ~~Excel~~                 (_Doesn't work that great for importing into database. And costs money._)
 * LibreOffice Calc 24.2.0.3 (_Browse all the files, fix titles, add release year, add tags and genres, characters, actors._)
 * Google Keep               (_Quickly make notes on my phone that go to my desktop while I'm watching something_)
-* Google Sheets             (_Better than LibreOffice in that it's on my phone and protected in the cloud. Better and more clever than O365, too. Simpler Conditional Formatting, simpler complex cell formatting, better column value wrapping)
+* Google Sheets             (_Better than LibreOffice in that it's on my phone and protected in the cloud. Better and more clever than O365, too. Simpler Conditional Formatting, simpler complex cell formatting, better column value wrapping_)
 * offload_published_directories_selecting_using_gui.ps1 (_WinForms script_)
 
 #### Source Control
@@ -123,34 +122,35 @@ description: >-
 
 #### Design
 
-* draw.io v22.1.2 (_for flowcharting the bigger picture, all the different tasks, logging files found, downloaded, starting downloads, renaming, publishing, pulling TMDB and IMDB metadata and loading and splitting json into columns, etc._)
+* draw.io v22.1.2            (_for flowcharting the bigger picture, all the different tasks, logging files found, downloaded, starting downloads, renaming, publishing, pulling TMDB and IMDB metadata and loading and splitting json into columns, etc._)
 * ~~Navicat Premium 16.1.2~~ (_Works. Iffy with round-trip gen, but works if I'm delicate. And it pushes to PostgreSQL 15._)
 
 ## Tools Will Not Be Using
 
 * Visual Studio
-* Microsoft SQL Server (_$$$_)
-* Visio, LucidChart
+* Microsoft SQL Server (_$$$. And Postgres is better in so many ways._)
+* Visio, LucidChart    (_$$_)
 * ChatGPT, AI, Machine learning, Neural Nets
 * Java, Python, Perl, C++
 * The cloud
 * Azure, AWS
-* GitHub Copilot
+* GitHub Copilot       (_Makes you stupid_)
 * Hey Code voice command
 * Amazon voice commands
-* FileBot ($6) _Bought. Fakes you out that you can use it for free, but it won't fix a name til you buy. And the output is COMPLETELY UNCONFIGURABLE._
-* gcc, mingw, Qt _Too hard for me. Too many errors were slipping by because I couldn't wrap my head around the complexity._
+* FileBot ($6)         (_Bought. Fakes you out that you can use it for free, but it won't fix a name til you buy. And the output is COMPLETELY UNCONFIGURABLE._)
+* gcc, mingw, Qt       (_Too hard for me. Too many errors were slipping by because I couldn't wrap my head around the complexity._)
 
 ## Tools Tried Using but Failed
 
-* ~~MindManager~~ (_Fun, but no longer bouncing ideas around_)
-* ~~ERwin~~ (_No roundtrip support for Postgres_)
+* MindManager               (_Fun, but no longer bouncing ideas around_)
+* ERwin                     (_No roundtrip support for Postgres_)
 * boost 1.83.0 (stacktrace) (_No longer using C++_)
-* cygwin (_breaks Qt minGW build if anywhere in path, though probably a partial install might work_)
+* cygwin                    (_breaks Qt minGW build if anywhere in path, though probably a partial install might work_)
 * MSYS2
-* PGXN (_extensions to postgres do not install on Windows._)
-  * ddlx PostgreSQL extension 0.27.0 (Oct 2023) "DDL eXtractor functions for PostgreSQL" on PGXN (failed to install)
-* pip (_installed packages, but then I didn't use, or couldn't._)
+* PGXN                      (_extensions to postgres do not install on Windows._)
+  * ddlx PostgreSQL extension 0.27.0 (Oct 2023) (_failed to install_)
+* pip                       (_installed packages, but then I didn't use, or couldn't._)
+* adblink 6.1               (_cannot connect to my Amazon Fire TV. Needed it to disable Sleep and Screensaver._)
 
 ## Tools Planning to Use
 
