@@ -13,12 +13,16 @@
 try {
 . .\_dot_include_standard_header.ps1
 
-# /E for copying empty subdirectories
-# /J for copy using unbuffered I/O (recommended for large files).
-# /V :: produce Verbose output, showing skipped files.
-# /NOOFFLOAD Copy files without using the Windows Copy Offload mechanism.
-# /R:1 retry once instead of default 1 million
-# /XJ :: eXclude symbolic links (for both files and directories) and Junction points.  (Not doing this, just FYI)
+# /E     :: for copying empty subdirectories
+# /J     :: for copy using unbuffered I/O (recommended for large files).
+# /V     :: produce Verbose output, showing skipped files.
+# /R:1   :: retry once instead of default 1 million
+# /XJ    :: eXclude symbolic links (for both files and directories) and Junction points.  (Not doing this, just FYI, Copies all junctions as real files)
+# /IPG   :: millseconds between packets. Hopefully file system won't lock up
+# /PURGE :: Dangerous!!!
+# /TEE   :: Show log on screen as well as to file
+# /Z     :: restartable mode
+
 # Not dating the log; just want the last one for now.
 ###### Fri Feb 23 10:48:01 MST 2024 The other day, I went and RENAMED all the subfolders under _Mystery in order to
     # 1) Append their other name, either their foreign name, their UK/American Release name, or their rename.
@@ -30,8 +34,9 @@ try {
 
     # TODO: When source file has same hash, date and size as a file previously in same directory, and the previous file is gone, and it is not in another directory, rename target on backup to new file name.
 Log-Line "Starting Robocopy"
-Robocopy.exe "O:\Video AllInOne" "G:\Video AllInOne Backup" /E /J /PURGE /R:1 /V /UNILOG:D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
-Get-Content D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.robocopy.log
+Robocopy.exe "O:\Movies"   "G:\Movies"   /E /J /PURGE  /R:1 /V /UNILOG:D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.movies.robocopy.log   /TEE /Z
+Log-Line "Finished Movies"
+Robocopy.exe "O:\TV Shows" "G:\TV Shows" /E /J /PURGE  /R:1 /V /UNILOG:D:\qt_projects\filmcab\simplified\_log\back_up_unbackedup_published_media.tv_shows.robocopy.log /TEE /Z
 Log-Line "Finished Robocopy"
 
 }
