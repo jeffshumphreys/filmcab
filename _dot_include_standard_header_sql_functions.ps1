@@ -467,5 +467,27 @@ Function Get-SqlColDefinitions {
     }
 }
 
+
+Function Get-ColumnDefinitions($schema, $table) {
+    throw "Not finished"
+    $columnDefs            = $DatabaseConnection.GetSchema("Columns", @('', $target_schema, $target_table))|Select column_Name, type_name, nullable, ordinal_position, auto_increment, column_def,
+    @{Name='is_unique_by_itself';Expression={$false}}|
+    Where auto_increment -eq 0|
+    Where column_def -is [DBNull]|
+    Where column_name -NotIn "$target_source_id_base`_as_integer", "$target_source_id_base`_not_found_in_api", "$target_source_id_base`_last_found_in_api", 'record_updated_on', 'pulled_down_new_json_on', 'captured_json'
+    $columnDefs|Format-Table
+    $indexesOnTable        = $DatabaseConnection.GetSchema("Indexes", @('', $target_schema, $target_table))|Select index_qualifier, index_name, type, ordinal_position, column_name, non_unique
+    $possibleKeyIndexesOnTable = $indexesOnTable|group index_name|select name, count|Where count -eq 1
+
+    foreach ($item in $columnDefs) {
+        if ($indexesOnTable.COLUMN_NAME -contains $item.column_name) {
+            $indexName = ($indexesOnTable|where ORDINAL_POSITION -eq 1|where NON_UNIQUE -eq 0|where COLUMN_NAME -eq ($item.column_name)|select * -First 1).index_name
+
+            if ($possibleKeyIndexesOnTable.name -contains $indexName) {
+                $item.is_unique_by_itself = $true
+            }
+        }
+    }
+}
 # When a script fails in the includes, this should help know how far it got.
 Write-Host "Exiting standard_header (sql functions)"
